@@ -899,7 +899,7 @@ C     &                FILE='ROCHE')
             IF(JSPIN(2).GT.0.D0)THEN
                IF(IMB.LT.10.OR.ABS(DJMB)/JSPIN(2).GT.0.001)THEN
                   if(rank.eq.0)
-     &      WRITE (6,40) TTOT,MASS,KW1,KW2,SEP,ECC,OSPIN(1),DJMB,DTM
+     &            WRITE (6,40)  MASS, SEP, DJMB, DTM
                ENDIF
             ENDIF
          ENDIF
@@ -1426,8 +1426,10 @@ C     &                FILE='ROCHE')
                IF (RAD(1)+RAD(2).LT.SEP)THEN
                   IXXX = 8
                   COALS = .TRUE.
+* Abbas bug fix ---------------------
                   KW1 = KTYPE(KSTAR(J1),KSTAR(J2))
                   IF (KW1.GT.100) KW1 = KW1 - 100
+* -----------------------------------              
                   WRITE(6,*) ' IXXX=8 K(1),K(2) ', KSTAR(J1),KSTAR(J2),
      &            ' KW1,KW2 ',KW1,KW2,' J1, J2 ', NAME(J1), NAME(J2)     
                   GO TO 60

@@ -129,9 +129,9 @@
 *
 	  if(rank.eq.0)then
       WRITE (6,40)  (IPROC(J),XSPEED(J),J=1,9)
- 40   FORMAT (' Max Speedup Irr: ',1P,9(I5,D9.2))
+ 40   FORMAT (' Max Speedup Irr: ',1P,9(I5,E9.2))
       WRITE (6,41)  (IPROC(J),XSPEDR(J),J=1,9)
- 41   FORMAT (' Max Speedup Reg: ',1P,9(I5,D9.2))
+ 41   FORMAT (' Max Speedup Reg: ',1P,9(I5,E9.2))
       end if
 *
 c$$$      DO 50 J = 1,NMAX

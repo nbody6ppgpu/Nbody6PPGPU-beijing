@@ -434,6 +434,8 @@ C     STEP(I2) = DTMAX
       VI = SQRT(XDOT(1,I2)**2 + XDOT(2,I2)**2 + XDOT(3,I2)**2)
       NAME1 = NAME(I1)
       NAME2 = NAME(I2)
+      R1 = RADIUS(I1)*SU
+      R2 = RADIUS(I2)*SU
 *
       DO 20 K = 1,3
           X(K,I1) = CM(K)
@@ -543,12 +545,16 @@ C     STEP(I2) = DTMAX
                       X0DOT(K,J) = XDOT(K,J)
                       X0(K,J) = X(K,J)
    25             CONTINUE
+*       The ghost particles are not removed completely after cmbody (only perturber list is checked)
+*       To avoid ghost particle get new step
+                  IF(BODY(J).GT.0) THEN
 *     Remove J particle first from NXTLST
-                  call delay_remove_tlist(J,STEP,DTK)
-                  CALL FPOLY1(J,J,0)
-                  CALL FPOLY2(J,J,0)
+                     call delay_remove_tlist(J,STEP,DTK)
+                     CALL FPOLY1(J,J,0)
+                     CALL FPOLY2(J,J,0)
 *     Add J particle into NLSTDELAY
-                  call delay_store_tlist(J)
+                     call delay_store_tlist(J)
+                  END IF
    30         CONTINUE
           END IF
           TPREV = TIME - STEPX
@@ -680,11 +686,12 @@ C     STEP(I2) = DTMAX
 *
 *       Open the second coalescence unit #26 first time.
       IF (FIRST.AND.(IQCOLL.EQ.3.OR.KSTARI.GE.10)) THEN
-          OPEN (UNIT=26,STATUS='UNKNOWN',FORM='FORMATTED',FILE='COAL2')
+          OPEN (UNIT=26,STATUS='UNKNOWN',FORM='FORMATTED',
+     &        FILE='coal.26',ACCESS='APPEND')
           FIRST = .FALSE.
 *
 *       Print cluster scaling parameters at start of the run.
-          if(rank.eq.0)then
+          if(rank.eq.0.and.TTOT.eq.0)then
           WRITE (26,82)  RBAR, BODYM*ZMBAR, BODY1*ZMBAR, TSCALE,
      &                   NBIN0, NZERO
    82     FORMAT (/,4X,'MODEL:    RBAR =',F5.1,'  <M> =',F6.2,
@@ -692,8 +699,22 @@ C     STEP(I2) = DTMAX
      &                 '  NB =',I4,'  N0 =',I6,//)
 *
           WRITE (26,84)
-   84     FORMAT ('    TIME  NAME  NAME  K1  K2  IQ  M1   M2',
-     &            '   DM    R1     R2    r/Rc   R     ECC      P',/)
+   84     FORMAT ('          TIME[NB]        ',
+     &         '   NAME(I1) ',
+     &         '   NAME(I2) ',
+     &         '    K*(I1)  ',
+     &         '    K*(I2)  ',
+     &         '   IQCOLL   ',
+     &         '          M(I1)[M*]       ',
+     &         '          M(I2)[M*]       ',
+     &           '          DM[M*]          ',
+     &           '          RS(I1)[R*]      ',
+     &           '          RS(I2)[R*]      ',
+     &           '           RI/RC          ',
+     &           '           R12[R*]        ',
+     &           '           ECC            ',
+     &           '          SEMI[R*]        ',
+     &           '           P[days]        ')
           end if
       END IF
 *
@@ -707,10 +728,11 @@ C     STEP(I2) = DTMAX
      &             '  M =',F6.2,'  RCOLL =',1P,E8.1,' EB =',E9.1,
      &             '  DP =',E9.1,'  E =',0P,F8.4)
 *
-          WRITE (26,86)  TTOT, NAME1, NAME2, KSTAR(I1), KSTAR(I2),
+          WRITE (26,*)  TTOT, NAME1, NAME2, KSTAR(I1), KSTAR(I2),
      &                   IQCOLL, ZM1, ZM2, DM*ZMBAR, R1, R2, RI/RC,
-     &                   RCOLL*SU, ECC, TK
-   86     FORMAT (1X,F7.1,2I6,3I4,3F5.1,2F7.2,F6.2,F7.2,F9.5,1P,E9.1)
+     &                   RCOLL*SU, ECC, SEMI*SU, TK
+C   86     FORMAT (1X,1P,E17.10,2I8,3I4,3F5.1,2F7.2,F6.2,F7.2,F9.5,
+C     &         1P,E9.1)
           CALL FLUSH(26)
           end if
           GO TO 95

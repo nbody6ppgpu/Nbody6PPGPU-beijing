@@ -564,106 +564,71 @@ static cudaPointer <Force>          ftot [MAX_GPU];
 static cudaPointer <uint16[NJBLOCK][NNB_PER_BLOCK]> nbpart[MAX_GPU];
 static cudaPointer <int> nblist [MAX_GPU];
 static cudaPointer <int> nboff  [MAX_GPU];
-int numCPU, numGPU;
+static int numCPU, numGPU;
 static int joff[MAX_GPU + 1];
 static int nbody, nbodymax;
 static int devid[MAX_GPU];
 static bool is_open = false;
 static bool devinit = false;
 
-void GPUNB_devinit(int irank)
-  {
+void GPUNB_devinit(int irank){
+	if(devinit) return;
 
-  if(devinit) return;
+	assert(NXREDUCE >= NJBLOCK);
+	assert(NXREDUCE <= 32);
 
-  assert(NXREDUCE >= NJBLOCK);
-  assert(NXREDUCE <= 32);
-
-  cudaGetDeviceCount(&numGPU);
-
-  assert(numGPU <= MAX_GPU);
-
-  char *gpu_list = getenv("GPU_LIST");
-
-  if(gpu_list)
-    {
-// get GPU list from environment variable
-    numGPU = 0;
-    char *p = strtok(gpu_list, " ");
-    while(p)
-      {
-      devid[numGPU++] = atoi(p);
-      p = strtok(NULL, " ");
-      assert(numGPU <= MAX_GPU);
-      }
-    }
-  else
-    {
-// use all GPUs
-    for(int i=0; i<numGPU; i++) devid[i] = i;
-    }
+	cudaGetDeviceCount(&numGPU);
+	assert(numGPU <= MAX_GPU);
+	char *gpu_list = getenv("GPU_LIST");
+	if(gpu_list){
+		// get GPU list from environment variable
+		numGPU = 0;
+		char *p = strtok(gpu_list, " ");
+		while(p){
+			devid[numGPU++] = atoi(p);
+			p = strtok(NULL, " ");
+			assert(numGPU <= MAX_GPU);
+		}
+	}else{
+		// use all GPUs
+		for(int i=0; i<numGPU; i++){
+			devid[i] = i;
+		}
+	}
 	
-// numGPU = 1;
-
-//	omp_set_num_threads(1);
-
+	// numGPU = 1;
 #pragma omp parallel
 	{
-	int tid = omp_get_thread_num();
-	if(tid == 0) numCPU = omp_get_num_threads();
+		int tid = omp_get_thread_num();
+		if(tid == 0) numCPU = omp_get_num_threads();
 	}
-
 	assert(numCPU <= MAX_CPU);
 	assert(numGPU <= numCPU);
-
-/*
 #pragma omp parallel
 	{
-	int tid = omp_get_thread_num();
-	if(tid < numGPU) cudaSetDevice(devid[tid]);
+		int tid = omp_get_thread_num();
+		if(tid < numGPU){
+			cudaSetDevice(devid[tid]);
+		}
 	}
-*/
-
-// Berczik 2019.03.06
-
-    int ddevid = irank%numGPU;
-    cudaSetDevice(ddevid);
-    for(int i=0; i<numGPU; i++) devid[i] = ddevid;
-
 
 #ifdef PROFILE
     char hostname[150];
     memset(hostname,0,150);
     gethostname(hostname,150);
-
-    cudaDeviceProp prop;
-    cudaGetDeviceProperties(&prop, ddevid);
-    fprintf(stderr, "# GPU_1 initialization - rank: %d; HOST %s; NGPU %d; device: %d %s\n", irank, hostname, numGPU, ddevid, prop.name);
-#endif
-
-// Berczik 2019.03.06
-
-#ifdef PROFILE111
-    char hostname[150];
-    memset(hostname,0,150);
-    gethostname(hostname,150);
-
-    for(int i=0; i<numGPU; i++)
-      {
+	for(int i=0; i<numGPU; i++){
       cudaDeviceProp prop;
       cudaGetDeviceProperties(&prop, devid[i]);
       fprintf(stderr, "# GPU initialization - rank: %d; HOST %s; NGPU %d; device: %d %s\n", irank, hostname, numGPU, devid[i], prop.name);
-      }
+	}
 #endif
-
     devinit = true;
-  }
-
+}
 
 void GPUNB_open(int nbmax,int irank){
 	time_send = time_grav = time_reduce = time_out = 0.0;
 	numInter = 0;
-        icall = ini = isend = 0;
+    icall = ini = isend = 0;
 	nbodymax = nbmax;
 
 	GPUNB_devinit(irank);
@@ -675,16 +640,11 @@ void GPUNB_open(int nbmax,int irank){
 	is_open = true;
 
 
-// Berczik 2019.03.06
-
 	for(int id=0; id<numGPU + 1; id++){
 		joff[id] = (id * nbmax) / numGPU;
 	}
 
-	omp_set_num_threads(numGPU);
-
-//	omp_set_num_threads(1);
-
+	// omp_set_num_threads(numGPU);
 #pragma omp parallel
 	{
 		int tid = omp_get_thread_num();
@@ -700,12 +660,9 @@ void GPUNB_open(int nbmax,int irank){
 			nboff [tid].allocate(NIMAX+1);
 		}
 	}
-
-
 #ifdef PROFILE
     fprintf(stderr, "# Open GPU regular force - rank: %d; nbmax: %d\n", irank, nbmax);
 #endif
-
 }
 
 void GPUNB_close(){

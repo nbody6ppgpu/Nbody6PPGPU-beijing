@@ -91,6 +91,14 @@
    15     CONTINUE
    20 CONTINUE
 *
+      DO 27 I = 1,N
+        write (991,28) BODY(I)*ZMBAR, (X(K,I)*RBAR,K=1,3),
+     &                (XDOT(K,I)*VSTAR,K=1,3), NAME(I)
+   27 CONTINUE
+
+   28 FORMAT (F10.3,1P,6E18.7,I16)
+      CALL FLUSH(991)
+
 *       Initialize fixed block steps (64 levels).
       CALL IBLOCK
 *

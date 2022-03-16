@@ -275,7 +275,7 @@ c$$$     &        EBIN,EMERGE
          WRITE(6,50) TTOT, ttot*tscale, Q, DE, DELTA1,DETOT, E(3),
      &        ZKIN, POT, ETIDE,
      &        BE(3),EBIN,EMERGE,ESUB,ECOLL,EMDOT,ECDOT
- 50      FORMAT (/,' ADJUST:  TIME',1P,D15.5,0P,'  T[Myr]',
+ 50      FORMAT (/,' ADJUST:  TIME',1P,E15.5,0P,'  T[Myr]',
      &        F8.2,'  Q',F5.2,'  DE',1P,E12.3,' DELTA',E12.3,
      &        ' DETOT',E12.3,' E',E12.3,' EKIN',E12.3,' POT',E12.3,
      &        ' ETIDE',E12.3,' ETOT', E12.3,
@@ -305,7 +305,7 @@ c$$$     &        EBIN,EMERGE
      &        ttksblist,ttksints,ttksintp,ttkssub,ttksbar,ttkscp,
      &        ttkscmb,ttksins,ttksinit,ttksterm,tttq,ttup,tttp,
      &        xtsub1,xtsub2
- 56      FORMAT(1X,I3,I8,F13.5,40F10.2,1P,2D13.5)
+ 56      FORMAT(1X,I3,I8,F13.5,40F10.2,1P,2E13.5)
          CALL FLUSH(6)
       end if
 

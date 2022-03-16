@@ -130,8 +130,8 @@
 *    &     GRAV*XMB/SEMI,(1.0D0 - RIJ/SEMI)**2,
 *    &     RDOT**2/(SEMI*GRAV*XMB)
             END DO
-*111  FORMAT(1X,I5,1P,12D15.5)
-*112  FORMAT(1X,I5,1P,12D15.5)
+*111  FORMAT(1X,I5,1P,12E15.5)
+*112  FORMAT(1X,I5,1P,12E15.5)
          END IF
       END IF
 
@@ -264,7 +264,7 @@
       if(rank.eq.0)
      *     WRITE (6,65)  SX, ETOT, BODY(1), BODY(N), ZMASS/FLOAT(N),
      &     Q
- 65   FORMAT (//,12X,'SCALING:   SX =',1P,D13.5,'  E =',E10.2,
+ 65   FORMAT (//,12X,'SCALING:   SX =',1P,E13.5,'  E =',E10.2,
      &     '  M(1) =',E9.2,'  M(N) =',E9.2,'  <M> =',E9.2,
      &     '  Q =',0P,F10.5)
 *     

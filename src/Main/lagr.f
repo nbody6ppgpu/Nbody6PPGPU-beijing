@@ -449,19 +449,19 @@
       if(rank.eq.0)then
          IF (KZ(7).GE.2) THEN
             WRITE (6,40) (FLAGR(K),K=1,NLENS)
- 40         FORMAT (/,11X,'TIME   M/MT:',1P,18(1X,D9.2),7X,'<RC')
+ 40         FORMAT (/,11X,'TIME   M/MT:',1P,18(1X,E9.2),7X,'<RC')
             WRITE (6,41) TTOT, (RLAGR(K),K=1,NLENS),RC
- 41         FORMAT (3X,D12.4,' RLAGR: ',1P,19(1X,D9.2))
+ 41         FORMAT (3X,D12.4,' RLAGR: ',1P,19(1X,E9.2))
 *
             IF (KZ(8).GT.0 .OR. NBIN0.GT.0) THEN
                WRITE (6,401) TTOT, (RSLAGR(K),K=1,NLENS)
- 401           FORMAT (3X,D12.4,' RSLAGR: ',1P,18(1X,D9.2))
+ 401           FORMAT (3X,D12.4,' RSLAGR: ',1P,18(1X,E9.2))
                WRITE (6,402) TTOT, (RBLAGR(K),K=1,NLENS)
- 402           FORMAT (3X,D12.4,' RBLAGR: ',1P,18(1X,D9.2))
+ 402           FORMAT (3X,D12.4,' RBLAGR: ',1P,18(1X,E9.2))
             END IF
 *
             WRITE (6,42) TTOT, (AVMASS(K),K=1,NLENS),AVMRC
- 42         FORMAT (3X,D12.4,' AVMASS:',1P,19(1X,D9.2))
+ 42         FORMAT (3X,D12.4,' AVMASS:',1P,19(1X,E9.2))
             WRITE (6,43) TTOT, (NPARTC(K),K=1,NLENS),NCORE
  43         FORMAT (3X,D12.4,' NPARTC:',19I10)
          END IF
