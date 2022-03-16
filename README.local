@@ -1,0 +1,75 @@
+
+
+ Note: simple desktop/laptop try:
+
+ ./configure --disable-mpi --disable-gpu [--disable-simd --disable-openmp]
+
+---------------------------------------------------
+  March 2017, local psk compilation, or on laptop
+
+  ssh to psk1 - psk4
+
+  check module avail 
+
+  module load openmpi-x86_64
+
+  make sure the CUDA environment is there, for example    which nvcc
+  if not load module or ask system manager, we need cuda, cuda-sdk, cudalib
+  cuda 5.0 ie enough, higher is pk
+
+./configure --enable-simd=avx --disable-hdf5 --enable-mpi --enable-tools --enable-gpu --with-cuda --with-cuda_sdk  --enable-mcmodel=large --enable-option-checking --with-par=1024k
+
+  ./configure --enable-simd=avx --disable-hdf5 --enable-mpi --enable-tools --enable-gpu --with-cuda --with-cuda_sdk --enable-option-checking --with-par=128k
+
+#### THE FOLLOWING configure WORKS
+./configure --enable-simd=avx --enable-hdf5 --enable-mpi --enable-tools --enable-gpu --with-cuda --with-cuda_sdk  --enable-mcmodel=large --enable-option-checking --with-par=1m
+
+  Configure example for laptop single core:
+
+  ./configure --disable-simd --disable-gpu --disable-mpi --with-par=128k
+
+  check in ./build/Makefile these lines:
+
+FC = mpif77
+CXX = g++
+CC = gcc
+NVCC = nvcc
+
+   For laptop use export FC = gfortran before configure; in build/Makefile the line GPU_FLAGS = -D GPU has
+ to be commented out by #
+
+   if FC is not correct, or if the configure fails with error message 'there is no GNU compiler" try:
+
+   export FC=mpif77
+
+   and rerun configure... 
+---------------------------
+
+  cp -p -i build/nbody6++.avx.gpu.mpi ../run-nnnn your run directory
+                 nbody6++
+
+--------------------------
+
+ How to run the code if interactive parallel runs are allowed (and if the
+ GPUs are on this local node)
+
+  mpirun -n 2 ./nbody6++.avx.gpu.mpi < abbas.inp 1>> abbas.out 2>> abbas.err &
+--------------------------
+
+  sources are in ./src/Main *.[fF]  includes are in ./include   *.h
+-------------------------
+
+ to recompile few files )in Nbody6pp-master directory only it works)::
+
+  rm build/myobject.o
+  rm build/execfile (for example nbody6++.avx.mpi.gpu )
+  make
+
+ -----------------------
+NEW-27/03/2017
+
+before running configure use:
+module load mvapich2-x86_64
+
+use the following command before compiling the code:
+scl enable devtoolset-2 bash
