@@ -8,14 +8,14 @@
       INCLUDE 'common6.h'
       INTEGER JHIST,JHISTR,JHISTU
       COMMON/BLKLVL/JHIST(0:NMAX),JHISTR(0:NMAX),JHISTU(0:NMAX)
-      INTEGER  IHIST(NMAX),IHISTR(NMAX),IHISTU(NMAX)
+      INTEGER  IHIST(64),IHISTR(64),IHISTU(64)
       INTEGER IPES,IPROC(9),IY(1024),IYR(1024)
       REAL*8 XSPEED(9),XSPEDR(9)
       DATA IPROC/4,8,16,32,64,128,256,512,1024/
 *
 *
 *       Initialize histogram counters.
-      DO 10 J = 1,NMAX
+      DO 10 J = 1,64
           IHIST(J) = 0
           IHISTR(J) = 0
           IHISTU(J) = 0
@@ -28,11 +28,11 @@
       DO 20 I = IFIRST,NTOT
           IF (BODY(I).EQ.0.0D0) GO TO 20
           J = MAX(1,1 - INT(LOG(STEP(I))*FAC))
-          IF(J.GT.NMAX)J = NMAX
+          IF(J.GT.64)J = 64
           IHIST(J) = IHIST(J) + 1
           JMAXI = MAX(J,JMAXI)
           J = MAX(1,1 - INT(LOG(STEPR(I))*FAC))
-          IF(J.GT.NMAX)J = NMAX
+          IF(J.GT.64)J = 64
           IHISTR(J) = IHISTR(J) + 1
           JMAXR = MAX(J,JMAXR)
    20 CONTINUE
@@ -42,23 +42,23 @@
       DO 25 IPAIR = 1,NPAIRS
           I1 = 2*IPAIR - 1
           J = MAX(1,1 - INT(LOG(STEP(I1))*FAC))
-          IF(J.GT.NMAX)J = NMAX
+          IF(J.GT.64)J = 64
           IHISTU(J) = IHISTU(J) + 1
           JMAXU = MAX(J,JMAXU)
    25 CONTINUE
 *
 *       Print histograms of block-steps (STEPR with KZ(33) > 1).
-      JMAXI=MIN(JMAXI,NMAX)
-      JMAXR=MIN(JMAXR,NMAX)
-      JMAXU=MIN(JMAXU,NMAX)
+      JMAXI=MIN(JMAXI,64)
+      JMAXR=MIN(JMAXR,64)
+      JMAXU=MIN(JMAXU,64)
       if(rank.eq.0)then
          WRITE (6,30)  (IHIST(J),J=1,JMAXI)
-   30 FORMAT (' STEP I ',22I7,(/,24I5))
+   30 FORMAT (' STEP I ',64I8)
       IF (KZ(33).GT.1)WRITE (6,301)  (IHISTR(J),J=1,JMAXR)
-  301 FORMAT (' STEP R ',50I7,(/,24I5))
+  301 FORMAT (' STEP R ',64I8)
       IF (KZ(8).GT.0 .OR. NBIN0.GT.0 )WRITE (6,3001)
      *     (IHISTU(J),J=1,JMAXU)
- 3001 FORMAT (' STEP U ',50I7,(/,24I5))
+ 3001 FORMAT (' STEP U ',64I8)
       end if
 *
 *       IPROC contains a list of possible processor numbers,

@@ -127,14 +127,14 @@
       ITIME = ITIME + 1
       IF (ITIME.LE.1) THEN
       TF = TIME + TOFF + (1.0 - FF)/CONST
-      WRITE (6,20)  CQ, CT, EDOT, TF, CGR
+      if(rank.eq.0)WRITE (6,20)  CQ, CT, EDOT, TF, CGR
    20 FORMAT (' QTIDES    CQ CT EDT TF CGR  ',1P,7E10.2)
-      WRITE (6,30)  k1,k2,QD,W
+      if(rank.eq.0)WRITE (6,30)  k1,k2,QD,W
    30 FORMAT (' k1 k2 QD W   ',2F10.5,1P,4E10.2)
       TB = YRS*SEMI*SQRT(SEMI/BODY(I1))
       TGR = TGR*(1.0 - ES0**2)*SEMI**2.5
       TGR = 1.0D+06*TSTAR*TGR
-      WRITE (6,40)  TB, TGR, SEMI*RAU, ES0
+      if(rank.eq.0)WRITE (6,40)  TB, TGR, SEMI*RAU, ES0
    40 FORMAT (' TB(yr) TGR A(AU) E  ',1P,3E10.2,0P,F8.4)
       CALL FLUSH(6)
       END IF

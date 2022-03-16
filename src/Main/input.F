@@ -10,11 +10,7 @@
 #ifdef PARALLEL
 #define MPIINIT 1
 #else
-#ifdef ENSEMBLE
-#define MPIINIT 1
-#else
 #define MPIINIT 0
-#endif
 #endif
 *
 *       Make a formal call to define input parameters & counters.
@@ -36,7 +32,8 @@ C Termination time in physical units, TCRITP, read in nbody6.F
       END IF
 *
       END IF
-
+*     Allow step for HDF5 files to be larger than one. (R.Sp. Sep. 2021)
+      HDFMAX = SMAX
 *     Check SMAX to make sure it have correct value
       if(rank.eq.0) THEN
          IF(SMAX.GT.1) THEN
@@ -81,17 +78,9 @@ C Termination time in physical units, TCRITP, read in nbody6.F
       CALL MPI_BCAST(ECLOSE,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(GMIN,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(GMAX,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-      CALL MPI_BCAST(SMAX,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)      
+      CALL MPI_BCAST(SMAX,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 #endif
 *
-
-#ifdef ENSEMBLE
-      NRAND = NRAND + 17*rank
-      WRITE (6,11)rank,NRAND
-   11 FORMAT (//,' Run configured for ensemble average PE ',I5,
-     *   ' NRAND=',I9)
-#endif
-
       if(rank.eq.0)then
          WRITE (6,10)
    10    FORMAT (/////,15X,'N  NFIX  NCRIT  NRAND  NNBOPT  NRUN NCOMM')

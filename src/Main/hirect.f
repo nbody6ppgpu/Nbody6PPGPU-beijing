@@ -31,7 +31,8 @@
       ECC2 = (1.0 - RB/SEMI)**2 + TD2**2/(ZMB*SEMI)
       ECC = SQRT(ECC2)
       RA = RB/SEMI
-      WRITE (16,3) TTOT, NAMEG(IM), KSTARM(IM), ECC, RA, HM(IM), DB, ERR
+      if(rank.eq.0)
+     &WRITE (16,3) TTOT, NAMEG(IM), KSTARM(IM), ECC, RA, HM(IM), DB, ERR
     3 FORMAT (' HIRECT:   Time[Nb] NAME K* ECC R12/SEMI H DB DH/H ',
      &                    F9.3,I6,I4,F8.4,F8.4,F9.2,1P,2E10.1)
       CALL FLUSH(16)
@@ -68,7 +69,8 @@
 *       Adopt C1*C2 = CK for difficult case (Seppo's suggestion of 1991).
           C1 = 1.0
           CK = ZMB/SQRT(-8.0D0*HM(IM)*RB*UPR2)
-          WRITE (6,20)  IM, KSTARM(IM), RB, HM(IM), UPR2, A2, CK-1.0
+          if(rank.eq.0)
+     &    WRITE (6,20)  IM, KSTARM(IM), RB, HM(IM), UPR2, A2, CK-1.0
    20     FORMAT (' WARNING!    HIRECT    IM K* R H UPR2 A2 CK-1 ',
      &                                    2I4,1P,5E10.2)
           ITER = ITER + 1

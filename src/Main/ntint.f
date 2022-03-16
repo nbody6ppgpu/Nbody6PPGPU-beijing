@@ -97,7 +97,7 @@ C      NSTAIL = NSTAIL + 1
       IF (TIMENW(I).LT.TIME) THEN
           ITER = ITER + 1
           IF (ITER.LT.10) GO TO 1
-          WRITE (6,20)  I, TIME, STEP(I), FIRR
+          if(rank.eq.0)WRITE (6,20)  I, TIME, STEP(I), FIRR
    20     FORMAT (' SMALL TIDAL STEP    I T DT F ',I7,F7.1,1P,4E10.2)
       END IF
 *

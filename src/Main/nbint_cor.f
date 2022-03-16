@@ -152,12 +152,12 @@ c$$$      end if
 *
       TTMP = TSTEP(FDUM,FD,D2(1,I),D3(1,I),ETAI)
       DT0 = TTMP
-      if(step(i).gt.1.e2*dt0) then
-         write(6,81) rank,I,name(i),DT0/STEP(I),dt0,step(i),stepr(i),
+      if(rank.eq.0.and.step(i).gt.1.e2*dt0) then
+         write(6,81) I,name(i),DT0/STEP(I),dt0,step(i),stepr(i),
      &        FI(1,i),FIDOT(1,i),D2(1,i),D3(1,i),time,t0(i),t0r(i),
      &        LIST(1,I),LIST(2,I),NAME(LIST(2,I))
          call flush(6)
- 81      format(I3,' Warning!: Irregular step jumping! I',I8,' N',I8,
+ 81      format(' Warning!: Irregular step jumping! I',I8,' N',I8,
      &        ' ratio',E11.3,' dt0',F21.17,' step',F21.17,
      &        ' stepr',F21.17,' FI',E13.5,
      &        ' FD',E13.5,' D2',E13.5,' D3',E13.5,' t',F23.17,

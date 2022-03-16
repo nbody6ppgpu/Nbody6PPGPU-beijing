@@ -16,7 +16,6 @@
       COMMON/CCOLL/  QK(12),PK(12),ICALL,ICOLL,NDISS4
       EQUIVALENCE  (Y(1),P(1))
       SAVE
-
 *
 *
       IF (TIME4.GT.0.0D0) GO TO 5

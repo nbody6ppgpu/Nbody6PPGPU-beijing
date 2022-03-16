@@ -18,7 +18,7 @@
       CALL INPUT
 *
 *       Open all Files.
-      CALL FILE_INIT(0)
+      if(rank.eq.0)CALL FILE_INIT
 *
 *       Set initial conditions: BODY(I), X(K,I), XDOT(K,I); I=1,N & K=1,3.
       CALL DATA

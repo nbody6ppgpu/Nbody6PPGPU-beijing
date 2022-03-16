@@ -29,7 +29,8 @@ c$$$     &              NGHOSTS,'LIST',NXTLST(NXTLIMIT+1:NXTLIMIT+NGHOSTS)
                IF(L-NXTLIMIT.LE.NGHOSTS) GO TO 2
             END IF
          END IF
-         write(6,*) 'Error: No ghost particle J',J,'STEP',STEP(J),
+         if(rank.eq.0)
+     &   write(6,*) 'Error: No ghost particle J',J,'STEP',STEP(J),
      &        'NGHOSTS',NGHOSTS,'LIST',
      &        NXTLST(NXTLIMIT+1:NXTLIMIT+NGHOSTS)
          call flush(6)
@@ -38,7 +39,8 @@ c$$$     &              NGHOSTS,'LIST',NXTLST(NXTLIMIT+1:NXTLIMIT+NGHOSTS)
 
 *     decrease nxtlst ending point
       IF(NXTLIMIT.LE.1) THEN
-         write(6,*) 'Error: No particle in NXTLST!'
+         if(rank.eq.0)
+     &   write(6,*) 'Error: No particle in NXTLST!'
          call flush(6)
          call abort()
       END IF
@@ -57,7 +59,8 @@ c$$$     &              NGHOSTS,'LIST',NXTLST(NXTLIMIT+1:NXTLIMIT+NGHOSTS)
             LL = LL + 1
             GO TO 1
          ELSE
-            write(6,*) 'Error: Index ',J,' not found in step level ',
+            if(rank.eq.0)
+     &      write(6,*) 'Error: Index ',J,' not found in step level ',
      &           K,'!'
             call flush(6)
             call abort()

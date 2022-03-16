@@ -33,7 +33,7 @@
          IT = IT + 1
       END IF
 
-      IF (IT.GT.0) THEN
+      IF (rank.eq.0.AND.IT.GT.0) THEN
          WRITE (96,3)  nsteps, IT, u, udot, dtau
  3       FORMAT ('HUT REDUCE  NSTEPS IT U UD DTAU ',I6,I3,F8.4,1P,7E9.1)
          CALL FLUSH(96)
@@ -47,7 +47,7 @@
 *     Note there are 4 calls to deriv2 when u(1) may go negative.
          IF (u(1).lt.0.002.or.u(1).gt.0.99999) then
 *     Enforce circularization by adopting e=0.00199 and copying spins.
-            IF (u(1).LT.0.0) WRITE (6,4) I, nsteps, u(1)
+            IF (rank.eq.0.AND.u(1).LT.0.0) WRITE (6,4) I, nsteps, u(1)
  4          FORMAT (' HUT SAFETY EXIT!   I nsteps u1 ',2I5,F8.4)
             u(1) = 0.00199
             u(2) = usave2

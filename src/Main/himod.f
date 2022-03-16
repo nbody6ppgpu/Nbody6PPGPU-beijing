@@ -7,6 +7,7 @@
 *     Author:  Rosemary Mardling (3/98).
 
       IMPLICIT REAL*8 (A-H,M,O-Z)
+      INCLUDE 'mpi_base.h'
 *     Unsafe for parallel! updata variables: coeff,hohat,e0,a,hh,mb
       common/rksave/  coeff,HOhat(3),e0,a,hh,mb
       REAL*8  evec(3),hvec(3),EOvec(3),HOvec(3),
@@ -45,7 +46,7 @@
          enddo
          CALL DERIV(u,udot,icall)
          TAU = e0/sqrt(udot(1)**2+udot(2)**2+udot(3)**2)
-         WRITE (6,5)  e0,TAU,a,Eout,Aout,(UDOT(K),K=1,3)
+         if(rank.eq.0)WRITE (6,5)  e0,TAU,a,Eout,Aout,(UDOT(K),K=1,3)
     5    FORMAT (' DERIV   e0 TAU a E1 A1 edot  ',
      &        F8.4,1P,2E10.2,0P,F8.4,1P,4E10.2)
          CALL FLUSH(3)

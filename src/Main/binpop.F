@@ -31,11 +31,7 @@ C
 #ifdef PARALLEL
 #define MPIINIT 1
 #else
-#ifdef ENSEMBLE
-#define MPIINIT 1
-#else
 #define MPIINIT 0
-#endif
 #endif
 *
 * recover random number sequence from COMMON variable IDUM1.
@@ -115,15 +111,6 @@ C
    25     CONTINUE
    30 CONTINUE
 *
-*     Output collision detection during generation
-      OPEN (UNIT=42,STATUS='UNKNOWN',FORM='FORMATTED',FILE='ibcoll.42')
-
-*     For eigen-evolution, output diagnostics for generation parameters
-      IF (KZ(42).EQ.6.and.rank.eq.0)
-     &     OPEN (UNIT=23,STATUS='UNKNOWN',FORM='FORMATTED',
-     &     FILE='ibeigen.23')
-
-*=========================================================
 *=======================THE LOOP==========================
 *=========================================================
 *       Introduce binary components from relative motion.
@@ -379,6 +366,7 @@ c$$$          else
           RADIUS(I1) = 5.0*SQRT(ZMB1)/SU
           RADIUS(I2) = 5.0*SQRT(ZMB2)/SU
           RP0 = (1-ecc)*semi
+*     Output collision detection during generation
           IF (RP0.LT.MAX(RADIUS(I1),RADIUS(I2))) THEN
              IF(rank.eq.0) WRITE (42,38) I1, ZMB1, ZMB2, ecc, semi*RAU, 
      &            rp0*SU,radius(i1)*SU/5.0,radius(i2)*SU/5.0

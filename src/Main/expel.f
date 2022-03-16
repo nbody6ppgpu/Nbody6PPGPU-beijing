@@ -171,34 +171,40 @@ cnew-abbas-26/07/2017
               WHICH1 = ' HYPERB '
               NHYPC = NHYPC + 1
           END IF
-*         if(rank.eq.0)
-*    &    WRITE (6,10)  WHICH1, NAME(I1), NAME(I2), KSTAR(I1),KSTAR(I2),
-*    &                  KW1, KW2, M1, M2, DM*ZMBAR, ECC0, ECC, R1, R2,
-*    &                  SEMI0*SU, SEMI*SU
-*  10     FORMAT (A8,'CE    NAM K0* K* M1 M2 DM E0 E R1 R2 A0 A ',
-*    &                      2I6,4I3,3F5.1,2F8.4,2F7.1,1P,E9.1,0P,F7.1)
           ICM = N + IPAIR
+          RI = SQRT((X(1,ICM) - RDENS(1))**2 +
+     &              (X(2,ICM) - RDENS(2))**2 +
+     &              (X(3,ICM) - RDENS(3))**2)
+          VI = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
+          EB = -0.5*BODY(I1)*BODY(I2)/SEMI
+          PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6
+          Q1 = M1/M2
+          Q2 = 1.D0/Q1
+          RL1 = RL(Q1)
+          RL2 = RL(Q2)
           if(rank.eq.0)
-     &    WRITE (6,1010) WHICH1,TTOT,NAME(I1),NAME(I2),NAME(IPAIR),
-     &      KSTAR(I1),KSTAR(I2),KSTAR(ICM),KW1,KW2,BODY(I1)*ZMBAR,
-     &      BODY(I2)*ZMBAR,M1,M2,DM*ZMBAR, ECC0, ECC, R1, R2,
-     &                  SEMI0*SU, SEMI*SU
- 1010     FORMAT(A8,'CE : T=',1P,E13.5,' N1/2/IP=',3I10,' KW1/2/IP=',
-     &           3I4,' KW1,KW2=',2I4,' BODY1/2=',2E13.5,' M1/2,DM=',
-     &           3E13.5,' E0,E=',2E13.5,' R1/2=',2E13.5,' A1/2=',
-     &           2E13.5)
+     &    WRITE (6,1010)  WHICH1,TTOT,NAME(I1),NAME(I2),NAME(IPAIR),
+     &      KSTAR(I1),KSTAR(I2),KSTAR(ICM),KW1,KW2,
+     &         IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
+     &         R(IPAIR),ECC0,ECC,SEMI0,SEMI,EB,PD,
+     &         H(IPAIR),GAMMA(IPAIR),STEP(ICM),M1,M2,DM*ZMBAR,R1,R2,
+     &         R(IPAIR)*SU,SEP*RL1,SEP*RL2,SEMI0*SU,SEMI*SU,RI,VI,ITER
+ 1010     FORMAT (A8,'CE : T=',1P,E17.10,' NM1,2,S=',
+     &         3I10,' KW0-1,2,S=',3I4,' KW1,2=',2I4,' IPAIR',I9,
+     &         ' DTAU',E10.2,' M1,2[NB]',2E10.2,' R12[NB]',E10.2,
+     &         ' e0,e,a0,a=',4E12.4,' eb[NB],P[d]=',2E10.2,' H',E10.2,
+     &         ' GAMMA',E10.2,' STEP(ICM)',E10.2,' M1,2,DM[*]',3E10.2,
+     &         ' RAD1,2,S[*]',3E10.2,' SEP*RL1/2=',2E10.2,
+     &         ' a0,a[*]=',2E10.2,' RI,VI[NB]=',2E10.2,' ITER=',I5)
 *
 *       Check common envelope condition again after circularization (09/08).
           IF (ECC0.GT.0.001D0.AND.ECC.LE.0.001D0) THEN
-              Q1 = M1/M2
-              Q2 = 1.D0/Q1
-              RL1 = RL(Q1)
-              RL2 = RL(Q2)
               IF (R1.GT.RL1*SEP.OR.R2.GT.RL2*SEP) THEN
                   ITER = ITER + 1
                   IF (ITER.EQ.1) THEN
-                      if(rank.eq.0)WRITE (6,8)  RL1*SEP, RL2*SEP
-    8                 FORMAT (' ENFORCED CE    RL*SEP ',1P,2E10.2)
+                      if(rank.eq.0)WRITE (6,8) R1,RL1*SEP,R2,RL2*SEP
+    8             FORMAT (' ENFORCED CE R1,RL1*SEP=',1P,2E13.5,
+     &                   ' R2,RL2*SEP ',2E13.5)
                       ECC0 = ECC
                       SEMI0 = SEMI
 *     --10/29/13 14:30-lwang-bug-fix------------------------------------*

@@ -424,12 +424,9 @@ C                      call delay_remove_tlist(I1,STEP,DTK)
       NCOAL = NCOAL + 1
       EB = EB1
 *
-*       Open unit #12 the first time.
       IF (rank.eq.0.and.FIRST) THEN
-         OPEN (UNIT=24,STATUS='UNKNOWN',FORM='FORMATTED',FILE='coal.24'
-     &        ,ACCESS='APPEND')
          FIRST = .FALSE.
-*     
+*
 *     Print cluster scaling parameters at start of the run.
          IF (NCOAL.EQ.1) THEN
             WRITE (24,40)  RBAR, BODYM*ZMBAR, BODY1*ZMBAR, TSCALE,
@@ -437,7 +434,7 @@ C                      call delay_remove_tlist(I1,STEP,DTK)
  40         FORMAT (/,6X,'MODEL:    RBAR =',1P,E26.17,'  <M> =',E26.17,
      &           '  M1 =',E26.17,'  TSCALE =',E26.17,0P,
      &           '  NB =',I12,'  N0 =',I12,//)
-            WRITE (12,45)
+            WRITE (24,45)
  45         FORMAT ('          TIME[NB]        ',
      &           '   NAME(I1) ',
      &           '   NAME(I2) ',
@@ -468,7 +465,7 @@ C                      call delay_remove_tlist(I1,STEP,DTK)
      &        DM*ZMBAR, RADIUS(I1)*SU, RADIUS(I2)*SU,
      &        RI/RC, RIJ*SU, ECC, TK, RCOLL*SU, EB, DP, VINF
 C 50      FORMAT (1X,F7.1,2I6,3I4,3F5.1,2F7.2,F6.1,F7.2,F9.5,1P,E9.1)
-         CALL FLUSH(12)
+         CALL FLUSH(24)
       end if
 *
       if(rank.eq.0)then

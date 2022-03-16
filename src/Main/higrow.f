@@ -90,7 +90,7 @@
       FAC = A1A2/SQRT(A12*A22)
       IF(FAC.LT.-1.D0.OR.FAC.GT.1.D0)THEN
          IF(FAC.LT.-1.05D0.OR.FAC.GT.1.05D0)THEN
-            WRITE (6,9)  IPAIR, I, JCL, ECC1, SEMI1*SU, FAC 
+          if(rank.eq.0)WRITE (6,9)  IPAIR, I, JCL, ECC1, SEMI1*SU, FAC 
    9        FORMAT (' WARNING! HIGROW FAC: IP I J E A FAC ',
      &                                   3I6,F7.3,F8.1,F9.5)
          ENDIF
@@ -192,7 +192,8 @@
 *
 *       Check termination time for marginal stability criterion.
       IF (NAME(I).EQ.NAMEI.AND.(TIME+TOFF).GT.TCHECK) THEN
-          WRITE (6,17)  NAME(I), ECC, EMAX, ALPH, ZFAC, ECC1, PMIN1,
+          if(rank.eq.0)
+     &    WRITE (6,17)  NAME(I), ECC, EMAX, ALPH, ZFAC, ECC1, PMIN1,
      &                  PCRIT
    17     FORMAT (' ECCMOD UNSTAB    NM E EX IN YF E1 PM PC ',
      &                               I6,2F8.4,F7.1,F6.2,F7.3,1P,2E10.2)
@@ -225,7 +226,8 @@
           END IF
           IF (TC.LT.7.0D+04.AND.QPERI.LT.6.0*RM.AND.ITRY.LT.4.OR.
      &        TC.LT.1.0D+04.AND.QPERI.LT.5.0*RM.AND.ITRY.LT.8) THEN
-              WRITE (6,18)  ECC, EMAX, EMIN, SEMI*SU, TG, TC, EDAV,
+              if(rank.eq.0)
+     &        WRITE (6,18)  ECC, EMAX, EMIN, SEMI*SU, TG, TC, EDAV,
      &                      EDT, QPERI/RM
    18         FORMAT (' HICIRC TRY:    E EX EM A TG TC EDA EDT QP/R ',
      &                                 2F9.5,F7.3,F7.1,1P,5E9.1)
@@ -270,7 +272,8 @@
 *
 *       Begin chaos/spiral stage if chaos boundary has been crossed.
           IF (IDIS.EQ.0) THEN
-              WRITE (6,22)  TTOT, NAME(I), IC, ECC, EMAX, SEMI, QPERI,
+              if(rank.eq.0)
+     &        WRITE (6,22)  TTOT, NAME(I), IC, ECC, EMAX, SEMI, QPERI,
      &                      EDAV, QPERI/RM
    22         FORMAT (' ECCMOD CHAOS    T NAM IC E EX A QP EDAV QP/R ',
      &                                  F9.2,I6,I4,2F9.5,1P,4E10.2)
@@ -280,7 +283,8 @@
               KSTARM(IM) = -1
               GO TO 40
            ELSE IF (IDIS.EQ.-1) THEN
-              WRITE (6,23)  TTOT, NAME(I), IC, ECC, EMAX, SEMI, QPERI,
+              if(rank.eq.0)
+     &        WRITE (6,23)  TTOT, NAME(I), IC, ECC, EMAX, SEMI, QPERI,
      &                      EDAV, QPERI/RM
    23         FORMAT (' ECCMOD SPIRAL    T NAM IC E EX A QP EDAV QP/R ',
      &                                   F9.2,I6,I4,2F9.5,1P,4E10.2)
@@ -292,7 +296,8 @@
           ELSE IF (IDIS.EQ.1) THEN
 *       Check collision condition to be sure.
               IF (QPERI.LT.RADIUS(I) + RADIUS(IG)) THEN
-              WRITE (6,24)  TTOT, NAME(I), IC, ECC, SEMI, QPERI, EDAV,
+              if(rank.eq.0)
+     &        WRITE (6,24)  TTOT, NAME(I), IC, ECC, SEMI, QPERI, EDAV,
      &                      QPERI/RM
    24         FORMAT (' ECCMOD DISRUPT    T NAM IC E A QP EDAV QP/R  ',
      &                                    F9.2,I6,I4,F8.4,1P,4E10.2)
@@ -354,7 +359,8 @@
      &            ITIME.LT.20) THEN
                   ALPH = 360.0*ZI/TWOPI
                   FAIL = QPERI*(1-PERT) - PCR
-                  WRITE (6,42)  TTOT, ALPH, ECC, ECC1, QPERI, FAIL, PERT
+          if(rank.eq.0)
+     &            WRITE (6,42)  TTOT, ALPH, ECC, ECC1, QPERI, FAIL, PERT
    42             FORMAT (' NEWSTAB    T INC EI EO QP FAIL PERT ',
      &                                 F7.1,F7.2,2F8.4,1P,3E10.2)
               END IF
@@ -482,7 +488,8 @@
      &             TEV(N+IPAIR))
               TB = DAYS*SEMI*SQRT(SEMI/BODY(I))
               ALPH = ZI*360.0/TWOPI
-              WRITE (6,48)  NAME(I), NAME(IG), KM, e0, a0*SU, TB, ALPH
+              if(rank.eq.0)
+     &        WRITE (6,48)  NAME(I), NAME(IG), KM, e0, a0*SU, TB, ALPH
    48         FORMAT (' END KOZAI    NM K* E A P INC ',
      &                               2I6,I4,F7.3,F6.1,2F7.1)
           END IF
@@ -497,7 +504,8 @@
               ES(IC) = ECC
               TOSC(IC) = TIME
               DH = HM0 - HM(IM)
-              WRITE (6,60)  TTOT, TMDIS(IM), ECC, RP(IC), DH
+              if(rank.eq.0)
+     &        WRITE (6,60)  TTOT, TMDIS(IM), ECC, RP(IC), DH
    60         FORMAT (' UPDATE:    T TMD E RP DH ',
      &                             2F10.2,F8.4,1P,2E10.2)
           END IF

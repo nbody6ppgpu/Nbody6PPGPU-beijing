@@ -155,11 +155,14 @@
 *    & ,6I10,3I4,' BODY1/2/BODY01/2=',4E13.5,' KW2=',I4,
 *    &        ' M1/2(*): ',3E13.5)
 *
+              AGE1 = MAX(TPLOT,TEV0(J1))*TSTAR - EPOCH(J1)
+              AGE2 = MAX(TPLOT,TEV0(J2))*TSTAR - EPOCH(J2)
               if(rank.eq.0)
      &        WRITE (82,5)  TTOT, J1, J2, NAME(J1), NAME(J2), KW, KW2, 
-     &            KSTAR(ICM),
-     &            RI, ECC, PB, SEMI, M1, M2, ZL1, ZL2, R1, R2, TE1, TE2
-    5         FORMAT (1X,1P,E13.5,4I8,2I3,I4,6E13.5,6E13.5)
+     &          KSTAR(ICM),
+     &          RI, ECC, PB, SEMI, M1, M2, ZL1, ZL2, R1, R2, TE1, TE2,
+     &          AGE1, AGE2, EPOCH(J1), EPOCH(J2)
+    5         FORMAT (1X,1P,E13.5,4I8,2I3,I4,6E13.5,10E13.5)
           ELSE
 *       Create output file for single stars (skip chain subsystem or ghost).
               IF (NAME(I).EQ.0.OR.BODY(I).EQ.0.0D0) GO TO 20
@@ -174,10 +177,11 @@ ccc              TE = 0.25*(ZL1 - 2.0*R1) + 3.7
 * correct value: lg(5778 K) = 3.761777537508
 
               TE = 0.25*(ZL1 - 2.0*R1) + 3.761777537508
-
+              AGE = MAX(TPLOT,TEV0(I))*TSTAR - EPOCH(I)
               if(rank.eq.0)
-     &        WRITE (83,10)  TTOT, I, NAME(I), KW, RI, M1, ZL1, R1, TE
-   10         FORMAT (1X,1P,E13.5,2I8,I3,5E13.5)
+     &        WRITE (83,10)  TTOT, I, NAME(I), KW, RI, M1, ZL1, R1, TE,
+     &        AGE, EPOCH(I)
+   10         FORMAT (1X,1P,E13.5,2I8,I3,7E13.5)
           END IF
    20 CONTINUE
 *

@@ -722,7 +722,7 @@ c$$$                      CALL CMBODY(2)
 *
 *       GR braking for compact object binaries RSp March 2019
         IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     & (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
+     & (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14).AND.HI.LT.0.D0) THEN
 *       GR breaking for compact obj. define new binary type March 2019
            SEMI = -0.5*BODY(I)/HI
            ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
@@ -754,7 +754,7 @@ c$$$                      CALL CMBODY(2)
      &        SEMI,ECC,H(IPAIR),QPERI,A_EIN,DTGW(IPAIR),LIST(1,I1)
            END IF 
 *       Prepare coal flag if PERI < 500 R_SCHW
-           IF(QPERI.LT.(3.0D2*BODY(I)/CLIGHT**2)) THEN
+           IF(DABS(QPERI).LT.(3.0D2*BODY(I)/CLIGHT**2)) THEN
               PRINT *,'COLL DUE TO GW QPERI CLIGHT RSCH ECC SEMI', 
      &                QPERI, CLIGHT, 2.0*BODY(I)/CLIGHT**2, ECC, SEMI  
               IPHASE = -1
@@ -921,6 +921,8 @@ c$$$      if (tprev.ge.6.80656433105468750E-002) stop
       CALL TIDES3(SEP,M1,M2,ECC,VSTAR,DT,DE)
 *
       RES=0
+*     Emergency measure if DT gets too large
+      IF(ECC.GT.1.D0)ECC = 0.999D0
 
 *      PRINT *,'GW DECISION b', DT, DE(4)/ECC, DE(3)/SEP, M1, M2, DE   
       IF ((DE(4)/ECC).GT.5.0D-3.OR.(DE(3)/SEP).GT.5.0D-3) THEN

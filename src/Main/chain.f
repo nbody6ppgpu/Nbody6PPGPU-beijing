@@ -253,7 +253,7 @@
      &    WRITE (6,15)  N, NPERT, ENERGY, RSUM, RGRAV, TCR, RMAXS(ISUB),
      &                  (NAMEC(I),I=1,N)
    15     FORMAT (' NEW CHAIN   NCH NP ENERGY RSUM RGRAV TCR RMAXS ',
-     &         'NAME(1-NM) [ALL in NB UNIT]',2I4,F10.5,1P,4E9.1,0P,6I10)
+     &        'NAMEC(1-NM) [ALL in NB UNIT]',2I4,F10.5,1P,4E9.1,0P,6I10)
           call flush(6)
       END IF
       IF (RSUM.LT.1.0E-05) EPS = 1.0D-12
@@ -417,11 +417,14 @@
               RI(K) = SQRT(X(KK+1)**2 + X(KK+2)**2 + X(KK+3)**2)
               VI(K) = SQRT(V(KK+1)**2 + V(KK+2)**2 + V(KK+3)**2)
   402     KK = KK + 3
-          WRITE (6,400)  STEP, TMAX-CHTIME, GPERT, (1.0/RINV(K),K=1,N-1)
-  400     FORMAT (' CHAIN:   STEP TM-CHT G R  ',1P,8E9.1)
-          WRITE (6,401)TIMENB,CHTIME,(M(K),SIZE(K),RI(K),VI(K),K=1,N-1),
-     &            M(N),SIZE(N)
-  401     FORMAT (' CHAIN TNB,CHTIME M,R,RI,VI=',1P,2E13.5,/,(4E13.5,/))
+          WRITE (6,400) STEP,TMAX-CHTIME,GPERT,
+     &       (NAMEC(K),1.0/RINV(K),K=1,N-1),NAMEC(N)
+  400 FORMAT (' CHAIN: STEP TM-CHT G R NAMEC',1P,3E13.5,6(I10,E13.5))
+          WRITE (6,401)TIMENB,CHTIME,
+     &            (K,NAMEC(K),M(K),SIZE(K),RI(K),VI(K),K=1,N-1),
+     &            N,NAMEC(N),M(N),SIZE(N)
+  401     FORMAT (' CHAIN TNB,CHTIME N,M,R,RI,VI=',1P,2E13.5,
+     &           (I4,I10,4E13.5))
           CALL FLUSH(6)
       END IF
       END IF
@@ -721,13 +724,15 @@
           END IF
 *
   305     CONTINUE
-              WRITE (6,55)  NSTEP1, T0S(ISUB)+TIMEC, TMAX-TIMEC,
-     &                      (1.0/RINV(K),K=1,N-1)
-   55         FORMAT (' CHAIN:  NSTEP T DTR R ',I5,F10.4,1P,6E9.1)
-       WRITE(6,302)TIMENB,TIMEC,(K,M(K),SIZE(K),RSEP(K),VSEP(K),
-     &     SEMICH(K),ECCCH(K),TGRCH(K),A_EIN(K),K=1,N-1),N,M(N),SIZE(K)
-  302  FORMAT(' CHAIN T,TC[NB] K,M,R[*],R,V,a,e,tgr,aein[NB-CH]=',
-     &          1P,E17.10,E14.5,10(I4,8E14.5))
+       if(rank.eq.0) WRITE (6,55)  NSTEP1, T0S(ISUB)+TIMEC, TMAX-TIMEC,
+     &              (NAMEC(K),1.0/RINV(K),K=1,N-1),NAMEC(N)
+   55   FORMAT(' CHAIN: NSTEP T DTR R NAMEC ',I5,2F10.4,1P,6(I10,E10.2))
+       if(rank.eq.0)
+     &    WRITE(6,302)TIMENB,TIMEC,(K,NAMEC(K),M(K),SIZE(K),RSEP(K),
+     &    VSEP(K),SEMICH(K),ECCCH(K),TGRCH(K),A_EIN(K),K=1,N-1),
+     &    N,NAMEC(N),M(N),SIZE(N)
+  302  FORMAT(' CHAIN T,TC[NB] K,N,M,R[*],R,V,a,e,tgr,aein[NB-CH]=',
+     &          1P,E17.10,E14.5,10(I4,I10,8E14.5))
           END IF
 *       Avoid checking after switch (just in case).
           IF (ISW.LE.1) THEN
@@ -832,7 +837,8 @@
           RI(K) = SQRT(X(KK+1)**2 + X(KK+2)**2 + X(KK+3)**2)
           VI(K) = SQRT(V(KK+1)**2 + V(KK+2)**2 + V(KK+3)**2)
   304     KK = KK + 3
-       WRITE(6,303)TIMENB,CHTIME,(K,M(K),SIZE(K),RI(K),VI(K),K=1,N)
+       if(rank.eq.0)
+     & WRITE(6,303)TIMENB,CHTIME,(K,M(K),SIZE(K),RI(K),VI(K),K=1,N)
   303  FORMAT(' CHEND: TNB,TC[NB] K,M,R[*],R,V[NB-CH]=',
      &          1P,E17.10,E14.5,10(I4,4E14.5))
           call flush(6)

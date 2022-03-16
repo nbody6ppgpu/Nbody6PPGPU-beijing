@@ -30,12 +30,12 @@ c$$$         print*,'ADD GHOST J',J,'STEP',STEP(J),' NGHOSTS', NGHOSTS
          RETURN
       END IF
 *     Safe check
-      IF(K.LT.1) then
+      IF(rank.eq.0.AND.K.LT.1) then
          write(6,*) 'Error: New particle step level too large K=',K
          call flush(6)
          call abort()
       END IF
-      IF(K.GT.64) then
+      IF(rank.eq.0.AND.K.GT.64) then
          write(6,*) 'Error: New particle step level too small K=',K
          call flush(6)
          call abort()
@@ -44,7 +44,7 @@ c$$$         print*,'ADD GHOST J',J,'STEP',STEP(J),' NGHOSTS', NGHOSTS
       IF(NDTMAX.LT.K) NDTMAX = K
       IF(NDTMIN.GT.K) NDTMIN = K
 *     Safe check
-      IF(NXTLIMIT.GE.NMAX) THEN
+      IF(rank.eq.0.AND.NXTLIMIT.GE.NMAX) THEN
          write(6,*) 'Error: NXTLST maximum reached!'
          call flush(6)
          call abort()

@@ -16,20 +16,20 @@ CXX = g++
 CC = gcc
 NVCC = nvcc
 
-RESULT = nbody6++.sse.gpu.mpi
+RESULT = nbody6++.sse.gpu.mpi.hdf5
 #FFLAGS = -O3 -fbounds-check -fbacktrace -fno-automatic -fmax-stack-var-size=0 -fPIC -mcmodel=large -Wall
 OMP_FLAGS= -D OMP
 MPI_FLAGS = -D PARALLEL -D PUREMPI
 GPU_FLAGS = -D GPU
 SIMD_FLAGS = -D SIMD
-HDF5_FLAGS = -D H5OUTPUT
+HDF5_FLAGS = -D H5OUTPUT -I/usr/include/openmpi-x86_64/ -L/usr/lib64/openmpi/lib/ -lhdf5_fortran
 DEBUG_FLAGS= -D DEBUG
 TT_FLAGS= -D TT
 INTEL_FLAGS= -D __USE_INTEL -no-wrap-margin
 
-FFLAGS =  -g -fbounds-check -fbacktrace -O3 -fPIC -mcmodel=large -fopenmp -I../include $(GPU_FLAGS) $(MPI_FLAGS) ${SIMD_FLAGS} ${OMP_FLAGS}
+FFLAGS =  -O0 -fPIC -mcmodel=large -fopenmp -I../include $(GPU_FLAGS) $(MPI_FLAGS) ${SIMD_FLAGS} ${OMP_FLAGS} ${HDF5_FLAGS}
 CXXFLAGS =  -O3 -fopenmp -I../include -march=native -fPIC -mcmodel=large -msse ${OMP_FLAGS}
-CUFLAGS =  -O3 -I ../extra_inc/cuda
+CUFLAGS =  -O0 -D CUDA_5 -I /usr/local/cuda-7.5/samples/common/inc
 LDFLAGS = -o $(RESULT)
 
 MPI_FSOURCES= energy_mpi.f fpoly1_mpi.f fpoly2_mpi.f
@@ -118,7 +118,7 @@ OBJECTS = $(SOURCE:.f=.o)
 TARGET: $(RESULT) 
 
 $(RESULT): $(OBJECTS) $(EXTRAOBJ)
-	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++ -lcudart
+	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++ -L/usr/local/cuda-7.5/lib64 -lcudart
 
 libinitial.so: initial.h initial.cpp
 	$(CXX) -shared $(CXXFLAGS) ../src/Tools/initial.cpp -o libinitial.so

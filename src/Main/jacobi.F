@@ -114,10 +114,12 @@
           GO TO 80
         ENDIF
       ELSE
-        WRITE(6,*) "Warning: Max nb of iterations reached in Jacobi.f"
+        if(rank.eq.0)
+     &  WRITE(6,*) "Warning: Max nb of iterations reached in Jacobi.f"
       ENDIF
 
-      WRITE(6,90) TTOT,ZMASS,ZMASS-ZMESC,ZMASS-ZMESC2,N,N-NESC,N-NESC2
+      if(rank.eq.0)
+     &WRITE(6,90) TTOT,ZMASS,ZMASS-ZMESC,ZMASS-ZMESC2,N,N-NESC,N-NESC2
  90   FORMAT(" EBOUND   TTOT ZMASS MBOUND MBOUND2   N NBOUND NBOUND2 ",
      &     f10.3,3(f10.4),3(i7))
 

@@ -5,6 +5,7 @@
 *     --------------------------------------------------------
 *
       include 'params.h'
+      include 'mpi_base.h'
       include 'tlist.h'
       REAL*8 STEP(NMAX),DTK(64)
       INTEGER I,J,LI,LL,L
@@ -29,7 +30,8 @@ c$$$      call flush(6)
                IF(L-NXTLIMIT.LE.NGHOSTS) GO TO 2
             END IF
          END IF
-         write(6,*) 'Error: No ghost particle J',J,'STEP',STEP(J)
+         if(rank.eq.0)
+     &   write(6,*) 'Error: No ghost particle J',J,'STEP',STEP(J)
          call flush(6)
          call abort()
       ELSE
@@ -49,8 +51,8 @@ c$$$      call flush(6)
                      END IF
                   END DO
                END IF
-               write(6,*) 'Error: Index ',I,' not found in step level ',
-     &              LI,'!'
+         if(rank.eq.0)
+     &  write(6,*) 'Error: Index ',I,' not found in step level ',LI,'!'
                call flush(6)
                call abort()
             END IF

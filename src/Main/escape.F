@@ -137,12 +137,11 @@
    15 CONTINUE
       CMR(4) = SQRT(CMR(1)**2 + CMR(2)**2 + CMR(3)**2)
 *
-      JLAST = MIN(2*NCORR,NMAX)
       if(rank.eq.0)
-     &WRITE (6,18)  N, NSESC, NBESC, ZMASS, BE(3), CMR(4), RESC, STEPI,
-     &              RSI, ZMASS/FLOAT(N), NCRIT1, (JLIST(J),J=1,JLAST)
-   18 FORMAT (/,' ESCAPE   N =',2I10,I6,F8.4,F12.6,2F7.2,F7.3,F7.2,F9.5,
-     &                                        I6,2X,6I6,/,5(10X,20I6,/))
+     &WRITE (6,18) N, NCORR, NSESC, NBESC, ZMASS, BE(3), CMR(4), RESC,
+     &       STEPI, RSI, ZMASS/FLOAT(N), NCRIT1, (JLIST(J),J=1,NCORR)
+   18 FORMAT (/,' ESCAPE   N =',I10,I6,I10,I6,F8.4,F12.6,2F7.2,F7.3,
+     &                      F7.2,F9.5,I6,' JLIST: ',(2X,20I6,/))
 *
       IF (KZ(23).EQ.4)THEN
           JLAST = MIN(2*NCORR,NMAX)
@@ -198,7 +197,8 @@
       RSI = RS(I)
 *
 *       Accumulate escaper names and save current name in case I > N.
-*           PRINT*,' ESCAPE Check POTI PHIDBL=',POTI,PHIDBL(I)
+*     PRINT*,' ESC-Chk I,N,M,R,ncorr,angles=',I,NAME(I),BODY(I),
+*    &      SQRT(RI2),NCORR,(ILIST(2*NCORR+KK),KK=1,2)
       NCORR = NCORR + 1
       JLIST(NCORR) = NAME(I)
       NAMEI = NAME(I)
@@ -276,13 +276,14 @@
           if(rank.eq.0)then
              if(kstart.eq.1.and.first) then
                 first = .false.
-                write (11,*) 'Time[Myr]                 ',
-     &               'M[M*]                     ',
-     &               'EESC                      ',
-     &               'VI[km/s]                  ',
-     &               'K*          NAME        '
+                write (11,*) 'TTOT         ','BODY         ',
+     &       'RI           ','VI           ','STEP         ',
+     &       'T[Myr]       ','M[M*]        ','EESC         ',
+     &       'VI[km/s]     ','K*  ','NAME      ','ANGLES PHI, THETA'
              end if
-             WRITE (11,*)  TESC, BESC, EESC, VKM, KSTARI, NAMEI
+             WRITE (11,500) TTOT,BODY(I),SQRT(RI2),SQRT(VI2),STEP(I), 
+     &    TESC,BESC,EESC,VKM,KSTARI,NAMEI,(ILIST(2*NCORR+KK),KK=-1,0)
+ 500  FORMAT(1X,1P,9E13.5,I4,I10,2I6)
              call flush(11)
           end if
       END IF

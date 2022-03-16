@@ -12,11 +12,7 @@
 #ifdef PARALLEL
 #define MPIINIT 1
 #else
-#ifdef ENSEMBLE
-#define MPIINIT 1
-#else
 #define MPIINIT 0
-#endif
 #endif
 * recover random number sequence from COMMON variable IDUM1.
       KDUM = IDUM1
@@ -36,7 +32,7 @@
      &              /)
 *
       IF (NHI.GT.NBIN0) THEN
-          WRITE (6,2)  NBIN0, NHI
+          if(rank.eq.0)WRITE (6,2)  NBIN0, NHI
     2     FORMAT (5X,'FATAL ERROR!   NBIN0 =',I4,'  NHI =',I4)
           STOP
       END IF

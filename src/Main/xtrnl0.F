@@ -11,11 +11,7 @@
 #ifdef PARALLEL
 #define MPIINIT 1
 #else
-#ifdef ENSEMBLE
-#define MPIINIT 1
-#else
 #define MPIINIT 0
-#endif
 #endif
 *
 *       Check option for cluster in circular galactic orbit.
@@ -207,8 +203,6 @@ C          IF (RTIDE.EQ.0.0D0) RTIDE = 10.0
 *       Include table of circular velocity on unit #52 (km/sec & kpc).
               RI = 1000.0/RBAR
               DR = 1000.0/RBAR
-              OPEN (UNIT=52,STATUS='UNKNOWN',FORM='FORMATTED',
-     &             FILE='itid3.52')
               DO 60 K = 1,30
                   RI2 = RI**2
                   A2 = RI2 + (A + B)**2
@@ -221,8 +215,6 @@ C          IF (RTIDE.EQ.0.0D0) RTIDE = 10.0
      &                 F12.6,F10.5)
                   RI = RI + DR
    60         CONTINUE
-              CALL FLUSH(52)
-              CLOSE(52)
 *
               A2 = R02 + (A + B)**2
               VB2 = GMB/SQRT(R02)*(1.0 + AR/SQRT(R02))**(GAM-3.0)

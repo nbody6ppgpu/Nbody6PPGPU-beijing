@@ -16,11 +16,7 @@
 #ifdef PARALLEL
 #define MPIINIT 1
 #else
-#ifdef ENSEMBLE
-#define MPIINIT 1
-#else
 #define MPIINIT 0
-#endif
 #endif
 
 #if MPIINIT

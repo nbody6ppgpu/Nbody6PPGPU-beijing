@@ -226,7 +226,8 @@
 *
 *       Check for Roche mass transfer at every stage (AM CVn formation).
       IF (RADIUS(J1).GT.RL1.AND.KZ(34).GT.0) THEN
-          WRITE (6,25)  NAME(I1), NAMEG(IM), KSTAR(I1), KSTAR(I2),
+          if(rank.eq.0)
+     &    WRITE (6,25)  NAME(I1), NAMEG(IM), KSTAR(I1), KSTAR(I2),
      &                  SEMI1*SU, RL1*SU, RADIUS(J1)*SU
    25     FORMAT (' BRAKE2 TERM    NM K* A RL R*  ',2I6,2I4,3F7.3)
           ITERM = 1

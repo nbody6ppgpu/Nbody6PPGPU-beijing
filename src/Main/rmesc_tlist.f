@@ -6,6 +6,7 @@
 *     B_FLAG: binary remove flag
 
       include 'params.h'
+      include 'mpi_base.h'
       include 'tlist.h'
       INTEGER L,J,LK,K
       LOGICAL RM_FLAG,B_FLAG
@@ -25,23 +26,14 @@
          END IF
          IF(J.GT.I) THEN
             NXTLST(L) = NXTLST(L) - 1
-*     --07/10/14 13:03-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$         IF(J.GE.9951.and.j.LE.9960) print*,'J',J,'NDTK(K)'
-c$$$     &        ,NDTK(K),'K',K,'L',L,'NXTLST(L)',NXTLST(L),
-c$$$     &        'NDTK(K+1)',NDTK(K+1)
-*     --07/10/14 13:03-lwang-end----------------------------------------*
          ELSE IF(J.EQ.I) THEN
 *     decrease nxtlst ending point
-*     --07/08/14 16:49-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$            print*,'REMOVE I',I,'NXTLIMIT',NXTLIMIT,'L',L,'K',K,
-c$$$     &           'NDTMIN',NDTMIN,'NDTK(K)',NDTK(K),'NDTMAX',NDTMAX,
-c$$$     &           'B_LFAG',B_FLAG
+*           print*,'REMOVE I',I,'NXTLIMIT',NXTLIMIT,'L',L,'K',K,
+*    &           'NDTMIN',NDTMIN,'NDTK(K)',NDTK(K),'NDTMAX',NDTMAX,
+*    &           'B_FLAG',B_FLAG
 *     --07/08/14 16:49-lwang-end----------------------------------------*
-
             IF(NXTLIMIT.LE.1) THEN
-               write(6,*) 'Error: No particle in NXTLST!'
+               if(rank.eq.0)write(6,*) 'Error: No particle in NXTLST!'
                call flush(6)
                call abort()
             END IF
@@ -54,14 +46,20 @@ c$$$     &           'B_LFAG',B_FLAG
             IF(L.NE.NDTK(K)) THEN
                NXTLST(L) = NXTLST(NDTK(K))
                IF(NXTLST(L).GT.I) NXTLST(L) = NXTLST(L) - 1
-*     Avoid reduce index in position NXTLIMIT
-            ELSE IF(K.GT.NDTMIN.AND.NXTLST(NDTK(K-1)).GT.I) THEN
-               NXTLST(NDTK(K-1)) = NXTLST(NDTK(K-1)) - 1
+C*     Avoid reduce index in position NXTLIMIT (Wrong)
+C            ELSE IF(K.GT.NDTMIN.AND.NXTLST(NDTK(K-1)).GT.I) THEN
+C               NXTLST(NDTK(K-1)) = NXTLST(NDTK(K-1)) - 1
             END IF
             NDTK(K) = NDTK(K) - 1
             DO LK = K-1,NDTMIN,-1
 *     Shift last index position to beginning of level L
-               NXTLST(NDTK(LK+1)+1) = NXTLST(NDTK(LK))
+               IF(NDTK(LK+1)+1.NE.LK) THEN
+                  NXTLST(NDTK(LK+1)+1) = NXTLST(NDTK(LK))
+*     Avoid the missing -1 if the removed one is the ending of level
+                  IF(L.EQ.NDTK(LK+1)+1.AND.NXTLST(L).GT.I) THEN
+                     NXTLST(L) = NXTLST(L)-1
+                  END IF
+               END IF 
 *     Reduce step level L position by one
                NDTK(LK) = NDTK(LK) - 1
             END DO
@@ -77,7 +75,8 @@ c$$$     &           'B_LFAG',B_FLAG
          L = NXTLIMIT+1
  2       IF(NXTLST(L).EQ.I) THEN
             IF(RM_FLAG) THEN
-               write(6,*) 'Error: Particle I',I,'exist in both NXTLST ',
+       if(rank.eq.0)
+     &      write(6,*) 'Error: Particle I',I,'exist in both NXTLST ',
      &              'and Ghost list! L',L
                call flush(6)
                call abort()
@@ -96,7 +95,8 @@ c$$$     &           'B_LFAG',B_FLAG
          L = 2
  3       IF(NLSTDELAY(L).EQ.I) THEN
             IF(RM_FLAG) THEN
-               write(6,*) 'Error: Particle I',I,'exist in both NXTLST ',
+               if(rank.eq.0)
+     &         write(6,*) 'Error: Particle I',I,'exist in both NXTLST ',
      &              'and NLSTDELAY! L',L
                call flush(6)
                call abort()
@@ -122,12 +122,14 @@ c$$$     &           'B_LFAG',B_FLAG
          END IF
       END IF
 
-      IF(.NOT.RM_FLAG) write(6,*) 'Warning!: particle',I,'not find in ',
-     &     'escape remove'
-*     --07/10/14 13:13-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      print*,'-----------------'
-*     --07/10/14 13:13-lwang-end----------------------------------------*
+*     IF(rank.eq.0.)THEN
+*        write(6,*)rank,' End rmesc RM_FLAG,B_FLAG,I=',
+*    &    RM_FLAG,B_FLAG,I,
+*    &   ' nxtlim,ngh,l,k,ndtmin,max,ndtk(min,k,max) ',NXTLIMIT,NGHOSTS,
+*    &   L,K,NDTMIN,NDTMAX,NDTK(NDTMIN),NDTK(K),NDTK(NDTMAX)
+*        call flush(6)
+*     END IF
+*
       call shrink_tlist
 
       RETURN

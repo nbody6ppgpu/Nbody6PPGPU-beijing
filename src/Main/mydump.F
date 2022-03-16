@@ -68,9 +68,9 @@
 *     Make sure TTOT is still in CC(158) see common6.h
          TTOT = CC(158)
          DTADJ = CC(3)
-         IF(TTOT.LE.1.D-5)THEN
-           J0 = JUNIT
-           J = J0 + 198
+         IF(J0.EQ.0)THEN
+           J = J0 + 200
+           J0 = 1
          END IF
          J = J + 1
          NCOMM = IA(16)
@@ -92,6 +92,12 @@
             NPARTMP(8) = MCL
             NPARTMP(9) = NCMAX
             NPARTMP(10) = NTMAX
+*
+            PRINT*,' W MYDUMP J,II,NPARTMP=',J,II,NPARTMP,
+     *             ' ntot,npairs,nttot=',ntot,npairs,nttot,
+     *      ' sum na+...+ns=',NA+NB+NC+ND+NE+NG+NL+NM+NO+NP+NQ+NS
+            PRINT*,' NA-NS=',NA,NB,NC,ND,NE,NG,NL,NM,NO,NP,NQ,NS
+*
             WRITE (J) NPARTMP
 *     
             WRITE (J) ntot,npairs,nttot,ia,b,c,d,e,g,l,m,o,p,q,s

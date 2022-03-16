@@ -13,7 +13,8 @@
          END DO
          DO L = NXTLIMIT+1,NXTLIMIT+NGHOSTS
             IF (NXTLST(L).EQ.J) THEN
-               print*,'Error!: J particle',J,' already in ghost list!'
+         if(rank.eq.0)
+     & print*,'Error!: J particle',J,' already in ghost list!'
                call abort()
             END IF
          END DO
@@ -25,7 +26,7 @@
          NLSTDELAY(1) = NLSTDELAY(1) + 1
          NLSTDELAY(NLSTDELAY(1)+1) = J
       ELSE
-         write(6,*) 'Error: NLSTDELAY overflow!'
+         if(rank.eq.0)write(6,*) 'Error: NLSTDELAY overflow!'
          call abort()
       END IF
 

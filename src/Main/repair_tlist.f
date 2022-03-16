@@ -10,6 +10,7 @@
 *     RML:  Removing particle index list
 *     IGHOST: Whether shift all removed particles into ghost list
       include 'params.h'
+      include 'mpi_base.h'
       include 'tlist.h'
       REAL*8 STEP(NMAX),DTK(64)
       INTEGER ADDL(10),RML(10)
@@ -20,7 +21,8 @@
 *     Removing particle
 *     Safe check
       IF(IRM.GT.10) THEN
-         write(6,*) 'Error: Removing particles exceed maximum 10!'
+         if(rank.eq.0)
+     &   write(6,*) 'Error: Removing particles exceed maximum 10!'
          call flush(6)
          call abort()
       END IF
@@ -40,7 +42,8 @@
 
 *     Safe check
       IF(IADD.GT.10) THEN
-         write(6,*) 'Error: Adding particles exceed maximum 10!'
+         if(rank.eq.0)        
+     &   write(6,*) 'Error: Adding particles exceed maximum 10!'
          call flush(6)
          call abort()
       END IF

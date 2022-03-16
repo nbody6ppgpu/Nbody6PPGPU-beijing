@@ -4,9 +4,9 @@
 *       -----------------------
 
 *       Author:  Rosemary Mardling (3/98).
-
       parameter (n=6)
       implicit real*8 (A-H,O-Z)
+      include 'mpi_base.h'
       real*8 u0(n),ut(n),du(n),u(n)
       real*8 a(4),b(4)
 
@@ -169,7 +169,8 @@
       TF = e/EDT
       TQ = e/EDQ
       EDTOT = edot(1)*ehat(1)+edot(2)*ehat(2)+edot(3)*ehat(3)
-      IF (ITIME.EQ.4) WRITE (6,6)  e0,TF,TQ,EDT,EDQ,EDTOT,EKD
+      IF (rank.eq.0.AND.ITIME.EQ.4)
+     &   WRITE (6,6)  e0,TF,TQ,EDT,EDQ,EDTOT,EKD
     6 FORMAT (' DERIV    e TF TQ EDT EDQ ED EK ',F9.5,1P,6E10.2)
       END IF
       IF (ITIME.GE.4) ITIME = 0

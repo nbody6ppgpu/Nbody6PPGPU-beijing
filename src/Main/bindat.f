@@ -183,12 +183,15 @@ c$$$    9     CONTINUE
      &              (X(2,ICM) - RDENS(2))**2 +
      &              (X(3,ICM) - RDENS(3))**2)
           VI = SQRT(XDOT(1,ICM)**2 + XDOT(2,ICM)**2 + XDOT(3,ICM)**2)
+          AGE1 = TIME*TSTAR - EPOCH(J1)
+          AGE2 = TIME*TSTAR - EPOCH(J2)
           if(rank.eq.0)
      &    WRITE (9,*)  NAME(J1), NAME(J2), BODY(J1)*ZMBAR,
      &         BODY(J2)*ZMBAR, EB(JPAIR), ECC(JPAIR), PB(JPAIR), 
      &         SEMI*RAU, RI*RBAR, VI*VSTAR, KSTAR(J1), KSTAR(J2),
-     &         ZN, RP, STEP(J1), NAME(N+JPAIR), ECM(JPAIR), KCM
-*   45     FORMAT (2I8,1P,8E13.5,0P,3I8,3I4)
+     &         ZN, RP, STEP(J1), NAME(N+JPAIR), ECM(JPAIR), KCM,
+     &         AGE1, AGE2, EPOCH(J1), EPOCH(J2)
+*   45     FORMAT (2I8,1P,8E13.5,0P,3I8,3I4,4E13.5)
    50 CONTINUE
       CALL FLUSH(9)
       CLOSE(9)

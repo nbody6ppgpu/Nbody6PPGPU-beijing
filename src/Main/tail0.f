@@ -34,7 +34,7 @@
       IF (NTTOT.GE.NMAX) THEN
           IWARN = IWARN + 1
           IF (IWARN.LE.10) THEN
-              WRITE (6,10)  NTTOT
+              if(rank.eq.0)WRITE (6,10)  NTTOT
    10         FORMAT (' WARNING!    MAXIMUM TIDAL TAIL ',I6)
           END IF
           RETURN

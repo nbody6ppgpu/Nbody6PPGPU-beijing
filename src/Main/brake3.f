@@ -164,7 +164,8 @@
          RCOAL = 0.0
       END IF
 *
-      WRITE (6,25)  NAME(I1), TOFF+TIME, ECC, SEMI1, DTGR, RCOAL
+      if(rank.eq.0)
+     &WRITE (6,25)  NAME(I1), TOFF+TIME, ECC, SEMI1, DTGR, RCOAL
    25 FORMAT (' BRAKE3    NM T E A DTGR RCOAL',I8,F9.2,F8.4,1P,3E10.2)
 *
 *       Check termination criterion for coalescence.

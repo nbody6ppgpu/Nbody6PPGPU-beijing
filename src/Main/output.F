@@ -22,12 +22,9 @@
       REAL*4  XJ(3,6),VJ(3,6),BODYJ(6)
       REAL*4  XNS(NMAX),PHI(NMAX)
       CHARACTER*27 OUTFILE
-      CHARACTER*27 OUTTAIL
+      CHARACTER*28 OUTTAIL
       CHARACTER*20 TCHAR
 *
-*     Call Computation of Moments of Inertia (with Chr. Theis)
-      IF(KZ(49).GT.0) CALL ELLAN
-
 *     Obtain energy error in case routine ADJUST not called recently.
       IF (TIME.GE.TADJ.OR.TIME.LE.0.0D0) GO TO 10
 *
@@ -66,6 +63,8 @@
       IF (KZ(7).GT.0) THEN
           CALL LAGR(RDENS)
       END IF
+*     Call Computation of Moments of Inertia (with Chr. Theis)
+      IF(KZ(49).GT.0) CALL ELLAN
 *
 *       Initialize diagnostic variables.
    10 NP = 0
@@ -239,11 +238,6 @@
 
 *     Reset counter to zero
       call counter_reset
-
-*     Obtain half-mass radii for two groups (NAME <= NZERO/5 & > NZERO/5). 
-      IF (KZ(7).GE.6) THEN
-          CALL LAGR2(RDENS)
-      END IF
 *
 *       Include diagnostics about cluster orbit in general external field.
 #ifdef TT
@@ -509,25 +503,23 @@ c$$$     &           nmerge,name(j1),name(j2),name(icm)
 *        Write all data in binary format on unit 3 = conf.3.
 *
       if(rank.eq.0)then
+         IF(TTOT.EQ.0.0.AND.KZ(46).GT.0.AND.KZ(40).GT.0)
+     &     PRINT*,' Warning no higher derivs initially in CUSTOM output'
+         IF(KZ(46).EQ.1.OR.KZ(46).EQ.3) THEN
+            if(TTOT.GT.0.0D0) THEN
+               call custom_update_file(TTOT,DELTAT)
+            END IF
+         END IF
+*
 *     Split the conf.3 files by time
          call string_left(TCHAR,TTOT,DELTAT)
          write(OUTFILE,118) TCHAR
  118     format('conf.3_',A20)
-
-         IF(KZ(46).EQ.1.OR.KZ(46).EQ.3) THEN
-            if(rank.eq.0.AND.TTOT.GT.0.0D0) THEN
-               call custom_update_file(TTOT,DELTAT)
-            END IF
-         END IF
-
+*
          OPEN (UNIT=3,STATUS='UNKNOWN',FORM='UNFORMATTED',FILE=OUTFILE)
-         
+*
          WRITE (3)  NTOT, MODEL, NRUN, NK
          WRITE (3)  (AS(K),K=1,NK),
-C         DO J = 1, NTOT
-C            WRITE (3,*) BODYS(J)*ZMBAR,XS(1:3,J)*RBAR,VS(1:3,J)*VSTAR,
-C     &           NAME(J)
-C         END DO
      &         (BODYS(J),J=1,NTOT),(RHOS(J),J=1,NTOT),(XNS(J),J=1,NTOT),
      &         ((XS(K,J),K=1,3),J=1,NTOT), ((VS(K,J),K=1,3),J=1,NTOT),
      &         (PHI(J),J=1,NTOT),(NAME(J),J=1,NTOT)
@@ -536,11 +528,11 @@ C         END DO
 *     Tidal tail data
          IF(KZ(23).GE.3) THEN
             write(OUTTAIL,119) TCHAR
- 119        format('tail.5_',A20)
-            OPEN (UNIT=5,STATUS='UNKNOWN',FILE=OUTTAIL)
+ 119        format('tail.50_',A20)
+            OPEN (UNIT=50,STATUS='UNKNOWN',FILE=OUTTAIL)
             
             NK = 13
-            WRITE (5) NTAIL, MODEL, NK
+            WRITE (50) NTAIL, MODEL, NK
 *     Include cluster centre just in case.
             DO K = 1,3
                AS(K) = REAL(RG(K))
@@ -552,7 +544,7 @@ C         END DO
             AS(12) = REAL(TSTAR)
             AS(13) = REAL(VSTAR)
             NK = 13
-            WRITE (5)  (AS(K),K=1,NK)
+            WRITE (50)  (AS(K),K=1,NK)
             
             IF (NTAIL.GT.0) THEN
 *     Individual stars
@@ -562,10 +554,10 @@ C         END DO
                      XS(K,I) = REAL(X(K,I) - RG(K))
                      VS(K,I) = REAL(XDOT(K,I) - VG(K))
                   END DO
-                  WRITE (5) NAME(I),BODYS(I),XS(1:3,I),VS(1:3,I)
+                  WRITE (50) NAME(I),BODYS(I),XS(1:3,I),VS(1:3,I)
                END DO
             END IF
-            CLOSE(5)
+            CLOSE(50)
          END IF
 
       end if

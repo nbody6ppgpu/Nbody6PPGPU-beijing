@@ -9,6 +9,7 @@
 *     DL: shifting step level
 
       include 'params.h'
+      include 'mpi_base.h'
       include 'tlist.h'
       REAL*8 DT,DTK(64)
       INTEGER I,DL
@@ -32,8 +33,8 @@
                J = J + 1
                IF (J.LE.NLSTDELAY(1)+1) GO TO 2
             END IF
-            write(6,*) 'Error: Index ',I,' not found in step level ',
-     &           L,'!'
+            if(rank.eq.0)
+     & write(6,*) 'Error: Index ',I,' not found in step level ',L,'!'
             call flush(6)
             call abort()
          END IF
@@ -42,7 +43,7 @@
       NL = L + DL
 *     See whether the shift is reasonable
       IF(NL.GT.64) then
-         write(6,*) 'Error!: Too small Step: I',I,
+         if(rank.eq.0)write(6,*) 'Error!: Too small Step: I',I,
      &        'Step level',NL
          call flush(6)
          call abort()

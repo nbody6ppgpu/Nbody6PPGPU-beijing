@@ -48,7 +48,7 @@
       T0S(ISUB) = TIME - TIMEC
 *
       IF (KZ(30).GT.2) THEN
-          WRITE (6,1)  TIME+TOFF, DT2, DT8
+          if(rank.eq.0)WRITE (6,1)  TIME+TOFF, DT2, DT8
     1     FORMAT (' ABSORB:    TIME DT2 DT8 ',F12.6,1P,2E10.2)
       END IF
 *
@@ -162,7 +162,7 @@
               CM(K) = CM(K)/CM(7)
    95     CONTINUE
 *
-          WRITE (6,99)  (CM(K),K=1,6)
+          if(rank.eq.0)WRITE (6,99)  (CM(K),K=1,6)
    99     FORMAT (' ABSORB:   CM ',1P,6E9.1)
       END IF
 *

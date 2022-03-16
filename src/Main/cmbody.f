@@ -684,12 +684,8 @@ C     STEP(I2) = DTMAX
       E(10) = E(10) + EB + DP
       EGRAV = EGRAV + EB
 *
-*       Open the second coalescence unit #26 first time.
       IF (FIRST.AND.(IQCOLL.EQ.3.OR.KSTARI.GE.10)) THEN
-          OPEN (UNIT=26,STATUS='UNKNOWN',FORM='FORMATTED',
-     &        FILE='coal.26',ACCESS='APPEND')
           FIRST = .FALSE.
-*
 *       Print cluster scaling parameters at start of the run.
           if(rank.eq.0.and.TTOT.eq.0)then
           WRITE (26,82)  RBAR, BODYM*ZMBAR, BODY1*ZMBAR, TSCALE,

@@ -220,7 +220,7 @@ c$$$              call flush(6)
 *       Check for GR braking for compact object binaries RSp March 2019
         I2 = I1 + 1
         IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &  (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
+     &  (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14).AND.HI.LT.0) THEN
            SEMI = -0.5*BODY(I)/H(IPAIR)
            ECC2 =(1.0-R(IPAIR)/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
            ECC = SQRT(ECC2)
@@ -250,7 +250,7 @@ c$$$              call flush(6)
      &        SEMI,ECC,H(IPAIR),QPERI,A_EIN,DTGW(IPAIR)
            END IF 
 *       Prepare coal flag if PERI < 500 R_SCHW
-           IF(QPERI.LT.(3.0D2*BODY(I)/CLIGHT**2)) THEN
+           IF(DABS(QPERI).LT.(3.0D2*BODY(I)/CLIGHT**2)) THEN
               PRINT *,'COLL DUE TO GW QPERI CLIGHT RSCH', 
      &                QPERI, CLIGHT, 2.0*BODY(I)/CLIGHT**2  
               IPHASE = -1

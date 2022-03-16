@@ -270,8 +270,6 @@ c$$$      END IF
 *     Print energy diagnostics & KS parameters.
          ICR = INT(TTOT/TCR0)
 C     New (Aug.1998) by P.Kroupa: (time also in Myr)
-c$$$         WRITE(6,50) rank, TTOT, ttot*tscale, Q, DE, DELTA1, BE(3)-EBIN,
-c$$$     &        EBIN,EMERGE
          WRITE(6,50) TTOT, ttot*tscale, Q, DE, DELTA1,DETOT, E(3),
      &        ZKIN, POT, ETIDE,
      &        BE(3),EBIN,EMERGE,ESUB,ECOLL,EMDOT,ECDOT
@@ -356,7 +354,8 @@ c$$$     &        EBIN,EMERGE
                ECC2 = (1.0 - R(IP)/SEMI)**2 +
      &              TDOT2(IP)**2/(SEMI*BODY(N+IP))
                EB = BODY(I1)*BODY(I2)*H(IP)/BODY(N+IP)
-               WRITE (39,62)  TTOT, NAME(I1), NAME(I2), KSTAR(N+IP),
+               if(rank.eq.0)
+     &         WRITE (39,62)  TTOT, NAME(I1), NAME(I2), KSTAR(N+IP),
      &              LIST(1,I1), SQRT(ECC2), SEMI, PB, EB, E(3)
  62            FORMAT (' BINARY:   Time[Myr] NAME(I1) NAME(I2) ',
      &              'K*(ICM) NP ECC SEMI[NB] P[days] EB[NB] EM[NB] ',
@@ -386,10 +385,6 @@ C     New (Aug. 1998): P.Kroupa
      &     .OR.N.LE.NCRIT) THEN
 *     Terminate after optional COMMON save.
          if(rank.eq.0) THEN
-*            do k=0,nmax
-*               write (666,555) K, JHISTR(k)
-* 555           format(1X,2I8)
-*            end do
             WRITE (6,65) TTOT*TSCALE, TOFF, TIME, TIME+TOFF,
      &           CPUTOT/60.0,ERRTOT, DETOT
  65         FORMAT (//,9X,'END RUN',3X,' TIME[Myr] =',F8.2,

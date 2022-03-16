@@ -9,7 +9,7 @@ C***********************************************************************
 C
 C
 C     Subroutine to analyze the ellipticity of the system
-C
+C     Written by Christian Theis 199x; updated RSp Aug. 2021
 C
 C=======================================================================
 
@@ -17,20 +17,20 @@ C=======================================================================
         COMMON/POTDEN/  RHO(NMAX),XNDBL(NMAX),PHIDBL(NMAX)
 C   Declaration of local variables.
 C   -------------------------------
-        DOUBLE PRECISION etoti(1:nmax),mtot,poscm(3),
+        DOUBLE PRECISION etoti(1:nmax),
      &     ti(3,3),tiwork(3,3),dwork(3),ework(3),lam(3)
         INTEGER i,j,k,ief,nbound,nstart,nnext,np,indexev(3)
         INTEGER index(1:nmax)
 
-        INTEGER nef,nef1
-        PARAMETER(nef=9,nef1=nef+1)
+        INTEGER nef,nef1,nnpart
+        PARAMETER(nef=17,nef1=nef+1)
         DOUBLE PRECISION xf(nef1),ba(nef1),ca(nef1),taue(nef1),
-     &            evec(3,3,nef1)
+     &            evec(3,3,nef1),xpo,ypo,zpo
 
         PARAMETER (tiny2=1.D-30)
-        DATA (xf(i),i=1,nef1) /0.01D0,0.05D0,0.1D0,0.2D0,0.5D0,
-     &                        0.8D0,0.9D0,0.95D0,1.0D0,99.D0/
-
+      DATA XF/0.001D0,0.003D0,0.005D0,0.01D0,0.03D0,0.05D0,0.1D0,
+     &     0.2D0,0.3D0,0.4D0,0.5D0,0.6D0,0.7D0,0.8D0,0.9D0,0.95D0,
+     &     0.99D0,1.0D0/
 C=======================================================================
         
 C       calculate specific energy of particles
@@ -52,7 +52,8 @@ C      -----------------------------------
 C       sort for particle energy
 C       ------------------------
 
-        CALL indexx(ntot-ifirst+1,etoti,index)
+        nnpart = ntot-ifirst+1
+        CALL indexx(nnpart,etoti,index)
 
 C       initialize tensor of inertia
 C       ----------------------------
@@ -67,10 +68,7 @@ C       LOOP over fraction of most bound particles and all particles
 C       ------------------------------------------------------------
 
         nstart   = 1
-        mtot     = 0.D0
-        poscm(1) = 0.D0
-        poscm(2) = 0.D0
-        poscm(3) = 0.D0
+*
         DO 500 ief=1,nef1
 
            IF(ief.LE.nef) THEN
@@ -80,7 +78,7 @@ C                                  --------------------------------
            ELSE
 C                                   all particles
 C                                   -------------
-              nnext = ntot
+              nnext = ntot - ifirst + 1
            ENDIF
 
 C-----------------------------------------------------------------
@@ -98,68 +96,22 @@ C-----------------------------------------------------------------
 
            ELSE
 
-C       calculate tensor of inertia
+C       calculate tensor of inertia relative to density centre (R.Sp.)
 C       ---------------------------
-*             print*,' nstart,nnext=',nstart,nnext
               DO 400 i=nstart,nnext
                  ipo = index(i) + ifirst - 1
-                 ti(1,1) = ti(1,1) + body(ipo) *
-     &                  (x(2,ipo)*x(2,ipo) + x(3,ipo)*x(3,ipo))
-                 ti(2,2) = ti(2,2) + body(ipo) *
-     &                  (x(1,ipo)*x(1,ipo) + x(3,ipo)*x(3,ipo))
-                 ti(3,3) = ti(3,3) + body(ipo) *
-     &                  (x(1,ipo)*x(1,ipo) + x(2,ipo)*x(2,ipo))
-                 ti(1,2) = ti(1,2) - body(ipo) * x(1,ipo)*x(2,ipo)
-                 ti(1,3) = ti(1,3) - body(ipo) * x(1,ipo)*x(3,ipo)
-                 ti(2,3) = ti(2,3) - body(ipo) * x(2,ipo)*x(3,ipo)
+                 xpo = x(1,ipo)-rdens(1)
+                 ypo = x(2,ipo)-rdens(2)
+                 zpo = x(3,ipo)-rdens(3)
+*
+                 ti(1,1) = ti(1,1) + body(ipo) * (ypo**2 + zpo**2)
+                 ti(2,2) = ti(2,2) + body(ipo) * (xpo**2 + zpo**2)
+                 ti(3,3) = ti(3,3) + body(ipo) * (xpo**2 + ypo**2)
+                 ti(1,2) = ti(1,2) - body(ipo) * xpo*ypo
+                 ti(1,3) = ti(1,3) - body(ipo) * xpo*zpo
+                 ti(2,3) = ti(2,3) - body(ipo) * ypo*zpo
 400           CONTINUE
       
-C       correct for center of mass
-C       --------------------------
-
-C   A) calculate center of mass data
-C   --------------------------------
-
-C--       remove previous correction for center of mass
-              ti(1,1) = ti(1,1) + mtot * (poscm(2)**2+poscm(3)**2)
-              ti(2,2) = ti(2,2) + mtot * (poscm(1)**2+poscm(3)**2)
-              ti(3,3) = ti(3,3) + mtot * (poscm(1)**2+poscm(2)**2)
-              ti(1,2) = ti(1,2) - mtot * poscm(1) * poscm(2)
-              ti(1,3) = ti(1,3) - mtot * poscm(1) * poscm(3)
-              ti(2,3) = ti(2,3) - mtot * poscm(2) * poscm(3)
-              poscm(1) = poscm(1) * mtot
-              poscm(2) = poscm(2) * mtot
-              poscm(3) = poscm(3) * mtot
-*             xav = 0.d0
-*             yav = 0.d0
-*             zav = 0.d0
-
-              DO 405 i=nstart,nnext
-                 ipo = index(i) + ifirst - 1
-                 poscm(1) = poscm(1) + body(ipo) * x(1,ipo)
-                 poscm(2) = poscm(2) + body(ipo) * x(2,ipo)
-                 poscm(3) = poscm(3) + body(ipo) * x(3,ipo)
-                 mtot     = mtot + body(ipo)
-*                xav = xav + abs(x(1,ipo))
-*                yav = yav + abs(x(2,ipo))
-*                zav = zav + abs(x(3,ipo))
-
- 405           CONTINUE
-              poscm(1) = poscm(1) / mtot
-              poscm(2) = poscm(2) / mtot
-              poscm(3) = poscm(3) / mtot
-*             print*,' av=',xav,yav,zav
-
- 
-C   B) apply correction
-C   -------------------
-              ti(1,1) = ti(1,1) - mtot * (poscm(2)**2+poscm(3)**2)
-              ti(2,2) = ti(2,2) - mtot * (poscm(1)**2+poscm(3)**2)
-              ti(3,3) = ti(3,3) - mtot * (poscm(1)**2+poscm(2)**2)
-              ti(1,2) = ti(1,2) + mtot * poscm(1) * poscm(2)
-              ti(1,3) = ti(1,3) + mtot * poscm(1) * poscm(3)
-              ti(2,3) = ti(2,3) + mtot * poscm(2) * poscm(3)
-
 C       set off-axis values by symmetry
 C       -------------------------------
 
@@ -167,7 +119,6 @@ C       -------------------------------
               ti(3,1) = ti(1,3)
               ti(3,2) = ti(2,3)
 *
-*             print*,' mtot,poscm=',mtot,(poscm(k),k=1,3)
 C=======================================================
 C       determine eigenvalues and axis of inertia
 C=======================================================
@@ -217,17 +168,17 @@ c             ENDIF
 C==================================================================
 C==         OUTPUT of data
 C===================================================================
-
-        DO 600 ief=1,nef1
-          if(rank.eq.0)
-     *     WRITE(60,910) ief, time,ba(ief),ca(ief),taue(ief),
-     *     mtot,(poscm(k),k=1,3)
-600     CONTINUE
-
-*     900     FORMAT(I4,1x,1p,e12.5,1x,0p,i9,1x,i9,1x,i2)
-910     FORMAT(I4,1x,1P,8E12.5,0P)
-
+      if(rank.eq.0)then
+            WRITE (6,40) (XF(K),K=1,NEF1)
+ 40         FORMAT (/,11X,'TIME   E/ET:',1P,18(1X,E9.2))
+            WRITE (6,41) TTOT,(BA(K),K=1,NEF1)
+ 41         FORMAT (3X,1P,E12.4,'   B/A: ',18(1X,E9.2))
+            WRITE (6,42) TTOT,(CA(K),K=1,NEF1)
+ 42         FORMAT (3X,1P,E12.4,'   C/A: ',18(1X,E9.2))
+            WRITE (6,43) TTOT,(TAUE(K),K=1,NEF1)
+ 43         FORMAT (3X,1P,E12.4,'   TAU: ',18(1X,E9.2))
+      END IF
+*
         RETURN
         
         END
-

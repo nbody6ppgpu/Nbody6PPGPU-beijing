@@ -141,7 +141,7 @@
           END IF
 *
 *       Produce diagnostic output for large eccentricity.
-          IF (ECC.GT.0.9) THEN
+          IF (rank.eq.0.AND.ECC.GT.0.9) THEN
               WRITE (75,20)  NAME(I1), TTOT, ECC0, ECC, EMIN, EMAX,
      &                       ECCDOT, EDT, TG, TC1, EDAV, PM
    20         FORMAT ('DECIDE:  NAME(I1) Time[NB] ECC0 ECC1 ECCMIN ',

@@ -8,7 +8,8 @@
       INCLUDE 'common6.h'
 *
 *
-      WRITE (6,1)  NAME(I1), NAME(I2), KSTAR(I1), KSTAR(I2),
+       if(rank.eq.0)
+     & WRITE (6,1)  NAME(I1), NAME(I2), KSTAR(I1), KSTAR(I2),
      &             RADIUS(I1), RADIUS(I2), RCOLL, R(IPAIR), H(IPAIR)
     1 FORMAT (' KS COLL    NAM K* R* RC R H ',2I6,2I4,1P,5E10.2)
 *

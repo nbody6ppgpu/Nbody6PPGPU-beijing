@@ -41,7 +41,7 @@
 *       Special Treatment of GR for compact binaries RSp March 2019
       IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
      &   (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
-         IF(QPERI*SU.LT.5.0D1) THEN
+         IF(DABS(QPERI)*SU.LT.5.0D1) THEN
              GO TO 5
          END IF 
       END IF
@@ -116,12 +116,16 @@
 *
  5    CONTINUE
         IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &  (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14).AND.QPERI*SU.LT.5.0D1) THEN
-           IF(QPERI*SU.LT.5.0D1) THEN
+     &  (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
+           IF(DABS(QPERI)*SU.LT.5.0D1) THEN
            DTX = DTGW(IPAIR)
            CALL TIDES3(SEMI,BODY(I1),BODY(I2),ECC,VSTAR,DTX,DE)
              SEMI1 = SEMI - 1.0D+0*DE(3)
              ECC1 = ECC - 1.0D+0*DE(4)
+* Avoid negative ECC1 (R.Sp. Aug. 2021).
+             IF(ECC1.LT.0.D0.OR.DABS(ECC1).LT.1.E-04) ECC1 = 1.E-04
+* Avoid hyperbolic orbit as safety measure (R.Sp. Nov. 2021)
+             IF(ECC1.GT.1.D0)ECC1 = 0.999D0
              DH = -DE(1)/ZMU
              COUNTER = COUNTER + 1 
                 IF((MOD(COUNTER,1).eq.0).AND.(rank.eq.0)) THEN
@@ -371,8 +375,8 @@ c$$$                  JCOMP = J
       END IF
 *       Special Treatment of GR for compact binaries RSp March 2019
         IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14).AND.QPERI*SU.LT.5.0D1)
-     &   GO TO 50
+     &     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14).AND.
+     &   DABS(QPERI)*SU.LT.5.0D1) GO TO 50
 *       Special Treatment: Skip sections specific for tides and roche.
 *       Record diagnostics for new synchronous orbit and activate indicator.
       IF (ECC.GT.ECCM.AND.ECC1.LT.ECCM.AND.KZ(27).LE.2) THEN

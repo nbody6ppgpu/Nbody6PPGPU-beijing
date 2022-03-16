@@ -112,7 +112,7 @@
           TK = DAYS*TB/YRS
           OORB = TWOPI/TB
           JORB = MASS(1)*MASS(2)/(MASS(1)+MASS(2))
-     &           *SQRT(1.D0-ECC*ECC)*SEP*SEP*OORB
+     &           *SQRT(ABS(1.D0-ECC*ECC))*SEP*SEP*OORB
 *
           DM1 = 0.D0
           DM2 = 0.D0
@@ -162,7 +162,7 @@
 *       other and Roche occurs in the meantime!
           J = J1
           VORB2 = ACC1*(MASS(1)+MASS(2))/SEP
-          IVSQM = 1.D0/SQRT(1.D0-ECC*ECC)
+          IVSQM = 1.D0/SQRT(ABS(1.D0-ECC*ECC))
           DO 98 K = 1,2
              DT = 1.0D+06*(TPHYS0 - TEV0(J)*TSTAR)
              IF(DT.EQ.0.0) GOTO 99
@@ -219,7 +219,7 @@
           TK = DAYS*TB/YRS
           OORB = TWOPI/TB
           JORB = MASS(1)*MASS(2)/(MASS(1)+MASS(2))
-     &           *SQRT(1.D0-ECC*ECC)*SEP*SEP*OORB
+     &           *SQRT(ABS(1.D0-ECC*ECC))*SEP*SEP*OORB
 *
 *       Define first/second Roche overflow stage and increase event counter.
           IF (KSTAR(I).LE.10.OR.
@@ -242,8 +242,6 @@
               END IF
 *
               IF(rank.eq.0.and.FIRST.and.KSTART.eq.1)THEN
-C                 OPEN(UNIT=85,STATUS='UNKNOWN',FORM='FORMATTED',
-C     &                FILE='ROCHE')
                  FIRST = .FALSE.
                  WRITE (85,94)
    94            FORMAT (/,' NAM1  NAM2  K1 K2   TPHYS     AGE1     ',
@@ -636,7 +634,7 @@ C     &                FILE='ROCHE')
 * Calculate wind mass loss from the stars during one orbit.
 *
          VORB2 = ACC1*(MASS(1)+MASS(2))/SEP
-         IVSQM = 1.D0/SQRT(1.D0-ECC*ECC)
+         IVSQM = 1.D0/SQRT(ABS(1.D0-ECC*ECC))
          J = J1
          DO 30 K = 1,2
             RLPERI = ROL(K)*(1.D0-ECC)
@@ -822,7 +820,7 @@ C     &                FILE='ROCHE')
 *
          OORB = TWOPI/TB
          JORB = MASS(1)*MASS(2)/(MASS(1)+MASS(2))
-     &          *SQRT(1.D0-ECC*ECC)*SEP*SEP*OORB
+     &          *SQRT(ABS(1.D0-ECC*ECC))*SEP*SEP*OORB
 *
 * Calculate orbital angular momentum change due to system mass loss.
 *

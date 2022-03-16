@@ -568,7 +568,6 @@ C      END IF
      &        SEMI*SU, DA, omeq, spin1, spin2, DT
  85      FORMAT (' SYNCH    NM K* A DA/A om s1 s2 DT ',
      &        I8,2I4,F8.2,1P,5E10.2)
-         CALL FLUSH(7)
       END IF
 *     
       IF (spin1.LT.0.0) THEN

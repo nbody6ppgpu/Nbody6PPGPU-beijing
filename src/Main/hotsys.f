@@ -49,7 +49,7 @@
       TCRIT = TCRIT/RATIO
       VC = VSCALE*VC
 *
-      WRITE (6,30)  SIGMA0, VRMS, VSCALE
+      if(rank.eq.0)WRITE (6,30)  SIGMA0, VRMS, VSCALE
    30 FORMAT (/,12X,'HOT SYSTEM:   SIGMA0 =',F5.1,'  <V> =',F6.3,
      &                                              '  VSCALE =',F6.3,/)
 *

@@ -100,7 +100,7 @@
       RH1 = SQRT(R2(I))
       NP1 = NP
 *
-      WRITE (31,*)  TIME+TOFF, (LOG10(RLAGR(K)),K=1,LX)
+      if(rank.eq.0)WRITE (31,*)  TIME+TOFF, (LOG10(RLAGR(K)),K=1,LX)
 C   30 FORMAT (' ',F8.1,13F7.3)
       CALL FLUSH(31)
 *
@@ -200,10 +200,11 @@ C   30 FORMAT (' ',F8.1,13F7.3)
       RH2 = SQRT(R2(I))
       NP2 = NP
 *
-      WRITE (32,*)  TIME+TOFF, (LOG10(RLAGR(K)),K=1,LX)
+      if(rank.eq.0)WRITE (32,*)  TIME+TOFF, (LOG10(RLAGR(K)),K=1,LX)
       CALL FLUSH(32)
 *
-      WRITE (6,70)  TIME+TOFF, NP0, NP1, NP2, RH1, RH2, RP0, RP1, RP2
+      if(rank.eq.0)
+     &WRITE (6,70)  TIME+TOFF, NP0, NP1, NP2, RH1, RH2, RP0, RP1, RP2
    70 FORMAT(/,' MASS GROUPS:    T NP0 NP1 NP2 RM1 RM2 RP0 RP1 RP2 ',
      &                           F7.1,I5,I6,I7,1X,5F7.3)
 *

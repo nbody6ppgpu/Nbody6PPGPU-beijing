@@ -15,8 +15,9 @@
 
 *     --07/08/14 16:49-lwang-debug--------------------------------------*
 ***** Note:------------------------------------------------------------**
-c$$$      print*,'exchange I',I,'J',J,'IK',LI,'JK',LJ,'NLSTDELAY',
-c$$$     &     NLSTDELAY(1:NLSTDELAY(1)+1)
+*     if(rank.eq.0)print*,'exchange I',I,'J',J,'IK',LI,'JK',LJ,' STEPS',
+*    &    STEP(I),STEP(J),' NLSTDELAY ',
+*    &    NLSTDELAY(1:MIN(NLSTDELAY(1)+1,10))
 *     --07/08/14 16:49-lwang-end----------------------------------------*
 
 *     IF I and J are same level, do nothing
@@ -35,7 +36,8 @@ c$$$     &     NLSTDELAY(1:NLSTDELAY(1)+1)
             END IF
          END IF
          IF(NLSTDELAY(1).GT.0) GO TO 12
-         write(6,*) 'Error: No ghost particle I',I,'STEP',STEP(I)
+         if(rank.eq.0)
+     &  write(6,*) 'Error: No ghost particle I',I,'STEP',STEP(I)
          call flush(6)
          call abort()
       ELSE
@@ -49,7 +51,8 @@ c$$$     &     NLSTDELAY(1:NLSTDELAY(1)+1)
                GO TO 1
             ELSE
                IF(NLSTDELAY(1).GT.0) GO TO 12
-               write(6,*) 'Error: Index ',I,' not found in step level ',
+           if(rank.eq.0)
+     &         write(6,*) 'Error: Index ',I,' not found in step level ',
      &              LI,'!'
                call flush(6)
                call abort()
@@ -64,7 +67,8 @@ c$$$     &     NLSTDELAY(1:NLSTDELAY(1)+1)
             GO TO 30
          END IF
       END DO
-      write(6,*) 'Error: No delay particle I',I,'STEP',STEP(I)
+      if(rank.eq.0)
+     &write(6,*) 'Error: No delay particle I',I,'STEP',STEP(I)
       call flush(6)
       call abort()
 
@@ -81,7 +85,8 @@ c$$$     &     NLSTDELAY(1:NLSTDELAY(1)+1)
             END IF
          END IF
          IF(NLSTDELAY(1).GT.0) GO TO 22
-         write(6,*) 'Error: No ghost particle J',J,'STEP',STEP(J)
+         if(rank.eq.0)
+     &   write(6,*) 'Error: No ghost particle J',J,'STEP',STEP(J)
          call flush(6)
          call abort()
       ELSE
@@ -95,7 +100,8 @@ c$$$     &     NLSTDELAY(1:NLSTDELAY(1)+1)
                GO TO 2
             ELSE
                IF(NLSTDELAY(1).GT.0) GO TO 22
-               write(6,*) 'Error: Index ',J,' not found in step level ',
+               if(rank.eq.0)
+     &         write(6,*) 'Error: Index ',J,' not found in step level ',
      &              LJ,'!'
                call flush(6)
                call abort()
@@ -110,7 +116,8 @@ c$$$     &     NLSTDELAY(1:NLSTDELAY(1)+1)
          END IF
       END DO
 
-      write(6,*) 'Error: No delay particle J',J,'STEP',STEP(J)
+      if(rank.eq.0)
+     &write(6,*) 'Error: No delay particle J',J,'STEP',STEP(J)
       call flush(6)
       call abort()
 

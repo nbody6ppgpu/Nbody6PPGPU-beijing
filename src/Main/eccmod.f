@@ -53,7 +53,8 @@
       SEMI = -0.5*ZMB/HM(IM)
       IF (SEMI.LE.0.0) THEN
           TMDIS(IM) = TIME + 1.0
-          WRITE(6,*)' ECCMOD ERROR ',SEMI,ECC,H(IPAIR),HM(IM),ZMB
+          if(rank.eq.0)
+     &      WRITE(6,*)' ECCMOD ERROR ',SEMI,ECC,H(IPAIR),HM(IM),ZMB
           GO TO 50
       END IF
       ECC2 = (1.0 - RI/SEMI)**2 + TD2**2/(ZMB*SEMI)
@@ -78,7 +79,8 @@
           IDELAY = IDELAY + 1
           IF (EMAX.GT.0.99.AND.MOD(IDELAY,10).EQ.0) THEN
               ALPH = 360.0*ZI/TWOPI
-              WRITE (6,10)  NAME(I1), IQ, KSTARM(IM), LIST(1,I1), ECC,
+          if(rank.eq.0)
+     &        WRITE (6,10)  NAME(I1), IQ, KSTARM(IM), LIST(1,I1), ECC,
      &                      EMAX, TG, SEMI*(1.0-ECC)/RM, ALPH
           END IF
    10     FORMAT (' ECCMOD DELAY    NAM IQ K* NP E EMAX TG QP/R* IN ',
@@ -112,7 +114,8 @@
           ZID = 360.0*ZI/TWOPI
           NP = LIST(1,I1)
           YC = R0(IPAIR)/SEMI
-          WRITE (6,15)  NAME(I1), NP, TTOT, ECC, EMAX, ECC1, PMIN/RM,
+          if(rank.eq.0)
+     &    WRITE (6,15)  NAME(I1), NP, TTOT, ECC, EMAX, ECC1, PMIN/RM,
      &                  YC, TG, TC, EDAV, ZID
    15     FORMAT (' ECCMOD    NM NP T E EX E1 QP/R* PC/A TG TC EDA IN ',
      &                        I6,I4,F11.4,3F8.4,2F7.1,1P,3E9.1,0P,F9.3)
@@ -125,7 +128,8 @@
 *       Include termination for expected short circularization time.
       IF (KSTARM(IM).GE.0.AND.PMIN.LT.3.0*RM) THEN
           ZID = 360.0*ZI/TWOPI
-          WRITE (6,40)  ITIME, EMAX, ECC, SEMI*(1.0 - ECC)/RM, ZID, TC
+      if(rank.eq.0)
+     &    WRITE (6,40)  ITIME, EMAX, ECC, SEMI*(1.0 - ECC)/RM, ZID, TC
    40     FORMAT (' ECCMOD TERM    IT EX E QP/R IN TC ',
      &                             I5,2F9.5,F6.2,F8.2,F8.1)
           CALL FLUSH(3)

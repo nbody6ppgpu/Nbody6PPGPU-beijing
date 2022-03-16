@@ -32,11 +32,7 @@
 #ifdef PARALLEL
 #define MPIINIT 1
 #else
-#ifdef ENSEMBLE
-#define MPIINIT 1
-#else
 #define MPIINIT 0
-#endif
 #endif
 
 #if MPIINIT
@@ -147,7 +143,7 @@
           CALL MODIFY
 *
 *       Open all other files.
-          CALL FILE_INIT(0)
+          if(rank.eq.0)CALL FILE_INIT
 *
 *       Find massive back hole after restart
           IF (KZ(24).EQ.1) call IMBHRESTART

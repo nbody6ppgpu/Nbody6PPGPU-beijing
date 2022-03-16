@@ -32,7 +32,8 @@
       IF(TNOW.GT.TTTIME(NBTT)) THEN
 *  When TNOW is after the timestamp of the last tensor:
 *  Terminate after optional COMMON save.
-        WRITE(6,*) 'ERROR: the tidal tensor is not defined anymore'
+        if(rank.eq.0)
+     &  WRITE(6,*) 'ERROR: the tidal tensor is not defined anymore'
         IF (KZ(1).GT.0) CALL MYDUMP(1,1)
         STOP
       ELSE

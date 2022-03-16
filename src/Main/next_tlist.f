@@ -7,6 +7,7 @@
 *     TMIN:     Next integrating time
 *
       include 'params.h'
+      include 'mpi_base.h'
       include 'tlist.h'
       REAL*8 TMIN,DTK(64),T0(NMAX)
 *
@@ -26,7 +27,8 @@
             NXTLEVEL = NXTLEVEL + 1
             IF(DMOD(TMIN,DTK(NXTLEVEL)).NE.0) GO TO 2
          ELSE
-         write(6,*) 'Warning: Smallest time step reached! TMIN =',TMIN,
+         if(rank.eq.0)
+     &   write(6,*) 'Warning: Smallest time step reached! TMIN =',TMIN,
      &           'NDTMAX',NDTMAX,'DTK(NDTMAX)',DTK(NDTMAX),'NXTLST(1)',
      &           NXTLST(1),'T0(1)',T0(NXTLST(1))
             NXTLEVEL = NDTMAX

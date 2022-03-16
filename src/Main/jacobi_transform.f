@@ -9,6 +9,7 @@
 *     logical and physical dimensions as a, whose columns contain, on output, the normalized
 *     eigenvectors of a. nrot returns the number of Jacobi rotations that were required.
 *
+      INCLUDE mpi_base.h
       INTEGER n,np,nrot,NNMAX
       REAL*8 a(np,np),d(np),v(np,np)
       REAL*8 ai(np,np)
@@ -99,7 +100,8 @@
           z(ip)=0.
 23      continue
 24    continue
-      write(6,*) 'too many iterations in jacobi'
+      if(rank.eq.0)
+     &write(6,*) 'too many iterations in jacobi'
 
       return
 

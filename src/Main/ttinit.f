@@ -58,7 +58,7 @@
         READ(20,*), NBTT, TTUNIT, TTOFFSET
 
         IF (NBTT.GT.NBTTMAX) THEN
-          WRITE (6,*) '*** ERROR: increase NBTTMAX in param.h'
+       if(rank.eq.0)WRITE (6,*) '*** ERROR: increase NBTTMAX in param.h'
           STOP
         END IF
       
@@ -68,7 +68,7 @@
         ENDDO
         CLOSE(20)
 
-        WRITE (6,10) NBTT, TTOFFSET, TTUNIT
+        if(rank.eq.0)WRITE (6,10) NBTT, TTOFFSET, TTUNIT
    10   FORMAT (/, 12X,'TIDAL TENSORS READ: ',I10,
      &        '   TIME OFFSET: ',F9.3,
      &       '   GALACTIC TIME: ',F9.3)
@@ -89,11 +89,12 @@
 
 * Check the tensors are defined for the entire run      
         IF(TIME+TOFF.LT.TTTIME(1)) THEN
-          WRITE(6,*) '*** ERROR: the tidal tensor is not defined at t0'
+          if(rank.eq.0)
+     &    WRITE(6,*) '*** ERROR: the tidal tensor is not defined at t0'
           STOP
         END IF
 
-        IF(TCRIT.GT.TTTIME(NBTT)) THEN
+        IF(rank.eq.0.AND.TCRIT.GT.TTTIME(NBTT)) THEN
             WRITE (6,*) '*** WARNING: the tidal tensor is undefined ',
      &           'after t=', TTTIME(NBTT)
         END IF
@@ -109,8 +110,8 @@
 
 *     Initial RTIDE0
         RTIDE0 = RTIDE
-
-        WRITE(6,11) RTIDE,TTEFF(1,1),TTEFF(2,2),TTEFF(3,3)
+        if(rank.eq.0)
+     &  WRITE(6,11) RTIDE,TTEFF(1,1),TTEFF(2,2),TTEFF(3,3)
  11     format(/, 12X, 'Tidal radius estimation: ', F9.3, 
      &       'Tensor (k,k):',3E14.3)
           
@@ -118,11 +119,13 @@
 ************************** TTMODE B
 
         IF (NBTTMAX.LT.1) THEN
-          WRITE (6,*) '*** ERROR: set NBTTMAX to 1 in param.h'
+          if(rank.eq.0)
+     &    WRITE (6,*) '*** ERROR: set NBTTMAX to 1 in param.h'
           STOP
         END IF
 *     Read which component to use also (L. Wang)
-        READ (5,*) IKEYPOT(1:11), (RG(K),K=1,3), (VG(K),K=1,3)
+      if(rank.eq.0)
+     &  READ (5,*) IKEYPOT(1:11), (RG(K),K=1,3), (VG(K),K=1,3)
         DO I=1,3
           RG(I) = RG(I)*1000.0/RBAR
           VG(I) = VG(I)/VSTAR
@@ -132,8 +135,9 @@
 * in the general case
         RTIDE = 10.*RSCALE
         RTIDE0 = RTIDE
-
-        WRITE (6,20)  RG(1), RG(2), RG(3), VG(1), VG(2), VG(3)
+        if(rank.eq.0)WRITE(6,*)' MPI Communication missing!!!'
+        if(rank.eq.0)
+     &  WRITE (6,20)  RG(1), RG(2), RG(3), VG(1), VG(2), VG(3)
    20   FORMAT (/,12X,'TIDAL TENSOR MODE B:  RG =',1P,E10.3,E10.3,E10.3,
      &    ' VG =',E10.3,E10.3,E10.3)
 

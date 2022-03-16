@@ -23,7 +23,7 @@
       IF (KSTART.EQ.2) GO TO 11
 *       Read new DTADJ, DELTAT, TADJ, TNEXT, TCRIT, QE & KZ(J) (if > 0).
       if(rank.eq.0)then
-      READ (5,*)  DTA, DT, TA, TN, TC, QE1, J, K
+      READ (5,*)  DTA, DT, TA, TN, TC, QE1, J, K, NCOM1
       end if
 *
 #if MPIINIT
@@ -35,6 +35,7 @@
       CALL MPI_BCAST(QE1,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(J,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(K,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(NCOM1,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 #endif
 *
 *       Set new parameters if corresponding input is non-zero.
@@ -76,6 +77,8 @@
             KZ(J) = KZ(J) - 2
          END IF
       END IF
+*
+      IF (NCOM1.GT.0) NCOMM = NCOM1
 *
       if(rank.eq.0)WRITE (6,5)  J, K
     5 FORMAT (///,7X,'RESTART CHANGE OPTION KZ(',I2,') =',I2,/)
@@ -143,17 +146,17 @@
           if(rank.eq.0)then
              WRITE (6,12) TTOT/TCR0, TIME/TCR0, TCRIT/TCR0, TTOT, TIME,
      &            TCRIT
-             WRITE (6,13)  DTADJ, DELTAT, TADJ, TNEXT, TCRIT, QE
-             WRITE (6,14)  ETAI, ETAR, ETAU, DTMIN, RMIN, NNBOPT
+             WRITE (6,13) DTADJ, DELTAT, TADJ, TNEXT, TCRIT, QE, NCOMM
+             WRITE (6,14) ETAI, ETAR, ETAU, DTMIN, RMIN, NNBOPT, SMAX
  12          FORMAT (' START AT TTOT/TIME ',2F16.8,' STOP INTENDED AT ',
      &            F16.8,' TCR0',/,' START AT TTOT/TIME ',2F16.8,
      &            ' STOP INTENDED AT ',F16.8,' NBODY-UNITS ',/)
  13          FORMAT (/,7X,'RESTART PARAMETERS:   DTADJ =',F7.3,
      &            '  DELTAT =',F7.3,'   TADJ =',F10.3,'   TNEXT =',
-     &            F10.3,'  TCRIT =',F10.3,'  QE =',1PE9.1)
+     &            F10.3,'  TCRIT =',F10.3,'  QE =',1PE9.1,' NCOMM=',I4)
  14          FORMAT (/,7X,'                      ETAI =',F7.3,
      &            '  ETAR =',F7.3,'  ETAU =',F7.3,'  DTMIN =',1PE9.1,
-     &            '  RMIN =',E9.1,' NNBOPT =',I5,/)
+     &            '  RMIN =',E9.1,' NNBOPT =',I5,' SMAX =',E9.1,/)
           end if
 *
    22    FORMAT (/,12X,'OPTIONS')

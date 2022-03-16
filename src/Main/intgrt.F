@@ -97,36 +97,36 @@
                      END IF
                   END IF
                END DO
-
+*
 *     HDF5 format output initialization                  
 *     At the first time, full dataset need to be stored,
                if(rank.eq.0) then
 #ifdef H5OUTPUT
                   IF(KZ(46).eq.1)
      &                 write(6,*) 'HDF5 output active particles ',
-     &                 'with time interval ',DTK(KZ(47)+1)
+     &                 'with time interval ',DTOUT
                   IF(KZ(46).eq.3)
      &                 write(6,*) 'HDF5 output all particles ',
-     &                 'with time interval ',DTK(KZ(47)+1)
+     &                 'with time interval ',DTOUT
 #else
                   IF(KZ(46).eq.1)
      &                 write(6,*) 'Binary output active particles ',
-     &                 'with time interval ',DTK(KZ(47)+1)
+     &                 'with time interval ',DTOUT
                   IF(KZ(46).eq.3)
      &                 write(6,*) 'Binary output all particles ',
-     &                 'with time interval ',DTK(KZ(47)+1)
+     &                 'with time interval ',DTOUT
                   IF(KZ(46).eq.2)
      &                 write(6,*) 'ANSI output active particles ',
-     &                 'with time interval ',DTK(KZ(47)+1)
+     &                 'with time interval ',DTOUT
                   IF(KZ(46).eq.4)
      &                 write(6,*) 'ANSI output all particles  ',
-     &                 'with time interval ',DTK(KZ(47)+1)
+     &                 'with time interval ',DTOUT
 #endif                  
-                  IF(KZ(46).GE.3.AND.KZ(46).LE.4.AND.SMAX.GT.
+                  IF(KZ(46).GE.3.AND.KZ(46).LE.4.AND.HDFMAX.GT.
      &                 DTK(KZ(47)+1)) then
-                     write(6,*) 'Warning!: Maximum time step ',SMAX,
+                     write(6,*) 'Warning!: Maximum time step ',HDFMAX,
      &                    ' > Output interval ',DTK(KZ(47)+1),
-     &                    ' Wide bianries cannot be detected for ',
+     &                    ' Wide binaries cannot be detected for ',
      &                    ' Non-active particles!'
                   END IF
                end if
@@ -819,7 +819,6 @@ c$$$      ttbarnb = ttbarnb + (tt999-tt998)*60
 *          End PARALLEL section for nbint
 #endif
 *
-
 c$$$        call cputim(ttt32)
 c$$$**!$omp parallel do if(NXTLEN.GE.ithread)
 c$$$**!$omp& default(shared) private(L,I,DTR,K)
@@ -919,12 +918,10 @@ c$$$      end if
 *     --09/26/13 16:58-lwang-end----------------------------------------*
          ttgrcomm = ttgrcomm + (tt52-tt51)*60.0
 #endif
-
 *
 *       Block-Step Level Diagnostics (R.Sp. 29.Apr. 1993)
          IF(KZ(33).GT.1)JHISTR(NREG) = JHISTR(NREG) + 1
 *
-
 #ifdef PARALLEL
          IF(NREG.LE.iserreg)THEN
 #endif
@@ -1263,8 +1260,6 @@ c$$$         ttmov = ttmov +(tt334-tt333)*60
       call cputim(ttirrs2)
       ttsimdsend = ttsimdsend + (ttirrs2-ttirrs1)*60.
 #endif
-
-
 *     custom output
       call cputim(ttiout1)
       IF(KZ(46).GT.0.AND.DMOD(TIME,DTOUT).EQ.0) THEN

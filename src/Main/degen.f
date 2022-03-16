@@ -7,9 +7,9 @@
       INCLUDE 'common6.h'
       REAL*8 EB(KMAX),SEMI(KMAX),ECC(KMAX),RCM(KMAX),ECM(KMAX)
       CHARACTER*8  WHICH1
-      LOGICAL FIRST,FIRST2,FIRST3
-      SAVE FIRST,FIRST2,FIRST3
-      DATA FIRST,FIRST2,FIRST3 /.TRUE.,.TRUE.,.TRUE./
+      LOGICAL FIRST
+      SAVE FIRST
+      DATA FIRST /.TRUE./
 *
 *
 *       Skip output for start and end of merger.
@@ -26,9 +26,7 @@
           END IF
     1 CONTINUE
 *
-*       Open unit #4 the first time.
       IF (NB.GT.0.AND.FIRST.AND.KSTART.EQ.1) THEN
-*          OPEN (UNIT=4,STATUS='UNKNOWN',FORM='FORMATTED',FILE='DEGEN')
           FIRST = .FALSE.
 *
 *       Print cluster scaling parameters at start of the run.
@@ -132,11 +130,6 @@ C   10     FORMAT (I2,F8.1,F8.2,F7.3,F6.1,F9.1,F6.2,2F5.1,3I4,2I6)
       IF (ICASE.EQ.0) THEN
           DO 30 J = 1,N
               IF (KSTAR(J).EQ.13) THEN
-                  IF (rank.eq.0.and.FIRST2) THEN
-                      OPEN (UNIT=33,STATUS='UNKNOWN',FORM='FORMATTED',
-     &                    FILE='ns.33',ACCESS='APPEND')
-                      FIRST2 = .FALSE.
-                  END IF
                   IF (J.LT.IFIRST) THEN
                       WHICH1 = ' BINARY '
                       I = KVEC(J) + N
@@ -159,11 +152,6 @@ C   10     FORMAT (I2,F8.1,F8.2,F7.3,F6.1,F9.1,F6.2,2F5.1,3I4,2I6)
                   IF (J.LT.IFIRST) THEN
                       JCM = N + KVEC(J)
                       IF (NAME(JCM).LT.0) GO TO 30
-                  END IF
-                  IF (FIRST3) THEN
-                      OPEN (UNIT=34,STATUS='UNKNOWN',FORM='FORMATTED',
-     &                    FILE='bh.34',ACCESS='APPEND')
-                      FIRST3 = .FALSE.
                   END IF
                   VI2 = XDOT(1,J)**2 + XDOT(2,J)**2 + 
      &                                 XDOT(3,J)**2

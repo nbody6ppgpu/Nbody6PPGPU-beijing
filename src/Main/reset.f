@@ -98,7 +98,8 @@
 *
 *       Regularize two-body configuration if JCOMP cannot be identified.
       IF (JCOMP.EQ.JCOMP1) THEN
-          WRITE (6,12)  rank,NAMEG(IMERGE),IMERGE,NMERGE,JCOMP
+          if(rank.eq.0)
+     &    WRITE (6,12)  rank,NAMEG(IMERGE),IMERGE,NMERGE,JCOMP
    12     FORMAT (/,I4,5X,'DANGER!   JCOMP NOT IDENTIFIED IN RESET',
      &         '   NAMEG =',I5,'  IMEGRE =',I8,' NMEGRE =',I4,
      &         ' JCOMP =',I8)

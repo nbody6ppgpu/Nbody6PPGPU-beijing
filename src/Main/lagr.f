@@ -56,7 +56,7 @@
                END IF
             END DO
 *
-*     Set square radii of single stalrs
+*     Set square radii of single stars
             DO I = IFIRST,N
                IF(NAME(I).NE.NIMBH) THEN
                   NSNGL = NSNGL + 1
@@ -88,7 +88,7 @@
 !$omp end parallel do
 
 *
-*     Set square radii of single stalrs
+*     Set square radii of single stars
 !$omp parallel do private(I)
             DO I = IFIRST,N
                R2(I) = (X(1,I) - C(1))**2 + (X(2,I) - C(2))**2 +
@@ -225,8 +225,6 @@
                END IF
             ELSE
                RLAGR(J) = RLAGR(J-1)
-               VTAVEV(J) = VTAVEV(J-1)
-               VAVEV(J) = VAVEV(J-1)
                I = I - 1
                GO TO 15
             END IF
@@ -240,7 +238,7 @@
          END IF
 *     Cumulated mass
          ZM = ZM + BODY(IM)
-*     Cumulated velocity
+*     Cumulated average velocity in shell, mass weighted
          DO K = 1,3
             VAVE(K,J) = VAVE(K,J) + BODY(IM)*XDOT(K,IM)
          END DO
@@ -249,14 +247,14 @@
          DO K = 1,3
             VRI(I) = VRI(I) + XDOT(K,IM)*(X(K,IM)-C(K))/DSQRT(R2(I))
          END DO
-*     Cumulate radial velocity
+*     Cumulate average radial velocity in shell, mass weighted
          VRAVE(J) = VRAVE(J) + BODY(IM)*VRI(I)
 *     Radial velocity square
          VR2I = VRI(I)*VRI(I)
 *     Tangential velocity
          DO K = 1,3
             VTI(K,I) = XDOT(K,IM) - VRI(I)*(X(K,IM)-C(K))/DSQRT(R2(I))
-*     Cumulate tangential velocity
+*     Cumulate average tangential velocity in shell, mass weighted
             VTAVE(K,J) = VTAVE(K,J) + BODY(IM)*VTI(K,I)
          END DO
 *     X-Y plane projected position square
@@ -272,7 +270,7 @@
 *     Rotational direction sign
          XSIGN = VROT1*X(2,IM)/DSQRT(RR12) - VROT2*X(1,IM)/DSQRT(RR12)
          VROTM = DSQRT(VROT1**2+VROT2**2)
-*     Cumulate rotational velocity
+*     Cumulate average rotational velocity in shell, mass weighted
          IF(XSIGN.GT.0.D0) THEN
             VROT(J) = VROT(J) + BODY(IM)*VROTM
          ELSE
@@ -303,6 +301,12 @@
 
 *     Get average within a shell
          RLAGR(J) = SQRT(R2(I))
+         VRAVE(J) = VRAVE(J)/AVMASS(J)
+         VROT(J) = VROT(J)/AVMASS(J)
+         DO K = 1,3
+            VTAVE(K,J) = VTAVE(K,J)/AVMASS(J)
+            VAVE(K,J) = VAVE(K,J)/AVMASS(J)
+         END DO
  15   CONTINUE
 
 *     Get Half mass radius
@@ -387,19 +391,14 @@
 *     Final average
       DO J = 1, NLENS
          IF(NPARTC(J).GT.0) THEN
-            VRAVE(J) = VRAVE(J)/AVMASS(J)
             VTAVEV(J) = 0.0D0
             VAVEV(J) = 0.0D0
             DO K = 1,3
-               VTAVE(K,J) = VTAVE(K,J)/AVMASS(J)
                VTAVEV(J) = VTAVEV(J) + VTAVE(K,J)*VTAVE(K,J)
-               VAVE(K,J) = VAVE(K,J)/AVMASS(J)
                VAVEV(J) = VAVEV(J) + VAVE(K,J)*VAVE(K,J)
             END DO
             VTAVEV(J) = SQRT(VTAVEV(J))
             VAVEV(J) = SQRT(VAVEV(J))
-            VROT(J) = VROT(J)/AVMASS(J)
-
             SIGR2(J) = SIGR2(J)/AVMASS(J)
             SIGT2(J) = SIGT2(J)/AVMASS(J)
             SIG2(J) = SIG2(J)/AVMASS(J)

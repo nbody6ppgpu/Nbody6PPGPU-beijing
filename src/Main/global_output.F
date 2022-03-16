@@ -8,10 +8,11 @@
       INTEGER NMAX,KMAX,LMAX,MMAX,MLD,MLR,MLV,MCL,NCMAX,NTMAX
       INTEGER maxpe,ithread
       INTEGER NN,NN1,NN14,NN42,NN98,NTP
-      include 'params.h'
+      INCLUDE 'params.h'
+      INCLUDE 'mpi_base.h'
       parameter(NN=9,NN1=NN,NN14=14*NN,NN42=42*NN,NN98=98*NN,NTP=11)
-      include 'output.h'
-      include 'scale_out.h'
+      INCLUDE 'output.h'
+      INCLUDE 'scale_out.h'
 *      include 'omp_lib.h'
 
 *     Input arguments
@@ -866,7 +867,7 @@ C!$omp end parallel do
 *     Each Lagr group (9) R,  N,  M, V, Vx, Vy, Vz, Vr, Vt, Vrot, S, Sx, Sy, Sz, Sr, St, Srot, e
 *     Fraction: 0.001,0.01,0.1,0.3,0.5,0.7,0.9,1.0, RC
             
-      write(36,*) 
+      if(rank.eq.0)write(36,*) 
      &     FPARS, EPARS, NPARS,
      &     RLAGR , NLAGR , MLAGR , VLAGR , SLAGR , ELAGR,
      &     RSLAGR, NSLAGR, MSLAGR, VSLAGR, SSLAGR, ESLAGR,

@@ -7,6 +7,7 @@
 *     STEP: STEP array;  DTK: STEP of different level, FLAG: Full sorting flag
 *      
       include 'params.h'
+      include 'mpi_base.h'
       include 'tlist.h'
       REAL*8 STEP(NMAX),DTK(64)
       INTEGER J,I,K,L,IR,LTMP,NTC,LK
@@ -35,7 +36,7 @@
                NDTK(NTC) = IR
                GO TO 11
             ELSE
-               write(6,*) 'Error!: Too small Step: I',NXTLST(IR),
+       if(rank.eq.0) write(6,*) 'Error!: Too small Step: I',NXTLST(IR),
      &              'S',STEP(NXTLST(IR)),'DTK(64)',DTK(64)
                call flush(6)
                call abort()
@@ -90,7 +91,7 @@ C         NXTK(IR) = NTC
                   NTC = NTC + 1
                   GO TO 41
                ELSE
-                  write(6,*) 'Error!: Too small Step: J',J,'K',K,
+      if(rank.eq.0) write(6,*) 'Error!: Too small Step: J',J,'K',K,
      &                 'L',II,'S',STEP(J),'NDTK(K+1)',NDTK(K+1),
      &                 'NDTK(K)',NDTK(K),'NDTMIN',NDTMIN,'NDTMAX',
      &                 NDTMAX,'DTK(64)',DTK(64)
@@ -138,7 +139,7 @@ C     NXTK(NDTK(LK)) = LK-1
                NDTK(LK) = NDTK(LK) - 1
 *     Safe check
                IF(NDTK(LK).LT.0) then
-                  write(6,*) 'Error: NDTK LT ZERO! ',
+       if(rank.eq.0) write(6,*) 'Error: NDTK LT ZERO! ',
      &                 'K',K,'New K',NTC,'LOOP K',LK,'J',J,
      &                 'L',II,'NDTMIN',NDTMIN,'NDTMAX',NDTMAX,
      &                 'NDTK(1:NDTMAX)',NDTK(1:NDTMAX+1)

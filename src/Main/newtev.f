@@ -55,7 +55,7 @@
                   IF (NAMEM(K).EQ.NAME(N+IPAIR)) IM = K
    10         CONTINUE
               IF (NAME(N+IPAIR).LT.-2*NZERO) THEN
-                  WRITE (6,12)  NAME(N+IPAIR), NAME(I), IM
+        if(rank.eq.0)WRITE (6,12)  NAME(N+IPAIR), NAME(I), IM
    12             FORMAT (' NEWTEV WARNING    NAMC NAMI IM ',2I7,I4)
               END IF
               IF (IM.EQ.0) GO TO 20
@@ -73,7 +73,7 @@
               END IF
               IF (M1.EQ.0.0D0) THEN
                   M1 = CM(K,IM)*SMU
-                  WRITE (6,15)  NAME(IX), K, M1
+        if(rank.eq.0)WRITE (6,15)  NAME(IX), K, M1
    15             FORMAT (' DANGER!    NEWTEV    NM K M1 ',2I6,F7.3)
               END IF
           END IF

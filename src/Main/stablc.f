@@ -6,6 +6,7 @@
 *
       INCLUDE 'commonc.h'
       INCLUDE 'common2.h'
+      INCLUDE 'mpi_base.h'
       COMMON/CHREG/  TIMEC,TMAX,RMAXC,CM(10),NAMEC(6),NSTEP1,KZ27,KZ30
       COMMON/CLUMP/   BODYS(NMX,5),T0S(5),TS(5),STEPS(5),RMAXS(5),
      &                NAMES(NMX,5),ISYS(5)
@@ -128,7 +129,7 @@
 *
 *       Remove identified binary or single escaper.
           IF (IESC.GT.0) THEN
-              WRITE (6,40)  IESC, JESC, NAMEC(IESC), RI, RDOT**2,
+      if(rank.eq.0) WRITE (6,40)  IESC, JESC, NAMEC(IESC), RI, RDOT**2,
      &                      2.0*MASS/RI
    40         FORMAT (' STABLC:    IESC JESC NAM RI RD2 2*M/R ',
      &                             2I4,I6,1P,3E9.1)

@@ -705,12 +705,12 @@ c$$$          TTMP = STEPR(I)
 c$$$      END IF
 *
 *     --lwang debug updated R.Sp. Oct. 2020-------------------------
-         if (stepr(i).ge.1E2*dt0) then
-         write(6,81) rank,I,name(i),DT0/STEPR(I),dt0,stepr(i),
+         if (rank.eq.0.and.stepr(i).ge.1E2*dt0) then
+         write(6,81) I,name(i),DT0/STEPR(I),dt0,stepr(i),
      &        FI(1,i),FIDOT(1,i),FREG(1),FDR(1),time,t0r(i),
      &        LIST(1,I),LIST(2,I),NAME(LIST(2,I))
          call flush(6)
- 81      format(I3,' Warning!: Regular step jump! I',I8,' N',I8,
+ 81      format(' Warning!: Regular step jump! I',I8,' N',I8,
      &        ' ratio',E11.3,' dt0',F21.17,
      &        ' stepr',F21.17,' FI',E13.5,
      &        ' FD',E13.5,' FR',E13.5,' FDR',E13.5,' t',F23.17,

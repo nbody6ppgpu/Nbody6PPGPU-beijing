@@ -65,7 +65,7 @@
               IF (ITIME.GT.2000000000) ITIME = 0
               IF (MOD(ITIME,1000).EQ.0) THEN
                   ALPH = 360.0*ANGLE/TWOPI
-                  WRITE (6,20)  ECC0, ECC, ALPH, SEMI, PCRIT, PCR,
+         if(rank.eq.0)WRITE (6,20)  ECC0, ECC, ALPH, SEMI, PCRIT, PCR,
      &                          R0(IPAIR)
    20             FORMAT (' ASSESS    E0 E1 INC A1 PCR PC0 R0 ',
      &                                2F7.3,F7.1,1P,4E9.1)

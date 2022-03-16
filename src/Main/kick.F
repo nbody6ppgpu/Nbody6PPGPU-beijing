@@ -331,7 +331,7 @@ c		Sambaran 2019.11.19.
 c            WRITE(6,*) "ECS-NS formation",
 c		Sambaran 2019.11.19.
 
-            WRITE(6,*) "ECS/AIC NS formation",
+            if(rank.eq.0)WRITE(6,*) "ECS/AIC NS formation",
      &           " M[M*] M0[M*] K*0 I NAME K* VDISP Time[Myr]: ",
      &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I), 
      &           KSTAR(I),DISP0, TTOT*TSTAR
@@ -396,7 +396,7 @@ c		Sambaran 2019.11.19.
 *     &              VKICK = VK(4)*(MIN(ZM,MNUEFF)/ZM)
 ***********************************************
             ENDIF
-            WRITE(6,*) "NS/BH formation (fallback/mechanism)",
+       if(rank.eq.0)WRITE(6,*) "NS/BH formation (fallback/mechanism)",
      &           " M[M*] M0[M*] K*0 I NAME",
      &           " K* FB FBTOT Time[Myr] MCO[M*] VK[km/s] KMECH: ",
      &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I), 
@@ -491,7 +491,8 @@ c		Sambaran 2019.11.19.
 *       SPN(NMI) = SPIN(I)
 *       ASPN(NMI) = aspin
 ***********************************
-        write(6,*)"BH-spin I NAM M MCO a J[MsRs^2/yr] J: ",
+        if(rank.eq.0)
+     &  write(6,*)"BH-spin I NAM M MCO a J[MsRs^2/yr] J: ",
      &  I, NAME(I), BODY(I)*ZMBAR, MCO, aspin, JSPIN, SPIN(I)
         ENDIF
 *******************************************

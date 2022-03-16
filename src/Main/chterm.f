@@ -77,9 +77,10 @@
       IF (I6.EQ.0) I6 = I4
 *
       IF (rank.eq.0.and.KZ(30).GT.1) THEN
-          WRITE (6,4)  SQRT(R2(I1,I2)), SQRT(R2(I1,I3)),SQRT(R2(I2,I3)),
-     &                 SQRT(R2(I2,I4)), SQRT(R2(I3,I4))
-    4     FORMAT (' CHTERM:   RIJ[NB] (1-2 1-3 2-3 2-4 3-4) ',1P,5E10.3)
+          WRITE(6,4)(NAMEC(K),K=1,4),SQRT(R2(I1,I2)), SQRT(R2(I1,I3)),
+     &    SQRT(R2(I2,I3)), SQRT(R2(I2,I4)), SQRT(R2(I3,I4))
+    4     FORMAT (' CHTERM: NAMEC ',4I10,
+     &    '  RIJ[NB] (1-2 1-3 2-3 2-4 3-4) ',1P,5E10.3)
           call flush(6)
       END IF
 *
@@ -482,9 +483,10 @@ C      TIME = MIN(TBLOCK,TIME)
       END IF
 *
       IF (rank.eq.0.and.KZ(30).GT.1) THEN
-          WRITE (6,75)  TIME+TOFF, I3, I4, NTOT, STEP3, STEP4,STEP(NTOT)
-   75     FORMAT (' CHTERM: TIME[NB] I3 I4 ICM1 STEP(I3,I4,ICM1)[NB] ',
-     &         F10.4,3I10,1P,3E10.2)
+          WRITE (6,75)  TIME+TOFF, I3, I4, NTOT, NAME(I3), NAME(I4),
+     &        NAME(NTOT),STEP3, STEP4,STEP(NTOT)
+   75     FORMAT (' CHTERM: TIME[NB] I3 I4 ICM1 NI3,4,CM ',
+     &     ' STEP(I3,I4,ICM1)[NB] ',F10.4,6I10,1P,3E10.2)
           call flush(6)
       END IF
 *
@@ -510,10 +512,10 @@ C      TIME = MIN(TBLOCK,TIME)
           TIME = TIME0
 *
           IF (rank.eq.0.and.KZ(30).GT.1) THEN
-              WRITE (6,90)  I3, I4, STEP(NTOT), STEPR(NTOT),
-     &                      R(NPAIRS), H(NPAIRS), GAMMA(NPAIRS)
+              WRITE (6,90)  I3, I4, NAME(I3), NAME(I4), STEP(NTOT),
+     &          STEPR(NTOT), R(NPAIRS), H(NPAIRS), GAMMA(NPAIRS)
    90         FORMAT (' CHTERM  SECOND BINARY(ICM2)[All in NB]: '
-     &             'I3 I4 STEP STEPR R12 H GAMMA',2I10,1P,5E10.2)
+     &             'I3 I4 NI3,4 STEP STEPR R12 H GAMMA',4I10,1P,5E10.2)
               call flush(6)
           END IF
       END IF
