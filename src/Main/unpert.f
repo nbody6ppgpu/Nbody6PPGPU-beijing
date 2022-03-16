@@ -223,12 +223,12 @@ c$$$              call flush(6)
            QPERI = SEMI*(1.0D0 - ECC)
 *       GR braking for compact object define new binary type RSp March 2019
            KSTAR(I) = 25
-           IP1 = IP1 + 1
-         IF(rank.eq.0.AND.IP1.LT.1000000)
-     &     WRITE (6,55) IP1,TTOT,BODY(I1),BODY(I2),
+*    changed output RS December 2019 test
+         IF(rank.eq.0)
+     &     WRITE (6,55) TTOT,BODY(I1),BODY(I2),
      &     NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),SEMI,ECC,H(IPAIR),QPERI
-   55       FORMAT (' GR UNPERT IP1 T M12 N12 K12 SEMI ECC H QP',
-     &            1P,I8,3E14.5,2I8,2I4,4E14.5)
+   55       FORMAT (' GR UNPERT T M12 N12 K12 SEMI ECC H QP',
+     &            1P,3E14.5,2I8,2I4,4E14.5)
            CALL KSTIDE(IPAIR,QPERI)
         END IF
 *
@@ -342,4 +342,3 @@ c$$$              IF (IPHASE.LT.0) GO TO 30
    30 RETURN
 *
       END
-      

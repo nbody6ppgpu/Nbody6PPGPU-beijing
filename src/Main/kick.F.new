@@ -56,6 +56,15 @@
       INTEGER KMECH
       real*8 FBFAC,FBTOT,MCO
       integer ECS
+      REAL*8 aspin, aconst, bconst, alow, mone, mtwo, JSPIN, MBH
+      REAL*8 aone, bone, atwo, btwo
+      REAL*8 G, M_sun, R_sun, parsec, Km, Kmps, cspeed, year
+************ c.g.s. **********************************
+      parameter (G=6.6743D-08, M_sun=1.9884D+33)
+      parameter (R_sun=6.955D+10, parsec=3.0856776D+18)
+      parameter (Km=1.0D+05, Kmps=1.0D+05)
+      parameter (cspeed=3.0D+10, year=3.154D+07)
+******************************************************
       COMMON /FBACK/ FBFAC,FBTOT,MCO,ECS
 *
 *     --03/07/14 11:30-lwang-ks-parallel--------------------------------*
@@ -102,6 +111,8 @@
       BHFLAG = 2
 *******
 *     Chris L. Fryer. Oct 2018.
+*     Code added by Sambaran Banerjee and adopted in LONG GITHUB
+*     See arXiv: 1902.07718 (Banerjee, S., Belczynski, C., Fryer, C., et al.)
 *
 * CONVF: convective boost factor larger CO core masses 
 *        in the case of convection-asymmerty-driven
@@ -295,13 +306,21 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
          IF(VFAC.GT.0.001D0) DISP0 = VFAC*VSTAR
          IF(KW.EQ.10.OR.KW.EQ.11) DISP0 = MAX(WDSIG1,0.D0)
          IF(KW.EQ.12) DISP0 = MAX(WDSIG2,0.D0)
-         IF(KW.EQ.13.AND.ZM.LT.1.28)THEN
+
+c         IF(KW.EQ.13.AND.ZM.LT.1.28)THEN
+c		Sambaran 2019.11.19.
+
+         IF(ECS.EQ.1)THEN
             IF(ECSIG.LT.-0.01)THEN
                DISP0 = DISP0*ABS(ECSIG)
             ELSE
                DISP0 = MAX(ECSIG,0.D0)
             ENDIF
-            WRITE(6,*) "ECS-NS formation",
+
+c            WRITE(6,*) "ECS-NS formation",
+c		Sambaran 2019.11.19.
+
+            WRITE(6,*) "ECS/AIC NS formation",
      &           " M[M*] M0[M*] K*0 I NAME K* VDISP Time[Myr]: ",
      &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I), 
      &           KSTAR(I),DISP0, TTOT*TSTAR
@@ -340,6 +359,8 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
 * Restrict the BH kick velocity by fallback. 
 * This could be done better but in the N-body code we only have 
 * limited information. 
+*     Code added by Sambaran Banerjee and then ported to the LONG GITHIB
+*     See arXiv: 1902.07718 (Banerjee, S., Belczynski, C., Fryer, C., et al.)
 *
 *****
       IF (BHFLAG.GT.1) THEN
@@ -364,12 +385,105 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
 *     &              VKICK = VK(4)*(MIN(ZM,MNUEFF)/ZM)
 ***********************************************
             ENDIF
-            WRITE(6,*) "Heavy-NS/BH formation(fallback)",
+            WRITE(6,*) "NS/BH formation (fallback/mechanism)",
      &           " M[M*] M0[M*] K*0 I NAME",
      &           " K* FB FBTOT Time[Myr] MCO[M*] VK[km/s] KMECH: ",
      &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I), 
      &           KSTAR(I), FBFAC, FBTOT, TTOT*TSTAR, MCO, VKICK, KMECH
          ENDIF
+******* BH Kerr Metric spin parameter *****
+        IF (KW.EQ.14) THEN
+        if (BHFLAG.EQ.2) then
+*** BH natal spin from Geneva models (experimental)
+        if (ZMET.lt.0.001D0) then
+           alow = 0.25D0
+           mtwo = 38.8D0
+           mone = 32.0D0
+           aconst = -0.088D0
+           bconst = 3.666D0
+        elseif (ZMET.ge.0.001D0.and.ZMET.lt.0.004D0) then
+           alow = 0.0D0
+           mtwo = 27.7D0
+           mone = 18.0D0
+           aconst = -0.088D0
+           bconst = 2.434D0
+        elseif (ZMET.ge.0.004D0.and.ZMET.lt.0.01D0) then
+           alow = 0.25D0
+           mtwo = 37.8D0
+           mone = 31.0D0
+           aconst = -0.088D0
+           bconst = 3.578D0
+        else
+           alow = 0.13D0
+           mtwo = 24.2D0
+           mone = 16.0D0
+           aconst = -0.088D0
+           bconst = 2.258D0
+        endif
+        if (MCO.le.mone) then
+           aspin = 0.85D0
+        elseif (MCO.gt.mone.and.MCO.lt.mtwo) then
+           aspin = (aconst*MCO) + bconst
+        else
+           aspin = alow
+        endif
+        if (aspin.lt.0.0D0) aspin = 0.0D0
+*********
+        elseif (BHFLAG.EQ.3) then
+*** BH natal spin from MESA models (experimental)
+        if (ZMET.lt.0.001D0) then
+           aone = -0.0010D0
+           bone = 0.125D0
+           atwo = 0.0D0
+           btwo = 0.0D0
+           mone = 1.0E+10
+        elseif (ZMET.ge.0.001D0.and.ZMET.lt.0.004D0) then
+           aone = 0.0076D0
+           bone = 0.050D0
+           atwo = -0.0019D0
+           btwo = 0.165D0
+           mone = 12.09D0
+        elseif (ZMET.ge.0.004D0.and.ZMET.lt.0.01D0) then
+           aone = -0.0006D0
+           bone = 0.105D0
+           atwo = 0.0D0
+           btwo = 0.0D0
+           mone = 1.0E+10
+        else
+           aone = -0.0016D0
+           bone = 0.115D0
+           atwo = 0.0D0
+           btwo = 0.0D0
+           mone = 1.0D+10
+        endif
+        if (MCO.le.mone) then
+           aspin = (aone*MCO) + bone
+        else
+           aspin = (atwo*MCO) + btwo
+        endif
+        if (aspin.lt.0.0D0) aspin = 0.0D0
+*********
+        else
+*** Zero BH spins
+        aspin = 0.0D0
+*********
+        endif
+********* gm ********
+        MBH = BODY(I)*ZMBAR*M_sun
+********* gm cm^2 / s ***************
+        JSPIN = (G*aspin*(MBH**2))/cspeed
+********* Msun Rsun^2 / year ********* 
+        JSPIN = JSPIN*(year/(M_sun*(R_sun**2)))
+********* Scaled *******************
+        SPIN(I) = JSPIN/SPNFAC
+*       NMI = NAME(I)
+*       SPN(NMI) = SPIN(I)
+*       ASPN(NMI) = aspin
+***********************************
+        write(6,*)"BH-spin I NAM M MCO a J[MsRs^2/yr] J: ",
+     &  I, NAME(I), BODY(I)*ZMBAR, MCO, aspin, JSPIN, SPIN(I)
+        ENDIF
+*******************************************
       ENDIF
       IF (DM.LT.1.0D-10) VKICK = VK(4)   ! Retain VKICK for tiny DM.
 *       Limit kick velocity to VDIS+10*VSTAR/10*VST.

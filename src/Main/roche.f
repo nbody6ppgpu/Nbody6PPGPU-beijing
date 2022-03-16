@@ -860,12 +860,11 @@ C     &                FILE='ROCHE')
             CALL GRRAD(MASS(1),MASS(2),SEP,ECC,JORB,DJGR,DELET1)
             DJGR = DJGR*DTM0
             DJORB = DJORB + DJGR
-            IGR = IGR + 1
-*    changed output RS March 2019 test
-            IF (rank.eq.0.and.IGR.LT.1000000)
-     &      WRITE (6,45)IGR,TTOT,MASS,KW1,KW2,SEP,ECC,JORB,DJGR,DTM0
-   45       FORMAT (' GR BRAKE IGR T M1 M2 K1 K2 SEP ECC JORB DJ DTM0 ',
-     &            1P,I8,3E14.5,2I4,5E14.5)
+*    changed output RS December 2019 test
+            IF (rank.eq.0)
+     &      WRITE (6,45)TTOT,MASS,KW1,KW2,SEP,ECC,JORB,DJGR,DTM0
+   45       FORMAT (' GR BRAKE T M1 M2 K1 K2 SEP ECC JORB DJ DTM0 ',
+     &            1P,3E14.5,2I4,5E14.5)
          ENDIF
 *
          DMS(1) = KM*DMS(1)
@@ -899,7 +898,8 @@ C     &                FILE='ROCHE')
             IF(JSPIN(2).GT.0.D0)THEN
                IF(IMB.LT.10.OR.ABS(DJMB)/JSPIN(2).GT.0.001)THEN
                   if(rank.eq.0)
-     &            WRITE (6,40)  MASS, SEP, DJMB, DTM
+     &            WRITE (6,41)  MASS, SEP, DJMB, DTM
+   41       FORMAT (' MASS SEP DJMB DTM ', 1P,5E14.5)
                ENDIF
             ENDIF
          ENDIF

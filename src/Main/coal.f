@@ -222,12 +222,12 @@ C      CALL DTCHCK(TIME,STEP(I2),DTK(40))
       END IF
 *
 *       Check that a mass-less primary has type 15 for kick velocity.
-      IF(ZMNEW*ZMBAR.LT.0.001.AND.KW1.NE.15)THEN
+      IF(ZMNEW*ZMBAR.LT.1.E-10.AND.KW1.NE.15)THEN
          if(rank.eq.0)then
          WRITE(6,*)' ERROR COAL: mass1 = 0.0 and kw1 is not equal 15'
-         WRITE(6,*)' I KW ',I1,KW1
+         WRITE(6,*)' I KW mass1 ', I1, KW1, (ZMNEW*ZMBAR)
          end if
-         STOP
+ccc         STOP
       END IF
 *
       DO 20 K = 1,3

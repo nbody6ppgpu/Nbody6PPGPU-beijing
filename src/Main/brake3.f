@@ -57,14 +57,13 @@
       CALL GRRAD(M1,M2,SEP,ECC0,JORB,DJGR,DELET)
 *
           DTGR = 0.02D0*JORB/ABS(DJGR)
-            IGR = IGR + 1
             KW1 = KSTAR(I1)
             KW2 = KSTAR(I2)
-*    changed output RS March 2019 test
-            IF (rank.eq.0.and.IGR.LT.1000000)
-     &      WRITE (6,45)IGR,TTOT,M1,M2,KW1,KW2,SEP,ECC0,JORB,DJGR,DTGR
-   45    FORMAT (' GR BRAKE3 IGR T M1 M2 K1 K2 SEP ECC0 JORB DJ DTGR ',
-     &            1P,I8,3E14.5,2I4,5E14.5)
+*    changed output RS December 2019 test
+            IF (rank.eq.0)
+     &      WRITE (6,45)TTOT,M1,M2,KW1,KW2,SEP,ECC0,JORB,DJGR,DTGR
+   45    FORMAT (' GR BRAKE3 T M1 M2 K1 K2 SEP ECC0 JORB DJ DTGR ',
+     &            1P,3E14.5,2I4,5E14.5)
 *
 *       Allow 2% angular momentum change (expressions adapted from MDOT).
       IF (ABS(DJGR).GT.0.D0) THEN

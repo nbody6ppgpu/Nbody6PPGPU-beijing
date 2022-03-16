@@ -41,12 +41,11 @@
       IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
      &                     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
          CALL TIDES3(QPERI,BODY(I1),BODY(I2),VSTAR,H(IPAIR),ECC,DE)
-         IP1 = IP1 + 1
-         IF(rank.eq.0.AND.IP1.LT.1000000)
-     &      WRITE (6,55) IP1, TTOT, BODY(I1),BODY(I2),
+         IF(rank.eq.0)
+     &      WRITE (6,55) TTOT, BODY(I1),BODY(I2),
      & NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),SEMI,ECC,HI,DE(1),QPERI
-   55       FORMAT (' GR TIDES IP1 T M1 M2 K1 K2 SEMI ECC H DE1 QP ',
-     &            1P,I8,3E14.5,2I8,2I4,5E14.5)
+   55       FORMAT (' GR TIDES T M1 M2 K1 K2 SEMI ECC H DE1 QP ',
+     &            1P,3E14.5,2I8,2I4,5E14.5)
          GO TO 5
       END IF
 *

@@ -1,3 +1,0 @@
-   28 FORMAT (F10.3,1P,6E18.7,I16)
-      CALL FLUSH(991)
-
