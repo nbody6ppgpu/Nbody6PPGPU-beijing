@@ -42,6 +42,7 @@
 #if MPIINIT
 *       Initialize MPI
       CALL MPI_INIT(ierr)
+*     CALL MPI_INIT_THREAD(MPI_THREAD_FUNNELED,ithread,ierr)
       CALL MPI_COMM_GROUP(MPI_COMM_WORLD,group,ierr)
       CALL MPI_GROUP_SIZE(group,isize,ierr)
       CALL MPI_GROUP_RANK(group,rank,ierr)
@@ -69,21 +70,16 @@
       call flush(6)
 *
 *       Read start/restart indicator & CPU time.
-      IF(rank.eq.0)READ (5,*)  KSTART, TCOMP, TCRITP,
-     *    isernb,iserreg,iserks
+*     19:41-lwang-debug-10/03/14-----------------------------*
+      IF(rank.eq.0)THEN
 #ifdef DEBUG
-*     --10/03/14 19:41-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-      if(rank.eq.0) read(5,*) adtime,dumptime,dprintt,dtprint,namep
-#if MPIINIT
-      CALL MPI_BCAST(adtime,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-      CALL MPI_BCAST(dumptime,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-      CALL MPI_BCAST(dprintt,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-      CALL MPI_BCAST(dtprint,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-      CALL MPI_BCAST(namep,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-#endif      
-*     --10/03/14 19:41-lwang-end----------------------------------------*
+      READ (5,*)  KSTART, TCOMP, TCRITP,
+     *    isernb,iserreg,iserks,adtime,dumptime,dprintt,dtprint,namep
+#else
+      READ (5,*)  KSTART, TCOMP, TCRITP,
+     *    isernb,iserreg,iserks
 #endif
+      END IF
 *
 #if MPIINIT
       CALL MPI_BCAST(isernb,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -93,13 +89,26 @@
       CALL MPI_BCAST(TCOMP,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(TCRITP,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 *
+#ifdef DEBUG
+      CALL MPI_BCAST(adtime,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(dumptime,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(dprintt,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(dtprint,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(namep,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+#endif
+*
       isernb = max(isize,isernb*icore)
       iserreg = max(isize,iserreg*icore)
 *      iserks = max(isize,iserks*icore)
-      IF(rank.eq.0) then
-        PRINT*,' iserreg,isernb,iserks,ithread=',iserreg,isernb,iserks,
-     &        ithread
-      end if
+
+      IF(rank.eq.0) THEN
+        PRINT*,' MPI: iserreg,isernb,iserks,ithread=',
+     &        iserreg,isernb,iserks,ithread
+#ifdef DEBUG
+        PRINT*,' DEBUG: adtime,dumptime,dprintt,dtprint,namep =',
+     &      adtime,dumptime,dprintt,dtprint,namep
+#endif
+      END IF
 #endif
 *
       IF (KSTART.EQ.1) THEN

@@ -19,9 +19,9 @@
       REAL*8 RI,DP(3),RIJP
       INTEGER I,J
       
-!$omp parallel do 
-!$omp& private(II,I,RS2,NNB,J,A1,A2,A3,DV,RIJ2,DR2I,DR3I,
-!$omp&  DRDV,DRDP,DP,RIJP,RSM,RI)
+*!$omp parallel do 
+*!$omp& private(II,I,RS2,NNB,J,A1,A2,A3,DV,RIJ2,DR2I,DR3I,
+*!$omp&  DRDV,DRDP,DP,RIJP,RSM,RI)
       DO II = 1, NI
          I = IREG(II+IOFF-1)
 *     Set neighbor radius limit
@@ -95,7 +95,7 @@
          END IF
          LISTGP(1,II) = NNB - 1
       END DO
-!$omp end parallel do
+*!$omp end parallel do
 
       RETURN
 *

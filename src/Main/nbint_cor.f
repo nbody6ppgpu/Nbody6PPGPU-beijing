@@ -220,9 +220,12 @@ c$$$         end do
             DV2 = DV2 + (XIDOT(K) - XNDOT(K,I))**2
             F2 = F2 + FIRR(K)**2
    85    CONTINUE
+*       RSp/FG limit DV2 Sep 20
+           IF (DV2.GT.1.D-20) THEN          
 *       Employ Makino criterion to avoid over-shooting (cf. Book, 2.16).
          DTJ = STEP(I)*(1.0D-06*STEP(I)**2*F2/DV2)**0.1
          TTMP = MIN(TTMP,DTJ)
+           END IF
       END IF
 *
 *       Select discrete value (increased by 2, decreased by 2 or unchanged).

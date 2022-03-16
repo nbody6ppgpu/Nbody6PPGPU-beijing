@@ -159,8 +159,8 @@
           IF(rank.EQ.0)THEN
              WRITE (6,45)  NRUN, MODEL, TCOMP, TRC, DMIN1, DMIN2, DMIN3,
      &            DMIN4, AMIN, RMAX, RSMIN, NEFF
- 45          FORMAT (/,' NRUN =',I3,'  M# =',I3,'  CPU =',1P,E12.5,
-     &            '  TRC =',E12.5, '  DMIN =',0P,4E8.1,'  AMIN =',E8.1,
+ 45          FORMAT (/,' NRUN =',I3,'  M# =',I3,'  CPU =',1P,E12.5,0P,
+     &            '  TRC =',F5.1, '  DMIN =',1P,4E8.1,'  AMIN =',E8.1,
      &            '  RMAX =',E8.1,'  RSMIN =',0P,F5.2,'  NEFF =',I6)
           END IF
       END IF
@@ -187,7 +187,7 @@
      &              NLSMIN, NBSMIN, NBDIS, NBDIS2, NCMDER,  NFAST,
      &              NBFAST, NBLOCK, NBLCKR,  NBFLUX
 *
-   65 FORMAT (' #2',11I12,2I7,2I12,I10)
+   65 FORMAT (' #2',2I12,9I8,2I7,2I12,I10)
 *
       WRITE (6,70)
    70 FORMAT (/,5X,'   NKSTRY     NKSREG     NKSHYP     NKSPER  ',
