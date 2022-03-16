@@ -149,8 +149,8 @@
      &            F16.8,' TCR0',/,' START AT TTOT/TIME ',2F16.8,
      &            ' STOP INTENDED AT ',F16.8,' NBODY-UNITS ',/)
  13          FORMAT (/,7X,'RESTART PARAMETERS:   DTADJ =',F7.3,
-     &            '  DELTAT =',F7.3,'   TADJ =',F7.3,'   TNEXT =',
-     &            F7.3,'  TCRIT =',F7.1,'  QE =',1PE9.1)
+     &            '  DELTAT =',F7.3,'   TADJ =',F10.3,'   TNEXT =',
+     &            F10.3,'  TCRIT =',F10.3,'  QE =',1PE9.1)
  14          FORMAT (/,7X,'                      ETAI =',F7.3,
      &            '  ETAR =',F7.3,'  ETAU =',F7.3,'  DTMIN =',1PE9.1,
      &            '  RMIN =',E9.1,' NNBOPT =',I5,/)

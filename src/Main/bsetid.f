@@ -20,12 +20,16 @@
       raa6 = raa2**3
       twopi = 2.d0*ACOS(-1.d0)
 *
+* Hut's polynomials.
+*
       f5 = 1.d0+ecc2*(3.d0+ecc2*0.375d0)
       f4 = 1.d0+ecc2*(1.5d0+ecc2*0.125d0)
       f3 = 1.d0+ecc2*(3.75d0+ecc2*(1.875d0+ecc2*7.8125d-02))
       f2 = 1.d0+ecc2*(7.5d0+ecc2*(5.625d0+ecc2*0.3125d0))
       f1 = 1.d0+ecc2*(15.5d0+ecc2*(31.875d0+ecc2*(11.5625d0
      &     +ecc2*0.390625d0)))
+*
+* Radiative damping (Zahn, 1977, A&A, 57, 383 and 1975, A&A, 41, 329).
 *
       if((kw.eq.1.and.mass.ge.1.25).or.kw.eq.4.or.kw.eq.7)then
          tc = 1.592d-09*(mass**2.84)
@@ -34,6 +38,9 @@
          tcqr = fc*q*raa6
          rg2 = k2
       elseif(kw.le.9)then
+*
+* Convective damping (Hut, 1981, A&A, 99, 126).
+*
          renvk = MIN(renv,r-rc)
          renvk = MAX(renvk,1.0d-10)
          tc = (menv*renvk*(r-0.5d0*renvk)/
@@ -44,13 +51,21 @@
          tcqr = 2.d0*fc*q*raa6*menv/(21.d0*tc*mass)
          rg2 = (k2*(mass-mc))/mass
       else
+*
+* Degenerate damping (Campbell, 1984, MNRAS, 207, 433)
+*
          fc = 7.33d-09*(lum/mass)**(5.d0/7.d0)
          tcqr = fc*q*q*raa2*raa2/(1.d0+q)
          rg2 = k3
       endif
 *
+* Circularization.
+*
       delet1 = 27.d0*tcqr*(1.d0+q)*raa2*(ecc/sqome2**13)*
      &         (f3 - (11.d0/18.d0)*sqome3*f4*ospin/oorb)
+*
+* spin up of star.
+*
       dspin = (3.d0*q*tcqr/(rg2*omecc2**6))*
      &        (f2*oorb - sqome3*f5*ospin)
       eqspin = oorb*f2/(sqome3*f5)

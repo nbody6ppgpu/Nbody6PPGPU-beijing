@@ -27,7 +27,7 @@
 #define NYREDUCE  8
 
 #define NNB_PER_BLOCK 256 // NNB per block, must be power of 2
-#define NB_BUF_SIZE (1<<21)
+#define NB_BUF_SIZE (1<<23)
 // #define NNB_MAX       384 // total NNB at reduced
 
 #define MAX_CPU 40

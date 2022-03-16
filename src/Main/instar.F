@@ -199,7 +199,7 @@
          ktype(i,i) = i
  30   continue
       ktype(5,5) = 4
-      ktype(7,7) = 1
+      ktype(7,7) = 7
       ktype(10,10) = 15
 *       Change for CO+CO owing to Tout theory (21/11/08).
       ktype(11,11) = 12

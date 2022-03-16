@@ -278,28 +278,28 @@
       ICM = N + IPAIR
       IF(JCOMP.GT.N)THEN
       JCM = N + JPAIR
-      JP1 = 2*JPAIR
-      JP2 = 2*JPAIR-1
+      JX1 = 2*JPAIR
+      JX2 = 2*JPAIR-1
       ELSE
       JCM = ICM
-      JPAIR = IPAIR
-      JP1 = ICOMP
-      JP2 = ICOMP
+      JXAIR = IPAIR
+      JX1 = ICOMP
+      JX2 = ICOMP
       END IF
           if(rank.eq.0.and.KZ(15).GT.1) THEN
           WRITE (6,21) TTOT, ICOMP, JCOMP, IPAIR, NAME(ICOMP),
      &      NAME(JCOMP),NAME(ICM),KSTAR(ICOMP),KSTAR(JCOMP),
      &      KSTAR(ICM), BODY(ICOMP), BODY(JCOMP),
-     &      JP1,JP2,JPAIR,NAME(JP1),NAME(JP2),NAME(JCM),
-     &      KSTAR(JP1),KSTAR(JP2),KSTAR(JCM),BODY(JP1),BODY(JP2),
-     &      R(IPAIR),H(IPAIR),R(JPAIR),H(JPAIR),
+     &      JX1,JX2,JXAIR,NAME(JX1),NAME(JX2),NAME(JCM),
+     &      KSTAR(JX1),KSTAR(JX2),KSTAR(JCM),BODY(JX1),BODY(JX2),
+     &      R(IPAIR),H(IPAIR),R(JXAIR),H(JXAIR),
      &      BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,RADIUS(ICOMP)*SU,
-     &      RADIUS(JCOMP)*SU,BODY(JP1)*ZMBAR,BODY(JP2)*ZMBAR,
-     &      RADIUS(JP1)*SU,RADIUS(JP2)*SU,R(IPAIR)*SU,R(JPAIR)*SU
+     &      RADIUS(JCOMP)*SU,BODY(JX1)*ZMBAR,BODY(JX2)*ZMBAR,
+     &      RADIUS(JX1)*SU,RADIUS(JX2)*SU,R(IPAIR)*SU,R(JXAIR)*SU
    21     FORMAT (/,' END MERGER: ',1P,' TIME',E12.5,' IC,JC,IP=',3I10,
      &         ' N IC,JC,ICM=',3I10,' KW IC,JC,ICM=',3I4,
-     &         ' M1,2[NB]',2E10.2,' JP1,JP2,JP=',3I10,' N JP1,JP2,JP=',
-     &         3I0,' KW JP1,JP2,JCM=',3I4,' M3,4[NB]',2E10.2,
+     &         ' M1,2[NB]',2E10.2,' JX1,JX2,JP=',3I10,' N JX1,JX2,JP=',
+     &         3I0,' KW JX1,JX2,JCM=',3I4,' M3,4[NB]',2E10.2,
      &         '  R12',E10.2,' H',E10.2,' R34',E10.2,' H2',E10.2,
      &         ' M1,2[*]',2E10.2,' RAD1,2[*]',2E10.2,'  M3,4[*]',
      &         2E10.2,' RAD3,4[*]',2E10.2,' SEPI/J',2E10.2)

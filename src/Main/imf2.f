@@ -165,7 +165,7 @@ C*       Use mass ratio of O stars based on observations (Kiminki & Kobulnicky 2
 *
       if(rank.eq.0)
      &WRITE (6,80)  N-NBIN0, BODY(NBIN0+1), BODY(N), ZMS/FLOAT(N-NBIN0)
-   80 FORMAT (/,12X,'SINGLE STAR IMF:    NS =',I6,'  RANGE =',1P,2E10.2,
+   80 FORMAT (/,12X,'SINGLE STAR IMF:   NS =',I10,'  RANGE =',1P,2E10.2,
      &                                            '  <MS> =',E9.2)
 *
 *       Replace input value by actual mean mass in solar units.

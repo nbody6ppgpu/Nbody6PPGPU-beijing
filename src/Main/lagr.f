@@ -464,6 +464,12 @@
  42         FORMAT (3X,D12.4,' AVMASS:',1P,19(1X,E9.2))
             WRITE (6,43) TTOT, (NPARTC(K),K=1,NLENS),NCORE
  43         FORMAT (3X,D12.4,' NPARTC:',19I10)
+            WRITE (6,45) TTOT, (SIGR2(K),K=1,NLENS),SIGR2C
+ 45         FORMAT (3X,E12.4,' SIGR2: ',1P,19(1X,E9.2))
+            WRITE (6,46) TTOT, (SIGT2(K),K=1,NLENS),SIGT2C
+ 46         FORMAT (3X,E12.4,' SIGT2: ',1P,19(1X,E9.2))
+            WRITE (6,47) TTOT, (VROT(K),K=1,NLENS),VROTC
+ 47         FORMAT (3X,E12.4,' VROT:  ',1P,19(1X,E9.2))
          END IF
       end if
 *

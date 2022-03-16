@@ -9,7 +9,7 @@
       INTEGER maxpe,ithread
       INTEGER NN,NN1,NN14,NN42,NN98,NTP
       include 'params.h'
-      parameter(NN=9,NN1=NN-1,NN14=14*NN,NN42=42*NN,NN98=98*NN,NTP=11)
+      parameter(NN=9,NN1=NN,NN14=14*NN,NN42=42*NN,NN98=98*NN,NTP=11)
       include 'output.h'
       include 'scale_out.h'
 *      include 'omp_lib.h'
@@ -487,7 +487,7 @@ C!$omp end parallel do
                      mspblagr(kk) = mspblagr(kk) + mi
                      nspblagr(kk) = nspblagr(kk) + 2
                      EPBINL(KK)   = EPBINL(KK)   - EBI(I)
-                     EPBINBL(KKB) = EPBINL(KKB)  - EBI(I)
+                     EPBINBL(KKB) = EPBINBL(KKB)  - EBI(I)
                   end if
                   if (ri.le.rc) then
                      EPBINL(NN)  = EPBINL(NN)  - EBI(I)

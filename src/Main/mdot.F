@@ -571,12 +571,6 @@ c#endif
 *
 *       Ensure that type change occurs at time TEV.
          IF(KW.NE.KSTAR(I).OR.DABS(M1-M0)/M0.GT.0.05D0)THEN
-            IF (rank.eq.0.and.KW.GE.13) THEN
-                WRITE (6,190)  I, NAME(I), KSTAR(I), KW, MASS(K), M0,
-     &              RADIUS(I)*SU, VI, RI, RCC, MC
-  190           FORMAT (' NS/BH FORMATION  ',2I10,2I4,' M new/old[*]',
-     &     1P,2E9.1,' RAD[*]',E9.1,' R,V=',2E9.1,' RCC,MC=',2E9.1)
-            END IF
             KWOLD = KW
             KW = KSTAR(I)
             M1 = MASS(K)
@@ -832,6 +826,7 @@ c$$$            end if
          TEVK = TEV0(I) + DT/(1.0D+06*TSTAR)
 *       Set indicator for mass loss correction.
          AGE = TEVK*TSTAR - EPCH0(K)
+         AGEOLD = AGE0(K)
          AGE0(K) = AGE
 *
 *       Determine stellar evolution time scales and luminosity.
@@ -857,8 +852,20 @@ c$$$            end if
          CALL hrdiag(M0,AGE,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
      &               RM,LUM,KW,MC,RCC,ME,RE,K2)
 *
-         IF(rank.eq.0.and.KW.EQ.14)PRINT*,' MDOT: T,M0,MC,AGE=',
-     &                TTOT,M0,MC,AGE
+         IF(KW.NE.KSTAR(I).AND.DABS(M1-M0)/M0.GT.0.05D0)THEN
+* RSp Debugging July 2020
+            IF (rank.eq.0.and.KW.GE.10) THEN
+      WRITE (6,190)TIME+TOFF,I, K, NAME(I), KSTAR(I), KW, AGE,AGEOLD,
+     &      BODY(I)*ZMBAR,MASS(K), M0, M1, RADIUS(I)*SU, VI, RI, RCC, MC
+  190 FORMAT (' WD/NS/BH FORMATION T=',1P,E13.5,
+     &        ' I,K,N,KW=',I10,I4,I10,2I4,
+     &    ' AGE,AGE0=',2E13.5,' Body, Mass [*]=',1P,2E13.5,' M0/1[*]',
+     &        2E13.5,' RAD[*]',E9.1,' R,V=',2E9.1,' RCC,MC=',2E9.1)
+            END IF
+*
+         END IF
+*        IF(rank.eq.0.and.KW.EQ.14)PRINT*,' MDOT: T,M0,MC,AGE=',
+*    &                TTOT,M0,MC,AGE
 *
 *       Check for change of CO WD to ONe on rapid accretion (21/11/08).
          IF(DMR.GT.TINY.AND.KW.EQ.11)THEN
@@ -1473,8 +1480,8 @@ c$$$      end if
                KSPAIR = NPAIRS
 *       Restore current time to prevent small subsequent steps.
                TIME = TBLOCK
-               IF ((KW.EQ.13.OR.KW.EQ.14).AND.H(NPAIRS).LT.0.0) THEN
-*              IF (KW.GE.10.AND.KW.LE.14.AND.H(NPAIRS).LT.0.0) THEN
+*              IF ((KW.EQ.13.OR.KW.EQ.14).AND.H(NPAIRS).LT.0.0) THEN
+               IF (KW.GE.10.AND.KW.LE.14.AND.H(NPAIRS).LT.0.0) THEN
                   J = NTOT
                   SEMI = -0.5d0*BODY(J)/H(NPAIRS)
                   RA = R(NPAIRS)/SEMI

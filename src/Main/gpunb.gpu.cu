@@ -22,7 +22,8 @@
 #define NYREDUCE 8
 
 #define NB_PER_BLOCK 256 // NNB per block
-#define NB_BUF_SIZE (1<<21)
+// #define NB_BUF_SIZE (1<<21) //
+#define NB_BUF_SIZE (1<<30)
 
 typedef unsigned short uint16;
 

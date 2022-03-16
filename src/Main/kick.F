@@ -145,12 +145,21 @@
           KC = KSTAR(N+IPAIR)
 *       Identify the correct component (KSTAR reversed in MDOT).
           I1 = 2*IPAIR - 1
+          I2 = I1 + 1
+          IN = I1
           IF (KSTAR(I1).LT.0) THEN
               IN = I1
-          ELSE IF (KSTAR(I1+1).LT.0) THEN
-              IN = I1 + 1
+          ELSE IF (KSTAR(I2).LT.0) THEN
+              IN = I2
           END IF
-          KSTAR(IN) = -KSTAR(IN)
+*RSp Printout July2020
+          IF(KSTAR(I1).GE.0.OR.KSTAR(I2).GE.0)THEN
+          WRITE(6,555)TTOT,ICASE,IN,I1,I2,IPAIR,NAME(I1),NAME(I2),
+     *      NAME(N+IPAIR),KSTAR(I1),KSTAR(I1+1),KSTAR(N+IPAIR)
+ 555      FORMAT(' T,ICASE,IN=',1P,D13.5,I2,I10,
+     *    ' I1/2/IP,N1/2/IP,KST1/2/IP=',9I10)
+          END IF
+          KSTAR(IN) = IABS(KSTAR(IN))
 *     ks MPI communication KSTAR
           call ksparmpi(K_store,K_int,K_KSTAR,IN,0,KSTAR(IN))
 *

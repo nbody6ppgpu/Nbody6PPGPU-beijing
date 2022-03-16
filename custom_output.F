@@ -195,13 +195,13 @@ c$$$         END IF
 *
 *     --K.S. binary case--
          IF(I.GT.N.AND.NAME(I).GT.0) THEN
-               IPAIR = I - N
+            N_BINARY = N_BINARY + 1
+            IK = N_BINARY
+            IPAIR = I - N
 *     Resolve unperturbed binary
             CALL KSRES_OP(IPAIR,J1,J2,XIREL,VIREL,0)
 *     Name
             if (GAMMA(IPAIR).LT.GALIMIT.AND.H(IPAIR).LT.0) THEN
-               N_BINARY = N_BINARY + 1
-               IK = N_BINARY
                NB_NAMC(IK) = NAME(I)
                NB_NAM1(IK) = NAME(J1)
                NB_NAM2(IK) = NAME(J2)
@@ -251,7 +251,7 @@ C            B_FDC3(IK) = REAL(FDOT(3,I)*FDSCALE_OUT)
                IK = N_SINGLE
                call custom_store_single(J1,IK)
 *     correction for the force and potential
-               DR3I = BODY(J2)/R(IPAIR)**3
+               DR3I = BODY(I2)/R(IPAIR)**3
                S_F1(IK) = S_F1(IK) - REAL(XIREL(1)*DR3I*FSCALE_OUT)
                S_F2(IK) = S_F2(IK) - REAL(XIREL(2)*DR3I*FSCALE_OUT)
                S_F3(IK) = S_F3(IK) - REAL(XIREL(3)*DR3I*FSCALE_OUT)
@@ -262,7 +262,7 @@ C            B_FDC3(IK) = REAL(FDOT(3,I)*FDSCALE_OUT)
                IK = N_SINGLE
                call custom_store_single(J2,IK)
 *     correction for the force and potential
-               DR3I = -BODY(J1)/R(IPAIR)**3
+               DR3I = -BODY(I1)/R(IPAIR)**3
                S_F1(IK) = S_F1(IK) - REAL(XIREL(1)*DR3I*FSCALE_OUT) 
                S_F2(IK) = S_F2(IK) - REAL(XIREL(2)*DR3I*FSCALE_OUT) 
                S_F3(IK) = S_F3(IK) - REAL(XIREL(3)*DR3I*FSCALE_OUT) 

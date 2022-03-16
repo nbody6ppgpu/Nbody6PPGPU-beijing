@@ -68,6 +68,14 @@
               M2 = BODY(J2)*ZMBAR
               RI = (X(1,ICM) - RDENS(1))**2 + (X(2,ICM) - RDENS(2))**2 +
      &                                        (X(3,ICM) - RDENS(3))**2
+* RSp Debugging June 2020
+          if(rank.eq.0.and.(kstar(j1).ge.10.or.kstar(j2).ge.10))
+     & WRITE(6,556)TTOT,J1,J2,ICM,NAME(J1),NAME(J2),NAME(ICM),KSTAR(J1),
+     &      KSTAR(J2),KSTAR(ICM),BODY(J1)*ZMBAR,BODY(J2)*ZMBAR,
+     &         BODY0(J1)*ZMBAR,BODY0(J2)*ZMBAR,KW,M1,M2
+ 556  FORMAT(1X,'1 HRPLOT: T=',1P,E13.5,' J1/2/ICM,N1/2/ICM,KST1/2/ICM='
+     & ,6I10,3I4,' BODY1/2/BODY01/2=',4E13.5,' KW=',I4,
+     &        ' M1/2(*): ',3E13.5)
 *       Check for ghost binary.
               IF (M1.EQ.0.0) THEN
                   IM = 0
@@ -116,7 +124,7 @@
               AGE = MAX(TPLOT,TEV0(J2))*TSTAR - EPOCH(J2)
               CALL STAR(KW2,M0,M2,TM,TN,TSCLS,LUMS,GB,ZPARS)
               CALL HRDIAG(M0,AGE,M2,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &                    RM2,LUM2,KW,MC,RCC,ME,RE,K2)
+     &                    RM2,LUM2,KW2,MC,RCC,ME,RE,K2)
               RI = SQRT(RI)/RC
 *       Specify relevant binary mass.
               IF (BODY(J1).GT.0.0D0) THEN
@@ -138,6 +146,15 @@
 *             TE2 = 0.25*(ZL2 - 2.0*R2) + 3.7
               TE1 = 0.25*(ZL1 - 2.0*R1) + 3.761777537508
               TE2 = 0.25*(ZL2 - 2.0*R2) + 3.761777537508
+* RSp Debugging June 2020
+              if(rank.eq.0.and.(kstar(j1).ge.10.or.kstar(j2).ge.10))
+     & WRITE(6,555)TTOT,J1,J2,ICM,NAME(J1),NAME(J2),NAME(ICM),KSTAR(J1),
+     &      KSTAR(J2),KSTAR(ICM),BODY(J1)*ZMBAR,BODY(J2)*ZMBAR,
+     &         BODY0(J1)*ZMBAR,BODY0(J2)*ZMBAR,KW2,M1,M2
+ 555  FORMAT(1X,'2 HRPLOT: T=',1P,E13.5,' J1/2/ICM,N1/2/ICM,KST1/2/ICM='
+     & ,6I10,3I4,' BODY1/2/BODY01/2=',4E13.5,' KW2=',I4,
+     &        ' M1/2(*): ',3E13.5)
+*
               if(rank.eq.0)
      &        WRITE (82,5)  TTOT, J1, J2, NAME(J1), NAME(J2), KW, KW2, 
      &            KSTAR(ICM),
@@ -160,7 +177,7 @@ ccc              TE = 0.25*(ZL1 - 2.0*R1) + 3.7
 
               if(rank.eq.0)
      &        WRITE (83,10)  TTOT, I, NAME(I), KW, RI, M1, ZL1, R1, TE
-   10         FORMAT (1X,1P,E12.5,2I8,I3,5E13.5)
+   10         FORMAT (1X,1P,E13.5,2I8,I3,5E13.5)
           END IF
    20 CONTINUE
 *
