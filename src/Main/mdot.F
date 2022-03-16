@@ -724,13 +724,19 @@ c$$$            end if
          DTXMIN = MIN(DTX(1),DTX(2))
          CALL GRRAD(MASS(1),MASS(2),SEP,ECC,JORB,DJGR,DELET)
          DJORB = DJT + DJGR
+            DTGR = 0.02D0*JORB/ABS(DJORB)
+            IGR = IGR + 1
+*    changed output RS March 2019 test
+            IF (rank.eq.0.and.IGR.LT.1000000)
+     &      WRITE (6,45)IGR,TIME,MASS,-1,-1,SEP,ECC,JORB,DJGR,DTM
+   45       FORMAT (' GR BRAKE IGR T M1 M2  ?  ? SEP ECC JORB DJ DTM ',
+     &            1P,I8,3E14.5,2I4,5E14.5)
 *        if(rank.eq.0)
 *    &   write(*,*)' grrad ',sep,ecc,djgr,delet,dtxmin
 *
 *       Limit orbital angular momentum change to 2%.
 *
          IF(ABS(DJORB).GT.TINY.AND.(DTXMIN.GT.0.D0.OR.DIFF.EQ.0.D0))THEN
-            DTGR = 0.02D0*JORB/ABS(DJORB)
             IF(DELET.GT.TINY.AND.ECC.GT.0.0011D0)THEN
                DTGR = MIN(DTGR,0.05D0*ECC/DELET)
             ENDIF
@@ -738,6 +744,7 @@ c$$$            end if
 *           DTGR = MAX(DTGR,1.0D-04)
             DTXMIN = MIN(DTXMIN,DTGR)
             DTGR = DTGR/1.0D+06
+
             DJORB = DJORB*DTXMIN
             JORB = JORB - DJORB
             JORB = MAX(JORB,1.D0)
@@ -1577,7 +1584,7 @@ c$$$      end if
             IF(IQCOLL.NE.0.OR.IPHASE.LT.0) GO TO 1
 *
 *       Include optional look-up time control for compact object binaries.
-            IF (KSX.GE.13.AND.KZ(28).GT.2) THEN
+            IF (KSX.GE.13.AND.KZ(28).GT.1) THEN
               if(rank.eq.0)
      &         WRITE (6,944)  TTOT, NAME(2*IPAIR-1),KSTAR(2*IPAIR),
      &                        DTGR/TSTAR

@@ -716,6 +716,28 @@ c$$$                      CALL CMBODY(2)
           GO TO 100
       END IF
 *
+*       GR braking for compact object binaries RSp March 2019
+        IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
+     &                     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
+           SEMI = -0.5*BODY(I)/HI
+           ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
+           ECC = SQRT(ECC2)
+           QPERI = SEMI*(1.0D0 - ECC)
+*       GR braking for compact object define new binary type RSp March 2019
+           KSTAR(I) = 25
+         IP1 = IP1 + 1
+         IF(rank.eq.0.AND.IP1.LT.1000000)
+     &     WRITE (6,55) IP1,TIME,BODY(I1),BODY(I2),
+     &     NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),SEMI,ECC,H(IPAIR),QPERI
+   55       FORMAT (' GR KSINT IP1 T N12 K12 M12 SEMI ECC H QP',
+     &            1P,I8,3E14.5,4I6,4E14.5)
+
+      IF(IP1.GT.10)PRINT*,' T,IPAIR,I12,KSTAR12,N12,M12,H,ECC,QP=',TIME,
+     &    I1,I2,KSTAR(I1),KSTAR(I2),NAME(I1),NAME(I2),BODY(I1),BODY(I2),
+     &    H(IPAIR),ECC,QPERI
+           CALL KSTIDE(IPAIR,QPERI)
+        END IF
+*
 *       Save maximum separation of persistent binary.
       RMAX = MAX(RMAX,RI)
 *     ks MPI communicate rmax

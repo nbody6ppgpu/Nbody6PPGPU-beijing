@@ -122,7 +122,7 @@ void gpupot(
 
 	double t1 = get_wtime();
 #ifdef PROFILE
-	fprintf(stderr, "[R.%d AVX Pot.A] Ni %d  NTOT %d  pot(s) %f\n", rank,ni,n,t1 - t0);
+	fprintf(stderr, "[R.%d SSE Pot.A] Ni %d  NTOT %d  pot(s) %f\n", rank,ni,n,t1 - t0);
 #endif
     
 }

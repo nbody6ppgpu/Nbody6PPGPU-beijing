@@ -19,7 +19,8 @@
 *
 *       Read first, second or both lines (KSTART = 3, 4, 5).
       IF (KSTART.EQ.4) GO TO 10
-*
+*       Only control output RSp March 2019 (KSTART = 2)
+      IF (KSTART.EQ.2) GO TO 11
 *       Read new DTADJ, DELTAT, TADJ, TNEXT, TCRIT, QE & KZ(J) (if > 0).
       if(rank.eq.0)then
       READ (5,*)  DTA, DT, TA, TN, TC, QE1, J, K
@@ -67,7 +68,14 @@
       IF (QE1.GT.0.0) QE = QE1
 *
 *       See whether any options should be changed.
-      IF (J.GT.0) KZ(J) = K
+      IF (J.GT.0) THEN
+         KZ(J) = K
+         KZ273 = 0
+         IF(J.EQ.27.AND.KZ(J).GT.2) THEN
+            KZ273 = 3
+            KZ(J) = KZ(J) - 2
+         END IF
+      END IF
 *
       if(rank.eq.0)WRITE (6,5)  J, K
     5 FORMAT (///,7X,'RESTART CHANGE OPTION KZ(',I2,') =',I2,/)
@@ -126,7 +134,35 @@
       ENDIF
 *** FRenaud
 #endif
-
+ 11   CONTINUE
+      if (rank.eq.0) then
+*       If no explicit new TCRIT given just go for another TCRIT of
+*       common block.
+          TTOT = TIME + TOFF
+          TCRIT = TTOT + TCRIT
+          if(rank.eq.0)then
+             WRITE (6,12) TTOT/TCR0, TIME/TCR0, TCRIT/TCR0, TTOT, TIME,
+     &            TCRIT
+             WRITE (6,13)  DTADJ, DELTAT, TADJ, TNEXT, TCRIT, QE
+             WRITE (6,14)  ETAI, ETAR, ETAU, DTMIN, RMIN, NNBOPT
+ 12          FORMAT (' START AT TTOT/TIME ',2F16.8,' STOP INTENDED AT ',
+     &            F16.8,' TCR0',/,' START AT TTOT/TIME ',2F16.8,
+     &            ' STOP INTENDED AT ',F16.8,' NBODY-UNITS ',/)
+ 13          FORMAT (/,7X,'RESTART PARAMETERS:   DTADJ =',F7.3,
+     &            '  DELTAT =',F7.3,'   TADJ =',F7.3,'   TNEXT =',
+     &            F7.3,'  TCRIT =',F7.1,'  QE =',1PE9.1)
+ 14          FORMAT (/,7X,'                      ETAI =',F7.3,
+     &            '  ETAR =',F7.3,'  ETAU =',F7.3,'  DTMIN =',1PE9.1,
+     &            '  RMIN =',E9.1,' NNBOPT =',I5,/)
+          end if
+*
+   22    FORMAT (/,12X,'OPTIONS')
+         WRITE (6,24)  (J,J=1,50),273
+   24    FORMAT (9X,50I3,I4)
+         WRITE (6,26)  (KZ(J),J=1,50),KZ273
+   26    FORMAT (9X,51I3)
+      end if
+*
 *
 *       Perform a simple validation check on main input parameters.
       CALL VERIFY

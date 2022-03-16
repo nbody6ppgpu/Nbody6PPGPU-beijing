@@ -12,6 +12,8 @@
 *     For diagnostic, thus safe for parallel
       SAVE  TTIDE,IONE
       DATA  ECCM,ECCM2,TTIDE,IONE  /0.002,0.00000399,0.0D0,0/
+      INTEGER IP1
+      DATA IP1 /0/
 *
 *
 *       Define indices of KS components.
@@ -34,6 +36,20 @@
       HI = H(IPAIR)
 *
 *       Distinguish between sequential circularization, standard chaos & GR.
+*
+*       Special Treatment of GR for compact binaries RSp March 2019
+      IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
+     &                     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
+         CALL TIDES3(QPERI,BODY(I1),BODY(I2),VSTAR,H(IPAIR),ECC,DE)
+         IP1 = IP1 + 1
+         IF(rank.eq.0.AND.IP1.LT.1000000)
+     &      WRITE (6,55) IP1, TTOT, BODY(I1),BODY(I2),
+     & NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),SEMI,ECC,HI,DE(1),QPERI
+   55       FORMAT (' GR TIDES IP1 T M1 M2 K1 K2 SEMI ECC H DE1 QP ',
+     &            1P,I8,3E14.5,2I8,2I4,5E14.5)
+         GO TO 5
+      END IF
+*
       R1 = MAX(RADIUS(I1),RADIUS(I2))
       IF (KZ(27).EQ.1) THEN
           ZF = 4.0
@@ -59,8 +75,8 @@
           END IF
 *       Skip on WIDE CHAOS or NEW SPIRAL.
           GO TO 45
-      ELSE IF (KZ(27).EQ.3) THEN
-          CALL TIDES3(QPERI,BODY(I1),BODY(I2),VSTAR,H(IPAIR),ECC,DE)
+*     ELSE IF (KZ(27).EQ.3) THEN
+*         CALL TIDES3(QPERI,BODY(I1),BODY(I2),VSTAR,H(IPAIR),ECC,DE)
       END IF
 *
 *       Restore circularization index if needed (exit from CHAIN).
@@ -70,7 +86,7 @@
           call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
           GO TO 50
       END IF
-*
+*     
 *       Consider sequential circularization or GR evolution.
       IF (KZ(27).EQ.1) THEN
          RI = SQRT(X(1,I)**2 + X(2,I)**2 + X(3,I)**2)
@@ -95,14 +111,22 @@
           DH = 0.5*BODY(I)*(1.0/SEMI - 1.0/SEMI1)
           DE(1) = -ZMU*DH
           DE(2) = 0.0
-      ELSE
+*
+*       Special Treatment of GR for compact binaries RSp March 2019
+        END IF
+*     ELSE
+*
+ 5    CONTINUE
+        IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
+     &                     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
 *       Include safety check on energy loss to prevent new SEMI < R.
           DH = -(DE(1) + DE(2))/ZMU
-          IF (H(IPAIR) + DH.LT.-0.5*BODY(I)/R(IPAIR)) THEN
-              DH = -0.5*BODY(I)/R(IPAIR) - H(IPAIR)
-              DE(1) = -ZMU*DH
-              DE(2) = 0.0
-          END IF
+*  This condition is not ok for tight black hole binaries RSp March 2019
+*         IF (H(IPAIR) + DH.LT.-0.5*BODY(I)/R(IPAIR)) THEN
+*             DH = -0.5*BODY(I)/R(IPAIR) - H(IPAIR)
+*             DE(1) = -ZMU*DH
+*             DE(2) = 0.0
+*         END IF
           SEMI1 = -0.5*BODY(I)/(H(IPAIR) + DH)
           ECC1 = 1.0 - PERI/SEMI1
           ECC1 = MAX(ECC1,ECCM)
@@ -299,7 +323,10 @@ c$$$                  JCOMP = J
    35     FORMAT (' NEW CAPTURE    T NM E EF QP/R* A1 ',
      &                             F9.2,2I6,2F9.4,1P,2E10.2)
       END IF
-*
+*       Special Treatment of GR for compact binaries RSp March 2019
+        IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
+     &                     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14))GO TO 50
+*       Special Treatment: Skip sections specific for tides and roche.
 *       Record diagnostics for new synchronous orbit and activate indicator.
       IF (ECC.GT.ECCM.AND.ECC1.LT.ECCM.AND.KZ(27).LE.2) THEN
           NSYNC = NSYNC + 1

@@ -11,6 +11,7 @@
       COMMON/SLOW0/  RANGE,ISLOW(10)
       PARAMETER  (AURSUN=214.95D0)
       REAL*8  M1,M2,JORB
+      INTEGER IGR
 *
 *
 *       Define scalars and determine merger index.
@@ -55,15 +56,28 @@
 *       Obtain angular momentum and eccentricity derivatives (SEMI < 10 R_s).
       CALL GRRAD(M1,M2,SEP,ECC0,JORB,DJGR,DELET)
 *
+          DTGR = 0.02D0*JORB/ABS(DJGR)
+            IGR = IGR + 1
+            KW1 = KSTAR(I1)
+            KW2 = KSTAR(I2)
+*    changed output RS March 2019 test
+            IF (rank.eq.0.and.IGR.LT.1000000)
+     &      WRITE (6,45)IGR,TTOT,M1,M2,KW1,KW2,SEP,ECC0,JORB,DJGR,DTGR
+   45    FORMAT (' GR BRAKE3 IGR T M1 M2 K1 K2 SEP ECC0 JORB DJ DTGR ',
+     &            1P,I8,3E14.5,2I4,5E14.5)
+*
 *       Allow 2% angular momentum change (expressions adapted from MDOT).
       IF (ABS(DJGR).GT.0.D0) THEN
-          DTGR = 0.02D0*JORB/ABS(DJGR)
           IF(DELET.GT.TINY.AND.ECC0.GT.0.0011D0)THEN
              DTGR = MIN(DTGR,0.05D0*ECC0/DELET)
           ENDIF
           DTGR = MAX(DTGR,100.D0)
 *       Note that time interval is in units of yr (cf. grrad.f).
           DJORB = DJGR*DTGR
+            IGR = IGR + 1
+            KW1 = KSTAR(I1)
+            KW2 = KSTAR(I2)
+*
 *       Terminate on large change of JORB which occurs at GR coalescence.
           IF (DJORB.GT.0.1*JORB) THEN
               ITERM = 1

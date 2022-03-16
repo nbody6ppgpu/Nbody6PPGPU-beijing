@@ -28,6 +28,13 @@ C Termination time in physical units, TCRITP, read in nbody6.F
      &               QE, RBAR, ZMBAR
          READ (5,*)  (KZ(J),J=1,50)
          READ (5,*)  DTMIN, RMIN, ETAU, ECLOSE, GMIN, GMAX, SMAX
+*       Keep tidal circularization together with GR (RS March 2019)
+      KZ273 = 0
+      IF(KZ(27).GT.2) THEN
+         KZ273 = 3
+         KZ(27) = KZ(27) - 2
+      END IF
+*
       END IF
 
 *     Check SMAX to make sure it have correct value
@@ -56,6 +63,7 @@ C Termination time in physical units, TCRITP, read in nbody6.F
       CALL MPI_BCAST(NCOMM,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 *
       CALL MPI_BCAST(KZ(1),50,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(KZ273,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 *
       CALL MPI_BCAST(ETAI,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(ETAR,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)

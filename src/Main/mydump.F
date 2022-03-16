@@ -12,7 +12,7 @@
 #ifdef TT
       INCLUDE 'tt.h'
 #endif
-      PARAMETER  (NA=85,NB=168,NC=530,ND=392+MLR+MLD+MLV,NE=24,NM=40,
+      PARAMETER  (NA=85,NB=168,NC=530,ND=381+MLR+MLD+MLV,NE=24,NM=40,
      &    NG=132,NL=99,NO=20*MCL+16,NP=32*NTMAX,NQ=31*MMAX,
      &    NS=44*MMAX)
       REAL*4  B,C,D,E,G,L,M,O,P,Q,S
@@ -183,7 +183,7 @@
               write(6,*) 'Error! MLR mismatch (Data:',NPARTMP(6),
      &             'Current:', MLR
               call flush(6)
-              call abort()
+*             call abort()
            END IF
 
            IF(NPARTMP(7).NE.INT(MLV)) then

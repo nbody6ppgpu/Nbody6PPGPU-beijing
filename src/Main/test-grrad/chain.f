@@ -718,10 +718,10 @@
               WRITE (6,55)  NSTEP1, T0S(ISUB)+TIMEC, TMAX-TIMEC,
      &                      (1.0/RINV(K),K=1,N-1)
    55         FORMAT (' CHAIN:  NSTEP T DTR R ',I5,F10.4,1P,6E9.1)
-       WRITE(6,302)TIMENB,TIMEC,(K,M(K),SIZE(K),RSEP(K),VSEP(K),SEMICH(K),
-     &       ECCCH(K),TGRCH(K),A_EIN(K),K=1,N-1),N,M(N),SIZE(K)
+       WRITE(6,302)TIMENB,TIMEC,(K,M(K),SIZE(K),RSEP(K),VSEP(K),
+     &     SEMICH(K),ECCCH(K),TGRCH(K),A_EIN(K),K=1,N-1),N,M(N),SIZE(K)
   302  FORMAT(' CHAIN T,TC[NB] K,M,R[*],R,V,a,e,tgr,aein[NB-CH]=',
-     &          1P,E17.10,E13.5,10(I4,8E13.5))
+     &          1P,E17.10,E14.5,10(I4,8E14.5))
           END IF
 *       Avoid checking after switch (just in case).
           IF (ISW.LE.1) THEN
@@ -828,7 +828,7 @@
   304     KK = KK + 3
        WRITE(6,303)TIMENB,CHTIME,(K,M(K),SIZE(K),RI(K),VI(K),K=1,N)
   303  FORMAT(' CHEND: TNB,TC[NB] K,M,R[*],R,V[NB-CH]=',
-     &          1P,E17.10,E13.5,10(I4,4E13.5))
+     &          1P,E17.10,E14.5,10(I4,4E14.5))
           call flush(6)
       END IF
 *

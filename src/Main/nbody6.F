@@ -134,31 +134,11 @@
           END IF
 *
 *       Check reading modified restart parameters (KSTART = 3, 4 or 5).
-          IF (KSTART.GT.2) THEN
-              CALL MODIFY
-          END IF
+*       Or control output RSp March 2019 (KSTART = 2)
+          CALL MODIFY
 *
 *       Open all other files.
           CALL FILE_INIT(0)
-*
-*       If no explicit new TCRIT given just go for another TCRIT of common block.
-          TTOT = TIME + TOFF
-          TCRIT = TTOT + TCRIT
-          if(rank.eq.0)then
-             WRITE (6,10) TTOT/TCR0, TIME/TCR0, TCRIT/TCR0, TTOT, TIME,
-     &            TCRIT
-             WRITE (6,20)  DTADJ, DELTAT, TADJ, TNEXT, TCRIT, QE
-             WRITE (6,30)  ETAI, ETAR, ETAU, DTMIN, RMIN, NNBOPT
- 10          FORMAT (' START AT TTOT/TIME ',2F16.8,' STOP INTENDED AT ',
-     &            F16.8,' TCR0',/,' START AT TTOT/TIME ',2F16.8,
-     &            ' STOP INTENDED AT ',F16.8,' NBODY-UNITS ',/)
- 20          FORMAT (/,7X,'RESTART PARAMETERS:   DTADJ =',F7.3,
-     &            '  DELTAT =',F7.3,'   TADJ =',F7.3,'   TNEXT =',
-     &            F7.3,'  TCRIT =',F7.1,'  QE =',1PE9.1)
- 30          FORMAT (/,7X,'                      ETAI =',F7.3,
-     &            '  ETAR =',F7.3,'  ETAU =',F7.3,'  DTMIN =',1PE9.1,
-     &            '  RMIN =',E9.1,' NNBOPT =',I5,/)
-          end if
 *
 *       Find massive back hole after restart
           IF (KZ(24).EQ.1) call IMBHRESTART

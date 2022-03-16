@@ -28,11 +28,12 @@
       EXTERNAL MLWIND,RL
       LOGICAL COALS,DISK,NOVAE,SUPEDD,ISAVE
       CHARACTER*5 CH5
-      SAVE IWARN,IGR,IMB
-      DATA IWARN,IGR,IMB /0,0,0/
+      SAVE IWARN,IMB
+      DATA IWARN,IMB /0,0/
       LOGICAL FIRST
       SAVE FIRST
       DATA FIRST /.TRUE./
+      INTEGER IGR
 *
 *
 *       Set components & c.m. index and initialize counters & interval.
@@ -235,7 +236,6 @@
                  WRITE(6,9)NAME(J1),NAME(J2),KW1,KW2
     9            FORMAT(' WARNING: TOO MUCH ROCHE  NAM K* ',2I6,2I3)
               ENDIF
-              IGR = 0
               IMB = 0
               IF (KZ(9).GE.2) THEN
                   CALL binev(IPAIR)
@@ -280,7 +280,12 @@ C     &                FILE='ROCHE')
 *
 *       Include time-scale check for GR & MB braking for small separations.
 *       (Note: use old orbital expressions)
-          IF (SEP.LT.10.0) THEN
+*
+      ACRIT = 10.0
+*    changed RS/MG Oct 2017 test
+      IF (MASS(1) + MASS(2).GT.10.0) ACRIT = 1000.0
+*
+         IF(SEP.LE.ACRIT)THEN
               DSEPG = -1.663D-09*MASS(1)*MASS(2)*(MASS(1) + MASS(2))/
      &                                          (SEP*SEP*SEP)*1.0D+06
               DTGR = -0.1D0*SEP/DSEPG
@@ -847,17 +852,20 @@ C     &                FILE='ROCHE')
 *
 * For very close systems include gravitational radiation.
 *
-         IF(SEP.LE.10.0)THEN
+      ACRIT = 10.0
+*    changed RS/MG Oct 2017 test
+      IF (MASS(1) + MASS(2).GT.10.0) ACRIT = 1000.0
+*
+         IF(SEP.LE.ACRIT)THEN
             CALL GRRAD(MASS(1),MASS(2),SEP,ECC,JORB,DJGR,DELET1)
             DJGR = DJGR*DTM0
             DJORB = DJORB + DJGR
             IGR = IGR + 1
-*           IF(IGR.LT.10.OR.ABS(DJGR)/JORB.GT.0.001)THEN
-            IF(SEP.LT.1.05*(RAD(1) + RAD(2)))THEN
-            IF (rank.eq.0.and.MOD(IGR,10).EQ.0) 
-     &      WRITE (6,45)  MASS, SEP, DJGR, DTM
-   45       FORMAT (' GR BRAKE    M1 M2 SEP DJ DTM ',2F7.3,1P,3E10.2)
-            ENDIF
+*    changed output RS March 2019 test
+            IF (rank.eq.0.and.IGR.LT.1000000)
+     &      WRITE (6,45)IGR,TTOT,MASS,KW1,KW2,SEP,ECC,JORB,DJGR,DTM0
+   45       FORMAT (' GR BRAKE IGR T M1 M2 K1 K2 SEP ECC JORB DJ DTM0 ',
+     &            1P,I8,3E14.5,2I4,5E14.5)
          ENDIF
 *
          DMS(1) = KM*DMS(1)
@@ -878,9 +886,9 @@ C     &                FILE='ROCHE')
             IF(JSPIN(1).GT.0.D0)THEN
                IF(IMB.LT.2.OR.ABS(DJMB)/JSPIN(1).GT.0.03)THEN
                   if(rank.eq.0)
-     &            WRITE (6,40)  MASS, SEP, DJMB, DTM
-   40             FORMAT (' MB BRAKE    M1 M2 SEP DJSPN DTM ',
-     &                                  2F7.3,1P,3E10.2)
+     &      WRITE (6,40) TTOT,MASS,KW1,KW2,SEP,ECC,OSPIN(1),DJMB,DTM
+   40       FORMAT (' MB BRAKE  T M1 M2 K1 K2 SEP ECC OSPIN DJMB DTM ',
+     &            1P,3E14.5,2I4,5E14.5)
                ENDIF
             ENDIF
          ENDIF
@@ -891,7 +899,7 @@ C     &                FILE='ROCHE')
             IF(JSPIN(2).GT.0.D0)THEN
                IF(IMB.LT.10.OR.ABS(DJMB)/JSPIN(2).GT.0.001)THEN
                   if(rank.eq.0)
-     &            WRITE (6,40)  MASS, SEP, DJMB, DTM
+     &         WRITE (6,40)  TTOT,MASS,KW1,KW2,SEP,ECC,OSPIN(1),DJMB,DTM
                ENDIF
             ENDIF
          ENDIF

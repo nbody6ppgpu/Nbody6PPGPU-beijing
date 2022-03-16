@@ -9,7 +9,6 @@
       djgr = 0.d0
       de = 0.d0
       ACRIT = 10.0
-*     IF (m1 + m2.GT.10.0) ACRIT = 30.D0
 *    changed RS/MG Oct 2017 test
       IF (m1 + m2.GT.10.0) ACRIT = 1000.D0
       if(sep.le.ACRIT)then

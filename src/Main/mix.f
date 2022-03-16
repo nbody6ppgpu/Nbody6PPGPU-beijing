@@ -13,7 +13,7 @@
       REAL*8 M01,M02,M03,M1,M2,M3,AGE1,AGE2,AGE3,MC3,LUM,RM,RCC
       REAL*8 MENV,RENV,K2E
       REAL*8 MCH,MXNS
-      PARAMETER(MCH=1.44D0,MXNS = 3.0d0)
+      PARAMETER(MCH=1.44D0,MXNS = 3.0d0, FctorCl = 1.0D0)
       LOGICAL  FIRST
       SAVE  FIRST
       DATA  FIRST /.TRUE./
@@ -165,10 +165,12 @@
       ELSEIF(ICASE.EQ.13.OR.ICASE.EQ.14)THEN
 *       Set unstable Thorne-Zytkow object with fast mass loss of envelope
 *       unless the less evolved star is a WD, NS or BH.
+*       update Jan. 2019 (Francesco Rizzuto): NS/BH increases the mass 
+*                                             with a factor FctorCL * M2   
          IF(K2.LT.10)THEN
-            M03 = M1
-            M3 = M1
-            DM = M2
+            M03 = M1 + FctorCl * M2
+            M3 = M1 + FctorCl * M2
+            DM = M2 * (1.0D0 - FctorCl)
             NTZ = NTZ + 1
             if(rank.eq.0)WRITE (6,2)  K1, K2, NAME(I1), NAME(I2)
     2       FORMAT (' NEW TZ    K* NM ',2I4,2I6)

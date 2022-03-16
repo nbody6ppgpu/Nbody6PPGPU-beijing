@@ -213,6 +213,25 @@ c$$$              call flush(6)
           END IF
       END IF
 *
+*       Check for GR braking for compact object binaries RSp March 2019
+        I2 = I1 + 1
+        IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
+     &                     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
+           SEMI = -0.5*BODY(I)/H(IPAIR)
+           ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
+           ECC = SQRT(ECC2)
+           QPERI = SEMI*(1.0D0 - ECC)
+*       GR braking for compact object define new binary type RSp March 2019
+           KSTAR(I) = 25
+           IP1 = IP1 + 1
+         IF(rank.eq.0.AND.IP1.LT.1000000)
+     &     WRITE (6,55) IP1,TTOT,BODY(I1),BODY(I2),
+     &     NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),SEMI,ECC,H(IPAIR),QPERI
+   55       FORMAT (' GR UNPERT IP1 T M12 N12 K12 SEMI ECC H QP',
+     &            1P,I8,3E14.5,2I8,2I4,4E14.5)
+           CALL KSTIDE(IPAIR,QPERI)
+        END IF
+*
 *       Perform general two-body collision test.
       IF (KZ(19).GE.3.AND.NAME(I).GT.0) THEN
           RI = 0.0

@@ -85,7 +85,9 @@
 *
 *       Define flag to distinguish primordial or non-primordial binary.
           IP = 1
-          IF (LIST(2,J2).EQ.0) IP = 2
+*         IF (LIST(2,J2).EQ.0) IP = 2
+*       The previous line does not work - RSp March 2019
+          IF (IABS(NAME(J1) - NAME(J2)).EQ.1) IP = 2
           IF (IP.EQ.2) NEWB = NEWB + 1
 *
 *       Sum the respective energies & populations.
@@ -122,8 +124,10 @@
               CALL FLUSH(18)
           END IF
 *       Reset c.m. Roche flag to standard type for non-zero eccentricity.
-          IF (KSTAR(I).GE.10.AND.ECC2.GT.4.0D-06) KSTAR(I) = 0
-          IF (KSTAR(I).GE.10) K10 = K10 + 1
+*       Special Treatment of GR for compact binaries RSp March 2019 note binary type 25
+          IF (KSTAR(I).GE.10.AND.KSTAR(I).LT.25.
+     &       AND.ECC2.GT.4.0D-06) KSTAR(I) = 0
+          IF (KSTAR(I).GE.10.AND.KSTAR(I).LT.25) K10 = K10 + 1
    50 CONTINUE
 *
 *       Set fractional gain of binding energy (initial energy = -0.25).
