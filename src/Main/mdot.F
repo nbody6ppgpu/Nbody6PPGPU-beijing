@@ -725,12 +725,11 @@ c$$$            end if
          CALL GRRAD(MASS(1),MASS(2),SEP,ECC,JORB,DJGR,DELET)
          DJORB = DJT + DJGR
             DTGR = 0.02D0*JORB/ABS(DJORB)
-            IGR = IGR + 1
-*    changed output RS March 2019 test
-            IF (rank.eq.0.and.IGR.LT.1000000)
-     &      WRITE (6,45)IGR,TIME,MASS,-1,-1,SEP,ECC,JORB,DJGR,DTM
-   45       FORMAT (' GR BRAKE IGR T M1 M2  ?  ? SEP ECC JORB DJ DTM ',
-     &            1P,I8,3E14.5,2I4,5E14.5)
+* RSp updated output July 2020
+            IF (rank.eq.0.and.DJGR.GT.1.E-06)
+     &      WRITE (6,45)TTOT,MASS,SEP,ECC,JORB,DJGR,DTM
+   45       FORMAT (' GR BRAKE T M1 M2 SEP ECC JORB DJGR DTM ',
+     &            1P,8E14.5)
 *        if(rank.eq.0)
 *    &   write(*,*)' grrad ',sep,ecc,djgr,delet,dtxmin
 *

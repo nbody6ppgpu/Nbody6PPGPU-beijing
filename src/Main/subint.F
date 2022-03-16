@@ -480,6 +480,7 @@ c$$$                  call flush(120+rank)
 c$$$  print*,'SERV',rank,istsen,istrec,icnt,icnt2
 c$$$  call flush(6)
 *     --12/29/13 22:43-lwang-end----------------------------------------*
+           print*,' SUBINT: MPI KSR 1 icnt;2,*57=',icnt,icnt2,57*icnt
                   CALL MPI_SENDRECV(ZMPI(1,istsen),57*icnt,MPI_REAL8,
      *                 isend,rank,ZMPI(1,istrec),57*icnt2,MPI_REAL8,
      *                 irecv,irecv,MPI_COMM_WORLD,status,ierr)

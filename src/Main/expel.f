@@ -171,12 +171,22 @@ cnew-abbas-26/07/2017
               WHICH1 = ' HYPERB '
               NHYPC = NHYPC + 1
           END IF
+*         if(rank.eq.0)
+*    &    WRITE (6,10)  WHICH1, NAME(I1), NAME(I2), KSTAR(I1),KSTAR(I2),
+*    &                  KW1, KW2, M1, M2, DM*ZMBAR, ECC0, ECC, R1, R2,
+*    &                  SEMI0*SU, SEMI*SU
+*  10     FORMAT (A8,'CE    NAM K0* K* M1 M2 DM E0 E R1 R2 A0 A ',
+*    &                      2I6,4I3,3F5.1,2F8.4,2F7.1,1P,E9.1,0P,F7.1)
+          ICM = N + IPAIR
           if(rank.eq.0)
-     &    WRITE (6,10)  WHICH1, NAME(I1), NAME(I2), KSTAR(I1),KSTAR(I2),
-     &                  KW1, KW2, M1, M2, DM*ZMBAR, ECC0, ECC, R1, R2,
+     &    WRITE (6,1010) WHICH1,TTOT,NAME(I1),NAME(I2),NAME(IPAIR),
+     &      KSTAR(I1),KSTAR(I2),KSTAR(ICM),KW1,KW2,BODY(I1)*ZMBAR,
+     &      BODY(I2)*ZMBAR,M1,M2,DM*ZMBAR, ECC0, ECC, R1, R2,
      &                  SEMI0*SU, SEMI*SU
-   10     FORMAT (A8,'CE    NAM K0* K* M1 M2 DM E0 E R1 R2 A0 A ',
-     &                      2I6,4I3,3F5.1,2F8.4,2F7.1,1P,E9.1,0P,F7.1)
+ 1010     FORMAT(A8,'CE : T=',1P,E13.5,' N1/2/IP=',3I10,' KW1/2/IP=',
+     &           3I4,' KW1,KW2=',2I4,' BODY1/2=',2E13.5,' M1/2,DM=',
+     &           3E13.5,' E0,E=',2E13.5,' R1/2=',2E13.5,' A1/2=',
+     &           2E13.5)
 *
 *       Check common envelope condition again after circularization (09/08).
           IF (ECC0.GT.0.001D0.AND.ECC.LE.0.001D0) THEN

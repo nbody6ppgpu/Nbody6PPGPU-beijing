@@ -263,17 +263,49 @@
 *
       E1 = E1/EB
       EB = EB/BE(3)
-      IF (rank.eq.0.and.KZ(15).GT.1) THEN
-          WRITE (6,65)  IMERGE, TIME+TOFF, BODY(2*NPAIRS-1),
-     &                  BODY(2*NPAIRS), R1, SEMI1, EB, E1,
-     &                  GAMMA(NPAIRS), G1, NNB
-   65     FORMAT (' END MERGER: IMC',I3,'  TIME',F8.2,1P,'  M(I1)',E10.3
-     &         ,'  M(I2)',E10.3,'  R1N3',E8.1,'  SEMI1',E8.1,
-     &         '  EB0/BE(3)',0P,F6.3,'  EB1/EB',F6.3,
-     &         '  GAMMA(IM)',1P,E8.1,'  GAMMA(INCM)',E8.1,0P,
-     &         '  NB(IM)',I5,' [All in NB Unit]')
-      END IF
+*     IF (rank.eq.0.and.KZ(15).GT.1) THEN
+*         WRITE (6,65)  IMERGE, TIME+TOFF, BODY(2*NPAIRS-1),
+*    &                  BODY(2*NPAIRS), R1, SEMI1, EB, E1,
+*    &                  GAMMA(NPAIRS), G1, NNB
+*  65     FORMAT (' END MERGER: IMC',I3,'  TIME',F8.2,1P,'  M(I1)',E10.3
+*    &         ,'  M(I2)',E10.3,'  R1N3',E8.1,'  SEMI1',E8.1,
+*    &         '  EB0/BE(3)',0P,F6.3,'  EB1/EB',F6.3,
+*    &         '  GAMMA(IM)',1P,E8.1,'  GAMMA(INCM)',E8.1,0P,
+*    &         '  NB(IM)',I5,' [All in NB Unit]')
+*         call flush(6)
+*     END IF
 *
+      ICM = N + IPAIR
+      IF(JCOMP.GT.N)THEN
+      JCM = N + JPAIR
+      JP1 = 2*JPAIR
+      JP2 = 2*JPAIR-1
+      ELSE
+      JCM = ICM
+      JPAIR = IPAIR
+      JP1 = ICOMP
+      JP2 = ICOMP
+      END IF
+          if(rank.eq.0.and.KZ(15).GT.1) THEN
+          WRITE (6,21) TTOT, ICOMP, JCOMP, IPAIR, NAME(ICOMP),
+     &      NAME(JCOMP),NAME(ICM),KSTAR(ICOMP),KSTAR(JCOMP),
+     &      KSTAR(ICM), BODY(ICOMP), BODY(JCOMP),
+     &      JP1,JP2,JPAIR,NAME(JP1),NAME(JP2),NAME(JCM),
+     &      KSTAR(JP1),KSTAR(JP2),KSTAR(JCM),BODY(JP1),BODY(JP2),
+     &      R(IPAIR),H(IPAIR),R(JPAIR),H(JPAIR),
+     &      BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,RADIUS(ICOMP)*SU,
+     &      RADIUS(JCOMP)*SU,BODY(JP1)*ZMBAR,BODY(JP2)*ZMBAR,
+     &      RADIUS(JP1)*SU,RADIUS(JP2)*SU,R(IPAIR)*SU,R(JPAIR)*SU
+   21     FORMAT (/,' END MERGER: ',1P,' TIME',E12.5,' IC,JC,IP=',3I10,
+     &         ' N IC,JC,ICM=',3I10,' KW IC,JC,ICM=',3I4,
+     &         ' M1,2[NB]',2E10.2,' JP1,JP2,JP=',3I10,' N JP1,JP2,JP=',
+     &         3I0,' KW JP1,JP2,JCM=',3I4,' M3,4[NB]',2E10.2,
+     &         '  R12',E10.2,' H',E10.2,' R34',E10.2,' H2',E10.2,
+     &         ' M1,2[*]',2E10.2,' RAD1,2[*]',2E10.2,'  M3,4[*]',
+     &         2E10.2,' RAD3,4[*]',2E10.2,' SEPI/J',2E10.2)
+          call flush(6)
+          END IF
+
 *       Check Roche look-up time.
       IF (KSTAR(NTOT).GE.10.AND.KSTAR(NTOT).LE.20) THEN
 *       Reduce evolution time-scale after any delay during ghost stage.

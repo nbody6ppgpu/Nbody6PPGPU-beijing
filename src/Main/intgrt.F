@@ -216,7 +216,6 @@
 *       Find all particles due at next block time.
     1 CONTINUE
 *
-*
 *       Redetermine TMIN after main change to catch new small steps after chain.
       ICALL = ICALL + 1
       IF (ICALL.EQ.2) GO TO 999
@@ -255,7 +254,6 @@
             call flush(6)
             call abort()
          END IF
-C         IF(J.EQ.9951) print*,'L',L,'J',J,'T',TIME
       END DO
       DO L = NXTLEN+1,NXTLIMIT
          J = NXTLST(L)
@@ -268,7 +266,6 @@ C         IF(J.EQ.9951) print*,'L',L,'J',J,'T',TIME
             call flush(6)
             call abort()
          END IF
-C         IF(J.EQ.9951) print*,'L',L,'J',J,'T',TIME
       END DO
 *     --07/07/14 23:44-lwang-end----------------------------------------*
 #endif
@@ -351,7 +348,6 @@ C         IF(J.EQ.9951) print*,'L',L,'J',J,'T',TIME
 
       call cputim(tttiend)
       ttintb = ttintb +(tttiend-tttbegin)*60
-
 *
 *       Include commensurability test (may be suppressed if no problems).
 *     IF (STEP(IMIN).LT.1.0E-15.OR.DMOD(TIME,STEP(IMIN)).NE.0.0D0) THEN
@@ -393,7 +389,6 @@ C         IF(J.EQ.9951) print*,'L',L,'J',J,'T',TIME
 *
          IF (IQ.LT.0) GO TO 999
       END IF
-
 *
 *       Check regularization criterion for single particles.
       call cputim(tttbegin)
@@ -541,8 +536,8 @@ C        if (TCCT.gt.2.0) stop
          call cputim(ttsimdc)
          ttsimdcalc = ttsimdcalc + (ttsimdc-ttnb1)*60.
 #else
-*         print*,' before nbint,t,nxtlen,lst=',time,nxtlen,
-*    &                              (nxtlst(k),k=1,nxtlen)
+          print*,' before nbint,t,nxtlen,lst=',time,nxtlen,
+     &                              (nxtlst(k),k=1,nxtlen)
 *         print*,' step(lst)=',(step(nxtlst(k)),k=1,nxtlen)
 *         print*,' x(1,lst)=',(x(1,nxtlst(k)),k=1,nxtlen)
 *         print*,' x0(1,lst)=',(x0(1,nxtlst(k)),k=1,nxtlen)
@@ -730,12 +725,12 @@ c$$$      ttbarnb = ttbarnb + (tt999-tt998)*60
               istrec = ista(irank)
               icnt2 = inum(irank)
 *
-*     if(time.lt.0.1d0.and.icnt.gt.0)then
+*     if(time.lt.0.1d0)then
 *     print*,' NXT: rank t',rank,time,' ir ',ir,' send ',istsen,
 *    *    ' thru ',istsen+icnt-1,' to ',isend,' cnt ',icnt,
 *    *    ' istart,iend=',istart,iend
 *     end if
-*     if(time.lt.0.1d0.and.icnt2.gt.0)then
+*     if(time.lt.0.1d0)then
 *     print*,' NXT: rank t',rank,time,' ir ',ir,' recv ',istrec,
 *    *    ' thru ',istrec+icnt2-1,' fr ',irecv,' cnt2 ',icnt2,
 *    *    ' istart,iend=',istart,iend
@@ -743,6 +738,7 @@ c$$$      ttbarnb = ttbarnb + (tt999-tt998)*60
 *
 #ifdef PUREMPI
               call cputim(tta)
+              print*,' INTGRT: MPI Irr icnt;2,*20=',icnt,icnt2,20*icnt
               CALL MPI_SENDRECV(XMPI(1,istsen),20*icnt,MPI_REAL8,isend,
      *             rank,XMPI(1,istrec),20*icnt2,MPI_REAL8,irecv,irecv,
      *             MPI_COMM_WORLD,status,ierr)
@@ -1083,20 +1079,22 @@ c$$$      end if
                istrec = ista(irank)
                icnt2 = inum(irank)
 *
-c$$$      if (ixxxx.le.10000000.and.time.gt.1.33) then
-c$$$         print*,' INTGRT-R: rank t',rank,time,' ir ',ir,' send ',istsen,
-c$$$     *        ' thru ',istsen+icnt-1,' to ',isend,' cnt ',icnt
-c$$$         print*,' INTGRT-R: rank t',rank,time,' ir ',ir,' recv ',istrec,
-c$$$     *        ' thru ',istrec+icnt2-1,' fr ',irecv,' cnt2 ',icnt2
-c$$$         call flush(6)
-c$$$      end if
+*     if (time.lt.0.1) then
+*        print*,' INTGRT-R: rank t',rank,time,' ir ',ir,' send ',istsen,
+*    *        ' thru ',istsen+icnt-1,' to ',isend,' cnt ',icnt
+*        print*,' INTGRT-R: rank t',rank,time,' ir ',ir,' recv ',istrec,
+*    *        ' thru ',istrec+icnt2-1,' fr ',irecv,' cnt2 ',icnt2
+*        call flush(6)
+*     end if
 *
 #ifdef PUREMPI
+             print*,' INTGRT: MPI Reg 1 icnt;2,*41=',icnt,icnt2,41*icnt
                call cputim(tta)
                CALL MPI_SENDRECV(YMPI(1,istsen),41*icnt,MPI_REAL8,isend,
      *              rank,YMPI(1,istrec),41*icnt2,MPI_REAL8,irecv,irecv,
      *              MPI_COMM_WORLD,status,ierr)
 *     
+         print*,' INTGRT: MPI Reg 2 icnt;2,*lmax=',icnt,icnt2,lmax*icnt
 c$$$  call mpi_barrier(MPI_COMM_WORLD,ierr)
                CALL MPI_SENDRECV(IMPI(1,istsen),lmax*icnt,MPI_INTEGER,
      *              isend,rank,IMPI(1,istrec),lmax*icnt2,MPI_INTEGER,

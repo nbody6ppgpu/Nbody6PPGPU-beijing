@@ -860,10 +860,10 @@ C     &                FILE='ROCHE')
             CALL GRRAD(MASS(1),MASS(2),SEP,ECC,JORB,DJGR,DELET1)
             DJGR = DJGR*DTM0
             DJORB = DJORB + DJGR
-*    changed output RS December 2019 test
-            IF (rank.eq.0)
+* RSp updated output July 2020
+            IF (rank.eq.0.and.DJGR.GT.1.E-06)
      &      WRITE (6,45)TTOT,MASS,KW1,KW2,SEP,ECC,JORB,DJGR,DTM0
-   45       FORMAT (' GR BRAKE T M1 M2 K1 K2 SEP ECC JORB DJ DTM0 ',
+   45       FORMAT (' GR BRAKE T M1 M2 K1 K2 SEP ECC JORB DJGR DTM0 ',
      &            1P,3E14.5,2I4,5E14.5)
          ENDIF
 *
