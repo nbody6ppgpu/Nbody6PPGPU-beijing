@@ -1,3 +1,4 @@
+#include "mpi.h"
 #include <cmath>
 #include <stdio.h>
 #include <unistd.h>
@@ -577,53 +578,18 @@ void GPUNB_devinit(int irank){
 
 	assert(NXREDUCE >= NJBLOCK);
 	assert(NXREDUCE <= 32);
+        int rank;int size;
+    MPI_Comm_size( MPI_COMM_WORLD, &size );
+    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
 
 	cudaGetDeviceCount(&numGPU);
-	assert(numGPU <= MAX_GPU);
-	char *gpu_list = getenv("GPU_LIST");
-	if(gpu_list){
-		// get GPU list from environment variable
-		numGPU = 0;
-		char *p = strtok(gpu_list, " ");
-		while(p){
-			devid[numGPU++] = atoi(p);
-			p = strtok(NULL, " ");
-			assert(numGPU <= MAX_GPU);
-		}
-	}else{
-		// use all GPUs
-		for(int i=0; i<numGPU; i++){
+        fprintf(stderr, " irank, rank, size, numGPU %d %d %d %d\n",irank,rank,size,numGPU);
+	assert(size <= numGPU);
+		for(int i=0; i<size; i++){
 			devid[i] = i;
 		}
-	}
-	
-	// numGPU = 1;
-#pragma omp parallel
-	{
-		int tid = omp_get_thread_num();
-		if(tid == 0) numCPU = omp_get_num_threads();
-	}
-	assert(numCPU <= MAX_CPU);
-//      assert(numGPU <= numCPU);
-#pragma omp parallel
-	{
-		int tid = omp_get_thread_num();
-		if(tid < numGPU){
-			cudaSetDevice(devid[tid]);
-		}
-	}
-
-#ifdef PROFILE
-    char hostname[150];
-    memset(hostname,0,150);
-    gethostname(hostname,150);
-	for(int i=0; i<numGPU; i++){
-      cudaDeviceProp prop;
-      cudaGetDeviceProperties(&prop, devid[i]);
-      fprintf(stderr, "# GPU initialization - rank: %d; HOST %s; NGPU %d; device: %d %s\n", irank, hostname, numGPU, devid[i], prop.name);
-	}
-#endif
     devinit = true;
+    numGPU = 1;
 }
 
 void GPUNB_open(int nbmax,int irank){
@@ -645,24 +611,33 @@ void GPUNB_open(int nbmax,int irank){
 		joff[id] = (id * nbmax) / numGPU;
 	}
 
-	// omp_set_num_threads(numGPU);
-#pragma omp parallel
-	{
-		int tid = omp_get_thread_num();
-		if(tid < numGPU){
-			cudaSetDevice(devid[tid]);
-			int nj = joff[tid+1] - joff[tid];
-			jpbuf [tid].allocate(nj + NTHREAD);
-			ipbuf [tid].allocate(NIMAX);
-			fpart [tid].allocate(NIMAX);
-			ftot  [tid].allocate(NIMAX);
-			nbpart[tid].allocate(NIMAX);
-			nblist[tid].allocate(NB_BUF_SIZE); // total ganged nblist
-			nboff [tid].allocate(NIMAX+1);
-		}
-	}
+	int rank;int size;
+    MPI_Comm_size( MPI_COMM_WORLD, &size );
+    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+
+		cudaSetDevice(devid[rank]);
+                fprintf(stderr, " rank %d Set Dev %d\n", rank, devid[rank]);
+    char hostname[150];
+    memset(hostname,0,150);
+    gethostname(hostname,150);
+    int len;char pbusid[13];
+    len = 13;
+      cudaDeviceGetPCIBusId ( pbusid, len, devid[rank] );
+      cudaDeviceProp prop;
+      cudaGetDeviceProperties(&prop, devid[rank]);
+      fprintf(stderr, "# GPU Set Device - rank: %d; HOST %s; NGPU %d; device: %d %s Bus Id %s \n", rank, hostname, numGPU, devid[rank], prop.name, pbusid);
+                        int tid = 0;
+                        int nj = joff[tid+1] - joff[tid];
+                        jpbuf [tid].allocate(nj + NTHREAD);
+                        ipbuf [tid].allocate(NIMAX);
+                        fpart [tid].allocate(NIMAX);
+                        ftot  [tid].allocate(NIMAX);
+                        nbpart[tid].allocate(NIMAX);
+                        nblist[tid].allocate(NB_BUF_SIZE); // total ganged nblist
+                        nboff [tid].allocate(NIMAX+1);
+
 #ifdef PROFILE
-    fprintf(stderr, "# Open GPU regular force - rank: %d; nbmax: %d\n", irank, nbmax);
+    fprintf(stderr, "# Open GPU regular force - rank: %d; nbmax: %d\n", rank, nbmax);
 #endif
 }
 
@@ -820,7 +795,7 @@ void GPUNB_regf(
 
 	// reduction phase
 	// omp_set_num_threads(numCPU);
-#pragma omp parallel for default(none) shared(acc,jrk,pot,ni,numGPU,ftot)
+#pragma omp parallel for
 	for(int i=0; i<ni; i++){
 		double ax=0.0, ay=0.0, az=0.0;
 		double jx=0.0, jy=0.0, jz=0.0;
@@ -844,7 +819,7 @@ void GPUNB_regf(
 		jrk[i][2] = jz;
 		pot[i]    = po;
 	}
-#pragma omp parallel for default(none) shared(ni,numGPU,ftot,listbase,nnbmax,nblist,lmax,nboff)
+#pragma omp parallel for
 	for(int i=0; i<ni; i++){
 		bool overflow = false;
 		int *nnbp = listbase + lmax * i;

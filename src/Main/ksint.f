@@ -19,7 +19,9 @@
 *     Safe for parallel, no value change
       COMMON/SLOW0/  RANGE,ISLOW(10)
 *      COMMON/GAMDOT/  DGAM
-      REAL*8  UI(4),UIDOT(4),XI(6),VI(6),FP(6),FD(6)
+      REAL*8  UI(4),UIDOT(4),XI(6),VI(6),FP(6),FD(6),A_EIN,CL2
+      INTEGER RES
+      INTEGER, SAVE :: COUNTER=0
       LOGICAL IQ
 *     --01/02/14 20:43-lwang-debug--------------------------------------*
 ***** Note:------------------------------------------------------------**
@@ -35,6 +37,8 @@ c$$$      LOGICAL ipredall
       I = N + IPAIR
       IPHASE = 0
       call jpred(i,time,time)
+*
+      CL2 = CLIGHT**2   
 *     --09/25/13 14:22-lwang-debug--------------------------------------*
 ***** Note: To test whether the value are same for all nodes at beginnging of ksint*
 c$$$      if(i1.eq.15967.and.tblock.eq.0.73089027404785156) THEN
@@ -718,25 +722,45 @@ c$$$                      CALL CMBODY(2)
 *
 *       GR braking for compact object binaries RSp March 2019
         IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &                     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
+     & (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
+*       GR breaking for compact obj. define new binary type March 2019
            SEMI = -0.5*BODY(I)/HI
            ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
            ECC = SQRT(ECC2)
-           QPERI = SEMI*(1.0D0 - ECC)
-*       GR braking for compact object define new binary type RSp March 2019
-           KSTAR(I) = 25
-         IP1 = IP1 + 1
-         IF(rank.eq.0.AND.IP1.LT.1000000)
-     &     WRITE (6,55) IP1,TIME,BODY(I1),BODY(I2),
-     &     NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),SEMI,ECC,H(IPAIR),QPERI
-   55       FORMAT (' GR KSINT IP1 T N12 K12 M12 SEMI ECC H QP',
-     &            1P,I8,3E14.5,4I6,4E14.5)
+           QPERI = SEMI*(1.0D0 - ECC) 
+           A_EIN = 3.0*TWOPI*BODY(I)/(SEMI*CL2*(1-ECC2)) 
+           DTGW(IPAIR) = DTGW(IPAIR) + STEP(I1)  
+           RES = 0              
+           CALL GW_DECISION(SEMI,BODY(I1),BODY(I2),
+     &                       VSTAR,ECC,DTGW(IPAIR),RES)
 
-      IF(IP1.GT.10)PRINT*,' T,IPAIR,I12,KSTAR12,N12,M12,H,ECC,QP=',TIME,
-     &    I1,I2,KSTAR(I1),KSTAR(I2),NAME(I1),NAME(I2),BODY(I1),BODY(I2),
-     &    H(IPAIR),ECC,QPERI
-           CALL KSTIDE(IPAIR,QPERI)
-        END IF
+           COUNTER =COUNTER + 1 
+*************************************************************************                   
+*           IF(rank.eq.0) THEN
+*              PRINT *,'GR KSINT COUNTER T DT M12 N12 K12 SEMI ECC H QP',
+*     &                ' A_EIN DTGW NP',
+*     &        COUNTER,TIME,DTGW(IPAIR),BODY(I1),BODY(I2),
+*     &        NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),
+*     &        SEMI,ECC,H(IPAIR),QPERI,A_EIN,DTGW(IPAIR),LIST(1,I1)
+*           END IF
+************************************************************************* 
+           IF(RES.EQ.1) THEN
+              KSTAR(I) = 25
+              CALL KSTIDE(IPAIR,QPERI)
+              PRINT *,'GR KSINT COUNTER T DT M12 N12 K12 SEMI ECC H QP',
+     &                ' A_EIN DTGW NP',
+     &        COUNTER,TIME,DTGW(IPAIR),BODY(I1),BODY(I2),
+     &        NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),
+     &        SEMI,ECC,H(IPAIR),QPERI,A_EIN,DTGW(IPAIR),LIST(1,I1)
+           END IF 
+*       Prepare coal flag if PERI < 500 R_SCHW
+           IF(QPERI.LT.(3.0D2*BODY(I)/CLIGHT**2)) THEN
+              PRINT *,'COLL DUE TO GW QPERI CLIGHT RSCH ECC SEMI', 
+     &                QPERI, CLIGHT, 2.0*BODY(I)/CLIGHT**2, ECC, SEMI  
+              IPHASE = -1
+              GO TO 100 
+           END IF
+        END IF     
 *
 *       Save maximum separation of persistent binary.
       RMAX = MAX(RMAX,RI)
@@ -888,3 +912,25 @@ c$$$      if (tprev.ge.6.80656433105468750E-002) stop
  100  RETURN
 *
       END
+      SUBROUTINE GW_DECISION(SEP,M1,M2,VSTAR,ECC,DT,RES)              
+*
+*     Decide if you want to integrate or not  
+      INTEGER RES
+      REAL*8 SEP,M1,M2,VSTAR,ECC,DT,DE(5)        
+
+      CALL TIDES3(SEP,M1,M2,ECC,VSTAR,DT,DE)
+*
+      RES=0
+
+*      PRINT *,'GW DECISION b', DT, DE(4)/ECC, DE(3)/SEP, M1, M2, DE   
+      IF ((DE(4)/ECC).GT.5.0D-3.OR.(DE(3)/SEP).GT.5.0D-3) THEN
+*        do not bypass the GW emission effect
+        RES=1
+*        PRINT *, 'ALLOW INTEGRATION',DE(4)/ECC,DE(3)/SEP, DT
+      END IF   
+
+
+      RETURN 
+   
+      END
+

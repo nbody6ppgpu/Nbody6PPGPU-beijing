@@ -147,16 +147,16 @@
       if(rank.eq.0)
      &WRITE (6,60)  JOR, JEX, DB, SBCOLL, BBCOLL, CHCOLL, JC, NCHAOS,
      &              NEWB, K10, (JD(J),J=1,JLAST)
-   60 FORMAT (/,' BINARIES',4X,'OR =',I5,'  EX =',I3,'  DB =',F7.3,
-     &          '  SB =',F8.4,'  BB =',F8.4,'  CH =',F8.4,'  NC =',I3,
-     &         '  NCH =',I4,'  NEWB =',I4,'  CIRC =',I4,'  N(A) =',10I4)
+   60 FORMAT (/,' BINARIES',4X,'OR =',I7,'  EX =',I3,'  DB =',F7.3,
+     &          '  SB =',F8.4,'  BB =',F8.4,'  CH =',F8.4,'  NC =',I10,
+     &         '  NCH =',I4,'  NEWB =',I4,'  CIRC =',I4,'  N(A) =',10I7)
 *
       IF (DISP.GT.0.0D0) DISP = SQRT(DISP/FLOAT(NPAIRS))
       EMAX = SQRT(EMAX)
       if(rank.eq.0)
      &WRITE (6,65)  DISP, EMAX, (NPOP(J),J=1,8), (JEB(K),K=1,KLAST)
    65 FORMAT (' <E> =',F5.2,'  EMAX =',F7.4,'  NPOP =',I5,I3,2I6,I4,3I3,
-     &                                                 '  EB/KT =',14I4)
+     &                                                 '  EB/KT =',14I7)
 *
 *       Form the basic internal energy (binaries & single particles).
    70 ETOT = 0.0D0

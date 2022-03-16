@@ -74,7 +74,7 @@
      &               HDOT4(KMAX),DTAU(KMAX),TDOT2(KMAX),TDOT3(KMAX),
      &               R(KMAX),R0(KMAX),GAMMA(KMAX),SF(7,KMAX),H0(KMAX),
      &               FP0(4,KMAX),FD0(4,KMAX),KBLIST(10*KMAX),
-     &               KSLOW(KMAX),TBLIST
+     &               KSLOW(KMAX),DTGW(KMAX),TBLIST
 
 *     Not dump common variables
       COMMON/LISTS/  ILIST(NMAX),JLIST(NMAX),JPERT(5*LMAX)

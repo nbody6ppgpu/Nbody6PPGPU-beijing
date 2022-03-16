@@ -2,7 +2,7 @@
 *       ------------------
 *
 *       Choose between small or large run.
-      PARAMETER  (NMAX=131072,KMAX=65536,LMAX=600,MMAX=1024,
+      PARAMETER  (NMAX=15107200,KMAX=5120000,LMAX=600,MMAX=2048,
      &          MLD=22,MLR=600,MLV=200,MCL=10,NCMAX=10,NTMAX=100)
       parameter (maxpe=1024,ithread=8)
 *

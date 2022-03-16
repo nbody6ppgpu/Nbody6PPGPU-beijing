@@ -26,11 +26,12 @@
             NXTLEVEL = NXTLEVEL + 1
             IF(DMOD(TMIN,DTK(NXTLEVEL)).NE.0) GO TO 2
          ELSE
-            write(6,*) 'Error: Smallest time step reached! TMIN =',TMIN,
+         write(6,*) 'Warning: Smallest time step reached! TMIN =',TMIN,
      &           'NDTMAX',NDTMAX,'DTK(NDTMAX)',DTK(NDTMAX),'NXTLST(1)',
      &           NXTLST(1),'T0(1)',T0(NXTLST(1))
-            call flush(6)
-            call abort()
+            NXTLEVEL = NDTMAX
+            ILXXX = ILXXX + 1
+            IF(ILXXX.GT.1000000)call abort()
          END IF
       END IF
 *     Next block list range

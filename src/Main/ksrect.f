@@ -18,6 +18,11 @@
       SEMI = -0.5*BODY(I)/H(IPAIR)
       ECC2 = (1.0 - R(IPAIR)/SEMI)**2 + TDOT2(IPAIR)**2/(SEMI*BODY(I))
       ECC = SQRT(ECC2)
+*     if(ipair.eq.9600)then
+*     print*,' KSRECT: rank,ipair,semi,ecc,gamma=',rank,ipair,semi,ecc,
+*    &       gamma(ipair)
+*     print*,' KSRECT2: i,n,body(i),h(ipair)=',i,n,body(i),h(ipair)
+*     end if
       IF (ECC.LE.0.01) GO TO 50
       IF (GAMMA(IPAIR).GT.0.1) GO TO 50
 *

@@ -236,7 +236,7 @@ c$$$          IF (LIST(2,J).GT.ILAST.OR.BODY(J).EQ.0.0D0) GO TO 50
 *     Increase neighbor list by 1
                LIST(1,J) = LIST(1,J) + 1
                IF(LIST(1,J).GE.NNBMAX) THEN
-                  write(6,*),'Warning! J',J,'LIST',LIST(1,J),
+                  write(6,*) 'Warning! J',J,'LIST',LIST(1,J),
      &                 ' GE NNBMAX',NNBMAX,'T',TIME
                   call flush(6)
                END IF
@@ -244,6 +244,18 @@ c$$$          IF (LIST(2,J).GT.ILAST.OR.BODY(J).EQ.0.0D0) GO TO 50
 *     Case ipair c.m. and ilast member is in the list
             ELSE
 *     Shift index from ID_IPAIRCM+2 to NNB to right by 1
+               IF(rank.eq.0.and.LIST(1,J).GE.NNBMAX) THEN
+      write(6,*) 'Warning! J N=',J,NAME(J),'LIST',LIST(1,J),
+     &            ' NNBMAX=',NNBMAX,'T',TIME,' ID_IPAIRCM=',ID_IPAIRCM
+          RI = SQRT((X(1,J) - RDENS(1))**2 +
+     &              (X(2,J) - RDENS(2))**2 +
+     &              (X(3,J) - RDENS(3))**2)
+          VI = SQRT(XDOT(1,J)**2+XDOT(2,J)**2+XDOT(3,J)**2)
+      write(6,*) ' Body(J)=',BODY(J),' RI,VI,RS=',RI,VI,RS(J)
+               RS(J) = 0.9D0*RS(J)
+               call flush(6)
+               END IF
+*
                LIST(ID_IPAIRCM+2:NNB+1,J) =
      &              LIST(ID_IPAIRCM+1:NNB,J)
 *     Shift index from ILASTLIMIT+2 to IPAIRCM-1 to right by 2
@@ -253,9 +265,11 @@ c$$$          IF (LIST(2,J).GT.ILAST.OR.BODY(J).EQ.0.0D0) GO TO 50
                LIST(ILASTLIMIT,J) = I1_ILAST
                LIST(ILASTLIMIT+1,J) = I2_ILAST
                LIST(1,J) = LIST(1,J) + 1
-               IF(LIST(1,J).GE.NNBMAX) THEN
-                  write(6,*),'Warning! J',J,'LIST',LIST(1,J),
-     &                 ' GE NNBMAX',NNBMAX,'T',TIME
+               IF(rank.eq.0.and.LIST(1,J).GE.NNBMAX) THEN
+       write(6,*) 'Warning! J N=',J,NAME(J),'LIST',LIST(1,J),
+     &            ' GE NNBMAX',NNBMAX,'T',TIME,' ID_IPAICM=',ID_IPAIRCM
+       write(6,*) ' ILASTLIMIT,I12ILAST=',ILASTLIMIT,I1_ILAST,I2_ILAST
+       write(6,*) ' Body(J)=',BODY(J)
                   call flush(6)
                END IF
                FUPDATE = .true.               

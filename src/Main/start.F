@@ -91,14 +91,14 @@
    15     CONTINUE
    20 CONTINUE
 *
-      DO 27 I = 1,N
-        write (991,28) BODY(I)*ZMBAR, (X(K,I)*RBAR,K=1,3),
-     &                (XDOT(K,I)*VSTAR,K=1,3), NAME(I)
-   27 CONTINUE
-
-   28 FORMAT (F10.3,1P,6E18.7,I16)
-      CALL FLUSH(991)
-
+*     DO 27 I = 1,N
+*       write (991,28) BODY(I)*ZMBAR, (X(K,I)*RBAR,K=1,3),
+*    &                (XDOT(K,I)*VSTAR,K=1,3), NAME(I)
+*  27 CONTINUE
+*
+*  28 FORMAT (F10.3,1P,6E18.7,I16)
+*     CALL FLUSH(991)
+*
 *       Initialize fixed block steps (64 levels).
       CALL IBLOCK
 *
@@ -123,12 +123,6 @@
 *
 *       Regularize any hard primordial binaries (assume sequential ordering).
       IF (KZ(8).GT.0.AND.NBIN0.GT.0) THEN
-          SMMIN = 1.D30
-          SMMAX = 0.D0
-          XMMIN = 1.D30
-          XMMAX = 0.D0
-          TMMIN = 1.D30
-          TMMAX = 0.D0
 *
 *     temperately set kstart = -1 for KSREG
           KSDUM = KSTART
@@ -141,27 +135,12 @@
               DO 45 K = 1,3
                   RIJ2 = RIJ2 + (X(K,ICOMP) - X(K,JCOMP))**2
    45         CONTINUE
-              IF(RIJ2.LT.SMMIN) SMMIN=RIJ2
-              IF(RIJ2.GT.SMMAX) SMMAX=RIJ2
-              XMBIN = BODY(ICOMP) + BODY(JCOMP)
-              PERIOD = RIJ2**0.75/DSQRT(XMBIN)
-              IF(XMBIN.LT.XMMIN) XMMIN=XMBIN
-              IF(XMBIN.GT.XMMAX) XMMAX=XMBIN
-              IF(PERIOD.LT.TMMIN) TMMIN=PERIOD
-              IF(PERIOD.GT.TMMAX) TMMAX=PERIOD
               IF (RIJ2.LT.RMIN**2) THEN
                  CALL KSPREG
               END IF
    50     CONTINUE
 *     recover kstart
           KSTART = KSDUM
-*     Diagnostic
-      if(rank.eq.0) write(6,51) SQRT(SMMIN)*RAU, SQRT(SMMAX)*RAU,
-     &      XMMIN*ZMBAR, XMMAX*ZMBAR, TMMIN*DAYS, TMMAX*DAYS
- 51   format(/,' Binary parameters: R12(min)[AU]',F15.6,
-     &     ' R12(max)[AU]',F15.6,' MCM(min)[M*]',F15.6,
-     &     ' MCM(max)[M*]',F15.6,' P[min][days]',1P,E15.6,
-     &     ' P[max][days]',E15.6,0P)
       END IF
 *       Set initial neighbour list & corresponding radius.
       RS0 = RC
@@ -210,29 +189,79 @@ c#endif
          CALL STEPS2(IFIRST,NTOT)
       END IF
 *
-*     Generate perturber list for KS
+*     Finalize primordial binaries.
+      IF (KZ(8).GT.0.AND.NBIN0.GT.0) THEN
+*
       CALL KSPINIT
       call cputim(tt3) 
       if(rank.eq.0) write(6,55) (tt3-tt2)*60.0
  55   format(/,' KS Perturbers List Initialization Timing: ',F15.6)
       call flush(6)
 *
-*     --11/08/14 10:12-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      DO II = IFIRST,NTOT
-c$$$         write(113,*) 'II',II,'N',NAME(II),'X',X(1:3,II),
-c$$$     &        'XD',XDOT(1:3,II),'F',F(1:3,II),'FD',FDOT(1:3,II),
-c$$$     &        'D2',D2(1:3,II),'STEP',STEP(II),'NNB',LIST(1,II),
-c$$$     &        'LIST',LIST(2:5,II)
-c$$$      END DO
-c$$$      call flush(113)
-c$$$      DO II = 1, NPAIRS
-c$$$         write(114,*) 'II',II,'H',H(II),'R',R(II),'STEP',STEP(2*II-1),
-c$$$     &        'NP',LIST(1,2*II-1),'LIST',LIST(2:5,2*II-1)
-c$$$      END DO
-c$$$      call flush(114)
-c$$$      call abort()
-*     --11/08/14 10:12-lwang-end----------------------------------------*
+          RMMIN = 1.D30
+          RMMAX = 0.D0
+          SMMIN = 1.D30
+          SMMAX = 0.D0
+          ECCMIN = 1.D30
+          ECCMAX = 0.D0
+          XMMIN = 1.D30
+          XMMAX = 0.D0
+          TMMIN = 1.D30
+          TMMAX = 0.D0
+          SOLMIN = 1.D30
+          SOLMAX = 0.D0
+          GMMIN = 1.D30
+          GMMAX = 0.D0
+          SCMMIN = 1.D30
+          SCMMAX = 0.D0
+*
+          DO 57 IPAIR = 1,NPAIRS
+              ICOMP = 2*IPAIR - 1
+              JCOMP = 2*IPAIR
+              ICM = N + IPAIR
+*
+      SEMI = -0.5*BODY(ICM)/H(IPAIR)
+      ECC2 = (1.0-R(IPAIR)/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
+      PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR
+      RIJ2 = R(IPAIR)**2
+      XMBIN = BODY(ICM)
+      XSEP = R(IPAIR)/(RADIUS(ICOMP)+RADIUS(JCOMP))
+*
+              IF(RIJ2.LT.RMMIN) RMMIN=RIJ2
+              IF(RIJ2.GT.RMMAX) RMMAX=RIJ2
+              IF(XSEP.LT.SOLMIN) SOLMIN=XSEP
+              IF(XSEP.GT.SOLMAX) SOLMAX=XSEP
+              IF(SEMI.LT.SMMIN) SMMIN=SEMI
+              IF(SEMI.GT.SMMAX) SMMAX=SEMI
+              IF(XMBIN.LT.XMMIN) XMMIN=XMBIN
+              IF(XMBIN.GT.XMMAX) XMMAX=XMBIN
+              IF(PD.LT.TMMIN) TMMIN=PD
+              IF(PD.GT.TMMAX) TMMAX=PD
+              IF(ECC2.LT.ECCMIN) ECCMIN=ECC2
+              IF(ECC2.GT.ECCMAX) ECCMAX=ECC2
+              IF(GAMMA(IPAIR).LT.GMMIN) GMMIN=GAMMA(IPAIR)
+              IF(GAMMA(IPAIR).GT.GMMAX) GMMAX=GAMMA(IPAIR)
+              IF(STEP(ICM).LT.SCMMIN) SCMMIN=STEP(ICM)
+              IF(STEP(ICM).GT.SCMMAX) SCMMAX=STEP(ICM)
+*
+ 57       CONTINUE
+*     Diagnostic
+      if(rank.eq.0) write(6,58) NPAIRS, 
+     &      SQRT(RMMIN)*RAU, SQRT(RMMAX)*RAU,
+     &      SOLMIN, SOLMAX, XMMIN*ZMBAR, XMMAX*ZMBAR, 
+     &      TMMIN*DAYS, TMMAX*DAYS, SMMIN*RAU, SMMAX*RAU,
+     &      DSQRT(ECCMIN), DSQRT(ECCMAX), GMMIN, GMMAX, SCMMIN, SCMMAX
+ 58   format(/,' Primordial Binary parameters: NPAIRS ',1P,I7,/,
+     &     ' sep(min)[AU]',E15.6,' sep(max)[AU]',E15.6,
+     &     ' sep(min)[*]',E15.6,' sep(max)[*]',E15.6,/,
+     &     ' MCM(min)[M*]',E15.6,' MCM(max)[M*]',E15.6,
+     &     ' P[min][days]',E15.6,' P[max][days]',E15.6,/,
+     &     ' a[min][AU]',E15.6,' a[max][AU]',E15.6,
+     &     ' ecc[min]',E15.6,' ecc[max]',E15.6,/,
+     &     ' gamma[min]',E15.6,' gamma[max]',E15.6,
+     &     ' stepcm[min]',E15.6,' stepcm[max]',E15.6,0P)
+*
+      END IF
 *       Include optional regularization of primordial triples.
       IF (KZ(18).GT.1.AND.NHI0.GT.0) THEN
           KSPAIR = 1
@@ -267,11 +296,7 @@ c$$$      call abort()
           END IF
       END IF
 *
-*       Adjust NNBMAX (R.Sp.)
- 80   NNBMAX = MIN(N/2,LMAX - 3)
-      ZNBMIN = MAX(0.01*FLOAT(NNBMAX),1.0)
-      ZNBMAX = 0.9*FLOAT(NNBMAX)
-*
+ 80   CONTINUE
 *
 *       Check the average neighbour number.
       NNB0 = 0

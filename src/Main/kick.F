@@ -31,6 +31,8 @@
 *    BHFLAG = 0 - no kick
 *    BHFLAG = 1 - same as for the regular NSs
 *    BHFLAG = 2 - same as for the regular NSs but scaled by fallback. 
+*    BHFLAG = 3 - BH natal spin from Geneva models (experimental) implemented by Sambaran Banerjee 2019/20
+*    BHFLAG = 4 - BH natal spin from MESA models (experimental) implemented by Sambaran Banerjee 2019/20
 *
 * Small kicks for WDs can also be set if KZ(25) > 0 in the input file. 
 * In this case you can distinguish: 
@@ -136,7 +138,7 @@
       CONVF = 5.0D0
       MNUEFF = 7.0D0
       MNSTYP = 1.4D0
-      KMECH = 1
+      KMECH = 3
 *******
 
 *       Save orbital parameters in case of KS binary (called from KSAPO).
@@ -153,12 +155,12 @@
               IN = I2
           END IF
 *RSp Printout July2020
-          IF(KSTAR(I1).GE.0.OR.KSTAR(I2).GE.0)THEN
-          WRITE(6,555)TTOT,ICASE,IN,I1,I2,IPAIR,NAME(I1),NAME(I2),
-     *      NAME(N+IPAIR),KSTAR(I1),KSTAR(I1+1),KSTAR(N+IPAIR)
- 555      FORMAT(' T,ICASE,IN=',1P,D13.5,I2,I10,
-     *    ' I1/2/IP,N1/2/IP,KST1/2/IP=',9I10)
-          END IF
+*         IF(KSTAR(I1).GE.0.OR.KSTAR(I2).GE.0)THEN
+*         WRITE(6,555)TTOT,ICASE,IN,I1,I2,IPAIR,NAME(I1),NAME(I2),
+*    *      NAME(N+IPAIR),KSTAR(I1),KSTAR(I1+1),KSTAR(N+IPAIR)
+*555      FORMAT(' T,ICASE,IN=',1P,D13.5,I2,I10,
+*    *    ' I1/2/IP,N1/2/IP,KST1/2/IP=',9I10)
+*         END IF
           KSTAR(IN) = IABS(KSTAR(IN))
 *     ks MPI communication KSTAR
           call ksparmpi(K_store,K_int,K_KSTAR,IN,0,KSTAR(IN))
@@ -402,7 +404,7 @@ c		Sambaran 2019.11.19.
          ENDIF
 ******* BH Kerr Metric spin parameter *****
         IF (KW.EQ.14) THEN
-        if (BHFLAG.EQ.2) then
+        if (BHFLAG.EQ.3) then
 *** BH natal spin from Geneva models (experimental)
         if (ZMET.lt.0.001D0) then
            alow = 0.25D0
@@ -438,7 +440,7 @@ c		Sambaran 2019.11.19.
         endif
         if (aspin.lt.0.0D0) aspin = 0.0D0
 *********
-        elseif (BHFLAG.EQ.3) then
+        elseif (BHFLAG.EQ.4) then
 *** BH natal spin from MESA models (experimental)
         if (ZMET.lt.0.001D0) then
            aone = -0.0010D0

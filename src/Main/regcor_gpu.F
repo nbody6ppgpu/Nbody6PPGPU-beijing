@@ -55,22 +55,6 @@ C$$$      END IF
 C$$$      IF (NPAIRS.GT.0) THEN
 C$$$          CALL CMFIRR_UCOR(I,NNB,NLIST,FIRR,FD)
 C$$$      END IF
-*     --10/17/13 19:07-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      if(rank.eq.0) print*,'CM FIRR',FIRR(1:3)
-c$$$      call flush(6)
-c$$$      if(time.ge.0.34741210937500000.and.name(i).eq.6193) then
-c$$$         print*,rank,'ucm',i,name(i),firr,fd,time,x0dot(1,i),xdot(1,i)
-c$$$         call flush(6)
-c$$$      end if
-c$$$      if(name(i).eq.1886) then
-c$$$         write(105+rank,*),'reg c i',i,'n',name(i),'firr',firr(1),
-c$$$     &        'fi',fi(1,I),'df',firr(1)-fi(1,i),
-c$$$     &        't',time
-c$$$         call flush(105+rank)
-c$$$      end if
-*     --10/27/13 18:21-lwang-end----------------------------------------*
-*     
 *     Include treatment for regularized clump.
 C$$$      IF (NCH.GT.0) THEN
 C$$$*     Distinguish between chain c.m. and any other particle.
@@ -593,20 +577,7 @@ c$$$          end if
             CALL FPCORR(I,NBLOSS,NBGAIN,XI,XIDOT,JJLIST)
          END IF
       END IF
-*     --03/19/14 10:51-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      if (name(i).eq.1886) then
-c$$$         j=i
-c$$$         write(105+rank,*),'reg f i',j,'n',name(j),'x0',x0(1,j),
-c$$$     *        'x0dot',x0dot(1,j),
-c$$$     *        'firr',firr(1),'fd',fd(1),'freg',freg(1),
-c$$$     &        'fdr',fdr(1),
-c$$$     *        't0',t0(j),'stepr',stepr(j),'dtr',dtr,
-c$$$     *        'body',body(j),'time',time,'list',list(1,j)
-c$$$         call flush(105+rank)
-c$$$      end if
-*     --03/19/14 10:51-lwang-end----------------------------------------*
-
+*
 *     Copy new neighbour list if different from old list.
       IF (NBLOSS + NBGAIN.GT.0) THEN
           LIST(1,I) = NNB
@@ -709,7 +680,6 @@ c$$$      END IF
       ELSE
           TTMP = STEPR(I)
       END IF
-
 ***** Note: For large N------------------------------------------------*
 *       Include convergence test for increasing step (Makino, ApJ, 369, 200).
       IF (TTMP.GT.0.1.AND.TTMP.GT.DTR) THEN
@@ -734,24 +704,19 @@ c$$$      ELSE
 c$$$          TTMP = STEPR(I)
 c$$$      END IF
 *
-*     --11/04/13 23:10-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-      if (stepr(i).ge.1E2*dt0) then
-         print*,rank,'Warning!: Regular step jump!: I',I,'N',name(i),
-     &        'FI',Fi(1,i),'FD',Fidot(1,i),'Freg',Freg(1),'FDR',FDR(1),
-     &        'ratio',dt0/stepr(i),'dt0',dt0,'stepr ',stepr(i),
-     &        't',TIME,'NNB',NNB
+*     --lwang debug updated R.Sp. Oct. 2020-------------------------
+         if (stepr(i).ge.1E2*dt0) then
+         write(6,81) rank,I,name(i),DT0/STEPR(I),dt0,stepr(i),
+     &        FI(1,i),FIDOT(1,i),FREG(1),FDR(1),time,t0r(i),
+     &        LIST(1,I),LIST(2,I),NAME(LIST(2,I))
          call flush(6)
-c$$$         print*,'NNB',NNB,'LIST',(NAME(LIST(K,I)),K=2,NNB+1)
-c$$$         IF(NAME(i).EQ.1674) stop
-      end if
-c$$$      if(name(i).eq.1674) then
-c$$$         print*,rank,'I',I,'N',name(i),'firr',fi(1,i),'fd',fidot(1,i),
-c$$$     &        'freg',freg(1),'fdr',fdr(1),
-c$$$     &        'stepr',stepr(i),'ttmp',ttmp,'t',time,'NNB',NNB
-c$$$         print*,'NNB',NNB,'LIST',(NAME(LIST(K,I)),K=2,NNB+1)
-c$$$         call flush(6)
-c$$$      end if
+ 81      format(I3,' Warning!: Regular step jump! I',I8,' N',I8,
+     &        ' ratio',E11.3,' dt0',F21.17,
+     &        ' stepr',F21.17,' FI',E13.5,
+     &        ' FD',E13.5,' FR',E13.5,' FDR',E13.5,' t',F23.17,
+     &        ' t0r',F23.17,
+     &        ' NB',I4,' LIST1',I8,' N1',I8)
+         end if
 *     --11/04/13 23:10-lwang-end----------------------------------------*
 *      
 *     ensure regular step not larger than smax

@@ -4,6 +4,7 @@
 *     Add particle in NXTLST
 *
       include 'params.h'
+      include 'mpi_base.h'
       include 'tlist.h'
       REAL*8 STEP(NMAX),DTK(64)
       INTEGER L,J,K
@@ -14,8 +15,9 @@
       IF(K.EQ.-1) THEN
          DO L = 2, NLSTDELAY(1)+1
             IF (NLSTDELAY(L).EQ.J) then
-               print*,'Error!: ghost partile ',J,' already exist in ',
-     &              'delay list'
+       print*,'Error!: ',rank,' ghost particle ',J,
+     &        ' already exists in delay list'
+       print*,rank,' L,J,K,STEP,DTK=',L,J,K,STEP,DTK
                call abort()
             END IF
          END DO

@@ -6,9 +6,10 @@
 *
       Include 'kspars.h'
       INCLUDE 'common6.h'
-      REAL*8  DE(2)
+      REAL*8  DE(5), TD2, F1,F2,F3,FTOT
       CHARACTER*8  WHICH1
-      INTEGER  IS(2)
+      INTEGER, SAVE :: COUNTER=0
+      INTEGER  IS(2),I_PER,IND_PER
 *     For diagnostic, thus safe for parallel
       SAVE  TTIDE,IONE
       DATA  ECCM,ECCM2,TTIDE,IONE  /0.002,0.00000399,0.0D0,0/
@@ -28,25 +29,21 @@
       RKS = R(IPAIR)
 *
 *       Form current semi-major axis & eccentricity (not at peri).
-      SEMI = -0.5D0*BODY(I)/H(IPAIR)
+      SEMI = -0.5*BODY(I)/H(IPAIR)
       ECC2 = (1.0 - R(IPAIR)/SEMI)**2 + TDOT2(IPAIR)**2/(SEMI*BODY(I))
       ECC = SQRT(ECC2)
       AM0 = SEMI*(1.0D0 - ECC**2)
       PERI = SEMI*(1.0D0 - ECC)
       HI = H(IPAIR)
-*
+
 *       Distinguish between sequential circularization, standard chaos & GR.
 *
 *       Special Treatment of GR for compact binaries RSp March 2019
       IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &                     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
-         CALL TIDES3(QPERI,BODY(I1),BODY(I2),VSTAR,H(IPAIR),ECC,DE)
-         IF(rank.eq.0)
-     &      WRITE (6,55) TTOT, BODY(I1),BODY(I2),
-     & NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),SEMI,ECC,HI,DE(1),QPERI
-   55       FORMAT (' GR TIDES T M1 M2 K1 K2 SEMI ECC H DE1 QP ',
-     &            1P,3E14.5,2I8,2I4,5E14.5)
-         GO TO 5
+     &   (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
+         IF(QPERI*SU.LT.5.0D1) THEN
+             GO TO 5
+         END IF 
       END IF
 *
       R1 = MAX(RADIUS(I1),RADIUS(I2))
@@ -113,23 +110,68 @@
 *
 *       Special Treatment of GR for compact binaries RSp March 2019
         END IF
-*     ELSE
+*
+* June 2019 Francesco Rizzuto
+* Start GR corrections only for QPERI < 50 solar radii
 *
  5    CONTINUE
         IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &                     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
-*       Include safety check on energy loss to prevent new SEMI < R.
-          DH = -(DE(1) + DE(2))/ZMU
-*  This condition is not ok for tight black hole binaries RSp March 2019
-*         IF (H(IPAIR) + DH.LT.-0.5*BODY(I)/R(IPAIR)) THEN
-*             DH = -0.5*BODY(I)/R(IPAIR) - H(IPAIR)
-*             DE(1) = -ZMU*DH
-*             DE(2) = 0.0
-*         END IF
-          SEMI1 = -0.5*BODY(I)/(H(IPAIR) + DH)
-          ECC1 = 1.0 - PERI/SEMI1
-          ECC1 = MAX(ECC1,ECCM)
-      END IF
+     &  (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14).AND.QPERI*SU.LT.5.0D1) THEN
+           IF(QPERI*SU.LT.5.0D1) THEN
+           DTX = DTGW(IPAIR)
+           CALL TIDES3(SEMI,BODY(I1),BODY(I2),ECC,VSTAR,DTX,DE)
+             SEMI1 = SEMI - 1.0D+0*DE(3)
+             ECC1 = ECC - 1.0D+0*DE(4)
+             DH = -DE(1)/ZMU
+             COUNTER = COUNTER + 1 
+                IF((MOD(COUNTER,1).eq.0).AND.(rank.eq.0)) THEN
+                 PRINT *,'GR TIDES COUNTER T DT M12 NAM12 K12 SEMI ECC',
+     &                   'H DE DSEMI DECC DH QP LIST LIST_CM GAMMA ',
+     &           COUNTER,TTOT, DTGW(IPAIR),BODY(I1),BODY(I2),
+     &           NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),
+     &           SEMI,ECC,HI,DE(1),DE(3),DE(4),DH,
+     &           QPERI,LIST(1,I1),LIST(1,I),GAMMA(IPAIR) 
+*   LIST(1,I1) = Number of perturbers LIST(1,I) = Number near by Part. 
+*   Print Perturbers pos and velocity LIST(2-N,I1) =Perturbers index
+*    Print Perturbers
+*                 if(LIST(1,I1).lt.0) then 
+*                 DO I_PER = 2,LIST(1,I1)+1
+*                    IND_PER = LIST(I_PAR,I1)                       
+*                    PRINT *,'PERTURBERS NAM M POS VEL', 
+*     &              NAME(IND_PER),BODY(IND_PER),
+*     &              X(1,IND_PER),X(2,IND_PER),X(3,IND_PER),
+*     &              XDOT(1,IND_PER),XDOT(2,IND_PER),XDOT(3,IND_PER)
+*                 END DO
+*                 end if   
+*    Print Neighbours Particles
+*                DO I_PER = 1,LIST(1,I)+1
+*                    if(I_PER.eq.1) then
+*                        PRINT *,'NEIGHBOURS NAM M POS VEL', 
+*     &                  NAME(I1),BODY(I1),X(1,I1),X(2,I1),X(3,I1),
+*     &                  0.0,0.0,0.0,ECC,SEMI,TTOT,0.0
+*                        PRINT *,'NEIGHBOURS NAM M POS VEL', 
+*     &                  NAME(I2),BODY(I2),X(1,I2),X(2,I2),X(3,I2),
+*     &                  0.0, 0.0, 0.0, 0.0, 0.0,TTOT,0.0             
+*                    else   
+*                       IND_PER = LIST(I_PER,I)
+**    Compute the Force for each neigh
+*                       F1=BODY(IND_PER)*(X(1,I1)-X(1,IND_PER))
+**     &                     /(X(1,I1)-X(1,IND_PER))**3
+*                       F2=BODY(IND_PER)*(X(2,I1)-X(2,IND_PER))
+*     &                     /(X(2,I1)-X(2,IND_PER))**3
+*                       F3=BODY(IND_PER)*(X(3,I1)-X(3,IND_PER))
+*     &                     /(X(3,I1)-X(3,IND_PER))**3 
+*                       FTOT = SQRT(F1*F1 + F2*F2 + F3*F3)       
+*                       PRINT *,'NEIGHBOURS NAM M POS VEL', 
+*     &                 NAME(IND_PER),BODY(IND_PER),
+*     &                 X(1,IND_PER),X(2,IND_PER),X(3,IND_PER),
+*     &                 F1,F2,F3, 0.0,0.0,TTOT,FTOT
+*                   end if                 
+*                 END DO
+                END IF                                         
+                DTGW(IPAIR) = 0.0D0
+           END IF 
+        END IF
 *
 *       Skip possible hyperbolic case.
       IF (H(IPAIR) + DH.GT.0.0) GO TO 50
@@ -145,7 +187,8 @@
       call ksparmpi(K_store,K_real8,K_E10,0,0,DETMP)
 *       Determine pericentre variables U & UDOT by backwards integration.
       CALL KSPERI(IPAIR)
-      H(IPAIR) = H(IPAIR) + DH
+
+      H(IPAIR) = H(IPAIR) + DH 
 *
 *       Print first and last energy change and update indicator.
       IF (KZ(27).EQ.1.AND.(KSTAR(I).EQ.0.OR.KSTAR(I).EQ.9)) THEN
@@ -185,7 +228,11 @@
 *
 *       Specify KS velocity scaling (conserved J, chaos or GR treatment).
       IF (KZ(27).EQ.1) THEN
-          C2 = 1.0/C1
+          IF (KSTAR(I).EQ.25) THEN
+              C2 = SQRT((BODY(I) + H(IPAIR)*PERI1)/(BODY(I) + HI*PERI))
+          ELSE 
+              C2 = 1.0/C1
+          END IF 
       ELSE
 *       Note that PERI should not change in GR case (hence same C2).
           C2 = SQRT((BODY(I) + H(IPAIR)*PERI1)/(BODY(I) + HI*PERI))
@@ -324,7 +371,8 @@ c$$$                  JCOMP = J
       END IF
 *       Special Treatment of GR for compact binaries RSp March 2019
         IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &                     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14))GO TO 50
+     &     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14).AND.QPERI*SU.LT.5.0D1)
+     &   GO TO 50
 *       Special Treatment: Skip sections specific for tides and roche.
 *       Record diagnostics for new synchronous orbit and activate indicator.
       IF (ECC.GT.ECCM.AND.ECC1.LT.ECCM.AND.KZ(27).LE.2) THEN

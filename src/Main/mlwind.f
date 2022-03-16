@@ -8,7 +8,7 @@
       parameter(lum0=7.0d+04,kap=-0.5d0)
       parameter(flbv=1.5d0)
       real*8 neta,bwind
-      parameter(neta=0.5d0)
+      parameter(neta=0.477d0)
       parameter(bwind=0.d0)
 *
 * Calculate stellar wind mass loss.

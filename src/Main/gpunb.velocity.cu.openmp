@@ -604,7 +604,7 @@ void GPUNB_devinit(int irank){
 		if(tid == 0) numCPU = omp_get_num_threads();
 	}
 	assert(numCPU <= MAX_CPU);
-//      assert(numGPU <= numCPU);
+	assert(numGPU <= numCPU);
 #pragma omp parallel
 	{
 		int tid = omp_get_thread_num();
@@ -617,10 +617,13 @@ void GPUNB_devinit(int irank){
     char hostname[150];
     memset(hostname,0,150);
     gethostname(hostname,150);
+    int len;char pbusid[13];
+    len = 13;
 	for(int i=0; i<numGPU; i++){
+      cudaDeviceGetPCIBusId ( pbusid, len, devid[i] );
       cudaDeviceProp prop;
       cudaGetDeviceProperties(&prop, devid[i]);
-      fprintf(stderr, "# GPU initialization - rank: %d; HOST %s; NGPU %d; device: %d %s\n", irank, hostname, numGPU, devid[i], prop.name);
+      fprintf(stderr, "# GPU initialization - rank: %d; HOST %s; NGPU %d; device: %d %s BusId %s \n", irank, hostname, numGPU, devid[i], prop.name, pbusid);
 	}
 #endif
     devinit = true;
@@ -820,7 +823,7 @@ void GPUNB_regf(
 
 	// reduction phase
 	// omp_set_num_threads(numCPU);
-#pragma omp parallel for default(none) shared(acc,jrk,pot,ni,numGPU,ftot)
+#pragma omp parallel for
 	for(int i=0; i<ni; i++){
 		double ax=0.0, ay=0.0, az=0.0;
 		double jx=0.0, jy=0.0, jz=0.0;
@@ -844,7 +847,7 @@ void GPUNB_regf(
 		jrk[i][2] = jz;
 		pot[i]    = po;
 	}
-#pragma omp parallel for default(none) shared(ni,numGPU,ftot,listbase,nnbmax,nblist,lmax,nboff)
+#pragma omp parallel for
 	for(int i=0; i<ni; i++){
 		bool overflow = false;
 		int *nnbp = listbase + lmax * i;

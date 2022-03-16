@@ -8,9 +8,12 @@
       CHARACTER*8  WHICH1
       REAL*8  CM(6)
       REAL*8  MASS(2)
+*     Francesco Rizzuto
+      PARAMETER(FctorCl = 0.5D0) 
       LOGICAL  FIRST
       SAVE  FIRST
       DATA  FIRST /.TRUE./
+
 *
 *
       call xbpredall
@@ -86,6 +89,13 @@
           WHICH1 = '  CHAIN '
 *       Note that new chain TIME already quantized in routine CHTERM.
       END IF
+
+
+*     Francesco Rizzuto Oct 2019: BH- star collision must generate a BH
+      if(KSTAR(I1).eq.14.or.KSTAR(I2).eq.14) then
+          KW1 = 14
+      end if
+
 *
 *       Define global c.m. coordinates & velocities from body #I1 & I2.
       ICOMP = I1
@@ -173,8 +183,17 @@
       CALL NBPOT(2,NNB,POT1)
 *
 *       Specify new mass from sum and initialize zero mass ghost in #I2.
-      ZMNEW = (MASS(1) + MASS(2))/ZMBAR
+*       Francesco Rizzuto 06/2019: add mass loss factor for BH-sta coal.
+
+      if(KSTAR(I1).eq.14.and.KSTAR(I2).lt.10) then  
+          ZMNEW = (BODY(I1) + FctorCl*BODY(I2))
+      else if(KSTAR(I2).eq.14.and.KSTAR(I1).lt.10) then 
+          ZMNEW = (FctorCl*BODY(I1) + BODY(I2))
+      else
+          ZMNEW = (MASS(1) + MASS(2))/ZMBAR
+      end if
       DM = ZM - ZMNEW
+
       IF (DM.LT.1.0D-10) DM = 0.d0
 *       Delay inclusion of any mass loss until after energy correction.
       ZM1 = BODY(I1)*ZMBAR
@@ -222,9 +241,9 @@ C      CALL DTCHCK(TIME,STEP(I2),DTK(40))
       END IF
 *
 *       Check that a mass-less primary has type 15 for kick velocity.
-      IF(ZMNEW*ZMBAR.LT.1.E-10.AND.KW1.NE.15)THEN
+      IF(ZMNEW*ZMBAR.LT.1e-10.AND.KW1.NE.15)THEN
          if(rank.eq.0)then
-         WRITE(6,*)' ERROR COAL: mass1 = 0.0 and kw1 is not equal 15'
+         WRITE(6,*)' ERROR COAL: mass1 = 1e-10 and kw1 is not equal 15'
          WRITE(6,*)' I KW mass1 ', I1, KW1, (ZMNEW*ZMBAR)
          end if
 ccc         STOP

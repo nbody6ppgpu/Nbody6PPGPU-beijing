@@ -564,7 +564,7 @@ C!$omp end parallel do
                MSPBLAGR(kk) = MSPBLAGR(kk-1)
                NSPBLAGR(kk) = NSPBLAGR(kk-1)
             END IF
-            IF (A(1,KK).eq.0)  A(:,KK) = A(:,KK-1)
+            IF (A(KK,1).eq.0)  A(KK,:) = A(KK-1,:)
          END IF
 
 *     half mass radius

@@ -152,34 +152,18 @@ c$$$      end if
 *
       TTMP = TSTEP(FDUM,FD,D2(1,I),D3(1,I),ETAI)
       DT0 = TTMP
-*     --03/03/14 20:29-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      if(rank.eq.0.and.time.ge.4.1667480468750000.and.name(i).eq.1155)
-c$$$     &     then
-c$$$         print*,rank,'nbint i',i,'n',name(i),'firr',firr(1),'fd',fd(1),
-c$$$     &        'step',step(i),'dt0',dt0,'t',time,'x',xi(1),'xd',xidot(1),
-c$$$     *        'nb',list(1,i),'step',step(i)
-c$$$         call flush(6)
-c$$$      end if
-      if(dt0.le.0.1*step(i)) then
+      if(step(i).gt.1.e2*dt0) then
          write(6,81) rank,I,name(i),DT0/STEP(I),dt0,step(i),stepr(i),
      &        FI(1,i),FIDOT(1,i),D2(1,i),D3(1,i),time,t0(i),t0r(i),
      &        LIST(1,I),LIST(2,I),NAME(LIST(2,I))
          call flush(6)
- 81      format(I3,' Warning!: Irregular step jumping! I',I7,' N',I7,
-     &        ' ratio',E10.3,' dt0',F20.17,' step',F20.17,
-     &        ' stepr',F20.17,' FI',E12.5,
-     &        ' FD',E12.5,' D2',E12.5,' D3',E12.5,' t',F21.17,
-     &        ' t0',F21.17,' t0r',F21.17,
-     &        ' NB',I4,' LIST1',I7,' N1',I7)
-c$$$         if(name(i).eq.1155) stop
-c$$$         print*,'N',N,'BODY',BODY(I)
-c$$$         do k =2,LIST(1,I)+1
-c$$$            kk =LIST(K,I)
-c$$$            print*, 'I',KK,'N',NAME(KK),'STEP',STEP(KK),'M',BODY(KK)
-c$$$         end do
+ 81      format(I3,' Warning!: Irregular step jumping! I',I8,' N',I8,
+     &        ' ratio',E11.3,' dt0',F21.17,' step',F21.17,
+     &        ' stepr',F21.17,' FI',E13.5,
+     &        ' FD',E13.5,' D2',E13.5,' D3',E13.5,' t',F23.17,
+     &        ' t0',F23.17,' t0r',F23.17,
+     &        ' NB',I4,' LIST1',I8,' N1',I8)
       end if
-*     --03/03/14 20:29-lwang-end----------------------------------------*
 *
 *       Suggestion due to Winston Sweatman
 *     DVV = (XDOT(1,I)-X0DOT(1,I))**2 + (XDOT(2,I)-X0DOT(2,I))**2 +

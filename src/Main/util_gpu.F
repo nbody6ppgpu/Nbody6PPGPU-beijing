@@ -38,7 +38,7 @@
 
 #ifdef GPU
 *     fill the GPU "working" arrays
-!$omp parallel do private(ii,idi)
+!!$omp parallel do private(ii,idi)
          DO ii=1,ni
             idi = IREG(L+ii-1)
 *    Obtain irregular & regular force and determine current neighbours.
@@ -53,7 +53,7 @@
             x_i(1:3,ii) = X(1:3,idi)
             v_i(1:3,ii) = XDOT(1:3,idi)
          END DO
-!$omp end parallel do
+!!$omp end parallel do
 
 *     GPU first call with first values of GPU_POT, GPU_A & GPU_JERK
  550     call cputim(tt53)
@@ -69,12 +69,12 @@
 
 *     Warning if neighbour list overflows.
             IF (NNB.LT.0) THEN
-               RI = sqrt(x_i(1,II)**2 + x_i(2,II)**2 + x_i(3,II)**2)
-               WRITE (41,56) idi, NAME(idi), LIST(1,idi), -NNB, RS(idi),
-     &              RI, time+toff
- 56            FORMAT (' OVERFLOW! I',I8,'  NAME',I8,'  NBPRE',I6,
-     &              '  NBNEW',I6,'  RNB[NB]',F10.4,
-     &              '  RI[NB]',F10.4,'  Time[NB]',1P,D12.5,0P)
+*              RI = sqrt(x_i(1,II)**2 + x_i(2,II)**2 + x_i(3,II)**2)
+*              WRITE (41,56) idi, NAME(idi), LIST(1,idi), -NNB, RS(idi),
+*    &              RI, time+toff
+*56            FORMAT (' OVERFLOW! I',I8,'  NAME',I8,'  NBPRE',I6,
+*    &              '  NBNEW',I6,'  RNB[NB]',F10.4,
+*    &              '  RI[NB]',F10.4,'  Time[NB]',1P,D12.5,0P)
 *     Define all particles as neighbours for overflow for full force loop in regint.
 *     LIST_G(1,idi) = NNB
                NOFL = NOFL + 1
@@ -149,7 +149,7 @@ c$$$         STOP
 C$$$#endif
 
 *     Correction
-*!$omp parallel do if(ni.GE.ithread) private(II,I)
+!!$omp parallel do if(ni.GE.ithread) private(II,I)
          DO II = 1, ni
             I = IREG(L+II-1)
 #ifndef GPU
@@ -180,7 +180,7 @@ c$$$            CALL IRR_SIMD_SET_LIST(I,LIST(1,I))
 C$$$            END IF
 c$$$#endif
          END DO
-*!$omp end parallel do
+!!$omp end parallel do
       END DO
 
       RETURN

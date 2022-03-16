@@ -50,9 +50,9 @@ c$$$          end if
                   IF (ITER.LT.16.OR.STEP(I).GT.DTK(40)) GO TO 10
                   STEP(I) = DTK(40)
                   if(rank.eq.0)
-     &            WRITE (6,15) I, ITER, TIME/STEP(I), DT, STEP(I)
-   15             FORMAT (' WARNING!   I ITER T/STEP DT STEP ',
-     &                                 I5,I4,E16.4,1P,2E9.1)
+     &        WRITE (6,15) I,NAME(I),ITER,TIME/STEP(I),DT,STEP(I)
+   15             FORMAT (' WARNING!   I N ITER T/STEP DT STEP ',
+     &                                 I10,I10,I6,E16.4,1P,2E9.1)
               END IF
               ITER = 0
    18         IF (DMOD(TIME,STEPR(I)).NE.0.0D0) THEN
@@ -61,9 +61,9 @@ c$$$          end if
                   IF (ITER.LT.16.OR.STEPR(I).GT.DTK(40)) GO TO 18
                   STEPR(I) = DTK(40)
                   if(rank.eq.0)
-     &            WRITE (6,20) I, ITER, TIME/STEPR(I), DTR, STEPR(I)
-   20             FORMAT (' WARNING!   I ITER T/STEPR DTR STEPR ',
-     &                                 I5,I4,E16.4,1P,2E9.1)
+     &        WRITE (6,20) I,NAME(I),ITER,TIME/STEPR(I),DTR,STEPR(I)
+   20             FORMAT (' WARNING!   I N ITER T/STEPR DTR STEPR ',
+     &                                 I10,I10,I6,E16.4,1P,2E9.1)
               END IF
           END IF
 *

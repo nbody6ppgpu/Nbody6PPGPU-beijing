@@ -5,6 +5,7 @@
 *     ----------------------
 *     
       INCLUDE 'common6.h'
+      INCLUDE 'omp_lib.h'
       REAL*8 DSAVE(17)
       REAL*8  Q(3),RDOT(3),UI(4),A1(3,4)
 *     EXTERNAL RENAME
@@ -171,13 +172,13 @@
      &     UDOT(3,IPAIR)**2 + UDOT(4,IPAIR)**2) -
      &     BODY(NTOT))/R(IPAIR)
       EB = H(IPAIR)*BODY(ICOMP)*BODY(JCOMP)/BODY(NTOT)
-*     
+*
 *     Specify zero membership and large step for second component).
       LIST(1,JCOMP) = 0
 *     Set large step for second component to avoid detection.
       STEP(JCOMP) = 1.0E+06
       STEPR(JCOMP) = 1.0E+06
-*     
+*
 *     Obtain apocentre distance.
       SEMI = -0.5*BODY(NTOT)/H(IPAIR)
       ECC2 = (1.0-R(IPAIR)/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(NTOT)*SEMI)
@@ -202,31 +203,6 @@
       NKSREG = NKSREG + 1
       IF (H(IPAIR).GT.0.0) NKSHYP = NKSHYP + 1
 *     
-*     Check optional output for new KS.
-      IF (KZ(10).GT.0) THEN
-         RI = SQRT((X(1,NTOT) - RDENS(1))**2 +
-     &        (X(2,NTOT) - RDENS(2))**2 +
-     &        (X(3,NTOT) - RDENS(3))**2)
-         VI = SQRT(XDOT(1,NTOT)**2+XDOT(2,NTOT)**2+XDOT(3,NTOT)**2)
-         PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(NTOT))*TSTAR*365.24D6
-         if(rank.eq.0)
-     &    WRITE (6,60)  TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
-     &         NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
-     &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
-     &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
-     &         STEP(NTOT),LIST(1,ICOMP),LIST(1,NTOT),
-     &         BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,
-     &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VI
-  60      FORMAT (/,' NEW KSREG   TIME[NB]',1P,E17.10,' NM1,2,S=',
-     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E10.2,
-     &         ' M1,2[NB]',2E10.2,' R12[NB]',E10.2,
-     &         ' e,a,eb[NB]=',2E12.4,E10.2,' P[d]=',E10.2,' H',E10.2,
-     &         ' GAMMA',1P,E10.2,' STEP(ICM)',E10.2,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E10.2,' RAD1,2,S[*]',3E10.2,
-     &         ' RI,VI[NB]=',2E10.2)
-         call flush(6)
-      END IF
-*     
 *     Modify the termination criterion according to value of NPAIRS.
       IF (NPAIRS.GT.KMAX - 3) GMAX = 0.8*GMAX
       IF (NPAIRS.LT.KMAX - 5.AND.GMAX.LT.0.001) GMAX = 1.2*GMAX
@@ -250,7 +226,7 @@
 *     
 *     Set flag to distinguish between existing and new binaries (K = -1/0).
       KSLOW(IPAIR) = 1
-*     
+*
       RETURN
 *     
       END

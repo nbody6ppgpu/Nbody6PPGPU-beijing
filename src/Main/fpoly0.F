@@ -6,17 +6,17 @@
 *
       INCLUDE 'common6.h'
       INCLUDE 'timing.h'
-      INCLUDE 'omp_lib.h'
+*     INCLUDE 'omp_lib.h'
       COMMON/POTDEN/  RHO(NMAX),XNDBL(NMAX),PHIDBL(NMAX)
       PARAMETER (NIMAX=1024)
       REAL*8   GPUACC(3,NIMAX),GPUJRK(3,NIMAX)
+      REAL*8   X_I(3,NIMAX),V_I(3,NIMAX)
 #ifdef GPU
-      REAL*8   H2I(NIMAX),GPUPHI(NIMAX),DTR(NIMAX)
+      REAL*8   H2I(NIMAX),GPUPHI(NIMAX),GPU_DTR(NIMAX)
 #endif
       REAL*8   DV(3)
-      INTEGER  LISTGP(LMAX,NIMAX)
+      INTEGER  LISTGP(LMAX,NIMAX),NOFL2,NOFL3,M_FLAG
       SAVE  LISTGP
-      INTEGER  M_FLAG
 #ifdef PARALLEL
       integer inum(NIMAX),ista(NIMAX)
 #endif
@@ -42,7 +42,9 @@
 *      CALL GPUIRR_OPEN(NNN,LMAX)
 *
 *       Set provisional neighbour radius and regular time-step for GPUNB.
-!$omp parallel do private(I,K,RI2)
+!!$omp parallel do default(none) 
+!!$omp& shared(IFIRST,NTOT,T0,X,RS,RS0,SMAX,STEPR,F,FDOT,rank) 
+!!$omp& private(I,K,RI2)
       DO 10 I = IFIRST,NTOT
 #ifndef GPU
           IREG(I-IFIRST+1) = I
@@ -59,7 +61,7 @@
               FDOT(K,I) = 0.0
     5     CONTINUE
    10 CONTINUE
-!$omp end parallel do
+!!$omp end parallel do
 *
 *       Send all particles (X0 & X0DOT) to the GPU for prediction.
 **!$omp parallel do private(I)
@@ -78,6 +80,7 @@
 *       Define maximum GPU neighbour number and initialize counters.
       NBMAX = MIN(NNBMAX + 150,LMAX-5)
       NOFL2 = 0
+      NOFL3 = 0
 #endif
 *
 *       Loop over all particles split into NIMAX blocks.
@@ -107,7 +110,7 @@
          NI = MIN(iend-JNEXT,NIMAX)
 *       Copy neighbour radius, STEPR and state vector for each block.
 #ifdef GPU
-*!$omp parallel do private(LL, I)
+!!$omp parallel do default(none) private(LL, I)
           DO 30 LL = 1,NI
               I = JNEXT + LL + IFIRST - 1
               IF(M_FLAG.EQ.1) THEN
@@ -116,16 +119,18 @@
               ELSE 
                  H2I(LL) = RS(I)**2
               END IF
-              DTR(LL) = STEPR(I)
+              GPU_DTR(LL) = STEPR(I)
+              X_I(1:3,LL) = X(1:3,I)
+              V_I(1:3,LL) = XDOT(1:3,I)
    30     CONTINUE
-*!$omp end parallel do
+!!$omp end parallel do
 *
 *       Evaluate forces, first derivatives and neighbour lists for new block.
  31       I = JNEXT + IFIRST
-          CALL GPUNB_REGF(NI,H2I,DTR,X(1,I),XDOT(1,I),GPUACC,GPUJRK,
+          CALL GPUNB_REGF(NI,H2I,GPU_DTR,X_I,V_I,GPUACC,GPUJRK,
      &         GPUPHI,LMAX,NNBMAX,LISTGP,M_FLAG)
 *       Check neighbour lists for overflow or zero membership (NNB = 1).
-*!$omp parallel do private(LL,NNB,I,RI2) reduction(+:NOFL2)
+!!$omp parallel do default(none) private(LL,NNB,I,RI2) reduction(+:NOFL2)
           DO 50 LL = 1,NI
               NNB = LISTGP(1,LL)
 *       Repeat last block with reduced RS(I) on NNB < 2 (at end of loop).
@@ -134,11 +139,10 @@
                   RI2 = (X(1,I)-RDENS(1))**2 + (X(2,I)-RDENS(2))**2 +
      &                                         (X(3,I)-RDENS(3))**2
                   IF (NNB.LT.0) THEN
-                     WRITE (41,40)  NSTEPR, NAME(I), -NNB,
-     &                    RS(I), SQRT(RI2)
- 40                  FORMAT (' NB OVERFLOW! NSTEPR NAME NB RNB[NB] ',
-     &                    'RI[NB] ',I11,I8,I7,2F8.3)
-                     CALL FLUSH(41)
+*                WRITE(41,40)rank,NOFL2,NAME(I),-NNB,RS(I),SQRT(RI2)
+*40              FORMAT (' NB OVERFLOW! rank NOFL2 NAME NB RS ri ',
+*    &                   I4,2I11,I8,1P,2E13.5)
+*                    CALL FLUSH(41)
 *     For smooth density system, use NNBOPT/NNB to estimate the neighbor radius
                      IF(NB_FLAG.EQ.1) THEN
                         IF(-NNB.GT.NNBOPT) THEN
@@ -150,12 +154,13 @@
                         RS(I) = 0.9*RS(I)
                      END IF
                   ELSE
-                     WRITE (41,41)  NSTEPR, NAME(I), NNB,
-     &                    RS(I), SQRT(RI2)
- 41                  FORMAT (' ZERO NB!   #R NAME NB RS ri ',
-     &                    I11,I7,I5,2F8.3)
-                     CALL FLUSH(41)
+*             IF(NOFL3.LT.NZERO) WRITE (41,41)  rank, I, NAME(I), NNB,
+*    &                    RS(I), SQRT(RI2)
+*41                  FORMAT (' ZERO NB! rank I NAME NB RS ri ',
+*    &                    I4,2I11,I7,1P,2E13.5)
+*                    CALL FLUSH(41)
                      RS(I) = 1.5*RS(I)
+                     NOFL3 = NOFL3 + 1
                   END IF
                   IF(M_FLAG.EQ.1) THEN
 *     Use mass ratio as neighbor member criterion
@@ -166,7 +171,7 @@
                   NOFL2 = NOFL2 + 1
               END IF
    50     CONTINUE
-*!$omp end parallel do
+!!$omp end parallel do
 *
 *       Repeat the last block for rare exceptions (NNB < 0 and = 1).
           IF (NOFL2.GT.0) THEN
@@ -175,7 +180,7 @@
           END IF
 *
 *      Copy regular force and neighbour list from GPU.
-!$omp parallel do private(LL, I, ITEMP, NNB, L1, L)
+!!$omp parallel do private(LL, I, K, ITEMP, NNB, L1, L)
           DO 70 LL = 1,NI
               I = JNEXT + LL + IFIRST - 1
               DO 55 K = 1,3
@@ -198,7 +203,7 @@
                   LIST(L,I) = LISTGP(L,LL)
    65         CONTINUE
    70     CONTINUE
-!$omp end parallel do
+!!$omp end parallel do
 *
 #else
 *     OpemMP version of regular force, fdot, potential and neighbor list
@@ -220,11 +225,11 @@ c$$$     &         'IREG',IREG(IOFF:IOFF+2),'JNEXT',JNEXT
              IF(NNB.EQ.1) THEN
                 RI2 = (X(1,I)-RDENS(1))**2 + (X(2,I)-RDENS(2))**2 +
      &               (X(3,I)-RDENS(3))**2
-                WRITE (41,41)  LL, I, NAME(I), LISTGP(1,LL),
-     &               RS(I), SQRT(RI2)
- 41             FORMAT (' ZERO NB!  L I NAME NB RS ri ',
-     &               3I11,I5,2F8.3)
-                CALL FLUSH(41)
+*               WRITE (41,41)  LL, I, NAME(I), LISTGP(1,LL),
+*    &               RS(I), SQRT(RI2)
+*41             FORMAT (' ZERO NB!  L I NAME NB RS ri ',
+*    &               3I11,I5,2F8.3)
+*               CALL FLUSH(41)
                 RS(I) = 1.5*RS(I)
                 IREG(NINEW+IOFF) = I
                 NINEW = NINEW + 1
@@ -248,8 +253,8 @@ c$$$     &            'IREG',IREG(IOFF:2+IOFF)
 #endif
 
 *       Evaluate current irregular forces
-!$omp parallel do private(LL,I,NNB,L,K,A1,A2,A3,DV,RIJ2,DR2I,
-!$omp& DR3I,DRDV)
+!!$omp parallel do private(LL,I,NNB,L,K,A1,A2,A3,DV,RIJ2,DR2I,
+!!$omp& DR3I,DRDV)
           DO 334 LL = 1,NI
              I = JNEXT + LL + IFIRST - 1
              FI(1:3,I) = 0
@@ -277,7 +282,7 @@ c$$$     &            'IREG',IREG(IOFF:2+IOFF)
                 D1(3,I) = D1(3,I) + (DV(3) - A3*DRDV)*DR3I
              END DO
  334      CONTINUE
-!$omp end parallel do
+!!$omp end parallel do
 *
           JNEXT = JNEXT + NI
   100 CONTINUE
@@ -356,7 +361,7 @@ c$$$     &     ' after fi(1) ',fi(1,istsen), ' fi(e) ',fi(1,istrec)
 #endif
       
 *     Form total force & force derivative and extra variables for XVPRED.
-!$omp parallel do private(I,K)
+!!$omp parallel do private(I,K)
       DO 110 I = IFIRST,NTOT
           DO 105 K = 1,3
               F(K,I) = FI(K,I) + FR(K,I)
@@ -367,7 +372,7 @@ c$$$     &     ' after fi(1) ',fi(1,istsen), ' fi(e) ',fi(1,istrec)
               FRDOT(K,I) = D1R(K,I)
   105     CONTINUE
   110 CONTINUE
-!$omp end parallel do
+!!$omp end parallel do
 *
 
 #ifdef GPU

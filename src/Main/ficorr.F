@@ -5,7 +5,7 @@
 *       -----------------------------------------
 *
       INCLUDE 'common6.h'
-      INCLUDe 'omp_lib.h'
+      INCLUDE 'omp_lib.h'
       REAL*8  A(6)
 *      REAL*8  XBACK(3,LMAX)
 *

@@ -141,7 +141,7 @@
       if(rank.eq.0)
      &WRITE (6,18)  N, NSESC, NBESC, ZMASS, BE(3), CMR(4), RESC, STEPI,
      &              RSI, ZMASS/FLOAT(N), NCRIT1, (JLIST(J),J=1,JLAST)
-   18 FORMAT (/,' ESCAPE    N =',2I6,I4,F8.4,F12.6,2F7.2,F7.3,F7.2,F9.5,
+   18 FORMAT (/,' ESCAPE   N =',2I10,I6,F8.4,F12.6,2F7.2,F7.3,F7.2,F9.5,
      &                                        I6,2X,6I6,/,5(10X,20I6,/))
 *
       IF (KZ(23).EQ.4)THEN
@@ -198,7 +198,7 @@
       RSI = RS(I)
 *
 *       Accumulate escaper names and save current name in case I > N.
-            PRINT*,' ESCAPE Check POTI PHIDBL=',POTI,PHIDBL(I)
+*           PRINT*,' ESCAPE Check POTI PHIDBL=',POTI,PHIDBL(I)
       NCORR = NCORR + 1
       JLIST(NCORR) = NAME(I)
       NAMEI = NAME(I)

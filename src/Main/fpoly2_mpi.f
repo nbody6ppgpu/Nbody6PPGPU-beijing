@@ -40,9 +40,9 @@
       istart = ista(rank+1) + IFIRST - 1
       iend = ista(rank+1) + inum(rank+1) - 2 + IFIRST
 *
-!$omp parallel do 
-!$omp& private(i,k,nnb,rcrit2,L,NAMEJ,A,J,RIJ2,DT,DT1,
-!$omp&  DTR,DT1R,F1DOTk,F2DOT,F3DOT)
+!!$omp parallel do 
+!!$omp& private(i,k,nnb,rcrit2,L,NAMEJ,A,J,RIJ2,DT,DT1,
+!!$omp&  DTR,DT1R,F1DOTk,F2DOT,F3DOT)
       do 70 i = istart,iend
 *
 *       Initialize the higher differences for body #I.
@@ -151,7 +151,7 @@
    60 CONTINUE
 *
    70 CONTINUE
-!$omp end parallel do      
+!!$omp end parallel do      
 *        Distribute variables into private vectors again T3D (R.Sp.)
       isend = rank + 1
       if(isend.eq.isize)isend = 0

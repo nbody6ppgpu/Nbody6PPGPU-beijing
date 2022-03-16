@@ -40,6 +40,20 @@
       TTOT = TIME + TOFF
       RI2 = (X(1,I) - RDENS(1))**2 + (X(2,I) - RDENS(2))**2 +
      &                               (X(3,I) - RDENS(3))**2
+
+*       Skip Impact for hard binaries Francesco Rizzuto
+      IF (KZ273.GT.2.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
+     &   (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
+         SEMI_ = -0.5*BODY(I)/H(IPAIR)
+         ECC2 = (1.0-R(IPAIR)/SEMI_)**2+TDOT2(IPAIR)**2/(BODY(I)*SEMI_)
+         ECC = SQRT(ECC2)
+         QP_ = SEMI_*(1.0D0 - ECC) 
+         IF(QP_.LT.SU*5.0D1) THEN
+*             PRINT *, 'SKIP IMPACT M12 NAM1 ECC QP KSTAR', 
+*     &       BODY(I1), BODY(I2), NAME(I1),ECC,QPERI,KSTAR(I) 
+             GO TO 100 
+         END IF          
+      END IF
 *
 *       Search c.m. neighbours if binary has at most two perturbers.
       J1 = I1
@@ -1003,8 +1017,8 @@ C     &         'ANGLE',ANGLE,'BODY1',BODY(I1),'BODY(I2)',BJ
      &    WRITE (6,20)  WHICH1, TTOT, I, JCOMP, IPAIR, NAME(I1),
      &      NAME(I2), NAME(JCOMP), NAME(I), KSTAR(I1), KSTAR(I2),
      &      KSTAR(JCOMP), KSTAR(I), BODY(I1), BODY(I2), BODY(JCOMP),
-     &      BODY(I)+BODY(JCOMP),R(IPAIR),H(IPAIR),SEMI,ECC,EB,PD,
-     &      SEMI1,ECC1,EB1,PD1,PERT4, RIJ, PMIN, EB1/EB, LIST(1,I1),
+     &      BODY(I)+BODY(JCOMP),R(IPAIR),H(IPAIR),ECC,SEMI,EB,PD,
+     &      ECC1,SEMI1,EB1,PD1,PERT4, RIJ, PMIN, EB1/EB, LIST(1,I1),
      &      BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,BODY(JCOMP)*ZMBAR,
      &      (BODY(I)+BODY(JCOMP))*ZMBAR,RADIUS(I1)*SU,RADIUS(I2)*SU,
      &      RADIUS(JCOMP)*SU,R(IPAIR)*SU,RIJ*SU,RI,VI
@@ -1035,8 +1049,8 @@ C     &         'ANGLE',ANGLE,'BODY1',BODY(I1),'BODY(I2)',BJ
      &    WRITE (6,20)  WHICH1, TTOT, I, JCOMP, IPAIR, NAME(I1),
      &      NAME(I2), NAME(JCOMP), NAME(I), KSTAR(I1), KSTAR(I2),
      &      KSTAR(JCOMP), KSTAR(I), BODY(I1), BODY(I2), BODY(JCOMP),
-     &      BODY(I)+BODY(JCOMP),R(IPAIR),H(IPAIR),SEMI,ECC,EB,PD,
-     &      SEMI1,ECC1,EB1,PD1,PERT4, RIJ, PMIN, EB1/EB, LIST(1,I1),
+     &      BODY(I)+BODY(JCOMP),R(IPAIR),H(IPAIR),ECC,SEMI,EB,PD,
+     &      ECC1,SEMI1,EB1,PD1,PERT4, RIJ, PMIN, EB1/EB, LIST(1,I1),
      &      BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,BODY(JCOMP)*ZMBAR,
      &      (BODY(I)+BODY(JCOMP))*ZMBAR,RADIUS(I1)*SU,RADIUS(I2)*SU,
      &      RADIUS(JCOMP)*SU,R(IPAIR)*SU,RIJ*SU,RI,VI

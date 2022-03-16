@@ -7,7 +7,9 @@
       Include 'kspars.h'
       INCLUDE 'common6.h'
       include 'timing.h'
-      REAL*8  UI(4),UIDOT(4)
+      REAL*8  UI(4),UIDOT(4),A_EIN,CL2
+      INTEGER, SAVE :: COUNTER=0
+      INTEGER  RES
 *     Warning!: saved value is unsafe for parallel
       SAVE TCALL
       DATA TCALL /0.0D0/
@@ -17,6 +19,8 @@
       I1 = 2*IPAIR - 1
       I = N + IPAIR
       SEMI = -0.5D0*BODY(I)/H(IPAIR)
+*      
+      CL2 = CLIGHT**2
 *
 *       Add elapsed unperturbed Kepler periods and update the time T0(I1).
       TK = TWOPI*SEMI*SQRT(SEMI/BODY(I))
@@ -216,20 +220,42 @@ c$$$              call flush(6)
 *       Check for GR braking for compact object binaries RSp March 2019
         I2 = I1 + 1
         IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &                     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
+     &  (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
            SEMI = -0.5*BODY(I)/H(IPAIR)
-           ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
+           ECC2 =(1.0-R(IPAIR)/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
            ECC = SQRT(ECC2)
            QPERI = SEMI*(1.0D0 - ECC)
-*       GR braking for compact object define new binary type RSp March 2019
-           KSTAR(I) = 25
-*    changed output RS December 2019 test
-         IF(rank.eq.0)
-     &     WRITE (6,55) TTOT,BODY(I1),BODY(I2),
-     &     NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),SEMI,ECC,H(IPAIR),QPERI
-   55       FORMAT (' GR UNPERT T M12 N12 K12 SEMI ECC H QP',
-     &            1P,3E14.5,2I8,2I4,4E14.5)
-           CALL KSTIDE(IPAIR,QPERI)
+           A_EIN = 3.0*TWOPI*BODY(I)/(SEMI*CL2*(1-ECC2))
+           RES = 0 
+           DTGW(IPAIR) = DTGW(IPAIR) + STEP(I1)            
+           CALL GW_DECISION(SEMI,BODY(I1),BODY(I2),
+     &                  VSTAR,ECC,DTGW(IPAIR),RES)
+           COUNTER = COUNTER + 1
+***************************************************************************
+*           IF(rank.eq.0) THEN                                            *
+*              PRINT *,'GR KSINT COUNTER T DT M12 N12 K12 SEMI ECC H QP', *
+*     &                ' A_EIN DTGW',                                     * 
+*     &        COUNTER,TIME,DTGW(IPAIR),BODY(I1),BODY(I2),                *
+*     &        NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),                     * 
+*     &        SEMI,ECC,H(IPAIR),QPERI,A_EIN,DTGW(IPAIR)                  * 
+*           END IF                                                        *
+***************************************************************************
+           IF(RES.EQ.1) THEN
+              KSTAR(I) = 25
+              CALL KSTIDE(IPAIR,QPERI)
+              PRINT *,'GR UNPERT COUNTER T M12 N12 K12 SEMI ECC H QP',
+     &                ' A_EIN DTGW',
+     &        COUNTER,TIME,BODY(I1),BODY(I2),
+     &        NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),
+     &        SEMI,ECC,H(IPAIR),QPERI,A_EIN,DTGW(IPAIR)
+           END IF 
+*       Prepare coal flag if PERI < 500 R_SCHW
+           IF(QPERI.LT.(3.0D2*BODY(I)/CLIGHT**2)) THEN
+              PRINT *,'COLL DUE TO GW QPERI CLIGHT RSCH', 
+     &                QPERI, CLIGHT, 2.0*BODY(I)/CLIGHT**2  
+              IPHASE = -1
+              GO TO 30 
+           END IF           
         END IF
 *
 *       Perform general two-body collision test.
@@ -342,3 +368,4 @@ c$$$              IF (IPHASE.LT.0) GO TO 30
    30 RETURN
 *
       END
+      

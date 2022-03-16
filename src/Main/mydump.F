@@ -48,7 +48,7 @@
      &               HDOT4(KMAX),DTAU(KMAX),TDOT2(KMAX),TDOT3(KMAX),
      &               R(KMAX),R0(KMAX),GAMMA(KMAX),SF(7,KMAX),H0(KMAX),
      &               FP0(4,KMAX),FD0(4,KMAX),KBLIST(10*KMAX),
-     &               KSLOW(KMAX),TBLIST
+     &               KSLOW(KMAX),DTGW(KMAX),TBLIST
 *
       REAL*8 CC(265)
       EQUIVALENCE (CC(1),C(1))
@@ -374,7 +374,6 @@
        CALL MPI_BCAST(ZLMSTY(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(KSTAR(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(IMINR(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-
 *
 *       read u,u0,udot,fu,fudot,fudot2,fudot3,fp0,fd0 (4,npairs) sf(7,npairs)
 *            h,hdot,hdot2,hdot3,hdot4,dtau,tdot2,tdot3,r,r0,gamma,h0 (npairs)
@@ -409,10 +408,13 @@
        CALL MPI_BCAST(KBLIST(1),10*NPAIRS,MPI_INTEGER,0,
      &                                      MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(KSLOW(1),NPAIRS,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(DTGW(1),NPAIRS,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(NAME(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 *
 *     read list(1,i),(list(k,i),k=2,list(1,i)+1),i=1,ntot)
-       CALL MPI_BCAST(LIST(1,1),LMAX*NTOT,MPI_INTEGER,0,
+       CALL MPI_BCAST(LIST(1,1),LMAX*NTOT/2,MPI_INTEGER,0,
+     &                                      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(LIST(1,NTOT/2+1),LMAX*NTOT/2,MPI_INTEGER,0,
      &                                      MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(NXTLIMIT,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(NXTLST(1),NMAX,MPI_INTEGER,0,MPI_COMM_WORLD,
@@ -422,8 +424,8 @@
        CALL MPI_BCAST(NDTMIN,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(NDTMAX,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(NXTLEVEL,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-       CALL MPI_BCAST(NLSTDELAY(1),2*LMAX,MPI_INTEGER,0,MPI_COMM_WORLD,
-     &      ierr)
+       CALL MPI_BCAST(NLSTDELAY(1),NDELAYMAX,MPI_INTEGER,0,
+     &      MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(NGHOSTS,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 *
 #ifdef TT
@@ -450,7 +452,6 @@
 #endif         
 *
         NTOT = NTSAVE
-         
 *
       RETURN
 *

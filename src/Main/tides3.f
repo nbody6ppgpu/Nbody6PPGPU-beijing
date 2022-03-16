@@ -1,41 +1,46 @@
-      SUBROUTINE TIDES3(QPERI,M1,M2,VSTAR,HI,ECC,DE)
+      SUBROUTINE TIDES3(SEP,M1,M2,ECC,VSTAR,DTIME,DE)
 *
 *
 *       GR tidal energy loss for interacting stars.
+*       OUTPUT:
+*              DE(1) energy loss per time unit
+*              DE(3) separation change per time unit
+*              DE(4) ecc. change pet time unit
+*              DE(5) ang. momentum change per time unit	
 *       -------------------------------------------
-*
+*  
       IMPLICIT REAL*8 (A-H,M,O-Z)
-      Include 'mpi_base.h'
-      REAL*8  DE(2)
+      REAL*8  DE(5)
 *
 *
-*       Specify constants in N-body units.
-      GM = 1.0
+    
       C = 3.0D+05/VSTAR
-      FAC = (GM/C**2)**3.5
+      ECC2 = ECC*ECC
+      ECC4 = ECC2*ECC2
+      MTOT = M1 + M2
+      COST = C**(-5) * M1 * M2 * MTOT
+
+
+      FE = (1.0D+0 + 7.3D+1/2.4D+1*ECC2 + 3.7D+1/9.6D+1*ECC4)
+      FE1 = (1 - ECC2)**(-3.5)*FE
+      FE2 = ECC*(1 - ECC2)**(-2.5)*(1.0D+0 + 1.21D+2/3.04D+2*ECC2)
+      FE3 = (1 - ECC2)**(-2.0)*(1.0D+0 + 7.0D+0/8.0D+0*ECC2)
+
+*       DENERGY due to GW
+      DE(1) = 3.2D+1/5.0D+0*COST*M1*M2*SEP**(-5.0)*FE1*DTIME
 *
-*     FE = 1.0 + 73.0/24.0*ECC2 + 37.0/96.0*ECC**4
-*     FE2 = SQRT(ECC**2 - 1.0D0)*(301.0/ ....
-*       Adopt simplified eccentricity factor near ECC = 1.
-      GE = 425.0*3.1415/(32.0*SQRT(2.0D0))
-*
-*       Set mass and pericentre expression in N-body units.
-      FM = SQRT(M1 + M2)*M1**2*M2**2/QPERI**3.5
-*       Form energy change in N-body units (total in DE(1)).
-      DE(1) = 8.0/15.0*FAC*FM*C**2*GE
       DE(2) = 0.0
+*       DSEP due to GW
+      DE(3) = 6.4D+1/5.0D+0*COST*SEP**(-3)*FE1*DTIME 
+*       DECC due to GW
+      DE(4) = 3.04D+2/1.5D+1*COST*SEP**(-4)*FE2*DTIME
+*       DJ due to GW
+      DE(5) = 3.2D+1/5.0D+0*COST*M1*M2*(M1 + M2)**(-0.5)*SEP**(-3.5)*FE3
+      DE(5) = DE(5)*DTIME
+       
+*      PRINT *, 'TIDES3 41 ',ECC 
 *
-*       Obtain specific energy change for diagnostic purposes.
-      MU = M1*M2/(M1 + M2)
-      DH = DE(1)/MU
-*
-*       Print diagnostics for capture of hyperbolic orbit.
-      IF (rank.eq.0.and.HI.GT.0.0.AND.DH.GT.HI) THEN
-          WRITE (6,5)  M1, M2, HI, DH, DE(1), QPERI
-    5     FORMAT (' CAPTURE CHECK!    M1 M2 H DH DE QP ',
-     &                                1P,6E9.1)
-      END IF
-*
+
       RETURN
 *
       END

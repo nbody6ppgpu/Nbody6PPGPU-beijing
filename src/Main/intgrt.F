@@ -463,7 +463,8 @@ c$$$  END IF
 *     Initialize counters for irregular & regular integrations.
 *      NREG = 0
 *
-*     write(6,*)' irr ',time,nxtlen,(nxtlst(k),step(k),k=1,5)
+*     if(time.lt.0.01)write(6,*)rank,' irr ',time,nxtlen,
+*    &(nxtlst(k),name(nxtlst(k)),step(nxtlst(k)),k=1,min(5,nxtlen))
 *     call flush(6)
 *       Advance the irregular step for all particles in the current block.
 *       Block-Step Level Diagnostics (R.Sp. 29.Apr. 1993)
@@ -552,9 +553,9 @@ C        if (TCCT.gt.2.0) stop
 *         print*,' before nbint 108 ',(x(k,108),k=1,3)
 *     OpenMP version of irregular force and fdot
 *           print*,' intgrt i,n,npairs=',i,n,npairs
-         CALL NBINT(FIRR_SIMD,FD_SIMD)
-*        CALL NBINT(TIME,NXTLEN,NXTLST,X,XDOT,BODY,FIRR_SIMD,FD_SIMD,
-*    &        LIST,IMINR_TMP)
+*        CALL NBINT(FIRR_SIMD,FD_SIMD)
+         CALL NBINT(TIME,NXTLEN,NXTLST,X,XDOT,BODY,FIRR_SIMD,FD_SIMD,
+     &        LIST,IMINR_TMP)
 *         print*,' after nbint =',time
 *         print*,' firr,fd_simd=',
 *    &   ((firr_simd(k,l),fd_simd(k,l),k=1,3),l=1,nxtlen)
@@ -563,8 +564,6 @@ C        if (TCCT.gt.2.0) stop
 !$omp parallel do if(NXTLEN.GE.ITHREAD) private(L,I)
          DO L = 1,NXTLEN
             I = NXTLST(L)
-*         print*,' enter NBINT_CORR i,l=',i,l
-*         print*,' firr,fd_simd=',(firr_simd(k,l),fd_simd(k,l),k=1,3)
             CALL NBINT_COR(I,FIRR_SIMD(1,L),FD_SIMD(1,L))
          END DO
 !$omp end parallel do
@@ -898,6 +897,8 @@ c$$$      ttnewt = ttnewt + (ttt33 - ttt32)*60.
 
 ***** --Regular force calculation--------------------------------------**
       IF(NREG.GT.0)THEN
+*     if(time.lt.0.01)write(6,*)rank,' reg ',
+*    & time,nreg,(ireg(k),name(ireg(k)),stepr(ireg(k)),k=1,min(5,nreg))
       
 #ifdef GPU
 *       Send all single particles to GPU memory

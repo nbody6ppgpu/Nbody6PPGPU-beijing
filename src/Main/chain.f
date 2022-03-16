@@ -14,7 +14,7 @@
       REAL*8   RI(NMX),VI(NMX),RI2(NMX),VI2(NMX),SEMICH(NMX),ECCCH(NMX)
       REAL*8   RSEP(NMX),RSEP2(NMX),VSEP(NMX),VSEP2(NMX),RDOTV(NMX)
       REAL*8   TGRCH(NMX),A_EIN(NMX)
-      INTEGER  IJ(NMX),IOLD(NMX)
+      INTEGER  IJ(NMX),IOLD(NMX),IPRINT
       LOGICAL  CHECK,KSLOW,KCOLL,stopB,ICASE
       COMMON/SLOW1/   TK2(0:NMX),EJUMP,KSCH(NMX),KSLOW,KCOLL
       COMMON/SLOW2/   stepl,stopB
@@ -36,6 +36,7 @@
 *      SAVE ICASE,IPREV,
       DIMENSION XCH(3,NMX),VCH(3,NMX)
       EQUIVALENCE (XCH(1,1),X(1)),(VCH(1,1),V(1))
+      DATA IPRINT/0/
 *
       SAVE
 *
@@ -406,20 +407,25 @@
           if(rank.eq.0) WRITE (6,*) ' Stepsize = 0!', char(7)
           STOP
       END IF
-* Temporary Output RSP Sep 2018
-*     IF (rank.eq.0.and.KZ30.GE.2) THEN
-*     IF (rank.eq.0.and.KZ30.GT.2) THEN
-*         CALL TRANSX
-*         KK = 0
-*         DO 302 K = 1,N
-*         RI(K) = SQRT(X(KK+1)**2 + X(KK+2)**2 + X(KK+3)**2)
-*         VI(K) = SQRT(V(KK+1)**2 + V(KK+2)**2 + V(KK+3)**2)
-* 302     KK = KK + 3
-*         WRITE (6,30)  STEP, TMAX-CHTIME, GPERT, (1.0/RINV(K),K=1,N-1)
-*  30     FORMAT (' CHAIN:   STEP TM-CHT G R  ',1P,8E9.1)
-*         WRITE (6,301) TIMENB,CHTIME,(M(K),SIZE(K),RI(K),VI(K),K=1,N)
-* 301     FORMAT (' CHAIN TNB,CHTIME M,R,RI,VI=',1P,(4E13.5,/))
-*     END IF
+* Temporary Output RSP Sep 2018 updated Nov 2020
+      IF (ABS(STEP)<1.D-14.AND.IPRINT<1000000) THEN
+          IPRINT = IPRINT + 1
+      IF (rank.eq.0.and.KZ30.GE.2) THEN
+          CALL TRANSX
+          KK = 0
+          DO 402 K = 1,N-1
+              RI(K) = SQRT(X(KK+1)**2 + X(KK+2)**2 + X(KK+3)**2)
+              VI(K) = SQRT(V(KK+1)**2 + V(KK+2)**2 + V(KK+3)**2)
+  402     KK = KK + 3
+          WRITE (6,400)  STEP, TMAX-CHTIME, GPERT, (1.0/RINV(K),K=1,N-1)
+  400     FORMAT (' CHAIN:   STEP TM-CHT G R  ',1P,8E9.1)
+          WRITE (6,401)TIMENB,CHTIME,(M(K),SIZE(K),RI(K),VI(K),K=1,N-1),
+     &            M(N),SIZE(N)
+  401     FORMAT (' CHAIN TNB,CHTIME M,R,RI,VI=',1P,2E13.5,/,(4E13.5,/))
+          CALL FLUSH(6)
+      END IF
+      END IF
+      IF (IPRINT.GE.1000000) STOP
 *
 *       Determine two-body distances for stability test and collision search.
       IF (CHTIME.GT.TIME0.AND.JC.EQ.0) THEN

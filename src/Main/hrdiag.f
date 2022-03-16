@@ -35,7 +35,7 @@
 *
       integer kw,kwp
       integer wdflag,nsflag
-      parameter(wdflag=1,nsflag=3)
+      parameter(wdflag=1,nsflag=4)
       integer ecflag
       parameter (ecflag=1)
       integer psflag
