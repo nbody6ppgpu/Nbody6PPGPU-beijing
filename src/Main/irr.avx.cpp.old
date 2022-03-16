@@ -243,11 +243,7 @@ struct Force{
 		ax = ay = az = zero;
 		jx = jy = jz = zero;
 
-                double HHUGE = 3.4E+38;
-
-//		v4df tmp = {HUGE, HUGE, HUGE, HUGE};
-		v4df tmp = {HHUGE, HHUGE, HHUGE, HHUGE};
-
+		v4df tmp = {HUGE, HUGE, HUGE, HUGE};
 		vnnb = (v8sf)tmp;
 	}
 	static double reduce(const v8sf v){

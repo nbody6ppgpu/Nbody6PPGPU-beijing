@@ -6,7 +6,7 @@
 #    make install
 #
 
-RESULT = nbody6++.avx
+RESULT = nbody6++.sse
 INSTALLDIR = /usr/local
 EXTRATOOLS = nb6++dumpb2a libinitial.so libnb6out3.so nb6++snapshot
 ifeq ("x", "x $(EXTRATOOLS)")

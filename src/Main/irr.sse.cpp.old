@@ -228,11 +228,7 @@ struct Force{
 		ax = ay = az = zero;
 		jx = jy = jz = zero;
 
-        double HHUGE = 3.4E+38;
-
-//        v2df tmp = {HUGE,HUGE};
-        v2df tmp = {HHUGE,HHUGE};
-
+        v2df tmp = {HUGE,HUGE};
         vnnb = (v4sf)tmp;
 	}
  

@@ -18,8 +18,8 @@
       USE HDF5
       INCLUDE 'params.h'
 *       SAVE Block
-      INTEGER*4 :: h5_file_id, h5_step, h5_group_id, h5_dset_ids(256)
-      INTEGER*4 :: h5_vec_len
+      INTEGER*8 :: h5_file_id, h5_step, h5_group_id, h5_dset_ids(256)
+      INTEGER*8 :: h5_vec_len
       REAL*8 :: h5_current_time
       CHARACTER(LEN=64) :: h5_file_name
       CHARACTER(LEN=64) :: h5_fname
@@ -62,8 +62,8 @@
       USE HDF5
       INCLUDE 'params.h'
 *       SAVE Block
-      INTEGER*4 :: h5_file_id, h5_step, h5_group_id, h5_dset_ids(256)
-      INTEGER*4 :: h5_vec_len
+      INTEGER*8 :: h5_file_id, h5_step, h5_group_id, h5_dset_ids(256)
+      INTEGER*8 :: h5_vec_len
       REAL*8 :: h5_current_time
       CHARACTER(LEN=64) :: h5_file_name
       COMMON/h5part/ h5_file_id, h5_step, h5_group_id, h5_dset_ids,
@@ -90,20 +90,20 @@
 #ifdef H5OUTPUT
       USE HDF5
       IMPLICIT NONE
-      INTEGER*4 :: group_id ! the group ID to be written upon
+      INTEGER*8 :: group_id ! the group ID to be written upon
       CHARACTER(LEN=*), INTENT(IN) :: dset_name ! The name of the dset
-      INTEGER*4 :: vec_len ! the data array
+      INTEGER*8 :: vec_len ! the data array
       REAL*4  :: vec(vec_len)     ! the data array
       REAL*4  :: vec_written(vec_len)   ! the data actually written
-      INTEGER*4 :: offset  ! offset of vec (by default, start from 1)
-      INTEGER*4 :: dset_id ! IF not 0, write to that dset; otherwise create new
-      INTEGER*4 :: original_dset_len ! The original dset length, if expanding
+      INTEGER*8 :: offset  ! offset of vec (by default, start from 1)
+      INTEGER*8 :: dset_id ! IF not 0, write to that dset; otherwise create new
+      INTEGER*8 :: original_dset_len ! The original dset length, if expanding
       LOGICAL :: finalize ! Finalize the dataset, no more data can be added to it
-      INTEGER*4 :: I ! Loop variable
+      INTEGER*8 :: I ! Loop variable
       INTEGER*4 :: error
-      INTEGER*4 :: dspace_id
-      INTEGER*4 :: memspace_id
-      INTEGER*4 :: crp_list ! Dataset creation property identifier
+      INTEGER*8 :: dspace_id
+      INTEGER*8 :: memspace_id
+      INTEGER*8 :: crp_list ! Dataset creation property identifier
       INTEGER(8), DIMENSION(2) :: data_dims
       INTEGER(8), DIMENSION(2) :: data_maxdims
       INTEGER(8), DIMENSION(2) :: data_chunkdims
@@ -195,20 +195,20 @@ c$$$  25      CONTINUE
      &     vec, vec_len, offset, dset_id, original_dset_len,finalize)
 #ifdef H5OUTPUT
       USE HDF5
-      INTEGER*4 :: group_id ! the group ID to be written upon
+      INTEGER*8 :: group_id ! the group ID to be written upon
       CHARACTER(LEN=*), INTENT(IN) :: dset_name ! The name of the dset
-      INTEGER*4 :: vec_len ! the data array
-      INTEGER*4 :: offset  ! offset of vec (by default, start from 1)
-      INTEGER*4 :: vec(vec_len+offset-1)     ! the data array
-      INTEGER*4 :: dset_id ! IF not 0, write to that dset; otherwise create new
-      INTEGER*4 :: original_dset_len ! The original dset length, before expanding
+      INTEGER*8 :: vec_len ! the data array
+      INTEGER*8 :: offset  ! offset of vec (by default, start from 1)
+      INTEGER*8 :: vec(vec_len+offset-1)     ! the data array
+      INTEGER*8 :: dset_id ! IF not 0, write to that dset; otherwise create new
+      INTEGER*8 :: original_dset_len ! The original dset length, before expanding
       LOGICAL :: finalize ! Finalize the dataset, no more data can be added to it
-      INTEGER*4  :: vec_written(vec_len+offset-1)   !if vec starts not from 1, use this
-      INTEGER*4 :: I ! Loop variable
+      INTEGER*8  :: vec_written(vec_len+offset-1)   !if vec starts not from 1, use this
+      INTEGER*8 :: I ! Loop variable
       INTEGER*4 :: error
-      INTEGER*4 :: dspace_id
-      INTEGER*4 :: memspace_id
-      INTEGER*4 :: crp_list ! Dataset creation property identifier
+      INTEGER*8 :: dspace_id
+      INTEGER*8 :: memspace_id
+      INTEGER*8 :: crp_list ! Dataset creation property identifier
       INTEGER(8), DIMENSION(2) :: data_dims
       INTEGER(8), DIMENSION(2) :: data_maxdims
       INTEGER(8), DIMENSION(2) :: data_chunkdims
@@ -292,9 +292,9 @@ c$$$  25      CONTINUE
       IMPLICIT NONE
       CHARACTER(LEN=*) :: att_name
       REAL*8 :: val
-      INTEGER*4 :: loc_id
-      INTEGER*4 :: attrib_space_id
-      INTEGER*4 :: attrib_id
+      INTEGER*8 :: loc_id
+      INTEGER*8 :: attrib_space_id
+      INTEGER*8 :: attrib_id
       INTEGER*4 :: error
 
       INTEGER(8), DIMENSION(2) :: data_dims
@@ -321,10 +321,10 @@ c$$$  25      CONTINUE
       USE HDF5
       IMPLICIT NONE
       CHARACTER(LEN=*) :: att_name
-      INTEGER*4 :: val
-      INTEGER*4 :: loc_id
-      INTEGER*4 :: attrib_space_id
-      INTEGER*4 :: attrib_id
+      INTEGER*8 :: val
+      INTEGER*8 :: loc_id
+      INTEGER*8 :: attrib_space_id
+      INTEGER*8 :: attrib_id
       INTEGER*4 :: error
 
       INTEGER(8), DIMENSION(2) :: data_dims
@@ -352,8 +352,8 @@ c$$$  25      CONTINUE
       CHARACTER(LEN=64) :: h5_file_name
       COMMON/h5part/ h5_file_id, h5_step, h5_group_id, h5_dset_ids,
      &     h5_vec_len, h5_file_name, h5_current_time
-      INTEGER*4 :: h5_file_id, h5_step, h5_group_id, h5_dset_ids(256)
-      INTEGER*4 :: h5_vec_len
+      INTEGER*8 :: h5_file_id, h5_step, h5_group_id, h5_dset_ids(256)
+      INTEGER*8 :: h5_vec_len
       REAL*8 :: h5_current_time
 
 *     Close any previously opened file (if any)
@@ -376,18 +376,18 @@ c$$$  25      CONTINUE
       USE HDF5
       INCLUDE 'params.h'
       INCLUDE 'output_single.h'
-      INTEGER*4 :: h5_file_id, h5_step, h5_group_id, h5_dset_ids(256)
-      INTEGER*4 :: h5_vec_len
+      INTEGER*8 :: h5_file_id, h5_step, h5_group_id, h5_dset_ids(256)
+      INTEGER*8 :: h5_vec_len
       REAL*8 :: h5_current_time
       REAL*8 :: TTOT
-      INTEGER*4 :: N_SINGLE,KSEV,KMODE
+      INTEGER*8 :: N_SINGLE,KSEV,KMODE
       CHARACTER(LEN=64) :: h5_file_name
       CHARACTER(LEN=16) :: h5_step_name
       CHARACTER(LEN=20) :: h5_step_group_name
       COMMON/h5part/ h5_file_id, h5_step, h5_group_id, h5_dset_ids,
      &     h5_vec_len, h5_file_name, h5_current_time
       INTEGER*4 ERROR
-      INTEGER*4 :: original_vec_len
+      INTEGER*8 :: original_vec_len
       LOGICAL :: finalize
 
 C*     single
@@ -561,9 +561,9 @@ cc          WRITE (h5_step_name, *), h5_step
       USE HDF5
       INCLUDE 'params.h'
       INCLUDE 'output_binary.h'
-      INTEGER*4 :: h5_file_id, h5_step, h5_group_id, h5_dset_ids(256)
-      INTEGER*4 :: h5_subgroup_id ! ID for the Step#i groups
-      INTEGER*4 :: h5_vec_len
+      INTEGER*8 :: h5_file_id, h5_step, h5_group_id, h5_dset_ids(256)
+      INTEGER*8 :: h5_subgroup_id ! ID for the Step#i groups
+      INTEGER*8 :: h5_vec_len
       REAL*8 :: h5_current_time,TTOT
       INTEGER :: N_BINARY,KSEV,KMODE
       CHARACTER(LEN=64) :: h5_file_name
@@ -572,7 +572,7 @@ cc          WRITE (h5_step_name, *), h5_step
       COMMON/h5part/ h5_file_id, h5_step, h5_group_id, h5_dset_ids,
      &     h5_vec_len, h5_file_name, h5_current_time
       INTEGER*4 ERROR
-      INTEGER*4 :: original_vec_len
+      INTEGER*8 :: original_vec_len
       LOGICAL :: finalize ! if TRUE, finalize the datasets
 
 C*     Binary
@@ -867,9 +867,9 @@ cc          WRITE (h5_step_name, *), h5_step
       USE HDF5
       INCLUDE 'params.h'
       INCLUDE 'output_merger.h'
-      INTEGER*4 :: h5_file_id, h5_step, h5_group_id, h5_dset_ids(256)
-      INTEGER*4 :: h5_subgroup_id
-      INTEGER*4 :: h5_vec_len
+      INTEGER*8 :: h5_file_id, h5_step, h5_group_id, h5_dset_ids(256)
+      INTEGER*8 :: h5_subgroup_id
+      INTEGER*8 :: h5_vec_len
       REAL*8 :: h5_current_time,TTOT
       INTEGER :: N_MERGER,KSEV,KMODE
       CHARACTER(LEN=64) :: h5_file_name
@@ -878,7 +878,7 @@ cc          WRITE (h5_step_name, *), h5_step
       COMMON/h5part/ h5_file_id, h5_step, h5_group_id, h5_dset_ids,
      &     h5_vec_len, h5_file_name, h5_current_time
       INTEGER*4 ERROR
-      INTEGER*4 :: original_vec_len
+      INTEGER*8 :: original_vec_len
       LOGICAL :: finalize
 
 C*     Merger
