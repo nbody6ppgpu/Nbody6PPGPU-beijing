@@ -352,8 +352,8 @@ C      IF (KZ(30).EQ.-2.AND.KCHAIN.EQ.0) GO TO 100
      &    WRITE (6,20)  WHICH1, TTOT, I, JCOMP, IPAIR, NAME(I1),
      &      NAME(I2), NAME(JCOMP), NAME(I), KSTAR(I1), KSTAR(I2),
      &      KSTAR(JCOMP), KSTAR(I), BODY(I1), BODY(I2), BODY(JCOMP),
-     &      BODY(I)+BODY(JCOMP),R(IPAIR),H(IPAIR),SEMI,ECC,EB,PD,
-     &      SEMI1,ECC1,EB1,PD1,PERT4, RIJ, PMIN, EB1/EB, LIST(1,I1), 
+     &      BODY(I)+BODY(JCOMP),R(IPAIR),H(IPAIR),ECC,SEMI,EB,PD,
+     &      ECC1,SEMI1,EB1,PD1,PERT4, RIJ, PMIN, EB1/EB, LIST(1,I1), 
      &      BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,BODY(JCOMP)*ZMBAR, 
      &      (BODY(I)+BODY(JCOMP))*ZMBAR,RADIUS(I1)*SU,RADIUS(I2)*SU,
      &      RADIUS(JCOMP)*SU,R(IPAIR)*SU,RIJ*SU,RI,VI
@@ -363,7 +363,7 @@ C      IF (KZ(30).EQ.-2.AND.KCHAIN.EQ.0) GO TO 100
      &         '  R12',E10.2,' H',E10.2,
      &         ' IN e,a,eb[NB]',2E12.4,E10.2,' P[d]',E10.2,
      &         ' OUT e,a,eb[NB]',2E12.4,E10.2,' P[d]',E10.2,
-     &         '  G4',E10.3,'  RIN3',E8.1,'  PERIM',E8.1,'  EB1/EB0',
+     &         '  G4',E10.3,'  RIN3',E8.1,'  PERIM',E8.1,'  EB1/EB0 ',
      &         E8.1,'  NP',I4,' M1,2,3,TOT[*]',4E10.2,' RAD1,2,3[*]',
      &         3E10.2,' IN,OUT Sep[*]',2E10.2,'  RI,VI[NB]',2E10.2)
           call flush(6)

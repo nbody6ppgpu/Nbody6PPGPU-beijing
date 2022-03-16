@@ -249,7 +249,8 @@
       ELSE IF (IPHASE.EQ.8) THEN
       call cputim(tt1)
           ISUB = 0
-          CALL CHAIN(ISUB)
+          TIMENB = TTOT
+          CALL CHAIN(ISUB,TIMENB)
       call cputim(tt2)
       ttks = ttks + (tt2-tt1)*60.
       END IF

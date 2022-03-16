@@ -1,4 +1,4 @@
-      SUBROUTINE CHAIN(ISUB)
+      SUBROUTINE CHAIN(ISUB,TIMENB)
 *
 *
 *       Perturbed chain regularization. 
@@ -406,7 +406,7 @@
           if(rank.eq.0) WRITE (6,*) ' Stepsize = 0!', char(7)
           STOP
       END IF
-* Temporary Output RSP Sep 2017
+* Temporary Output RSP Sep 2018
 *     IF (rank.eq.0.and.KZ30.GE.2) THEN
 *     IF (rank.eq.0.and.KZ30.GT.2) THEN
 *         CALL TRANSX
@@ -417,8 +417,8 @@
 * 302     KK = KK + 3
 *         WRITE (6,30)  STEP, TMAX-CHTIME, GPERT, (1.0/RINV(K),K=1,N-1)
 *  30     FORMAT (' CHAIN:   STEP TM-CHT G R  ',1P,8E9.1)
-*         WRITE (6,301) CHTIME,(M(K),SIZE(K),RI(K),VI(K),K=1,N)
-* 301     FORMAT (' CHAIN CHTIME M,R,RI,VI=',1P,(4E12.5,/))
+*         WRITE (6,301) TIMENB,CHTIME,(M(K),SIZE(K),RI(K),VI(K),K=1,N)
+* 301     FORMAT (' CHAIN TNB,CHTIME M,R,RI,VI=',1P,(4E13.5,/))
 *     END IF
 *
 *       Determine two-body distances for stability test and collision search.
@@ -663,7 +663,7 @@
           CALL TRANSX
           ECH = ENERGY
           TIMEC = CHTIME
-* Temporary Output RSP Sep 2017
+* Temporary Output RSP Sep 2018
           IF (rank.eq.0.and.KZ30.GE.2) THEN
 *         IF (rank.eq.0.and.KZ30.GT.2) THEN
           DO 305 K = 1,N
@@ -692,23 +692,36 @@
               ECCCH(K) = DSQRT((1.0D0 - RSEP(K)/SEMICH(K))**2 + 
      &                   RDOTV(K)**2/(SEMICH(K)*XMCH))
               ECC2 = ECCCH(K)**2
-
-         FE1 = (1.D0 - ECC2)**3.5D0
-         FE2 = 1.D0 + 73.D0/24.D0*ECC2 + 37.D0/96.D0*ECC2**2
+*   Bound Orbit
+         IF(SEMICH(K).GT.0.D0)THEN
+              FE1 = (1.D0 - ECC2)**3.5D0
+              FE2 = 1.D0 + 73.D0/24.D0*ECC2*(1.D0 + 111.D0*ECC2/876.D0)
               A_EIN(K) = 3.0*TWOPI*XMCH/(SEMICH(K)*CL2*(1.D0-ECC2))
-              DLGADT = 64.D0/5.D0/CL5*M(K)*M(K+1)*XMCH/
+              DLGADT = 32.D0/5.D0/CL5*M(K)*M(K+1)*XMCH/
      &                   SEMICH(K)**4/FE1*FE2
               TGRCH(K) = 1.D0/DLGADT
+         ELSE IF(SEMICH(K).LT.0.D0) THEN
+              GE1 = (ECC2 - 1.D0)**3.5D0
+              GE2 = 1.D0 + 73.D0/24.D0*ECC2*(1.D0 + 111.D0*ECC2/876.D0)
+              GE3 = (ECC2 - 1.D0)**0.5D0*(301.D0/144.D0 + 673.D0*ECC2/288.D0)
+              GE4 = DACOS(-1.D0/ECCCH(K))/PI
+              GEE = GE4*GE2+GE3
+              A_EIN(K) = 3.0*TWOPI*XMCH/(DABS(SEMICH(K))*CL2*(ECC2-1.D0))
+              DLGADT = 32.D0/5.D0/CL5*M(K)*M(K+1)*XMCH/
+     &                   SEMICH(K)**4/GE1*GEE
+              TGRCH(K) = 1.D0/DLGADT
+         END IF
+* 
           END IF
 *
   305     CONTINUE
               WRITE (6,55)  NSTEP1, T0S(ISUB)+TIMEC, TMAX-TIMEC,
      &                      (1.0/RINV(K),K=1,N-1)
    55         FORMAT (' CHAIN:  NSTEP T DTR R ',I5,F10.4,1P,6E9.1)
-       WRITE(6,302)TIMEC,(K,M(K),SIZE(K),RSEP(K),VSEP(K),SEMICH(K),
+       WRITE(6,302)TIMENB,TIMEC,(K,M(K),SIZE(K),RSEP(K),VSEP(K),SEMICH(K),
      &       ECCCH(K),TGRCH(K),A_EIN(K),K=1,N-1),N,M(N),SIZE(K)
-  302  FORMAT(' CHAIN T[NB] M,R[*],R,V,a,e,tgr,aein[NB-CH]=',1P,E12.5,
-     &       10(I4,8E12.5))
+  302  FORMAT(' CHAIN T,TC[NB] K,M,R[*],R,V,a,e,tgr,aein[NB-CH]=',
+     &          1P,E17.10,E13.5,10(I4,8E13.5))
           END IF
 *       Avoid checking after switch (just in case).
           IF (ISW.LE.1) THEN
@@ -813,8 +826,9 @@
           RI(K) = SQRT(X(KK+1)**2 + X(KK+2)**2 + X(KK+3)**2)
           VI(K) = SQRT(V(KK+1)**2 + V(KK+2)**2 + V(KK+3)**2)
   304     KK = KK + 3
-       WRITE(6,303)CHTIME,(K,M(K),SIZE(K),RI(K),VI(K),K=1,N)
-  303  FORMAT(' CHEND: T[NB] M,R[*],R,V[NB-CH]=',1P,E12.5,10(I4,4E12.5))
+       WRITE(6,303)TIMENB,CHTIME,(K,M(K),SIZE(K),RI(K),VI(K),K=1,N)
+  303  FORMAT(' CHEND: TNB,TC[NB] K,M,R[*],R,V[NB-CH]=',
+     &          1P,E17.10,E13.5,10(I4,4E13.5))
           call flush(6)
       END IF
 *

@@ -140,7 +140,7 @@ struct Force{
           nnb = -abs(nnb) - abs(rhs.nnb);
 		}
 	}
-#if __CUDA_ARCH__ >= 300
+#if __CUDA_ARCH__ >= 4000000
 	__device__ void reduce_with(const int mask){
 		acc.x += __shfl_xor(acc.x, mask);
 		acc.y += __shfl_xor(acc.y, mask);
@@ -273,7 +273,7 @@ __global__ void gravity_kernel(
 	Force fo;
 	fo.clear();
 	uint16 *nblist = nbbuf[iaddr][jbid];
-#if __CUDA_ARCH__ >= 300 // just some trial
+#if __CUDA_ARCH__ >= 4000000 // just some trial
 	for(int j=jstart; j<jend; j+=32){
 		__shared__ Jparticle jpshare[32];
 		__syncthreads();
@@ -344,7 +344,7 @@ __global__ void gravity_kernel_m(
 	Force fo;
 	fo.clear();
 	uint16 *nblist = nbbuf[iaddr][jbid];
-#if __CUDA_ARCH__ >= 300 // just some trial
+#if __CUDA_ARCH__ >= 4000000 // just some trial
 	for(int j=jstart; j<jend; j+=32){
 		__shared__ Jparticle jpshare[32];
 		__syncthreads();
@@ -397,7 +397,7 @@ __global__ void gravity_kernel_m(
 	fobuf[iaddr][jbid] = fo;
 }
 
-#if __CUDA_ARCH__ >= 300
+#if __CUDA_ARCH__ >= 4000000
 __device__ void warp_reduce_int(int inp, int *out){
 	inp += __shfl_xor(inp, 1);
 	inp += __shfl_xor(inp, 2);
@@ -447,7 +447,7 @@ __global__ void force_reduce_kernel(
 	const int bid = blockIdx.x;
 	const int iaddr = yid + blockDim.y * bid;
 
-#if __CUDA_ARCH__ >= 300
+#if __CUDA_ARCH__ >= 4000000
 	Force f;
 	if(xid < NJBLOCK){
 		f = fpart[iaddr][xid];
@@ -469,8 +469,8 @@ __global__ void force_reduce_kernel(
 		const int    itmp = f.nnb;
 		float *dst  = (float *)(ftot + iaddr);
 		int   *idst = (int *)(dst + 7);
-		warp_reduce_float8(tmp1, tmp2, dst);
-		warp_reduce_int(itmp, idst);
+  		warp_reduce_float8(tmp1, tmp2, dst);        
+  		warp_reduce_int(itmp, idst);                 
 	}
 # endif
 #else
@@ -516,7 +516,7 @@ __global__ void gather_nb_kernel(
 	                                  : 0;
 
 	// now performe prefix sum
-#if __CUDA_ARCH__ >= 300
+#if __CUDA_ARCH__ >= 4000000
 	int ix = mynnb;
 #pragma unroll
 	for(int ioff=1; ioff<NXREDUCE; ioff*=2){

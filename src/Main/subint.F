@@ -758,7 +758,8 @@ c$$$            call mpi_barrier(MPI_COMM_WORLD,ierr)
                   STEPS(ISUB) = 1.0D-10
                   GO TO 50
                END IF
-               CALL CHAIN(ISUB)
+               TIMENB = TTOT
+               CALL CHAIN(ISUB,TIMENB)
                IF (ISUB.GT.0) THEN
                   IF(STEPS(ISUB).LT.0.0D0) THEN
                      STEPS(ISUB) = 1.0D-10
