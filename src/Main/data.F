@@ -203,8 +203,7 @@
      &     ZMET, EPOCH0
    15 FORMAT (/,12X,' ALPHAS =',F5.2,
      &    '  BODY1 =',F5.1,'  BODYN =',F5.2,' ZMASS =',1P,E12.5,0P,
-     &    ' NBIN0 =',I5,' NHI0 =',I5,' ZMET =',F7.4,' EPOCH0 =',F7.4,
-     &    ' DTPLOT =',E12.5)
+     &    ' NBIN0 =',I5,' NHI0 =',I5,' ZMET =',F7.4,' EPOCH0 =',F5.2)
       end if
       call flush(6)
 *

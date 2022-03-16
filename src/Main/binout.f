@@ -87,7 +87,7 @@
           IP = 1
 *         IF (LIST(2,J2).EQ.0) IP = 2
 *       The previous line does not work - RSp March 2019
-          IF (IABS(NAME(J1) - NAME(J2)).EQ.1) IP = 2
+          IF (IABS(NAME(J1) - NAME(J2)).GT.1) IP = 2
           IF (IP.EQ.2) NEWB = NEWB + 1
 *
 *       Sum the respective energies & populations.

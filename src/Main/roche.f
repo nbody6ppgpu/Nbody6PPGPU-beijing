@@ -899,7 +899,7 @@ C     &                FILE='ROCHE')
             IF(JSPIN(2).GT.0.D0)THEN
                IF(IMB.LT.10.OR.ABS(DJMB)/JSPIN(2).GT.0.001)THEN
                   if(rank.eq.0)
-     &            WRITE (6,40)  MASS, SEP, DJMB, DTM
+     &      WRITE (6,40) TTOT,MASS,KW1,KW2,SEP,ECC,OSPIN(1),DJMB,DTM
                ENDIF
             ENDIF
          ENDIF
