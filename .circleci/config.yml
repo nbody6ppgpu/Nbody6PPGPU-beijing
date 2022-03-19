@@ -5,7 +5,7 @@ version: 2.1
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  _10k-dat-ubuntu16-GCC5:
+  ubuntu16-GCC5-10k-dat:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker:
@@ -44,7 +44,7 @@ jobs:
       - run:
           name: run simulation
           command: ulimit -s unlimited; cd autotest; export OMP_NUM_THREADS=32; export execname=`ls nbody6++*`; ./$execname < 10k.test
-  _1k-no-dat-ubuntu16-GCC5:
+  ubuntu16-GCC5-1k-no-dat:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker:
@@ -92,5 +92,5 @@ jobs:
 workflows:
   test-simulation:
     jobs:
-      - _10k-dat-ubuntu16-GCC5
-      - _1k-no-dat-ubuntu16-GCC5
+      - ubuntu16-GCC5-10k-dat
+      - ubuntu16-GCC5-1k-no-dat
