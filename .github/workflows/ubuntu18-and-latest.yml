@@ -1,0 +1,63 @@
+name: ubuntu18 and latest
+
+on:
+  push:
+    branches: [ stable , dev ]
+  pull_request:
+    branches: [ stable , dev ]
+
+jobs:
+  _1k-no-dat-ubuntu18-GCC5:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: install dependencies
+      run: sudo apt-get install -y wget gfortran-5 gcc-5 g++-5
+
+    - name: configure
+      run: >
+        export CC=gcc-5; export CXX=g++-5; export FC=gfortran-5;
+        ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large --disable-mpi --disable-gpu
+
+    - name: make
+      run: make clean; make
+
+    - name: prepare simulation
+      run: >
+        mkdir autotest;
+        cp -p ./build/nbody6++.sse ./autotest/;
+        cd autotest;
+        wget https://github.com/kaiwu-astro/garage/raw/main/Nbody6ppGPU-inputfile/kai_1k_no_dat-10/1k.inp;
+        pwd; ls -alh
+
+    - name: simulation
+      run: ulimit -s unlimited; cd autotest; ./nbody6++.sse < 1k.inp
+
+  _1k-no-dat-latest-latest:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: install dependencies
+      run: sudo apt-get install -y wget gfortran gcc g++
+
+    - name: configure
+      run: >
+        ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large --disable-mpi --disable-gpu
+
+    - name: make
+      run: make clean; make
+
+    - name: prepare simulation
+      run: >
+        mkdir autotest;
+        cp -p ./build/nbody6++.sse ./autotest/;
+        cd autotest;
+        wget https://github.com/kaiwu-astro/garage/raw/main/Nbody6ppGPU-inputfile/kai_1k_no_dat-10/1k.inp;
+        pwd; ls -alh
+
+    - name: simulation
+      run: ulimit -s unlimited; cd autotest; ./nbody6++.sse < 1k.inp
