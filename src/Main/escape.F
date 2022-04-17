@@ -13,12 +13,19 @@
      &                NAMEM(MMAX),NAMEG(MMAX),KSTARM(MMAX),IFLAG(MMAX)
       COMMON/POTDEN/  RHO(NMAX),XNDBL(NMAX),PHIDBL(NMAX)
       CHARACTER*11  WHICH1
-      LOGICAL FIRST
+      LOGICAL FIRST,FIRST2
+      REAL*8 XLIST(2*NMAX)
 #ifdef TT
       LOGICAL RFLAG
 #endif
       SAVE FIRST
       DATA FIRST/.true./
+*      Write stellar evolution data on esc.11, escbin.31
+      REAL*8 TSCLS(20),LUMS(10),GB(10),TM,TN
+      REAL*8 M0,M1,RM,LUM,AGE,TEFF,MC,RCC
+      REAL*8 M01,M11,RM1,LUM1,AGE1,TEFF1
+      REAL*8 M02,M12,RM2,LUM2,AGE2,TEFF2
+      REAL*8 MENV,RENV,K2
 *
 *
 *       Adopt twice the tidal radius as escape condition.
@@ -140,12 +147,12 @@
       if(rank.eq.0)
      &WRITE (6,18) N, NCORR, NSESC, NBESC, ZMASS, BE(3), CMR(4), RESC,
      &       STEPI, RSI, ZMASS/FLOAT(N), NCRIT1, (JLIST(J),J=1,NCORR)
-   18 FORMAT (/,' ESCAPE   N =',I10,I6,I10,I6,F8.4,F12.6,2F7.2,F7.3,
-     &                      F7.2,F9.5,I6,' JLIST: ',(2X,20I6,/))
+   18 FORMAT (/,' ESCAPE   N =',I10,I8,I10,I6,F8.4,F12.6,2F7.2,F7.3,
+     &                      F7.2,F9.5,I10,' JLIST: ',(2X,20I6,/))
 *
       IF (KZ(23).EQ.4)THEN
           JLAST = MIN(2*NCORR,NMAX)
-          if(rank.eq.0) WRITE (6,20)  (ILIST(J),J=1,JLAST)
+          if(rank.eq.0) WRITE (6,20)  (XLIST(J),J=1,JLAST)
    20     FORMAT (/,' ESCAPE ANGLES ',11(2I4,2X),9(/,15X,11(2I4,2X)))
       END IF
 *
@@ -187,10 +194,14 @@
    40 X1 = X(1,I) - RDENS(1)
       Y1 = X(2,I) - RDENS(2)
       Z1 = X(3,I) - RDENS(3)
-      A3 = ABS(Y1/X1)
-      A4 = ABS(Z1)/SQRT(X1**2 + Y1**2)
-      ILIST(2*NCORR+1) = INT(DATAN(A3)*180.0/3.14159)
-      ILIST(2*NCORR+2) = INT(DATAN(A4)*180.0/3.14159)
+      A3 = Y1/X1
+      A4 = Z1/SQRT(X1**2 + Y1**2)
+      IF (Y1.GT.0.D0) THEN
+          XLIST(2*NCORR+1) = 90.0 + DATAN(A3)*180.0/3.14159
+      ELSE
+          XLIST(2*NCORR+1) = 270.0 + DATAN(A3)*180.0/3.14159
+      END IF
+      XLIST(2*NCORR+2) = DATAN(A4)*180.0/3.14159
 *       Escape angles with respect to the X-axis and XY-plane.
       RESC = SQRT(RI2)
       STEPI = STEP(I)
@@ -198,7 +209,7 @@
 *
 *       Accumulate escaper names and save current name in case I > N.
 *     PRINT*,' ESC-Chk I,N,M,R,ncorr,angles=',I,NAME(I),BODY(I),
-*    &      SQRT(RI2),NCORR,(ILIST(2*NCORR+KK),KK=1,2)
+*    &      SQRT(RI2),NCORR,(XLIST(2*NCORR+KK),KK=1,2)
       NCORR = NCORR + 1
       JLIST(NCORR) = NAME(I)
       NAMEI = NAME(I)
@@ -273,19 +284,89 @@
               BESC = ZMBAR*BODY(I)
           END IF
           VKM = SQRT(VI2)*VSTAR
+*
+          IF(KZ(19).GT.0.AND.I.LE.N) THEN
+              M0 = BODY(I)*ZMBAR
+              M1 = M0
+              KW = KSTAR(I)
+              AGE = TIME*TSTAR - EPOCH(I)
+              CALL star(KW,M0,M1,TM,TN,TSCLS,LUMS,GB,ZPARS)
+              CALL hrdiag(M0,AGE,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
+     &                    RM,LUM,KW,MC,RCC,MENV,RENV,K2)
+              TEFF = 0.25*(LOG10(LUM) - 2.0*LOG10(RM)) + 3.761777537508
+          ELSE
+              LUM = 0.E0
+              RM = 0.E0
+              M1 = 0.E0
+              TEFF = 0.E0
+          END IF
           if(rank.eq.0)then
              if(kstart.eq.1.and.first) then
                 first = .false.
-                write (11,*) 'TTOT         ','BODY         ',
+                write (11,*) '        ',
+     &       'TTOT         ','BODY         ',
      &       'RI           ','VI           ','STEP         ',
      &       'T[Myr]       ','M[M*]        ','EESC         ',
-     &       'VI[km/s]     ','K*  ','NAME      ','ANGLES PHI, THETA'
+     &       'VI[km/s]     ','K*  ','NAME      ',
+     &       'ANGLE PHI    ',' ANGLE THETA ','M1[M*]       ',
+     &       'RADIUS[RSun] ',' LUM[LSun] ','TEFF         ',
+     &       'AGE[Myr]     ',' EPOCH     '
              end if
-             WRITE (11,500) TTOT,BODY(I),SQRT(RI2),SQRT(VI2),STEP(I), 
-     &    TESC,BESC,EESC,VKM,KSTARI,NAMEI,(ILIST(2*NCORR+KK),KK=-1,0)
- 500  FORMAT(1X,1P,9E13.5,I4,I10,2I6)
+          WRITE (11,500) TTOT,BODY(I),SQRT(RI2),SQRT(VI2),STEP(I), 
+     &    TESC,BESC,EESC,VKM,KSTARI,NAMEI,(XLIST(2*NCORR+KK),KK=-1,0),
+     &    M1,RM,LUM,TEFF,AGE,EPOCH(I)
+ 500  FORMAT(1X,1P,9E13.5,I4,I10,8E13.5)
              call flush(11)
           end if
+*     More output of escaping binaries
+          IF(I.GT.N) THEN
+             IPAIR = I - N
+             I1 = 2*IPAIR - 1
+             I2 = 2*IPAIR
+             IF(KZ(19).GT.0) THEN
+                 M01 = BODY(I1)*ZMBAR
+                 M11 = M01
+                 KW1 = KSTAR(I1)
+                 AGE1 = TIME*TSTAR - EPOCH(I1)
+                 CALL star(KW1,M01,M11,TM,TN,TSCLS,LUMS,GB,ZPARS)
+                 CALL hrdiag(M01,AGE1,M11,TM,TN,TSCLS,LUMS,GB,ZPARS,
+     &                       RM1,LUM1,KW1,MC,RCC,MENV,RENV,K2)
+                 TEFF1=0.25*(LOG10(LUM1)-2.0*LOG10(RM1))+3.761777537508
+                 M02 = BODY(I2)*ZMBAR
+                 M12 = M02
+                 KW2 = KSTAR(I2)
+                 AGE2 = TIME*TSTAR - EPOCH(I2)
+                 CALL star(KW2,M02,M12,TM,TN,TSCLS,LUMS,GB,ZPARS) 
+                 CALL hrdiag(M02,AGE2,M12,TM,TN,TSCLS,LUMS,GB,ZPARS,
+     &                       RM2,LUM2,KW2,MC,RCC,MENV,RENV,K2)
+                 TEFF2=0.25*(LOG10(LUM2)-2.0*LOG10(RM2))+3.761777537508
+             ELSE
+                 LUM1 = 0.E0
+                 RM1 = 0.E0
+                 M11 = 0.E0
+                 TEFF1 = 0.E0
+                 LUM2 = 0.E0
+                 RM2 = 0.E0
+                 M12 = 0.E0
+                 TEFF2 = 0.E0
+             END IF
+             if(rank.eq.0)then
+             if(kstart.eq.1.and.first2) then
+                first2 = .false.
+                write (31,502)
+ 502  FORMAT(1X,'TTOT         ','BODY1,2      ',13X,
+     &          'NAME1,2  ',10X,'KW1,2  ','M1,2 [Sol]   ',13X,
+     &          'RAD1,2[Sol]  ',13X,'LUM1,2[Sol]  ',13X,
+     &          'TEFF1,2 [K]  ',13X,'AGE1,2[Myr]  ',13X,
+     &          'EPOCH1,2 [Myr]')
+             end if
+          WRITE (31,501) TTOT,BODY(I1),BODY(I2),NAME(I1),NAME(I2),
+     &    KW1,KW2,M11,M12,RM1,RM2,LUM1,LUM2,TEFF1,TEFF2,AGE1,AGE2,
+     &    EPOCH(I1),EPOCH(I2)
+ 501  FORMAT(1X,1P,3E13.5,2I10,2I4,12E13.5)
+             call flush(31)
+             end if
+          END IF
       END IF
 *
 *       Reduce particle number & total membership and check NNBMAX.

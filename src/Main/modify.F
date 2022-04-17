@@ -10,18 +10,14 @@
 #ifdef PARALLEL
 #define MPIINIT 1
 #else
-#ifdef ENSEMBLE
-#define MPIINIT 1
-#else
 #define MPIINIT 0
-#endif
 #endif
 *
 *       Read first, second or both lines (KSTART = 3, 4, 5).
       IF (KSTART.EQ.4) GO TO 10
 *       Only control output RSp March 2019 (KSTART = 2)
       IF (KSTART.EQ.2) GO TO 11
-*       Read new DTADJ, DELTAT, TADJ, TNEXT, TCRIT, QE & KZ(J) (if > 0).
+*       Read new DTADJ, DELTAT, TADJ, TNEXT, TCRIT, QE & KZ(J), NCOMM (if > 0).
       if(rank.eq.0)then
       READ (5,*)  DTA, DT, TA, TN, TC, QE1, J, K, NCOM1
       end if
@@ -86,7 +82,8 @@
 *       Read new ETAI, ETAR, ETAU, DTMIN, RMIN (IF > 0 & KSTART = 4 or 5).
    10 IF (KSTART.GE.4) THEN
           if(rank.eq.0)then
-          READ (5,*)  ETA1, ETA2, ETA3, DTM, RM, NEWCR, NNBO, SMAX0
+          READ (5,*)  ETA1, ETA2, ETA3, DTM, RM, NEWCR, NNBO, SMAX0, 
+     &     GMN,GMX
           end if
 #if MPIINIT
       CALL MPI_BCAST(ETA1,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
@@ -97,6 +94,8 @@
       CALL MPI_BCAST(NEWCR,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(NNBO,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(SMAX0,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(GMN,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(GMX,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 #endif
 *
 *       Check modification of integration parameters.
@@ -107,6 +106,8 @@
               DTMIN = DTM
               SMIN = 2.0*DTM
           END IF
+          IF (GMN.GT.0.0) GMIN = GMN
+          IF (GMX.GT.0.0) GMAX = GMX
           IF (RM.GT.0.0) THEN
               RMIN = RM
               RMIN2 = RM**2
@@ -116,6 +117,8 @@
           IF (NNBO.GT.0) NNBOPT = NNBO
           IF (SMAX0.GT.0) THEN
 *     Check SMAX to make sure it have correct value
+*     Allow step for HDF5 files to be larger than one. (R.Sp. Sep. 2021)
+             HDFMAX = SMAX0
              IF(SMAX0.GT.1) THEN
                 print*, 'Warning! SMAX > 1.0, reduce to 1.0.'
                 SMAX = 1.0
@@ -147,16 +150,18 @@
              WRITE (6,12) TTOT/TCR0, TIME/TCR0, TCRIT/TCR0, TTOT, TIME,
      &            TCRIT
              WRITE (6,13) DTADJ, DELTAT, TADJ, TNEXT, TCRIT, QE, NCOMM
-             WRITE (6,14) ETAI, ETAR, ETAU, DTMIN, RMIN, NNBOPT, SMAX
+             WRITE (6,14) ETAI, ETAR, ETAU, DTMIN, RMIN, NNBOPT, SMAX,
+     &            GMIN, GMAX
  12          FORMAT (' START AT TTOT/TIME ',2F16.8,' STOP INTENDED AT ',
      &            F16.8,' TCR0',/,' START AT TTOT/TIME ',2F16.8,
      &            ' STOP INTENDED AT ',F16.8,' NBODY-UNITS ',/)
  13          FORMAT (/,7X,'RESTART PARAMETERS:   DTADJ =',F7.3,
      &            '  DELTAT =',F7.3,'   TADJ =',F10.3,'   TNEXT =',
-     &            F10.3,'  TCRIT =',F10.3,'  QE =',1PE9.1,' NCOMM=',I4)
+     &            F10.3,' TCRIT =',F10.3,' QE =',1P,E11.3,' NCOMM=',I4)
  14          FORMAT (/,7X,'                      ETAI =',F7.3,
-     &            '  ETAR =',F7.3,'  ETAU =',F7.3,'  DTMIN =',1PE9.1,
-     &            '  RMIN =',E9.1,' NNBOPT =',I5,' SMAX =',E9.1,/)
+     &            '  ETAR =',F7.3,'  ETAU =',F7.3,'  DTMIN =',1P,E11.3,
+     &            '  RMIN =',E11.3,' NNBOPT =',I5,' SMAX =',E11.3,
+     &            '  GMIN =',E11.3,' GMAX = ',E11.3,/)
           end if
 *
    22    FORMAT (/,12X,'OPTIONS')

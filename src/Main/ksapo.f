@@ -57,7 +57,7 @@
    30 IF (IKICK.GT.0) THEN
           CALL KICK(IPAIR,0,0,DM)
 *     KS MPI communication for kick flag
-          call ksparmpi(K_store,K_int,K_KICK,0,0,0.0)
+*         call ksparmpi(K_store,K_int,K_KICK,0,0,0.0)
       END IF
 *
       RETURN

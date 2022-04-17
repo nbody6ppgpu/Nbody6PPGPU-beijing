@@ -119,31 +119,10 @@ c$$$            IF (NNTB.LT.NBTRY)  DTB = 1.25*DTB
 *     
             SPREV = TPREV
 *
-*     --12/21/13 22:29-lwang-print--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$#ifdef PRINT
-c$$$            J1 = KBLIST(1)
-c$$$            JNNTB = KBLIST(NNTB)
-c$$$            Print*,' Kbl ',J1,Jnntb,T0(J1)+STEP(J1),
-c$$$     &           T0(JNNTB)+STEP(JNNTB)
-c$$$            PRINT*,' KBLOCK,SPREV,DTBL,NNTB,TBLIST ',KBLOCK,SPREV,
-c$$$     *           DTBL,NNTB,TBLIST
-c$$$            PRINT*,' 1-NNTB times ',J1,JNNTB,T0(J1)+STEP(J1),
-c$$$     *           T0(JNNTB)+STEP(JNNTB)
-c$$$            CALL FLUSH(6)
-c$$$            PRINT*,'--------------------'
-c$$$            PRINT*,' DTBL,DTBMIN,JMM,JMN=',DTBL,DTBMIN,JMM,JMN
-c$$$
-c$$$            IF(MOD(ICALL,1).EQ.0) PRINT*,' SUBINT: Av KBLOCK=',
-c$$$     *           REAL(KBSUM)/REAL(ICALL)
-c$$$#endif      
-*     --12/21/13 22:28-lwang-end----------------------------------------*
          END IF
          call cputim(ttks2)
-         ttksblist = ttksblist+(ttks2-ttks1)*60
+         if(rank.eq.0)ttksblist = ttksblist+(ttks2-ttks1)*60.
 *     
-
-*     --12/21/13 22:29-lwang-end----------------------------------------*
          DO IX = 1,KBLOCK
 *     
             SBLOCK = SPREV + DTBL
@@ -171,38 +150,11 @@ c$$$                  END IF
 *     
             ISBSUM = ISBSUM + 1
             KSBSUM = KSBSUM + KSB
-*     --03/14/14 12:27-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$            if(rank.eq.0) write(6,141),TBlock,TBLIST,
-c$$$     ^           TIME,KBLOCK,IX,SBLOCK,KSB
-c$$$ 141        format('TBLOCK',E15.7,' TBLIST',E15.7,' T',E15.7,' KB',I6,
-c$$$     &           ' IX',I3,' SB',E15.7,' KSB',I6)
-c$$$            call flush(6)
-c$$$            do L= 1,ksb
-c$$$               i1 = bslist(l)
-c$$$               ipair = kvec(i1)
-c$$$               write(110+rank,*) 'i1',i1,'ip',ipair,'n',name(i1),
-c$$$     &              'u',u(1,ipair),'ud',udot(1,ipair),'t0',t0(i1),
-c$$$     &              'step',step(i1),'TBLOCK',tblock
-c$$$               call flush(110+rank)
-c$$$            end do
-c$$$            call mpi_barrier(MPI_COMM_WORLD,ierr)
-*     --03/14/14 12:27-lwang-end----------------------------------------*
-*     --12/21/13 22:29-lwang-print------------------------------------------*
-***** Note:-----------------------------------------------------------------**
-c$$$  #ifdef PRINT
-c$$$  PRINT*,' Start Do Loop KSB, first min 5=',KSB,
-c$$$  *              ' BSLIST=',(BSLIST(L),L=1,MIN(5,KSB))
-c$$$  PRINT*,' Average KSB=',REAL(KSBSUM)/REAL(ISBSUM)
-c$$$  CALL FLUSH(6)
-c$$$  PRINT*,'--------------------'
-c$$$  #endif
-*     --12/21/13 22:30-lwang-end--------------------------------------------*
 *     Advance binaries due in the current sub-block-step.
 #ifdef PARALLEL
             IF(KSB.LE.iserks.or.iserks.eq.0) THEN
 *     Reset ks par MPI
-               call ksparmpi(K_reset,0,0,0,0,0.0)
+*              call ksparmpi(K_reset,0,0,0,0,0.0)
 #endif
                call cputim(ttks5)
                DO L = 1,KSB
@@ -305,7 +257,7 @@ c$$$  #endif
                   END IF
                END DO
                call cputim(ttks6)
-               ttksints = ttksints+(ttks6-ttks5)*60.
+               if(rank.eq.0)ttksints = ttksints+(ttks6-ttks5)*60.
 #ifdef PARALLEL
 *     Parallel KSINT
             ELSE
@@ -429,16 +381,6 @@ c$$$  CMBSTAT(2,CMBLEN) = IPHASE
                   IMPI_THR(NNBKTOT+1:NNBKTOT+NNBKS)=LIST(1:NNBKS,I1)
                   IMPI_THR(NNBKTOT+NNBKS+1)=KSLOW(IPAIR)
                   NNBKTOT = NNBKTOT + NNBKS + 1
-*     --03/29/14 20:29-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$                  if(tBLOCK.eq.6.05468750000000000E-002) then
-c$$$                     write(130+rank,*) 'I1',I1,NNBKS,
-c$$$     &                    'LIST',LIST(1:NNBKS,I1),'NTOT',NNBKTOT
-c$$$                     call flush(130+rank)
-c$$$                  end if
-c$$$                  write(120+rank,*),i1,list(1:NNBKS,i1)
-c$$$                  call flush(120+rank)
-*     --03/29/14 20:29-lwang-end----------------------------------------*
 *                  IMPI(NNBKS+1,L) = KSLOW(IPAIR)
 *     Do not forget to broadcast HT 
 *     
@@ -453,7 +395,7 @@ c$$$                  call flush(120+rank)
                EMPI_THR(3) = RMAX
 
                call cputim(ttks8)
-               ttksintp=ttksintp+(ttks8-ttks7)*60.
+               if(rank.eq.0)ttksintp=ttksintp+(ttks8-ttks7)*60.
 
 *     Communication between nodes
                isend = rank + 1
@@ -490,11 +432,11 @@ c$$$     *                 MPI_COMM_WORLD,status,ierr)
                   call cputim(ttb)
                   call mpi_barrier(MPI_COMM_WORLD,ierr)
                   call cputim(tt999)
-                  ibarcount=ibarcount+1
-                  ttbar = ttbar + (tt999-ttb)*60
-                  ttksbar = ttksbar +(tt999-ttb)*60
-                  xtsub3 = xtsub3 + dble((55*8+4)*(icnt+icnt2))
-                  ttkssub = ttkssub + (ttb-tta)*60.
+              if(rank.eq.0)ibarcount=ibarcount+1
+              if(rank.eq.0)ttbar = ttbar + (tt999-ttb)*60.
+              if(rank.eq.0)ttksbar = ttksbar +(tt999-ttb)*60.
+              if(rank.eq.0)xtsub3 = xtsub3 + dble((55*8+4)*(icnt+icnt2))
+              if(rank.eq.0)ttkssub = ttkssub + (ttb-tta)*60.
 *     --12/29/13 22:43-lwang-debug--------------------------------------*
 ***** Note:------------------------------------------------------------**
 c$$$  print*,'SERV DA',rank,ZMPI(1,1),ZMPI(1,ksb)
@@ -512,20 +454,9 @@ c$$$  call flush(6)
      *              IMPI(1),NNBK_MPI,IMPI_OFF,MPI_INTEGER,
      &              MPI_COMM_WORLD,ierr)
                call cputim(ttb)
-               ttkssub = ttkssub + (ttb-tta)*60.
+               if(rank.eq.0)ttkssub = ttkssub + (ttb-tta)*60.
 #endif
                call cputim(ttks9)
-*     --12/30/13 10:11-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$               if(tBLOCK.eq.6.05468750000000000E-002) then
-c$$$                  write(140+rank,*)'NNBKTOT',NNBKTOT,
-c$$$     &             'NNBK_MPI',NNBK_MPI(1:isize)
-c$$$                  write(140+rank,*)'IMPI_THR',IMPI_THR(1:NNBKTOT)
-c$$$                  write(140+rank,*)'IMPI',
-c$$$     &                 IMPI(1:IMPI_OFF(isize)+NNBK_MPI(isize))
-c$$$                  call flush(140+rank)
-c$$$               end if
-*     --12/30/13 10:11-lwang-end----------------------------------------*
                NNBKTOT = 1
                DO L = 1,KSB
                   I1 = BSLIST(L)
@@ -591,7 +522,7 @@ c$$$                  if(tblock.gt.6.30187988281250000E-002) stop
 *     --12/30/13 9:16-lwang-end----------------------------------------*
                END DO
                call cputim(ttks10)
-               ttkscp=ttkscp+(ttks10-ttks9)*60.
+               if(rank.eq.0)ttkscp=ttkscp+(ttks10-ttks9)*60.
 
 #ifdef PUREMPI
 *     Gather nstepu, specific iphase and ipair
@@ -649,7 +580,7 @@ c$$$               if(emerge.ge.100)  stop
                   END IF
                END DO
                call cputim(ttks11)
-               ttkscmb=ttkscmb+(ttks11-ttks10)*60.
+               if(rank.eq.0)ttkscmb=ttkscmb+(ttks11-ttks10)*60.
 *     Reset full prediction flag at the end for safe
 *               ipredall=.false.
 *     End of parallel block
@@ -709,7 +640,7 @@ c$$$               end if
 c$$$            END DO
 *     --12/30/13 22:55-lwang-end----------------------------------------*
             call cputim(ttks13)
-            ttksins=ttksins+(ttks13-ttks12)*60.
+            if(rank.eq.0)ttksins=ttksins+(ttks13-ttks12)*60.
 *     
  9          SPREV = SBLOCK
 *
@@ -789,7 +720,7 @@ c$$$            call mpi_barrier(MPI_COMM_WORLD,ierr)
  50      TIME = TBLOCK
       END IF
       call cputim(ttks15)
-      tttq = tttq+(ttks15-ttks14)*60.
+      if(rank.eq.0)tttq = tttq+(ttks15-ttks14)*60.
 *     
       RETURN
 *     

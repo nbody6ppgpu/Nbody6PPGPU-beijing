@@ -324,7 +324,7 @@
           IF (STEP.LT.SMALL) STEP = SMALL
 *         if(rank.eq.0)
 *    &    WRITE (6,18)  NSTEP1, SMALL, STEP, (1.0/RINV(K),K=1,N-1)
-*  18     FORMAT (' STEP INCREASE    # SM S R ',I8,1P,2E9.1,2X,5E10.2)
+*  18     FORMAT (' STEP INCREASE    # SM S R ',I8,1P,2E9.1,2X,5E11.3)
       END IF
 *
 *       Advance the solution one step.
@@ -726,7 +726,7 @@
   305     CONTINUE
        if(rank.eq.0) WRITE (6,55)  NSTEP1, T0S(ISUB)+TIMEC, TMAX-TIMEC,
      &              (NAMEC(K),1.0/RINV(K),K=1,N-1),NAMEC(N)
-   55   FORMAT(' CHAIN: NSTEP T DTR R NAMEC ',I5,2F10.4,1P,6(I10,E10.2))
+   55   FORMAT(' CHAIN: NSTEP T DTR R NAMEC ',I5,2F10.4,1P,6(I10,E11.3))
        if(rank.eq.0)
      &    WRITE(6,302)TIMENB,TIMEC,(K,NAMEC(K),M(K),SIZE(K),RSEP(K),
      &    VSEP(K),SEMICH(K),ECCCH(K),TGRCH(K),A_EIN(K),K=1,N-1),

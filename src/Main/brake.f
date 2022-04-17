@@ -36,18 +36,25 @@
 *
 *       Check collision/coalescence (IQCOLL=-2 skips ECOLL updating in COAL).
       RP = SEMI1*SU*(1.D0 - ECC1)
+      PD = TWOPI*SEMI1*SQRT(DABS(SEMI1)/BODY(I))*TSTAR*365.24D6
 *
 *       Include GR coalescence criterion for compact objects.
       KSX = MAX(KSTAR(I1),KSTAR(I2))
       IF (KSX.GE.13.AND.KZ(28).GT.0) THEN
-         RCOAL = 6.0*BODY(I)/CLIGHT**2
+         RCOAL = 6.0*BODY(I)/CLIGHT**2*SU
       ELSE
          RCOAL = R1 + R2
       END IF
-      IF (rank.eq.0.and.KZ(28).GT.1.AND.DSEP.GT.0.0) THEN
-         WRITE (6,5)  TTOT, NAME(I1), KSX, ECC, SEMI*SU, DSEP/SEMI
-    5    FORMAT (' BRAKE    T NAM KX* E A DA/A ',
-     &                      F8.2,I6,I4,F9.5,1P,2E10.2)
+      if(rank.eq.0.AND.KZ(28).GT.1.AND.DSEP.GT.1.D-8)THEN
+         WRITE(6,665)
+     &   TTOT,STEP(I1),I,IPAIR,LIST(1,I1),
+     &   NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
+     &   M1,M2,ECC,ECC1,SEMI,SEMI1,DSEP,H(IPAIR),GAMMA(IPAIR),
+     &   PD,R1,R2,RP,RCOAL
+ 665  FORMAT(1X,' BRAKE T STEP',1P,2E13.5,' I IP NPERT',
+     &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
+     &   ' e,e1,a,a1=',4E13.5,' DSEP, H, GAMMA=',3E13.5,
+     &   ' PD,R1,2,Peri,Coal[R*]=',5E13.5)
       END IF
 *
 *       Check collision condition for degenerate objects.

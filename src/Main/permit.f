@@ -42,7 +42,7 @@
           IF (PERIM.LT.0.5*RSUM.AND.IGO.GT.0) THEN
               STEPS(ICHSUB) = 0.0
 *     ks mpi communication for steps
-              call ksparmpi(K_store,K_real8,K_STEPS,ICHSUB,0,0.0)
+*             call ksparmpi(K_store,K_real8,K_STEPS,ICHSUB,0,0.0)
           END IF
       END IF
 *

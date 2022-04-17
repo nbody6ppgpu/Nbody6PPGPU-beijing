@@ -55,7 +55,7 @@
          IOSC(IC) = 0
          KSTAR(I) = -1
 *     ks MPI communication
-         call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*        call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
          TOSC(IC) = TIME
 *     Ensure next location contains zero core mass (avoids confusion).
          CM(1,NCHAOS+1) = 0.0
@@ -82,7 +82,7 @@
 *     Activate spiral indicator and save time, pericentre & eccentricity.
          KSTAR(I) = -2
 *     ks MPI communication
-         call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*        call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
          TOSC(IC) = TIME
          RP(IC) = QPERI
          ES(IC) = ECC
@@ -152,7 +152,7 @@
                NCHAOS = NCHAOS - 1
                KSTAR(I) = 0
 *     ks MPI communication
-               call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*              call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
                GO TO 80
             END IF
 *     Restrict tidal circularization to short time-scales (< 100 Myr).
@@ -162,7 +162,7 @@
                NCHAOS = NCHAOS - 1
                KSTAR(I) = 0
 *     ks MPI communication
-               call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*              call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
                GO TO 80
             END IF
 *     Skip initialization for difficult hierarchy and small EMAX.
@@ -174,7 +174,7 @@
                   NCHAOS = NCHAOS - 1
                   KSTAR(I) = 0
 *     ks MPI communication
-                  call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*                 call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
                   GO TO 80
                END IF
             END IF
@@ -190,7 +190,7 @@
 *     Activate spiral indicator and save time, pericentre & eccentricity.
             KSTAR(I) = -2
 *     ks MPI communication
-            call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*           call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
             TOSC(IC) = TIME
             RP(IC) = QPERI
             ES(IC) = ECC0
@@ -337,9 +337,9 @@
       EGRAV = EGRAV + DEB
       E(10) = E(10) + DEB
 *     ks MPI communication ECOLL EGRAV E(10)
-      call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DEB)
-      call ksparmpi(K_store,K_real8,K_EGRAV,0,0,DEB)
-      call ksparmpi(K_store,K_real8,K_E10,0,0,DEB)
+*     call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DEB)
+*     call ksparmpi(K_store,K_real8,K_EGRAV,0,0,DEB)
+*     call ksparmpi(K_store,K_real8,K_E10,0,0,DEB)
 *     
 *     Check energy or eccentricity criterion for chaotic case.
       IF (KZ(27).EQ.2.AND.(IOSC(IC).EQ.1.OR.IOSC(IC).EQ.-1)) THEN

@@ -126,10 +126,8 @@
               CALL FLUSH(18)
           END IF
 *       Reset c.m. Roche flag to standard type for non-zero eccentricity.
-*       Special Treatment of GR for compact binaries RSp March 2019 note binary type 25
-          IF (KSTAR(I).GE.10.AND.KSTAR(I).LT.25.
-     &       AND.ECC2.GT.4.0D-06) KSTAR(I) = 0
-          IF (KSTAR(I).GE.10.AND.KSTAR(I).LT.25) K10 = K10 + 1
+          IF (KSTAR(I).GE.10.AND.ECC2.GT.4.0D-06) KSTAR(I) = 0
+          IF (KSTAR(I).GE.10) K10 = K10 + 1
    50 CONTINUE
 *
 *       Set fractional gain of binding energy (initial energy = -0.25).

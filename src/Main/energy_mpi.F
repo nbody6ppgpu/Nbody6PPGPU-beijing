@@ -51,8 +51,8 @@ c$$$      end if
       call cputim(tt998)
       call mpi_barrier(MPI_COMM_WORLD,ierr)
       call cputim(tt999)
-      ttbar = ttbar + (tt999-tt998)*60
-      ibarcount=ibarcount+1
+      if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
+      if(rank.eq.0)ibarcount=ibarcount+1
 
 #ifdef GPU
 *
@@ -184,13 +184,13 @@ C
      *                  MPI_COMM_WORLD,status,ierr)
 #endif      
       call cputim(ttab)
-      ttsube = ttsube + (ttab-ttae)*60
+      if(rank.eq.0)ttsube = ttsube + (ttab-ttae)*60.
 *
       call cputim(tt998)
       call mpi_barrier(MPI_COMM_WORLD,ierr)
       call cputim(tt999)
-      ttbar = ttbar + (tt999-tt998)*60
-      ibarcount=ibarcount+1
+      if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
+      if(rank.eq.0)ibarcount=ibarcount+1
 
  1001  continue
 #ifdef GPU       

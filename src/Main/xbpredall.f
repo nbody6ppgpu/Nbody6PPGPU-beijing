@@ -4,71 +4,127 @@
 *     Predict x and xdot. (L.WANG)
 
       INCLUDE 'common6.h'
+      INCLUDE 'timing.h'
       INCLUDE 'omp_lib.h'
       COMMON/XPRED/ TPRED(NMAX),TRES(KMAX),ipredall
       REAL*8 TPRED
       LOGICAL iPREDALL
-
+*
+#ifdef PARALLEL
+      integer inum(maxpe),ista(maxpe)
+*     REAL*8 PMPI(7,NMAX)
+#endif
       IF (IPREDALL) RETURN
-
+*
       NNPRED = NNPRED + 1
-!$omp parallel do private(J,S,S1,S2,JPAIR,J1,J2,ZZ)
-      DO 40 J = IFIRST,NTOT
-*     IF(TPRED(J).NE.TIME) THEN
+*
+#ifdef PARALLEL
+      call cputim(tt998)
+      call mpi_barrier(MPI_COMM_WORLD,ierr)
+      call cputim(tt999)
+      if(rank.eq.0)ibarcount=ibarcount+1
+      if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
+      if(rank.eq.0)ttbarpr = ttbarpr + (tt999-tt998)*60.
+*
+      nl = ntot-ifirst+1
+*
+      inl = nl/isize
+      idiff = nl - isize*inl
+      irun = 0
+*
+      do 1003 ix = 1,isize
+      inum(ix)=inl
+      if(ix.le.idiff)inum(ix) = inum(ix) + 1
+      ista(ix) = irun+1
+      irun = irun + inum(ix)
+ 1003 continue
+*
+      istart = ista(rank+1) + IFIRST - 1
+      iend = ista(rank+1) + inum(rank+1) - 2 + IFIRST
+#else
+      istart = ifirst
+      iend = ntot
+#endif
+!$omp parallel do private(J,S,S1,S2)
+      DO 40 J = istart,iend
          S = TIME - T0(J)
          S1 = 1.5*S
          S2 = 2.0*S
-         X(1,J) = ((FDOT(1,J)*S + F(1,J))*S +X0DOT(1,J))*S +X0(1,J)
-         X(2,J) = ((FDOT(2,J)*S + F(2,J))*S +X0DOT(2,J))*S +X0(2,J)
-         X(3,J) = ((FDOT(3,J)*S + F(3,J))*S +X0DOT(3,J))*S +X0(3,J)
-         XDOT(1,J) = (FDOT(1,J)*S1 + F(1,J))*S2 + X0DOT(1,J)
-         XDOT(2,J) = (FDOT(2,J)*S1 + F(2,J))*S2 + X0DOT(2,J)
-         XDOT(3,J) = (FDOT(3,J)*S1 + F(3,J))*S2 + X0DOT(3,J)
+*        PMPI(1:3,J) = ((FDOT(1:3,J)*S + F(1:3,J))*S +
+*    &        X0DOT(1:3,J))*S + X0(1:3,J)
+*        PMPI(4:6,J) = (FDOT(1:3,J)*S1 + F(1:3,J))*S2 + X0DOT(1:3,J)
+*        PMPI(7,J) = TIME
+         X(1:3,J) = ((FDOT(1:3,J)*S + F(1:3,J))*S +
+     &        X0DOT(1:3,J))*S + X0(1:3,J)
+         XDOT(1:3,J) = (FDOT(1:3,J)*S1 + F(1:3,J))*S2 + X0DOT(1:3,J)
          TPRED(J) = TIME
-         TTIME = TIME
-         IF (J.GT.N) THEN
-            JPAIR = J - N
+ 40   CONTINUE
+!$omp end parallel do
+*     Predict members of KS pairs (R.Sp. Jan22)
+      if(npairs.gt.0)then
+         do jpair = 1,npairs
+            TTIME = TIME
             IF (LIST(1,2*JPAIR - 1).GT.0) THEN
                ZZ = 1.0
                IF (GAMMA(JPAIR).GT.1.0D-04) ZZ = 0.0
                CALL KSRES2(JPAIR,J1,J2,ZZ,TTIME)
             END IF
-*     --03/07/14 21:22-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$            IF(J.EQ.12195) THEN
-c$$$               print*,rank,'PA I',J,'N',NAME(J),'X',X(1,J),'X1',X(1,J1),
-c$$$     &              'X2',X(1,J2),'T',TIME,'TPR',TPRED(J),ipredall,
-c$$$     &              'T0',T0(J),'x0',x0(1,j),'F',F(1,j),'FD',FDOT(1,j)
-c$$$               call flush(6)
-c$$$            end if
-*     --03/07/14 21:22-lwang-end----------------------------------------*
-         END IF
- 40   CONTINUE
-!$omp end parallel do
-*     --05/12/14 17:26-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      do KK=ifirst,ntot
-c$$$         write(102+rank,*) 'I',KK,'N',NAME(KK),'X',X(1:3,KK),
-c$$$     &        'XD',XDOT(1:3,KK),'X0',X0(1:3,KK),'X0D',X0DOT(1:3,kk),
-c$$$     &        'T0',T0(KK)
-c$$$         if(KK.GT.N) then
-c$$$            jpair=kk-n
-c$$$            k1=2*(kk-n)-1
-c$$$            k2=k1+1
-c$$$            if(list(1,k1).gt.0) then
-c$$$            write(102+rank,*) 'P',K1,K2,'N',NAME(K1),NAME(K2),'X1',
-c$$$     &           X(1:3,K1),'X2',X(1:3,K2),'XD1',XDOT(1:3,K1),
-c$$$     &              'XD2',XDOT(1:3,K2),'U0',U0(1:4,KK-n),'UDOT',
-c$$$     &              UDOT(1:4,jpair),'FU',FU(1:4,jpair),'FUDOT',
-c$$$     &              FUDOT(1:4,jpair),'FUDOT2',FUDOT2(1:4,jpair),
-c$$$     &              'T',TIME
-c$$$            end if
-c$$$         end if
-c$$$      end do
-*     --05/12/14 17:26-lwang-end----------------------------------------*
-      iPREDALL = .true.
-
+         end do
+      end if
+*
+         call cputim(tttxpre)
+*        Distribute variables into private vectors again T3D (R.Sp.)
+#ifdef PARALLEL
+      isend = rank + 1
+      if(isend.eq.isize)isend = 0
+      irecv = rank - 1
+      if(irecv.eq.-1)irecv = isize - 1
+*
+      do 1001 ir = 0,isize-2
+*
+      irank = rank - ir
+      if(irank.lt.0)irank=irank+isize
+*
+      istart=ista(irank+1) + IFIRST - 1
+      icnt = inum(irank+1)
+*
+      if(irank.eq.0)irank=isize
+      istrec = ista(irank) + IFIRST - 1
+      icnt2 = inum(irank)
+*
+*     CALL MPI_SENDRECV(PMPI(1,istart),7*icnt,MPI_REAL8,isend,rank,
+*    *                  PMPI(1,istrec),7*icnt2,MPI_REAL8,irecv,irecv,
+*    *                  MPI_COMM_WORLD,status,ierr)
+*
+      CALL MPI_SENDRECV(X(1,istart),3*icnt,MPI_REAL8,isend,rank,
+     *                  X(1,istrec),3*icnt2,MPI_REAL8,irecv,irecv,
+     *                  MPI_COMM_WORLD,status,ierr)
+      CALL MPI_SENDRECV(XDOT(1,istart),3*icnt,MPI_REAL8,isend,rank,
+     *                  XDOT(1,istrec),3*icnt2,MPI_REAL8,irecv,irecv,
+     *                  MPI_COMM_WORLD,status,ierr)
+      CALL MPI_SENDRECV(TPRED(istart),icnt,MPI_REAL8,isend,rank,
+     *                  TPRED(istrec),icnt2,MPI_REAL8,irecv,irecv,
+     *                  MPI_COMM_WORLD,status,ierr)
+       call cputim(tt998)
+       call mpi_barrier(MPI_COMM_WORLD,ierr)
+       call cputim(tt999)
+       if(rank.eq.0)ibarcount=ibarcount+1
+       if(rank.eq.0)ttbarpr = ttbarpr + (tt999-tt998)*60.
+       if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
+*
+ 1001 continue
+*!$omp parallel do private(J)
+*      DO 50 J=IFIRST,NTOT
+*      X(1:3,J) = PMPI(1:3,J)
+*      XDOT(1:3,J) = PMPI(4:6,J)
+*      TPRED(J) = PMPI(7,J)
+* 50   CONTINUE
+*!$omp end parallel do
+#endif
+         call cputim(tttypre)
+         if(rank.eq.0)ttpre = ttpre + (tttypre-tttxpre)*60.
+*
       return
-
+*
       end
       

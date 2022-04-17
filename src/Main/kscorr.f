@@ -136,7 +136,7 @@
           IF (ITER.EQ.ITP) THEN
 *       Transform to improved coordinates & velocities.
              I1 = 2*IPAIR - 1
-             call kstran(I1,UI,UIDOT,XI,VI)
+             CALL KSTRAN(I1,UI,UIDOT,XI,VI)
              NNB0 = LIST(1,I1)
 *       Re-calculate the perturbing force & derivative.
              call KSPERT(I1,NNB0,XI,VI,FP,FD)

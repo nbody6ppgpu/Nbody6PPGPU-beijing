@@ -167,12 +167,12 @@ c$$$      END IF
      &         BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
      &         RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VI
   15      FORMAT (/,' END KSREG   TIME[NB]',1P,E17.10,' NM1,2,S=',
-     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E10.2,
-     &         ' M1,2[NB]',2E10.2,' R12[NB]',E10.2,
-     &         ' e,a,eb[NB]=',2E12.4,E10.2,' P[d]=',E10.2,' H',E10.2,
-     &         ' GAMMA',1P,E10.2,' STEP(ICM)',E10.2,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E10.2,' RAD1,2,S[*]',3E10.2,
-     &         ' RI,VI[NB]=',2E10.2)
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
+     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
+     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
+     &         ' RI,VI[NB]=',2E11.3)
 *     --04/15/14 21:40-lwang-debug--------------------------------------*
 ***** Note:------------------------------------------------------------**
 c$$$          if(rank.eq.0.and.name(icm).eq.2567) call abort()

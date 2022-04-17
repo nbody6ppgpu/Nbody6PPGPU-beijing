@@ -337,8 +337,8 @@
          DTR = TT - TIME
          IF(DTR.LT.0.D0.AND.ITEV)THEN
 *     MPI communication for TEV
-            call ksparmpi(K_store,K_real8,K_TEV,J1,0,TEV(J1))
-            call ksparmpi(K_store,K_real8,K_TEV,J2,0,TEV(J2))
+*           call ksparmpi(K_store,K_real8,K_TEV,J1,0,TEV(J1))
+*           call ksparmpi(K_store,K_real8,K_TEV,J2,0,TEV(J2))
             TEV(J1) = MIN(TEV(J1),TIME)
             TEV(J2) = TEV(J1)
          ENDIF

@@ -8,6 +8,7 @@
       CHARACTER*10 FILE(100)
       CHARACTER*7 FILESTAT
       INTEGER STAT
+      LOGICAL LSKIP
 *
 #ifdef PARALLEL
 #define MPIINIT 1
@@ -50,12 +51,14 @@
       FILE(17) = 'binev.17  '
       FILE(18) = 'pbin.18   '
       FILE(20) = 'symb.20   '
+      FILE(21) = 'datsev.21 '
       FILE(22) = 'rocdeg.22 '
       FILE(24) = 'coal.24   '
       FILE(25) = 'sediag.25 '
       FILE(26) = 'cmbody.26 '
       FILE(29) = 'highv.29  '
       FILE(30) = 'global.30 '
+      FILE(31) = 'escbin.31 '
       FILE(33) = 'ns.33     '
       FILE(34) = 'bh.34     '
       FILE(35) = 'event.35  '
@@ -77,6 +80,7 @@
       FILE(84) = 'merger.84 '
       FILE(85) = 'roche.85  '
       FILE(86) = 'cmbody.86 '
+      FILE(88) = 'dtmin.88  '
       FILE(89) = 'quastab.89'
       FILE(91) = 'bs.91     '
       FILE(95) = 'wdcirc.95 '
@@ -84,23 +88,16 @@
 #ifdef PARALLEL
       if(rank.eq.0) then
 #endif
-* At beginning of run make sure all files are deleted.
+* At beginning of run make sure all files are deleted, except those to
+* read from or stdin, stdout (5,6,10,21) .
       IF(TTOT.EQ.0.D0)THEN
-         DO IFILE = 1,4
+         DO IFILE = 1,100
+         LSKIP = IFILE.EQ.5.OR.IFILE.EQ.6.OR.IFILE.EQ.10.OR.IFILE.EQ.21
+         IF(LSKIP) GOTO 123
       OPEN(UNIT=IFILE,IOSTAT=STAT,FILE=FILE(IFILE),STATUS='OLD',ERR=123)
          IF(STAT.EQ.0) CLOSE(IFILE,STATUS='delete')
  123     CONTINUE
          END DO
-         DO IFILE = 7,9
-      OPEN(UNIT=IFILE,IOSTAT=STAT,FILE=FILE(IFILE),STATUS='OLD',ERR=124)
-         IF(STAT.EQ.0) CLOSE(IFILE,STATUS='delete')
- 124     CONTINUE
-         END DO
-         DO IFILE = 11,100
-      OPEN(UNIT=IFILE,IOSTAT=STAT,FILE=FILE(IFILE),STATUS='OLD',ERR=125)
-         IF(STAT.EQ.0) CLOSE(IFILE,STATUS='delete')
- 125     CONTINUE
-         END DO  
 *
          FILESTAT = 'NEW    '
       ELSE
@@ -146,6 +143,9 @@
       IF (KZ(19).GE.3)
      &OPEN (UNIT=20,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(20),
      &             ACCESS='APPEND')
+      IF(KZ(19).EQ.2.OR.KZ(19).EQ.4)
+     &OPEN (UNIT=21,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(21),
+     &             ACCESS='APPEND')
       IF (KZ(34).GT.0)
      &OPEN (UNIT=22,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(22),
      &             ACCESS='APPEND')
@@ -163,6 +163,9 @@
      &             ACCESS='APPEND')
 
       OPEN (UNIT=30,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(30),
+     &             ACCESS='APPEND')
+      IF (KZ(23).EQ.2.OR.KZ(23).EQ.4)
+     &OPEN (UNIT=31,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(31),
      &             ACCESS='APPEND')
       IF (KZ(19).GE.3)
      &OPEN (UNIT=33,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(33),
@@ -232,6 +235,8 @@
      &             ACCESS='APPEND')
       IF (KZ(19).GE.3)
      &OPEN (UNIT=86,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(86),
+     &             ACCESS='APPEND')
+      OPEN (UNIT=88,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(88),
      &             ACCESS='APPEND')
       IF (KZ(15).GE.3)
      &OPEN (UNIT=89,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(89),

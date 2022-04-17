@@ -41,9 +41,8 @@
       RI2 = (X(1,I) - RDENS(1))**2 + (X(2,I) - RDENS(2))**2 +
      &                               (X(3,I) - RDENS(3))**2
 
-*       Skip Impact for hard binaries Francesco Rizzuto
-      IF (KZ273.GT.2.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &   (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
+*       Skip Impact for hard binaries Francesco Rizzuto/R.Sp. Dec. 2021
+      IF (KSTAR(I).EQ.-25) THEN
          SEMI_ = -0.5*BODY(I)/H(IPAIR)
          ECC2 = (1.0-R(IPAIR)/SEMI_)**2+TDOT2(IPAIR)**2/(BODY(I)*SEMI_)
          ECC = SQRT(ECC2)
@@ -186,7 +185,7 @@ c$$$      end if
               ELSE
                   KSTAR(I) = 0
 *     ks MPI communication
-                  call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*                 call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
               END IF
           END IF
       END IF
@@ -260,7 +259,7 @@ c$$$          end if
 *       Save initial energy in binaries for routine SETSYS.
           EBCH0 = EBT - EB1
 *     ks MPI communication EBCH0
-          call ksparmpi(K_store,K_real8,K_EBCH0,0,0,EBCH0)
+*         call ksparmpi(K_store,K_real8,K_EBCH0,0,0,EBCH0)
 *       Use RIJ instead of RSUM in 3*RGRAV test (increases initial RIJ).
 *     When there are two wide binaries with big mass ratio, add PMIN GT
 *     2*RMIN, switch on Chain
@@ -373,13 +372,13 @@ C      IF (KZ(30).EQ.-2.AND.KCHAIN.EQ.0) GO TO 100
      &      RADIUS(JCOMP)*SU,R(IPAIR)*SU,RIJ*SU,RI,VI
    20     FORMAT (/,' NEW',A8,1P,' TIME',E12.5,' INCM',I9,
      &         ' I3',I9,' INPAIR',I9,' N1,2,3,INCM',4I10,
-     &         ' KW1,2,3,IN',4I4,' M1,2[NB]',2E10.2,' M3,TOT',2E10.2,
-     &         '  R12',E10.2,' H',E10.2,
-     &         ' IN e,a,eb[NB]',2E12.4,E10.2,' P[d]',E10.2,
-     &         ' OUT e,a,eb[NB]',2E12.4,E10.2,' P[d]',E10.2,
+     &         ' KW1,2,3,IN',4I4,' M1,2[NB]',2E11.3,' M3,TOT',2E11.3,
+     &         '  R12',E11.3,' H',E11.3,
+     &         ' IN e,a,eb[NB]',2E12.4,E11.3,' P[d]',E11.3,
+     &         ' OUT e,a,eb[NB]',2E12.4,E11.3,' P[d]',E11.3,
      &         '  G4',E10.3,'  RIN3',E8.1,'  PERIM',E8.1,'  EB1/EB0 ',
-     &         E8.1,'  NP',I4,' M1,2,3,TOT[*]',4E10.2,' RAD1,2,3[*]',
-     &         3E10.2,' IN,OUT Sep[*]',2E10.2,'  RI,VI[NB]',2E10.2)
+     &         E8.1,'  NP',I4,' M1,2,3,TOT[*]',4E11.3,' RAD1,2,3[*]',
+     &         3E11.3,' IN,OUT Sep[*]',2E11.3,'  RI,VI[NB]',2E11.3)
           call flush(6)
       END IF
 *
@@ -403,12 +402,12 @@ c$$$      call mpi_barrier(MPI_COMM_WORLD,ierr)
                if(rank.eq.0) THEN
                   WRITE (6,21)  NAME(JCOMP), NAME(JMAX), RSUM, 
      &                 SQRT(RMAX2)
- 21               FORMAT (' B+2 CHAIN    NAM RSUM RMX ',2I7,1P,2E10.2)
+ 21               FORMAT (' B+2 CHAIN    NAM RSUM RMX ',2I7,1P,2E11.3)
                END IF
                CALL JPRED(JMAX,time,time)
                JCMAX = JMAX
 *     ks MPI communication JCMAX
-               call ksparmpi(K_store,K_int,K_JCMAX,0,0,JCMAX)
+*              call ksparmpi(K_store,K_int,K_JCMAX,0,0,JCMAX)
             END IF
          END IF
       END IF
@@ -425,8 +424,8 @@ c$$$      call mpi_barrier(MPI_COMM_WORLD,ierr)
      &                  RIJ, SEMI1, PMIN
    22     FORMAT (' CHAIN B-B    NAME(I1-I4)',4I10,'  K*(INCM)',I3,
      &         '  K*(OCM)',I3,'  ECC0',F6.3,'  ECC1',F6.3,'  SEMI0',
-     &         1P,E10.2'  SEMI2',E10.2,'  RIN3',E10.2,'  SEMI1',E10.2,
-     &         '  PERIM',E10.2,0P)
+     &         1P,E11.3'  SEMI2',E11.3,'  RIN3',E11.3,'  SEMI1',E11.3,
+     &         '  PERIM',E11.3,0P)
           RT = 4.0*MAX(RADIUS(I1),RADIUS(I2))
           IF (SEMI0.LT.4.0*RT.AND.LIST(1,J1).EQ.0.OR.
      &        MIN(SEMI0,SEMI2).LT.0.01*RIJ) THEN
@@ -444,7 +443,7 @@ c$$$      call mpi_barrier(MPI_COMM_WORLD,ierr)
                   JCOMP = 0
                   if(rank.eq.0)
      &            WRITE (6,25)  SEMI0, RIJ, R(JPAIR), GAMMA(JPAIR)
-   25             FORMAT (' INERT BINARY    A RIJ R G ',1P,4E10.2)
+   25             FORMAT (' INERT BINARY    A RIJ R G ',1P,4E11.3)
               END IF
           ELSE
               JCLOSE = 0
@@ -485,7 +484,7 @@ C          IF (KS2.GT.KSPAIR) KS2 = KS2 - 1
 *       Save KS indices and delay initialization until end of block step.
       CALL DELAY(KCHAIN,KS2)
 *     ks MPI delay
-      call ksparmpi(K_store,K_int,K_DELAY,0,0,0.0)
+*     call ksparmpi(K_store,K_int,K_DELAY,0,0,0.0)
       flag_delay=.true.
 c$$$*
 c$$$*       Prepare procedure for chain between hierarchy and single body (9/99).
@@ -494,7 +493,7 @@ c$$$*       Indentify merged ghost particle JG.
 c$$$          CALL FINDJ(I1,JG,IM)
 c$$$          if(rank.eq.0)
 c$$$     &    WRITE (6,28)  NAME(I), NAME(JCOMP), NAME(JG),ECC1, PMIN, RIJ
-c$$$   28     FORMAT (' HI CHAIN    NAM E1 PM RIJ ',I7,2I6,F7.3,1P,2E10.2)
+c$$$   28     FORMAT (' HI CHAIN    NAM E1 PM RIJ ',I7,2I6,F7.3,1P,2E11.3)
 c$$$          JJ = JCOMP
 c$$$*       Terminate the merger in the usual way.
 c$$$          KSPAIR = IPAIR
@@ -632,10 +631,10 @@ c$$$      END IF
      &            WRITE (6,35)  NAME(I1), KSTAR(I1), KSTAR(I2), ECC,
      &                          EMAX, QPERI/RM, EDAV, a0, PMIN, TC
    35             FORMAT (' IMPACT SLEEP    NM K* E EX QP/R ED A PM TC',
-     &                                      I7,2I4,2F8.4,F6.1,1P,4E10.2)
+     &                                      I7,2I4,2F8.4,F6.1,1P,4E11.3)
                   KSTAR(I) = 0
 *     ks MPI communication
-                  call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*                 call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
                   NSLP = NSLP + 1
                   II = -I
                   CALL SPIRAL(II)
@@ -650,7 +649,7 @@ c$$$      END IF
 *             if(rank.eq.0)
 *    &        WRITE (6,36) NAME(I1), ECC, TTOT, RADIUS(I1)*SU, QPERI, TC
 *  36         FORMAT (' TCIRC    NAM E T R* QP TC ',
-*    &                           I6,F7.3,F8.3,F7.1,1P,2E10.2)
+*    &                           I6,F7.3,F8.3,F7.1,1P,2E11.3)
 *       Beware possible termination by routine HMDOT using QPERI < 3*RADIUS.
               IF (TC.LT.2000.0.AND.ECC.GT.0.002) GO TO 100
           END IF
@@ -838,7 +837,7 @@ C     &         'ANGLE',ANGLE,'BODY1',BODY(I1),'BODY(I2)',BJ
                   if(rank.eq.0)
      &            WRITE (6,43)  TTOT, ALPH, ECC, ECC1, PMIN, FAIL, PERT
    43             FORMAT (' NEWSTAB    T INC EI EO PMIN FAIL PERT ',
-     &                                 F7.1,F7.2,2F8.4,1P,3E10.2)
+     &                                 F7.1,F7.2,2F8.4,1P,3E11.3)
               END IF
 *     if(rank.eq.0)then
 *     WRITE (57,444)  BODY(I1),(X(K,I1),K=1,3),(XDOT(K,I1),K=1,3)
@@ -850,7 +849,7 @@ C     &         'ANGLE',ANGLE,'BODY1',BODY(I1),'BODY(I2)',BJ
 *                 if(rank.eq.0)
 *    &            WRITE (6,44)  TTOT, NAME(I1), ECC1, EOUT, PCRIT, PMIN
 *  44             FORMAT (' MARGINAL STAB    T NM E1 EOUT PCR PMIN ',
-*    &                                       F7.1,I7,2F8.4,1P,2E10.2)
+*    &                                       F7.1,I7,2F8.4,1P,2E11.3)
                   NMTRY = 0
               END IF
           ELSE
@@ -885,8 +884,8 @@ C     &         'ANGLE',ANGLE,'BODY1',BODY(I1),'BODY(I2)',BJ
           IF (DT.LT.10.0*STEPX) GO TO 100
 *     KS MPI communication for tmdis
           TMDIS(NMERGE+1) = MIN(TIME + DT, TMDIS(NMERGE+1))
-          call ksparmpi(K_store,K_real8,K_TMDIS,NMERGE+1,0,
-     &         TMDIS(NMERGE+1))
+*         call ksparmpi(K_store,K_real8,K_TMDIS,NMERGE+1,0,
+*    &         TMDIS(NMERGE+1))
       END IF
 *
 *       Obtain growth time and inclination for significant eccentricity.
@@ -902,8 +901,8 @@ C     &         'ANGLE',ANGLE,'BODY1',BODY(I1),'BODY(I2)',BJ
                   TEV(I1) = TIME + 0.1
                   TEV(I2) = TIME + 0.1
 *     ks MPI COMMUNICATION tev
-                  call ksparmpi(K_store,K_real8,K_TEV,i1,0,TEV(I1))
-                  call ksparmpi(K_store,K_real8,K_TEV,i2,0,TEV(I2))
+*                 call ksparmpi(K_store,K_real8,K_TEV,i1,0,TEV(I1))
+*                 call ksparmpi(K_store,K_real8,K_TEV,i2,0,TEV(I2))
                   if(rank.eq.0)
      &            WRITE (6,46)  TIME+TOFF, NAME(I1), KSTAR(I), ECC, TC
    46             FORMAT (' ENFORCED TEV UPDATE    T NM K* E TC ',
@@ -915,7 +914,7 @@ C     &         'ANGLE',ANGLE,'BODY1',BODY(I1),'BODY(I2)',BJ
                   IF (DTR.LT.STEP(I)) THEN
                       TEV(I) = TIME + DTR
 *     ks MPI COMMUNICATION tev
-                      call ksparmpi(K_store,K_real8,K_TEV,I,0,TEV(I))
+*                     call ksparmpi(K_store,K_real8,K_TEV,I,0,TEV(I))
                   END IF
               ELSE
                   IF (EMAX.GT.0.8.OR.DE.GT.0.2.OR.DT.LT.0.1) GO TO 100
@@ -967,7 +966,7 @@ C     &         'ANGLE',ANGLE,'BODY1',BODY(I1),'BODY(I2)',BJ
               WRITE (6,48)  TTOT, Q, ECC, ECC1, SEMI, PMIN, PCRIT,
      &                      YFAC, SP
               WRITE (6,47) I,JCOMP,N,I1,I2,RIJ,SEMI1
-   47         FORMAT (' I JCOMP N I1 I2 RIJ A1   ',5I6,1P,2E10.2)
+   47         FORMAT (' I JCOMP N I1 I2 RIJ A1   ',5I6,1P,2E11.3)
               CALL FLUSH(7)
               WRITE (6,48)  TTOT, Q, ECC, ECC1, SEMI, PMIN, PCRIT,
      &                      YFAC, SP
@@ -1033,7 +1032,7 @@ C     &         'ANGLE',ANGLE,'BODY1',BODY(I1),'BODY(I2)',BJ
      &                      NAME(JJ), NAME(J1+1), ECC, ECC1, SEMI,
      &                      SEMI1, PMIN, PCRIT
    60         FORMAT (' HI MERGE    NAM E E1 A A1 PM PC ',
-     &                              6I7,2F7.3,1P,4E10.2)
+     &                              6I7,2F7.3,1P,4E11.3)
           END IF
       ELSE IF (KZ(15).GT.1) THEN
           WHICH1 = ' MERGER '
@@ -1074,7 +1073,7 @@ C          RI = SQRT(RI2)/RC
 C          if(rank.eq.0)
 C     &    WRITE (80,70)  TPHYS, RI, NAME(JCOMP), QL, Q1, ECC, ECC1,
 C     &                   SEMI, SEMI1, PCRIT/PMIN, 360.0*ANGLE/TWOPI,EMAX
-C   70     FORMAT (F8.1,F5.1,I6,2F6.2,2F6.3,1P,2E10.2,0P,F5.2,F6.1,F6.3)
+C   70     FORMAT (F8.1,F5.1,I6,2F6.2,2F6.3,1P,2E11.3,0P,F5.2,F6.1,F6.3)
 C          CALL FLUSH(80)
 C      END IF
 *
@@ -1087,8 +1086,8 @@ c$$$      CALL DELAY(IPHASE,-2)
 *       Save KS indices and delay merger until end of block step.
       CALL DELAY(KS2,KS2)
 *     ks MPI delay
-      if(.not.flag_delay) call ksparmpi(K_store,K_int,K_DELAY,0,0,0.0)
-      if(.not.flag_delay) call ksparmpi(K_store,K_int,K_DELAY,0,0,0.0)
+*     if(.not.flag_delay) call ksparmpi(K_store,K_int,K_DELAY,0,0,0.0)
+*     if(.not.flag_delay) call ksparmpi(K_store,K_int,K_DELAY,0,0,0.0)
 *
  100  IF (IPHASE.NE.8) JCMAX = 0
 *

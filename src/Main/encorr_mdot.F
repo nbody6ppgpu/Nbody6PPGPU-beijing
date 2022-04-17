@@ -54,7 +54,7 @@ c$$$               if(rank.eq.0) print*, 'GPU2:',DMPHI(1:NPNUM)
             END DO
          end if
          call cputim(tttpotb)
-         ttpotg = ttpotg + (tttpotb-tttpota)*60
+         if(rank.eq.0)ttpotg = ttpotg + (tttpotb-tttpota)*60.
 #else
          call cputim(tttpota)
          DMPHI(1:NPNUM) = 0.0
@@ -138,7 +138,7 @@ c$$$                  END DO
 c$$$               END DO
 c$$$            END IF
          call cputim(tttpotb)
-         ttpot = ttpot + (tttpotb-tttpota)*60
+         if(rank.eq.0)ttpot = ttpot + (tttpotb-tttpota)*60.
 *     --05/20/14 22:10-lwang-debug--------------------------------------*
 ***** Note:------------------------------------------------------------**
 *         if(NPNUM.GE.2) then
@@ -167,7 +167,7 @@ c$$$         end if
 *     --11/15/13 17:06-lwang-end----------------------------------------*
          NPNUM = 0
          call cputim(tttpotb)
-         ttecor = ttecor + (tttpotb-tttpota)*60
+         if(rank.eq.0)ttecor = ttecor + (tttpotb-tttpota)*60.
       END IF
 *     --11/11/13 18:27-lwang-end----------------------------------------*
 

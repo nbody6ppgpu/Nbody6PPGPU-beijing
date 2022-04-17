@@ -43,12 +43,12 @@
           IC = NCHAOS + 1
 *     KS mpi coummincation for CM
           CM(L,IC) = (0.3 + 0.1*FLOAT(KSTAR(I) - 3))/ZMBAR
-          call ksparmpi(K_store,K_real8,K_CM_M,L,IC,CM(L,IC))
+*         call ksparmpi(K_store,K_real8,K_CM_M,L,IC,CM(L,IC))
 *       Include rare case of hyperbolic encounter as the first event.
       ELSE IF (CM(L,IC).LE.0.0D0) THEN
 *     KS mpi coummincation for CM
           CM(L,IC) = (0.3 + 0.1*FLOAT(KSTAR(I) - 3))/ZMBAR
-          call ksparmpi(K_store,K_real8,K_CM_M,L,IC,CM(L,IC))
+*         call ksparmpi(K_store,K_real8,K_CM_M,L,IC,CM(L,IC))
       END IF
       IF(KSTAR(I).EQ.9) CM(L,IC) = 0.5*BODY(I)
 *
@@ -64,7 +64,7 @@
           SIG = 0.9
 *     KS mpi coummincation for CM
           CM(L,IC) = 0.9*BODY(I)
-          call ksparmpi(K_store,K_real8,K_CM_M,L,IC,CM(L,IC))
+*         call ksparmpi(K_store,K_real8,K_CM_M,L,IC,CM(L,IC))
       END IF
 *
 *       Define mass, core mass, radius, envelope mass and luminosity in S.U.

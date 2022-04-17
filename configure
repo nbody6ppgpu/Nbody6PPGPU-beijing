@@ -6023,7 +6023,7 @@ fi
 
 if test "x$par_size" == x10m; then :
   NMAX=11048576
-       KMAX=128000
+       KMAX=131072
        LMAX=600
        MMAX=1024
 elif test "x$par_size" == xb10m; then :
@@ -6031,14 +6031,34 @@ elif test "x$par_size" == xb10m; then :
        KMAX=5120000
        LMAX=600
        MMAX=2048
+elif test "x$par_size" == x8m; then :
+  NMAX=8388608
+       KMAX=131072
+       LMAX=600
+       MMAX=1024
+elif test "x$par_size" == xb8m; then :
+  NMAX=6291456
+       KMAX=2097152
+       LMAX=600
+       MMAX=2048
+elif test "x$par_size" == x4m; then :
+  NMAX=4194304
+       KMAX=131072
+       LMAX=600
+       MMAX=1024
+elif test "x$par_size" == xb4m; then :
+  NMAX=15107200
+       KMAX=1048576
+       LMAX=600
+       MMAX=2048
 elif test "x$par_size" == x1m; then :
   NMAX=1048576
-       KMAX=65536
+       KMAX=131072
        LMAX=600
        MMAX=1024
 elif test "x$par_size" == xb1m; then :
-  NMAX=1510720
-       KMAX=512000
+  NMAX=1572864
+       KMAX=524288
        LMAX=600
        MMAX=2048
 elif test "x$par_size" == x512k; then :

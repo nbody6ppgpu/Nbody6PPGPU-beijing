@@ -229,10 +229,10 @@
           if(rank.eq.0)
      &    WRITE (6,20)  NAMEC(I1), NAMEC(I2), SEMI, ECC, EB, GB, G4,
      &                  EB1, E1, ET, DB
-   20     FORMAT (' CHAIN BINARY','  NAM =',2I6,'  A =',1P,E8.1,
-     &            '  E =',0P,F5.2,'  EB =',F5.2,'  GB =',1P,E8.1,
-     &            '  G4 =',E8.1,'  EB1 =',0P,F5.2,'  E1 =',F5.2,
-     &            '  ET =',F6.3,'  DB =',F5.1)
+   20     FORMAT (' CHAIN BINARY','  NAM =',2I10,'  A =',1P,E12.4,
+     &            '  E =',E12.4,'  EB =',E12.4,'  GB =',E12.4,
+     &            '  G4 =',E12.4,'  EB1 =',E12.4,'  E1 =',E12.4,
+     &            '  ET =',E12.4,'  DB =',E12.4)
       END IF
 *
 *       Include output of strong interaction from chaos case.

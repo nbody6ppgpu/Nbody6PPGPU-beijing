@@ -54,7 +54,11 @@
       JORB = M1*M2/(M1 + M2)*SQRT(1.D0-ECC2)*SEP**2*OORB
 *
 *       Obtain angular momentum and eccentricity derivatives (SEMI < 10 R_s).
+         call cputim(ttgr9)
       CALL GRRAD(M1,M2,SEP,ECC0,JORB,DJGR,DELET)
+         call cputim(ttgr10)
+         if(rank.eq.0)ttgrrad = ttgrrad + (ttgr10-ttgr9)*60.
+         if(rank.eq.0)igrrad = igrrad + 1
 *
           DTGR = 0.02D0*JORB/ABS(DJGR)
             KW1 = KSTAR(I1)

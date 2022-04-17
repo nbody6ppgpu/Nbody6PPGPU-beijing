@@ -1,4 +1,4 @@
-      SUBROUTINE TIDES3(SEP,M1,M2,ECC,VSTAR,DTIME,DE)
+      SUBROUTINE TIDES3(SEP,M1,M2,ECC,CLIGHT,DTIME,DE)
 *
 *
 *       GR tidal energy loss for interacting stars.
@@ -10,15 +10,12 @@
 *       -------------------------------------------
 *  
       IMPLICIT REAL*8 (A-H,M,O-Z)
-      REAL*8  DE(5)
+      REAL*8  DE(5),CLIGHT
 *
-*
-    
-      C = 3.0D+05/VSTAR
       ECC2 = ECC*ECC
       ECC4 = ECC2*ECC2
       MTOT = M1 + M2
-      COST = C**(-5) * M1 * M2 * MTOT
+      COST = CLIGHT**(-5) * M1 * M2 * MTOT
 
 
       FE = (1.0D+0 + 7.3D+1/2.4D+1*ECC2 + 3.7D+1/9.6D+1*ECC4)
@@ -37,8 +34,6 @@
 *       DJ due to GW
       DE(5) = 3.2D+1/5.0D+0*COST*M1*M2*(M1 + M2)**(-0.5)*SEP**(-3.5)*FE3
       DE(5) = DE(5)*DTIME
-       
-*      PRINT *, 'TIDES3 41 ',ECC 
 *
 
       RETURN

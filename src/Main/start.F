@@ -131,13 +131,19 @@
               ICOMP = 2*IPAIR - 1
               JCOMP = 2*IPAIR
               RIJ2 = 0.0
+              VIJ2 = 0.0
+              XMBIN = BODY(ICOMP) + BODY(JCOMP)
 *       Include standard distance criterion.
               DO 45 K = 1,3
                   RIJ2 = RIJ2 + (X(K,ICOMP) - X(K,JCOMP))**2
+                  VIJ2 = VIJ2 + (XDOT(K,ICOMP) - XDOT(K,JCOMP))**2
    45         CONTINUE
-              IF (RIJ2.LT.RMIN**2) THEN
+              EREL = 0.5*VIJ2 - XMBIN/DSQRT(RIJ2)
+*     regularize all binaries from mcluster works well R.Sp. Jan2022
+*             IF (RIJ2.LT.RMIN**2.AND.EREL.LT.-1.0E-02) THEN
+*             IF (EREL.LT.-1.0E-02) THEN
                  CALL KSPREG
-              END IF
+*             END IF
    50     CONTINUE
 *     recover kstart
           KSTART = KSDUM

@@ -15,7 +15,6 @@
          ICM = IPAIR + N
          I2 = 2*IPAIR
          I1 = I2 - 1
-
 *     Form perturber list.
          CALL KSLIST(IPAIR)
 *     
@@ -70,9 +69,10 @@
          I1 = I2 - 1
 *
 *       Obtain apocentre distance.
-      SEMI = -0.5*BODY(ICM)/H(IPAIR)
-      ECC2 = (1.0-R(IPAIR)/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
-      RAP = SEMI*(1.0 + SQRT(ECC2))
+         EB = H(IPAIR)*BODY(I1)*BODY(I2)/BODY(ICM)
+         SEMI = -0.5*BODY(ICM)/H(IPAIR)
+         ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
+         RAP = SEMI*(1.0 + SQRT(ECC2))
 *
       IF (KZ(10).GT.0) THEN
          RIJ2 = (X(1,ICM) - RDENS(1))**2 + (X(2,ICM) - RDENS(2))**2 +
@@ -93,12 +93,12 @@
       END DO
 *
   60      FORMAT (/,' NEW KSREG   TIME[NB]',1P,E17.10,' NM1,2,S=',
-     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E10.2,
-     &         ' M1,2[NB]',2E10.2,' R12[NB]',E10.2,
-     &         ' e,a,eb[NB]=',2E12.4,E10.2,' P[d]=',E10.2,' H',E10.2,
-     &         ' GAMMA',1P,E10.2,' STEP(ICM)',E10.2,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E10.2,' RAD1,2,S[*]',3E10.2,
-     &         ' RI,VI[NB]=',2E10.2)
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
+     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
+     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
+     &         ' RI,VI[NB]=',2E11.3)
 *
       TIME = TIME0
 *

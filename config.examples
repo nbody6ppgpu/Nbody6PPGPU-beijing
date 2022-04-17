@@ -1,0 +1,2 @@
+./configure --disable-mpi --disable-simd --with-par=128k --enable-openmp --disable-gpu
+

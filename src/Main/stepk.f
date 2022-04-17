@@ -12,6 +12,11 @@
 *       Truncate any large value to first block-step entry.
       K = 1
       IF (DT.GE.SMAX) GO TO 10
+      IF (DT.LT.DTK(64))THEN
+      PRINT*,' STEPK DT,DTK(64)=',DT,DTK(64)
+      DTN = DTK(64)
+      RETURN
+      END IF
 *
 *       Compare predicted step with discrete values decreasing by 1/32.
       DT1 = DTK(1)

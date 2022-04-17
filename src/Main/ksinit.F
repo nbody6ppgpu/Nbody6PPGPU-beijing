@@ -175,7 +175,9 @@ c$$$      end if
 *
 *       Obtain apocentre distance.
       SEMI = -0.5*BODY(NTOT)/H(IPAIR)
-      ECC2 = (1.0-R(IPAIR)/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(NTOT)*SEMI)
+*       Use modulus for hyperbolic case (RS Apr 2022)
+      ASEMI = DABS(SEMI)
+      ECC2 = (1.0-R(IPAIR)/ASEMI)**2+TDOT2(IPAIR)**2/(ASEMI*BODY(NTOT))
       RAP = SEMI*(1.0 + SQRT(ECC2))
 *
 *       Include suggestion for monitoring hyperbolic encounters (suppressed).
@@ -183,7 +185,7 @@ c$$$      end if
 *         PMIN = SEMI*(1.0 - SQRT(ECC2))
 *         if(rank.eq.0)
 *    &    WRITE (6,56)  TIME+TOFF, NAME(ICOMP), NAME(JCOMP), PMIN
-*  56     FORMAT (' HYPERBOLIC    T NAM PMIN ',F8.2,2I6,1P,E10.2)
+*  56     FORMAT (' HYPERBOLIC    T NAM PMIN ',F8.2,2I6,1P,E11.3)
 *     END IF
 *
 *       Set 2*SEMI as termination scale for hard binary if 2*SEMI < RS/20.
@@ -213,12 +215,12 @@ c$$$      end if
      &         BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,
      &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII
   60      FORMAT (/,' NEW KSREG   TIME[NB]',1P,E17.10,' NM1,2,S=',
-     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E10.2,
-     &         ' M1,2[NB]',2E10.2,' R12[NB]',E10.2,
-     &         ' e,a,eb[NB]=',2E12.4,E10.2,' P[d]=',E10.2,' H',E10.2,
-     &         ' GAMMA',1P,E10.2,' STEP(ICM)',E10.2,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E10.2,' RAD1,2,S[*]',3E10.2,
-     &         ' RI,VI[NB]=',2E10.2)
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
+     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
+     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
+     &         ' RI,VI[NB]=',2E11.3)
           call flush(6)
 *     --03/15/14 13:20-lwang-debug--------------------------------------*
 ***** Note:------------------------------------------------------------**
@@ -238,16 +240,22 @@ c$$$          if(R(IPAIR).ge.1) call abort()
          RI = SQRT(X(1,NTOT)**2 + X(2,NTOT)**2 + X(3,NTOT)**2)
          VII = SQRT(XDOT(1,NTOT)**2 + XDOT(2,NTOT)**2 + XDOT(3,NTOT)**2)
           PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(NTOT))*TSTAR*365.24D6
-              if(rank.eq.0)
-     &        WRITE (6,65)  TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
-     &          NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
-     &          BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,IPAIR,R(IPAIR),
-     &          SQRT(ECC2), PD, EB, RADIUS(ICOMP)*SU,
-     &          RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII
-   65         FORMAT (' NS/BH BINARY    T ',1P,E10.2,' NM1,2,S',3I10,
-     &               ' KW1,2,S=',3I4,' M1,2[*]',2E10.2,' IPAIR',I9,
-     &               ' R12[NB]',E10.2,' e,p,eb=',3E13.5,
-     &               '  RAD1,2,S[*]',3E10.2,' RI,VI[NB]=',2E10.2)
+              if(rank.eq.0)then
+          WRITE (6,65)  TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+     &         NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
+     &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
+     &         R(IPAIR),ECC,SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(NTOT),LIST(1,ICOMP),LIST(1,NTOT),
+     &         BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,
+     &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,DEB
+  65      FORMAT (/,' NS/BH BINARY T[NB]',1P,E17.10,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
+     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
+     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
+     &         ' RI,VI[NB],DEB=',3E11.3)
+               end if
           END IF
       END IF
 *

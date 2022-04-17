@@ -474,8 +474,8 @@
           EGRAV = EGRAV + DECORR
 *     ks MPI communication EMERGE ECOLL EGRAV
 *          call ksparmpi(K_store,K_real8,K_EMERGE,0,0,-DECORR)
-          call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DECORR)
-          call ksparmpi(K_store,K_real8,K_EGRAV,0,0,DECORR)
+*         call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DECORR)
+*         call ksparmpi(K_store,K_real8,K_EGRAV,0,0,DECORR)
 *       Define circularization if e0 < 0.002 (end of Kozai cycle).
           IF (e0.LT.0.002) THEN
               KM = KSTARM(IM)
@@ -484,8 +484,8 @@
               TMDIS(IM) = 1.0D+10
               TEV(N+IPAIR) = MIN(TEV(I),TEV(IG)) - 2.0*STEPX
 *     ks MPI communication TEV
-              call ksparmpi(K_store,K_real8,K_TEV,N+IPAIR,0,
-     &             TEV(N+IPAIR))
+*             call ksparmpi(K_store,K_real8,K_TEV,N+IPAIR,0,
+*    &             TEV(N+IPAIR))
               TB = DAYS*SEMI*SQRT(SEMI/BODY(I))
               ALPH = ZI*360.0/TWOPI
               if(rank.eq.0)

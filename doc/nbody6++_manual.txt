@@ -1,0 +1,4 @@
+
+ The link for the constantly evolving NBODY6++GPU Manual is here:
+
+ https://www.overleaf.com/read/hcmxcyffjkzq

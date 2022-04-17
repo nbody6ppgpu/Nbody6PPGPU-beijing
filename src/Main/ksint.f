@@ -21,8 +21,7 @@
 *      COMMON/GAMDOT/  DGAM
       REAL*8  UI(4),UIDOT(4),XI(6),VI(6),FP(6),FD(6),A_EIN,CL2
       INTEGER RES
-      INTEGER, SAVE :: COUNTER=0
-      LOGICAL IQ
+      LOGICAL IQ,LBRAKE
 *     --01/02/14 20:43-lwang-debug--------------------------------------*
 ***** Note:------------------------------------------------------------**
 c$$$      COMMON/XPRED/ TPRED(NMAX),TRES(KMAX),ipredall
@@ -39,29 +38,6 @@ c$$$      LOGICAL ipredall
       call jpred(i,time,time)
 *
       CL2 = CLIGHT**2   
-*     --09/25/13 14:22-lwang-debug--------------------------------------*
-***** Note: To test whether the value are same for all nodes at beginnging of ksint*
-c$$$      if(i1.eq.15967.and.tblock.eq.0.73089027404785156) THEN
-c$$$         write(120+rank,*),'KSINT I1',I1,'n',name(i1),'IPAIR',ipair,
-c$$$     &        'U',U(1,IPAIR),'U0',U0(1,IPAIR),
-c$$$     &        'UDOT',UDOT(1,ipair),'FU',FU(1,ipair),
-c$$$     &        'FT',FUDOT(1,ipair),'FT2',FUDOT2(1,ipair),
-c$$$     &        'FT3',FUDOT3(1,ipair),'FP0',FP0(1,Ipair),
-c$$$     &        'FD0',FD0(1,ipair),'H',H(ipair),'HT',HDOT(ipair),
-c$$$     &        'HT2',HDOT2(ipair),'HT3',HDOT3(ipair),
-c$$$     &        'HT4',HDOT4(ipair),'dt',DTAU(ipair),
-c$$$     &        'TD2',TDOT2(ipair),'TD3',TDOT3(ipair),
-c$$$     &        'R',R(ipair),'R0',r0(ipair),
-c$$$     &        'Gamma',GAMMA(ipair),'H0',h0(ipair),
-c$$$     &        'SF',sf(1,ipair),'kslow',kslow(ipair),
-c$$$     &        'nnb',LIST(1,i1),'list',list(2,i1)
-c$$$     &        ,'step',step(i1),'t0',t0(i1),'tblock',tblock
-c$$$         print*,rank,'ksint I1',i1,'X',x(1,i1),'xdot',xdot(1,i1),
-c$$$     &        'UDOT',udot(1,ipair),'tblock',tblock
-c$$$         call flush(120+rank)
-c$$$         call mpi_barrier(MPI_COMM_WORLD,ierr)
-c$$$      end if
-*     --09/25/13 14:23-lwang-end----------------------------------------*
 *
 *       Define perturber membership & inverse c.m. mass.
       NNB0 = LIST(1,I1)
@@ -69,173 +45,30 @@ c$$$      end if
 *
 *       Check for further unperturbed motion.
       IF (NNB0.EQ.0.AND.H(IPAIR).LT.0.0) THEN
-c$$$*       Include possible eccentricity modulation of hierarchical binary.
-c$$$          IF (NAME(I).LT.0) THEN
-c$$$              IM = 0
-c$$$              DO 1 K = 1,NMERGE
-c$$$                  IF (NAMEM(K).EQ.NAME(I)) IM = K
-c$$$    1         CONTINUE
-c$$$              IF (IM.GT.0.AND.TIME.GT.TMDIS(IM)) THEN
-c$$$                  SEMI = -0.5*BODY(I)/H(IPAIR)
-c$$$                  ECC2 = (1.0 - R(IPAIR)/SEMI)**2 +
-c$$$     &                                   TDOT2(IPAIR)**2/(BODY(I)*SEMI)
-c$$$                  RP = SEMI*(1.0 - SQRT(ECC2))*(1.0 - 2.0*GAMMA(IPAIR))
-c$$$                  IF (RP.LT.R0(IPAIR)) THEN
-c$$$                      if(rank.eq.0)
-c$$$     &                WRITE (77,4)  NAME(I1), SQRT(ECC2), RP, R0(IPAIR)
-c$$$    4                 FORMAT (' TMDIS TERM    NM E RP R0',I7,1P,3E10.2)
-c$$$                      CALL FLUSH(77)
-c$$$                      INSTAB = INSTAB + 1
-c$$$                      GO TO 90
-c$$$                  ELSE IF (KZ(27).EQ.2) THEN
-c$$$                      CALL ECCMOD(I,ITERM)
-c$$$*       Update time on termination to prevent looping.
-c$$$                      IF (ITERM.GT.0) THEN
-c$$$                          T0(I1) = TIME
-c$$$                          GO TO 90
-c$$$                      END IF
-c$$$                  END IF
-c$$$*       Check any inner and outer circularizing binary using NAMEM & NAMEG.
-c$$$                  DO 3 K = 1,NCHAOS
-c$$$                      IF (NAMEC(K).EQ.NZERO - NAMEM(IM)) THEN
-c$$$*       Update unperturbed binary if T - TOSC > 10 Myr (cf. IMPACT & DECIDE).
-c$$$                          IF ((TIME - TOSC(K))*TSTAR.GT.10.0) THEN
-c$$$                              T0(I1) = TIME
-c$$$                              GO TO 90
-c$$$                          END IF
-c$$$                      END IF
-c$$$                      IF (NAMEC(K).EQ.NAMEG(IM)) THEN
-c$$$                          IF ((TIME - TOSC(K))*TSTAR.GT.10.0) THEN
-c$$$                              T0(I1) = TIME
-c$$$                              GO TO 90
-c$$$                          END IF
-c$$$                      END IF
-c$$$    3             CONTINUE
-c$$$              END IF
-c$$$          END IF
          call cputim(tt1)
           CALL UNPERT(IPAIR)
           call cputim(tt2)
-          ttup = ttup + (tt2-tt1)*60.
+          if(rank.eq.0)ttup = ttup + (tt2-tt1)*60.
           GO TO 100
       END IF
 *
 *       Perform KS prediction of U, UDOT & H.
       CALL KSPRED(IPAIR,I1,I,BODYIN,UI,UIDOT,XI,VI)
 *
-*     --01/02/14 13:42-lwang-debug--------------------------------------*
-***** Note: check predicted value--------------------------------------**
-c$$$      if(tblock.eq.29.053588867187500.and.name(i1).eq.1759) then
-c$$$         write(125+rank,*)'KSPRED I1',I1,'IPAIR',ipair,'NNB',list(1,i1),
-c$$$     &        'XI',XI(1),'VI',VI(1),'UI',UI(1),'UID',UIDOT(1),'B',BODYIN
-c$$$     &        ,'t',time
-c$$$         do L = 2, list(1,i1)+1
-c$$$            K = list(l,i1)
-c$$$            write(125+rank,*),k,'n',name(k),'x0',x0(1,k),'v0',x0dot(1,k)
-c$$$     &           ,'f',f(1,k),'fdot',fdot(1,k),'x',x(1,k),'v',xdot(1,k),
-c$$$     &           'nnb',list(1,k),'t0',t0(k),'tpred',tpred(k),
-c$$$     &           'time',time,'flag',ipredall
-c$$$            if(k.gt.n) then
-c$$$               j = 2*(k - n)-1
-c$$$               write(125+rank,*),j,'n',name(j),'x',x(1,j),'v',xdot(1,j),
-c$$$     &              'nnb',list(1,k),'npert',list(1,j),'u',u(1,k-n),
-c$$$     &              'ud',udot(1,k-n),
-c$$$     &              'time',time
-c$$$            end if
-c$$$         end do
-c$$$         call flush(125+rank)
-c$$$      end if
-*     --01/02/14 13:42-lwang-end----------------------------------------*
 *       Obtain the perturbing force & derivative.
       CALL KSPERT(I1,NNB0,XI,VI,FP,FD)
 *
-*     --09/25/13 14:22-lwang-debug--------------------------------------*
-***** Note: To test after ksperts
-c$$$      if(tblock.eq.29.053588867187500.and.name(i1).eq.1759) then
-c$$$         write(125+rank,*)'KSPERT I1',I1,'IPAIR',ipair,
-c$$$     &        'U',U(1,IPAIR),'U0',U0(1,IPAIR),
-c$$$     &        'UDOT',UDOT(1,ipair),'FU',FU(1,ipair),
-c$$$     &        'FT',FUDOT(1,ipair),'FT2',FUDOT2(1,ipair),
-c$$$     &        'FT3',FUDOT3(1,ipair),'FP0',FP0(1,Ipair),
-c$$$     &        'FD0',FD0(1,ipair),'H',H(ipair),'HT',HDOT(ipair),
-c$$$     &        'HT2',HDOT2(ipair),'HT3',HDOT3(ipair),
-c$$$     &        'HT4',HDOT4(ipair),'dt',DTAU(ipair),
-c$$$     &        'TD2',TDOT2(ipair),'TD3',TDOT3(ipair),
-c$$$     &        'R',R(ipair),'R0',r0(ipair),
-c$$$     &        'Gamma',GAMMA(ipair),'H0',h0(ipair),
-c$$$     &        'SF',sf(1,ipair),'kslow',kslow(ipair),
-c$$$     &        'nnb',LIST(1,i1),'list',list(2,i1)
-c$$$     &        ,'step',step(i1),'t0',t0(i1),'tblock',tblock
-c$$$         write(125+rank,*),'KSPERT I1',i1,
-c$$$     &        'UI',UI(1),'UIDOT',uidot(1),'fp',fp(1),
-c$$$     &        'fd',fd(1),'tblock',tblock
-c$$$         call flush(125+rank)
-c$$$         call flush(6)
-c$$$         call mpi_barrier(MPI_COMM_WORLD,ierr)
-c$$$      end if
-*     --09/25/13 14:23-lwang-end----------------------------------------*
 *       Save old radial velocity & relative perturbation and set new GAMMA.
       RDOT = TDOT2(IPAIR)
 *     G0 = GAMMA(IPAIR)
       GI = SQRT(FP(1)**2 + FP(2)**2 + FP(3)**2)*R(IPAIR)**2*BODYIN
       GAMMA(IPAIR) = GI
 *
-*     --09/25/13 14:22-lwang-debug--------------------------------------*
-***** Note: To test after correct
-*      if(i1.eq.1605.and.time.le.29.047285281042758) then
-c$$$      if(tblock.eq.29.053588867187500.and.name(i1).eq.1759) then
-c$$$         write(125+rank,*)'KSINT I1',I1,'IPAIR',ipair,
-c$$$     &        'UI',UI(1),'U0',U0(1,IPAIR),
-c$$$     &        'UIDOT',UIDOT(1),'FU',FU(1,ipair),
-c$$$     &        'FT',FUDOT(1,ipair),'FT2',FUDOT2(1,ipair),
-c$$$     &        'FT3',FUDOT3(1,ipair),'FP',FP(1),
-c$$$     &        'FD',FD(1),'H',H(ipair),'HT',HDOT(ipair),
-c$$$     &        'HT2',HDOT2(ipair),'HT3',HDOT3(ipair),
-c$$$     &        'HT4',HDOT4(ipair),'dt',DTAU(ipair),
-c$$$     &        'TD2',TDOT2(ipair),'TD3',TDOT3(ipair),
-c$$$     &        'R',R(ipair),'R0',r0(ipair),
-c$$$     &        'Gamma',GAMMA(ipair),'H0',h0(ipair),
-c$$$     &        'SF',sf(1,ipair),'kslow',kslow(ipair),
-c$$$     &        'nnb',LIST(1,i1),'list',list(2,i1)
-c$$$     &        ,'step',step(i1),'t0',t0(i1),'tblock',tblock,'t',time
-c$$$         print*,rank,'ksint I1',i1,'ipair',ipair,
-c$$$     &        'H0',H0(ipair),'UDOT',udot(1,ipair),
-c$$$     &        't',time,'t0',t0(i1)
-c$$$         call flush(125+rank)
-c$$$         call mpi_barrier(MPI_COMM_WORLD,ierr)
-c$$$      end if
 *       Apply the Hermite corrector.
       CALL KSCORR(IPAIR,UI,UIDOT,FP,FD,TD2,TDOT4,TDOT5,TDOT6)
 *       Increase regularization time-step counter and update the time.
       NSTEPU = NSTEPU + 1
       T0(I1) = TIME
-*     --09/25/13 14:22-lwang-debug--------------------------------------*
-***** Note: To test after correct
-c$$$      if(tblock.eq.29.053588867187500.and.name(i1).eq.1759) then
-c$$$         write(125+rank,*)'KSCORR I1',I1,'IPAIR',ipair,
-c$$$     &        'U',U(1,IPAIR),'U0',U0(1,IPAIR),
-c$$$     &        'UDOT',UDOT(1,ipair),'FU',FU(1,ipair),
-c$$$     &        'FT',FUDOT(1,ipair),'FT2',FUDOT2(1,ipair),
-c$$$     &        'FT3',FUDOT3(1,ipair),'FP0',FP0(1,Ipair),
-c$$$     &        'FD0',FD0(1,ipair),'H',H(ipair),'HT',HDOT(ipair),
-c$$$     &        'HT2',HDOT2(ipair),'HT3',HDOT3(ipair),
-c$$$     &        'HT4',HDOT4(ipair),'dt',DTAU(ipair),
-c$$$     &        'TD2',TDOT2(ipair),'TD3',TDOT3(ipair),
-c$$$     &        'R',R(ipair),'R0',r0(ipair),
-c$$$     &        'Gamma',GAMMA(ipair),'H0',h0(ipair),
-c$$$     &        'SF',sf(1,ipair),'kslow',kslow(ipair),
-c$$$     &        'nnb',LIST(1,i1),'list',list(2,i1)
-c$$$     &        ,'step',step(i1),'t0',t0(i1),'tblock',tblock,'t',time
-c$$$         print*,rank,'kscorr I1',i1,'ipair',ipair,
-c$$$     &        'U',u(1,ipair),'UDOT',udot(1,ipair),
-c$$$     &        't',time,'t0',t0(i1)
-c$$$         call flush(125+rank)
-c$$$         call mpi_barrier(MPI_COMM_WORLD,ierr)
-c$$$         if(time.ge.29.047067570490370) stop
-c$$$      end if
-*     --09/25/13 14:23-lwang-end----------------------------------------*
-c$$$*       Check for early return during termination (called from KSTERM).
-c$$$      IF (IPHASE.NE.0) GO TO 100
 *
 *       Define useful scalars.
       RI = R(IPAIR)
@@ -378,31 +211,6 @@ c$$$      IF (IPHASE.NE.0) GO TO 100
       STEP(I1) = (((((TDOT6*DT12 + TDOT5*Z5)*0.2*DTU + 0.5D0*TDOT4)*DTU
      &                     + TDOT3(IPAIR))*ONE6*DTU + TD2)*DTU + RI)*DTU
 *
-*     --09/25/13 14:26-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      IF(NAME(I1).EQ.37) THEN
-c$$$         print*,'STEP(I1)',STEP(I1),'DTU',DTU,'H',H(IPAIR),'DT12',DT12,
-c$$$     &        ''
-c$$$         call flush(6)
-c$$$      end if
-c$$$      if(step(i1).lt.1/2.0**25.and.step(i1).gt.0) then
-c$$$         print*,'I1',I1,'I',I,'N',NAME(I),'STEP',STEP(I1)
-c$$$         call flush(6)
-c$$$         call abort()
-c$$$      end if
-c$$$      if(tblock.eq.29.053588867187500.and.name(i1).eq.1759) then
-c$$$         write(125+rank,*),'step i1',i1,'s',step(i1),'t0',t0(i1),
-c$$$     &        'td6',tdot6,'dt12',dt12,'td5',tdot5,'td2',td2,'ri',ri,
-c$$$     *        'z5',z5,'dtu',dtu,'td4',tdot4,'td3',tdot3(ipair),
-c$$$     &        't',time
-c$$$         call flush(125+rank)
-c$$$      end if
-*      if(tprev.ge.6.52122497558593750E-002.and.name(i1).eq.499) then
-*         print*,rank,'step',i1,step(i1),t0(i1),time,tdot6,dt12,tdot5,
-*     *        z5,dtu,tdot4,tdot3(ipair),one6,td2,ri
-*         call flush(6)
-*      end if
-*     --09/25/13 14:26-lwang-end----------------------------------------*
 *       Ensure that regularized step is smaller than the c.m. step.
       IF (STEP(I1).GT.STEP(I).AND.HI.LT.0) THEN
           DTU = 0.5D0*DTU
@@ -422,7 +230,7 @@ c$$$      end if
       IF (KZ(10).GE.3.and.rank.eq.0) THEN
           WRITE (6,40)  IPAIR, TIME+TOFF, H(IPAIR), RI, DTAU(IPAIR),
      &                  GI, STEP(I1), LIST(1,I1), IMOD
-   40     FORMAT (3X,'KS MOTION',I6,2F10.4,1P,4E10.2,2I4)
+   40     FORMAT (3X,'KS MOTION',I6,2F10.4,1P,4E11.3,2I4)
       END IF
 *
 *       Employ special termination criterion in merger case.
@@ -462,7 +270,7 @@ c$$$      end if
 c$$$         if(rank.eq.0)
 c$$$     &    WRITE (6,45)  IPAIR, TTOT, GI, RI, DTR, STEP(I1),TPREV,TBLOCK
 c$$$     *         ,TIME,T0(I1)
-c$$$ 45      FORMAT (' TERM TEST    KS'I4,' T',F10.4,' G',F7.3,' R',E10.2,
+c$$$ 45      FORMAT (' TERM TEST    KS'I4,' T',F10.4,' G',F7.3,' R',E11.3,
 c$$$     &        ' DTR',E15.7,' DT',E15.7,' TP',E15.7,' TB',E15.7,
 c$$$     &        ' T',E15.7,' T0',E15.7)
 *     --03/26/14 13:58-lwang-end----------------------------------------*
@@ -513,7 +321,9 @@ c$$$          END IF
           IF (RDOT*TD2.LT.0.0D0) THEN
 *       Determine pericentre for hyperbolic two-body motion.
               SEMI = -0.5D0*BODY(I)/HI
-              ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
+*       Use modulus for hyperbolic case (RS Apr 2022)
+              ASEMI = DABS(SEMI)
+              ECC2 = (1.0-RI/ASEMI)**2+TDOT2(IPAIR)**2/(ASEMI*BODY(I))
               QPERI = SEMI*(1.0D0 - SQRT(ECC2))
               DMIN2 = MIN(DMIN2,QPERI)
 *
@@ -680,8 +490,10 @@ c$$$                      CALL CMBODY(2)
                           ICIRC = 1
                           TC = 0.0
                       ELSE IF (KZ(27).EQ.2) THEN
-                          ECC2 = (1.0 - RI/SEMI)**2 +
-     &                                    TDOT2(IPAIR)**2/(BODY(I)*SEMI)
+*       Use modulus for hyperbolic case (RS Apr 2022)
+                          ASEMI = DABS(SEMI)
+                          ECC2 = (1.0 - RI/ASEMI)**2 +
+     &                                  TDOT2(IPAIR)**2/(ASEMI*BODY(I))
                           ECC = SQRT(ECC2)
                           ICIRC = 0
                           CALL TCIRC(QPERI,ECC,I1,I2,ICIRC,TC)
@@ -721,44 +533,47 @@ c$$$                      CALL CMBODY(2)
       END IF
 *
 *       GR braking for compact object binaries RSp March 2019
-        IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     & (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14).AND.HI.LT.0.D0) THEN
+      SEMI = -0.5*BODY(I)/HI
+*       Use modulus for hyperbolic case (RS Apr 2022)
+      ASEMI = DABS(SEMI)
+      ECC2 = (1.0-R(IPAIR)/ASEMI)**2+TDOT2(IPAIR)**2/(ASEMI*BODY(I))
+      ECC = SQRT(ECC2)
+      QPERI = SEMI*(1.0D0 - ECC)
+        LBRAKE = KZ273.EQ.3.AND.
+     &    (KSTAR(I1).GE.10.AND.KSTAR(I1).LE.14).AND.
+     &    (KSTAR(I2).GE.10.AND.KSTAR(I2).LE.14).AND.
+     &    HI.LT.0.D0.AND.ECC.GT.0.D0
+        IF (LBRAKE) THEN
 *       GR breaking for compact obj. define new binary type March 2019
-           SEMI = -0.5*BODY(I)/HI
-           ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
-           ECC = SQRT(ECC2)
-           QPERI = SEMI*(1.0D0 - ECC) 
            A_EIN = 3.0*TWOPI*BODY(I)/(SEMI*CL2*(1-ECC2)) 
-           DTGW(IPAIR) = DTGW(IPAIR) + STEP(I1)  
+           TORB = TWOPI*SQRT(SEMI**3/BODY(I))
+           DTGW(IPAIR) = STEP(I1)  
+           RSCHW = 2.0*BODY(I)/CL2
            RES = 0              
+*
            CALL GW_DECISION(SEMI,BODY(I1),BODY(I2),
-     &                       VSTAR,ECC,DTGW(IPAIR),RES)
-
-           COUNTER =COUNTER + 1 
-*************************************************************************                   
-*           IF(rank.eq.0) THEN
-*              PRINT *,'GR KSINT COUNTER T DT M12 N12 K12 SEMI ECC H QP',
-*     &                ' A_EIN DTGW NP',
-*     &        COUNTER,TIME,DTGW(IPAIR),BODY(I1),BODY(I2),
-*     &        NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),
-*     &        SEMI,ECC,H(IPAIR),QPERI,A_EIN,DTGW(IPAIR),LIST(1,I1)
-*           END IF
-************************************************************************* 
-           IF(RES.EQ.1) THEN
-              KSTAR(I) = 25
+     &         CLIGHT,ECC,DTGW(IPAIR),RES,TGR)
+*       Special binary type -25 for GR shrinking binary
+           IF(RES.EQ.1.AND.GAMMA(IPAIR).LT.1.D-1) THEN
+              KSTAR(I) = -25
               CALL KSTIDE(IPAIR,QPERI)
-              PRINT *,'GR KSINT COUNTER T DT M12 N12 K12 SEMI ECC H QP',
-     &                ' A_EIN DTGW NP',
-     &        COUNTER,TIME,DTGW(IPAIR),BODY(I1),BODY(I2),
-     &        NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),
-     &        SEMI,ECC,H(IPAIR),QPERI,A_EIN,DTGW(IPAIR),LIST(1,I1)
-           END IF 
-*       Prepare coal flag if PERI < 500 R_SCHW
-           IF(DABS(QPERI).LT.(3.0D2*BODY(I)/CLIGHT**2)) THEN
-              PRINT *,'COLL DUE TO GW QPERI CLIGHT RSCH ECC SEMI', 
-     &                QPERI, CLIGHT, 2.0*BODY(I)/CLIGHT**2, ECC, SEMI  
-              IPHASE = -1
-              GO TO 100 
+      if(rank.eq.0)WRITE(6,665)
+     &   RES,TTOT,DTGW(IPAIR),STEP(I1),I,IPAIR,LIST(1,I1),
+     &   NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
+     &   BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,SEMI,QPERI,RSCHW,
+     &   H(IPAIR),GAMMA(IPAIR),A_EIN,TORB,TGR
+ 665  FORMAT(1X,' GR KSINT RES T DTGW STEP',I3,1P,3E13.5,' I IP NPERT',
+     &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
+     &   ' e,a,QP,RS[NB]=',4E13.5,' H, GAMMA=',2E13.5,
+     &   ' A_EIN, TORB, TGR(PM)=',3E13.5)
+*       Prepare coal flag if PERI < 25 R_SCHW
+            SEPMRG = 2.5D1*RSCHW
+               IF(DABS(QPERI).LT.SEPMRG.OR.TGR.LT.TORB) THEN
+               if(rank.eq.0) PRINT *,' GR KSINT COLL: QP SEPMRG C ',
+     &         ' RSCH ECC SEMI ',QPERI,SEPMRG,CLIGHT,RSCHW,ECC,SEMI
+                  IPHASE = -1
+                  GO TO 100 
+               END IF
            END IF
         END IF     
 *
@@ -777,7 +592,9 @@ c$$$      print*,rank,'rmax',rmax
           EB = BODY(I1)*BODY(I2)*HI*BODYIN
           IF (EB.LT.EBH) R0(IPAIR) = MAX(RMIN,2.0*SEMI)
       ELSE 
-          ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
+*       Use modulus for hyperbolic case (RS Apr 2022)
+          ASEMI = DABS(SEMI)
+          ECC2 = (1.0-RI/ASEMI)**2+TDOT2(IPAIR)**2/(ASEMI*BODY(I))
           ECC = SQRT(ECC2)
           RP = SEMI*(1.0 - ECC)*(1.0 - 2.0*GI)
 *       Find merger index.
@@ -815,7 +632,7 @@ c$$$      print*,rank,'rmax',rmax
                   IF (ITERM.GT.0) THEN
 *                     if(rank.eq.0)
 *    &                WRITE (6,76)  RP, R0(IPAIR)
-*  76                 FORMAT (' ECCMOD TERM    RP R0 ',1P,2E10.2)
+*  76                 FORMAT (' ECCMOD TERM    RP R0 ',1P,2E11.3)
                       GO TO 90
                   END IF
 *       Consider both inner and possible outer circularizing binary.
@@ -844,7 +661,7 @@ c$$$      print*,rank,'rmax',rmax
      &    WRITE (21,80)  TTOT, NAME(I1), NAME(I2), KSTAR(I1), KSTAR(I2),
      &                   LIST(1,I1), QPS, ZM, GI, ECC, SEMI
    80     FORMAT (' PERT SPIRAL    T NAM K* NP QP/S M1/M2 G E A ',
-     &                             F11.4,2I6,3I3,2F5.1,2F8.4,1P,E10.2)
+     &                             F11.4,2I6,3I3,2F5.1,2F8.4,1P,E11.3)
           CALL FLUSH(21)
       END IF
 *
@@ -877,7 +694,14 @@ c$$$      print*,rank,'rmax',rmax
           CALL CHRECT(IPAIR,DMR)
           IF (IPHASE.LT.0) GO TO 100
       ELSE
-          CALL KSRECT(IPAIR)
+* ADDED BY MAS - 08 NOV 2021 - M.A.S. Manuel Arca Sedda
+         IF(ECC2 .LT. 0.0 .OR. ECC .GT. 1.0 .OR. SEMI.LT.0.0)THEN
+         IF(RANK.EQ.0) WRITE(*,*)
+     &     ' KSINT bef KSRECT IPAIR, I12, N12, M12, ECC2, ECC, SEMI ',
+     &     IPAIR,I1,I2,NAME(I1),NAME(I2),BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
+     &     ECC2,ECC,SEMI, ' watch e or semi ...'
+         ENDIF
+         CALL KSRECT(IPAIR)
       END IF
 *
 *       Check optional search criterion for multiple encounter or merger.
@@ -888,51 +712,39 @@ c$$$      print*,rank,'rmax',rmax
 *
 *       Terminate regularization of current pair (IPAIR set in KSPAIR).
    90 KSPAIR = IPAIR
-*     --03/10/14 22:02-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      print*,rank,'iq',iq,'t',time,'dtr',dtr,'step(i1)',step(i1),'iterm'
-c$$$     *     ,iterm,'n',name(i),'GI',GI,'HI',hi,'JCOMP',jcomp,'N',N
-*     --03/10/14 22:02-lwang-end----------------------------------------*
 *       Set indicator for calling KSTERM in MAIN (permits phase overlay).
       IPHASE = 2
 *       Check case of hierarchical binary.
       IF (NAME(I).LT.0) IPHASE = 7
 *
-*     --09/25/13 14:22-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$ 100  if(tprev.ge.6.52122497558593750E-002.and.name(i1).eq.499) then
-c$$$        print*,rank,'ksinte',i1,step(i1),t0(i1),time,tprev
-c$$$        call flush(6)
-c$$$      end if
-*      print*,rank,'left subint',tblock
-*      call flush(6)
-c$$$      if (tprev.ge.6.80656433105468750E-002) stop
-*     --09/25/13 14:23-lwang-end----------------------------------------*
-      
  100  RETURN
 *
       END
-      SUBROUTINE GW_DECISION(SEP,M1,M2,VSTAR,ECC,DT,RES)              
+      SUBROUTINE GW_DECISION(SEMI,M1,M2,CLIGHT,ECC,DT,RES,TGR)              
 *
 *     Decide if you want to integrate or not  
       INTEGER RES
-      REAL*8 SEP,M1,M2,VSTAR,ECC,DT,DE(5)        
-
-      CALL TIDES3(SEP,M1,M2,ECC,VSTAR,DT,DE)
+      REAL*8 SEMI,M1,M2,CLIGHT,ECC,DT,DE(5),TGR
+      LOGICAL LSANE
+      include 'timing.h'
+*
+      call cputim(ttgr1)
+      CALL TIDES3(SEMI,M1,M2,ECC,CLIGHT,DT,DE)
+      call cputim(ttgr2)
+      if(rank.eq.0)tttides3 = tttides3 + (ttgr2-ttgr1)*60.
+      if(rank.eq.0)itides3 = itides3 + 1
 *
       RES=0
-*     Emergency measure if DT gets too large
-      IF(ECC.GT.1.D0)ECC = 0.999D0
-
-*      PRINT *,'GW DECISION b', DT, DE(4)/ECC, DE(3)/SEP, M1, M2, DE   
-      IF ((DE(4)/ECC).GT.5.0D-3.OR.(DE(3)/SEP).GT.5.0D-3) THEN
+      TGR = DABS(DT*SEMI/DE(3))
+      ECCNEW = ECC-DE(4)
+      SEMNEW = SEMI-DE(3)
+      LSANE = ECCNEW.GT.0.D0.AND.ECCNEW.LT.1.D0.AND.
+     &     SEMNEW.GT.0.D0
+      IF(LSANE.AND.(DE(4)/ECC).GT.1.0D-4.OR.(DE(3)/SEMI).GT.1.0D-4) THEN
 *        do not bypass the GW emission effect
         RES=1
-*        PRINT *, 'ALLOW INTEGRATION',DE(4)/ECC,DE(3)/SEP, DT
-      END IF   
-
-
+      END IF
+*
       RETURN 
    
       END
-

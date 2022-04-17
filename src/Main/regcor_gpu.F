@@ -706,16 +706,24 @@ c$$$      END IF
 *
 *     --lwang debug updated R.Sp. Oct. 2020-------------------------
          if (rank.eq.0.and.stepr(i).ge.1E2*dt0) then
-         write(6,81) I,name(i),DT0/STEPR(I),dt0,stepr(i),
-     &        FI(1,i),FIDOT(1,i),FREG(1),FDR(1),time,t0r(i),
-     &        LIST(1,I),LIST(2,I),NAME(LIST(2,I))
+          RI = SQRT((X(1,I) - RDENS(1))**2 +
+     &              (X(2,I) - RDENS(2))**2 +
+     &              (X(3,I) - RDENS(3))**2)
+          VI = SQRT(XDOT(1,I)**2+XDOT(2,I)**2+XDOT(3,I)**2)
+          FIT = SQRT(FI(1,I)**2+FI(2,I)**2+FI(3,I)**2)
+          FDIT = SQRT(FIDOT(1,I)**2+FIDOT(2,I)**2+FIDOT(3,I)**2)
+          FRT = SQRT(FREG(1)**2+FREG(2)**2+FREG(3)**2)
+          FDRT =  SQRT(FDR(1)**2+FDR(2)**2+FDR(3)**2)
+          NNB = LIST(1,I)
+          NB1 = LIST(2,I)
+         write(6,81) ttot,i,name(i),kstar(i),dt0/stepr(i),dt0,stepr(i),
+     &        STEP(I),BODY(I)*ZMBAR,RI,VI,FIT,FDIT,FRT,FDRT,
+     &        NNB,NB1,NAME(NB1),KSTAR(NB1),BODY(NB1)*ZMBAR
          call flush(6)
- 81      format(' Warning!: Regular step jump! I',I8,' N',I8,
-     &        ' ratio',E11.3,' dt0',F21.17,
-     &        ' stepr',F21.17,' FI',E13.5,
-     &        ' FD',E13.5,' FR',E13.5,' FDR',E13.5,' t',F23.17,
-     &        ' t0r',F23.17,
-     &        ' NB',I4,' LIST1',I8,' N1',I8)
+ 81      format(' Warning!: Regular step jump! I N K* ',1P,E15.7,2I8,I4,
+     &       ' ratio',1P,E11.3,' dt0',E15.7,' stepr,step=',2E15.7,
+     &       ' M*,RI,VI',E12.4,2E15.7,' FI,FDI',2E15.7,' FR,FDR',2E15.7,
+     &       ' NNB',I4,' NB1: N, K*,M*',2I8,I4,E12.4)
          end if
 *     --11/04/13 23:10-lwang-end----------------------------------------*
 *      

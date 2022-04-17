@@ -6,6 +6,7 @@
 *
       Include 'kspars.h'
       INCLUDE 'common6.h'
+      DATA NKSCNT,NKSBAS/0,1/
 *
 *       Include some diagnostic output.
       UPR2 = 0.0
@@ -16,8 +17,53 @@
 *       Skip rectification for small eccentricity or large perturbation.
       I = N + IPAIR
       SEMI = -0.5*BODY(I)/H(IPAIR)
-      ECC2 = (1.0 - R(IPAIR)/SEMI)**2 + TDOT2(IPAIR)**2/(SEMI*BODY(I))
+*       Use modulus for hyperbolic case (RS Apr 2022)
+      ASEMI = DABS(SEMI)
+      ECC2 = (1.0-R(IPAIR)/ASEMI)**2+TDOT2(IPAIR)**2/(ASEMI*BODY(I))
       ECC = SQRT(ECC2)
+      IF(ISNAN(SEMI).OR.ISNAN(ECC2).OR.ISNAN(ECC))THEN
+          i1 = 2*ipair-1
+          i2 = 2*ipair
+      if(rank.eq.0)print*,' Warning KSRECT begin: ',
+     &    't,ipair,n12,m12,semi,ecc2,ecc,kw,r,h,gamma=',ttot,ipair,
+     &    name(i1),name(i2),body(i1)*zmbar,body(i2)*zmbar, 
+     &    semi,ecc2,ecc,kstar(n+ipair),r(ipair),h(ipair),gamma(ipair)
+      END IF
+*
+      NKSCNT = NKSCNT + 1
+      IF(MOD(NKSCNT,NKSBAS).EQ.0)THEN
+      if(rank.eq.0)then
+          ICM = N + IPAIR
+          I1 = 2*IPAIR - 1
+          I2 = 2*IPAIR
+          RI = SQRT((X(1,ICM) - RDENS(1))**2 +
+     &              (X(2,ICM) - RDENS(2))**2 +
+     &              (X(3,ICM) - RDENS(3))**2)
+          VI = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
+      IF(ISNAN(RI).OR.ISNAN(VI).OR.ISNAN(SEMI).OR.ISNAN(ECC2).OR.
+     &     ISNAN(ECC).OR.ECC2.GT.1.D0)THEN
+      IF(ISNAN(RI).OR.ISNAN(VI))print*,' Warning RI,VI NaN: ',
+     &   ' X,XDOT,RDENS 1-3=',X(1:3,ICM),XDOT(1:3,ICM),RDENS(1:3)
+          EB = -0.5*BODY(I1)*BODY(I2)/SEMI
+          PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6
+          WRITE (6,17)  TTOT,NAME(I1),NAME(I2),
+     &         NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
+     &         IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
+     &         R(IPAIR),ECC,SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(ICM),LIST(1,I1),LIST(1,ICM),
+     &         BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
+     &         RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VI
+  17      FORMAT (/,' BEG KSRECT TIME[NB]',1P,E17.10,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
+     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
+     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
+     &         ' RI,VI[NB]=',2E11.3)
+      END IF
+      end if
+      END IF
+*
       IF (ECC.LE.0.01) GO TO 50
       IF (GAMMA(IPAIR).GT.0.1) GO TO 50
 *
@@ -29,25 +75,41 @@
           if(rank.eq.0)
      &    WRITE (6,2)  NAME(2*IPAIR-1), KSTAR(I), ECC, QP, TC,
      &                 GAMMA(IPAIR)
-    2     FORMAT (' RECTIFY K*    NM K* E QP TC G',I8,I4,F8.4,1P,3E10.2)
+    2     FORMAT (' RECTIFY K*    NM K* E QP TC G',I8,I4,F8.4,1P,3E11.3)
           KSTAR(I) = 0
 *     ks MPI communication
-          call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*         call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
       END IF
 *
-      HI = (2.0*UPR2 - BODY(N+IPAIR))/R(IPAIR)
+      ICM = N + IPAIR
+      I1 = 2*IPAIR - 1
+      I2 = 2*IPAIR
+      RI = SQRT((X(1,ICM) - RDENS(1))**2 +
+     &              (X(2,ICM) - RDENS(2))**2 +
+     &              (X(3,ICM) - RDENS(3))**2)
+      VI = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
+      HI = (2.0*UPR2 - BODY(ICM))/R(IPAIR)
       ERR = (HI - H(IPAIR))/HI
-      ZMU = BODY(2*IPAIR)*BODY(2*IPAIR-1)/BODY(N+IPAIR)
+      ZMU = BODY(I1)*BODY(I2)/BODY(ICM)
       DB = ZMU*(HI - H(IPAIR))
       IF (ABS(DB).GT.1.0D-08) THEN
-          SEMI = -0.5*BODY(N+IPAIR)/H(IPAIR)
+          SEMI = -0.5*BODY(ICM)/H(IPAIR)
           RA = R(IPAIR)/SEMI
           IF (SEMI.LT.0.0) RA = R(IPAIR)
-          if(rank.eq.0)
-     &    WRITE (16,3)  TIME+TOFF, IPAIR, RA, H(IPAIR), GAMMA(IPAIR),
-     &                  DB, ERR
-    3     FORMAT (' KSRECT:   Time[NB] IPAIR R12/SEMI H GAMMA DB DH/H ',
-     &                        F8.2,I8,F8.4,F8.1,F7.3,1P,2E10.1)
+          if(rank.eq.0)WRITE (16,616)  TIME+TOFF,NAME(I1),NAME(I2),
+     &         NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
+     &         IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
+     &         R(IPAIR),ECC,SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(ICM),LIST(1,I1),LIST(1,ICM),
+     &         BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
+     &         RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VI,DB,ERR
+ 616      FORMAT (' KSRECT: Time[NB]',1P,E17.10,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
+     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
+     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
+     &         ' RI,VI[NB]=',2E11.3,' DB,ERR=',2E11.3)
           CALL FLUSH(16)
       END IF
 *
@@ -85,7 +147,7 @@
      &    WRITE (6,20)  IPAIR, KSTAR(N+IPAIR), ECC, R(IPAIR), H(IPAIR),
      &                  GAMMA(IPAIR), UPR2, A2, CK-1.0
    20     FORMAT (' WARNING!    KSRECT    KS K* E R H G UPR2 A2 CK-1 ',
-     &                                    I8,I4,F8.4,1P,6E10.2)
+     &                                    I8,I4,F10.4,1P,6E11.3)
           ITER = ITER + 1
       END IF
 *
@@ -111,13 +173,45 @@
 *     if(rank.eq.0)
 *    &WRITE (16,30)  IPAIR, IPHASE, KSTAR(N+IPAIR), R(IPAIR),
 *    &               GAMMA(IPAIR), (HI-H(IPAIR))/HI
-*  30 FORMAT (' KSRECT:    KS IPH K* R G DH/H ',3I4,1P,3E10.2)
+*  30 FORMAT (' KSRECT:    KS IPH K* R G DH/H ',3I4,1P,3E11.3)
 *     CALL FLUSH(16)
 *
 *       Improve solution by second iteration in case of CK procedure.
       ITER = ITER + 1
       IF (ITER.EQ.2) GO TO 10
 *
+*     IF(MOD(NKSCNT,NKSBAS).EQ.0)THEN
+*     NKSCNT = 0
+*     if(rank.eq.0)then
+*         print*,' Output KSRECT begin: nksrec,',
+*    &  'ipair,semi,ecc2,ecc,kw,r,h,gamma=',nksrec,ipair,semi,ecc2,ecc,
+*    &    kstar(n+ipair),r(ipair),h(ipair),gamma(ipair)
+*         ICM = N + IPAIR
+*         I1 = 2*IPAIR - 1
+*         I2 = 2*IPAIR
+*         RI = SQRT((X(1,ICM) - RDENS(1))**2 +
+*    &              (X(2,ICM) - RDENS(2))**2 +
+*    &              (X(3,ICM) - RDENS(3))**2)
+*         VI = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
+*         EB = -0.5*BODY(I1)*BODY(I2)/SEMI
+*         PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6
+*         WRITE (6,16)  TIME+TOFF,NAME(I1),NAME(I2),
+*    &         NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
+*    &         IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
+*    &         R(IPAIR),ECC,SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+*    &         STEP(ICM),LIST(1,I1),LIST(1,ICM),
+*    &         BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
+*    &         RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VI,ITER
+* 16      FORMAT (/,' END KSRECT TIME[NB]',1P,E17.10,' NM1,2,S=',
+*    &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
+*    &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+*    &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
+*    &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
+*    &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
+*    &         ' RI,VI[NB]=',2E11.3,' ITER=',I5)
+*     end if
+*     END IF
+
    50 RETURN
 *
       END

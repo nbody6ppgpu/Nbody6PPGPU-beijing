@@ -30,7 +30,10 @@
          NXTLST(IR) = NXTLST(1)
 *     Get criterion of steps
          IF (IR.EQ.NXTLIMIT) NTC = 1
- 11      IF (STEP(NXTLST(IR)).LT.DTK(NTC)) THEN
+ 11   CONTINUE
+         IF(NTC.GT.64.and.rank.eq.0)print*,' ntc,ir,nxtlst,step ',
+     &   ntc,ir,NXTLST(IR),STEP(NXTLST(IR))
+         IF (STEP(NXTLST(IR)).LT.DTK(NTC)) THEN
             NTC = NTC + 1
             IF (NTC.LT.64) THEN
                NDTK(NTC) = IR

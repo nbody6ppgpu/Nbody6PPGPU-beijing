@@ -8,15 +8,16 @@
       INCLUDE 'common6.h'
       include 'timing.h'
       REAL*8  UI(4),UIDOT(4),A_EIN,CL2
-      INTEGER, SAVE :: COUNTER=0
       INTEGER  RES
 *     Warning!: saved value is unsafe for parallel
       SAVE TCALL
       DATA TCALL /0.0D0/
+      LOGICAL LBRAKE
 *
 *
 *       Set first component & c.m. index and semi-major axis.
       I1 = 2*IPAIR - 1
+      I2 = 2*IPAIR
       I = N + IPAIR
       SEMI = -0.5D0*BODY(I)/H(IPAIR)
 *      
@@ -68,7 +69,7 @@
       call cputim(tt1)
       CALL TPERT(IPAIR,GMIN,DT)
       call cputim(tt2)
-      tttp = tttp + (tt2-tt1)*60.
+      if(rank.eq.0)tttp = tttp + (tt2-tt1)*60.
       JCL = IPAIR
       IPAIR = IP
 *
@@ -105,15 +106,6 @@
               DETMP = POT2 - POT1
               EMERGE = EMERGE + DETMP
               BE(3) = BE(3) + DETMP
-*     --03/05/14 20:25-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$              print*,rank,'unpert',(POT2-POT1),'t',time
-c$$$              call flush(6)
-*     --03/05/14 20:25-lwang-end----------------------------------------*
-*     ks MPI communiction emerge
-*              call ksparmpi(K_store,K_real8,K_EMERGE,0,0,DETMP)
-*     ks MPI communiction BE(3)
-*              call ksparmpi(K_store,K_real8,K_BE3,0,0,DETMP)
               GO TO 30
           END IF
           IR = 1
@@ -159,6 +151,7 @@ c$$$              call flush(6)
               IF (IPHASE.LT.0) GO TO 30
               SEMI = -0.5D0*BODY(I)/H(IPAIR)
               TK = TWOPI*SEMI*SQRT(SEMI/BODY(I))
+              PD = TK*TSTAR*365.24D6
 *       Assign one Kepler period for active state and impose TDOT2 > 0.
               IF (R(IPAIR).LT.0.99*RT.AND.KSTAR(I).NE.10) THEN
                   STEP(I1) = TK
@@ -169,20 +162,26 @@ c$$$              call flush(6)
                   STEP(I1) = 0.5*TK
 *       Note next unperturbed check at apocentre since T'' < 0 in KSAPO.
                   IF (ABS(RT - RP)/RT.GT.0.1.AND.KZ(27).LE.1) THEN
-                      if(rank.eq.0)
-     &                WRITE(6,25)  ECC, SEMI, R(IPAIR), RP, RADIUS(I1)
-   25                 FORMAT (' INACTIVE PHASE    E A R RP R* ',
-     &                                            F7.3,1P,4E10.2)
+      if(rank.eq.0)WRITE(6,625)
+     &   TTOT,STEP(I1),I,IPAIR,LIST(1,I1),
+     &   NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
+     &   BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,SEMI,HI,GAMMA(IPAIR),
+     &   PD,RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RP*SU,RT*SU
+ 625  FORMAT(1X,' INACTIIVE PHASE UNP T DT ',1P,2E13.5,' I IP NPERT',
+     &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
+     &   ' e,a=',2E13.5,' H, GAMMA=',2E13.5,
+     &   ' PD, R1,2,SEP,RP,RT[R*]=',6E13.5)
                   END IF
                   IF (ECC.LT.0.002.AND.SEMI.LT.0.01*RMIN) THEN
                       KSTAR(I) = 10
                       TEV(I) = TIME
 *     ks MPI communicatin: KSTAR
-                      call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*                     call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
 *     ks MPI communicatin: TEV
-                      call ksparmpi(K_store,K_real8,K_TEV,I,0,TEV(I))
+*                     call ksparmpi(K_store,K_real8,K_TEV,I,0,TEV(I))
                   END IF
               END IF
+*             if(rank.eq.0)print*,' goto 30 unpert '
               GO TO 30
           END IF
       END IF
@@ -218,41 +217,40 @@ c$$$              call flush(6)
       END IF
 *
 *       Check for GR braking for compact object binaries RSp March 2019
-        I2 = I1 + 1
-        IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &  (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14).AND.HI.LT.0) THEN
-           SEMI = -0.5*BODY(I)/H(IPAIR)
-           ECC2 =(1.0-R(IPAIR)/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
-           ECC = SQRT(ECC2)
-           QPERI = SEMI*(1.0D0 - ECC)
+           SEMI = -0.5*BODY(I)/HI
+           ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
+        LBRAKE =KZ273.EQ.3.AND.
+     &    KSTAR(I1).GE.10.AND.KSTAR(I1).LE.14.AND.
+     &    KSTAR(I2).GE.10.AND.KSTAR(I2).LE.14.AND.
+     &    HI.LT.0.D0.AND.ECC.GT.0.D0
+        IF (LBRAKE) THEN
+*       GR breaking for compact obj. define new binary type March 2019
            A_EIN = 3.0*TWOPI*BODY(I)/(SEMI*CL2*(1-ECC2))
-           RES = 0 
-           DTGW(IPAIR) = DTGW(IPAIR) + STEP(I1)            
+           TORB = TWOPI*SQRT(SEMI**3/BODY(I))
+           DTGW(IPAIR) = STEP(I1)
+           RSCHW = 2.0*BODY(I)/CLIGHT**2
+           RES = 0
            CALL GW_DECISION(SEMI,BODY(I1),BODY(I2),
-     &                  VSTAR,ECC,DTGW(IPAIR),RES)
-           COUNTER = COUNTER + 1
-***************************************************************************
-*           IF(rank.eq.0) THEN                                            *
-*              PRINT *,'GR KSINT COUNTER T DT M12 N12 K12 SEMI ECC H QP', *
-*     &                ' A_EIN DTGW',                                     * 
-*     &        COUNTER,TIME,DTGW(IPAIR),BODY(I1),BODY(I2),                *
-*     &        NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),                     * 
-*     &        SEMI,ECC,H(IPAIR),QPERI,A_EIN,DTGW(IPAIR)                  * 
-*           END IF                                                        *
-***************************************************************************
+     &                  CLIGHT,ECC,DTGW(IPAIR),RES,TGR)
+*       Special binary type -25 for GR shrinking binary
            IF(RES.EQ.1) THEN
-              KSTAR(I) = 25
+              KSTAR(I) = -25
               CALL KSTIDE(IPAIR,QPERI)
-              PRINT *,'GR UNPERT COUNTER T M12 N12 K12 SEMI ECC H QP',
-     &                ' A_EIN DTGW',
-     &        COUNTER,TIME,BODY(I1),BODY(I2),
-     &        NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),
-     &        SEMI,ECC,H(IPAIR),QPERI,A_EIN,DTGW(IPAIR)
+      if(rank.eq.0)WRITE(6,665)
+     &   RES,TTOT,DTGW(IPAIR),STEP(I1),I,IPAIR,LIST(1,I1),
+     &   NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
+     &   BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,SEMI,QPERI,RSCHW,
+     &   H(IPAIR),GAMMA(IPAIR),A_EIN,TORB,TGR
+ 665  FORMAT(1X,' GR TIDES RES T DTGW STEP',I3,1P,3E13.5,' I IP NPERT',
+     &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
+     &   ' e,a,QP,RS[NB]=',4E13.5,' H, GAMMA=',2E13.5,
+     &   ' A_EIN, TORB, TGR(PM)=',3E13.5)
            END IF 
-*       Prepare coal flag if PERI < 500 R_SCHW
-           IF(DABS(QPERI).LT.(3.0D2*BODY(I)/CLIGHT**2)) THEN
-              PRINT *,'COLL DUE TO GW QPERI CLIGHT RSCH', 
-     &                QPERI, CLIGHT, 2.0*BODY(I)/CLIGHT**2  
+*       Prepare coal flag if PERI < 50 R_SCHW
+            SEPMRG = 2.5D1*RSCHW
+            IF(DABS(QPERI).LT.SEPMRG) THEN
+              PRINT *,'COLL DUE TO GW UNPERT QPERI CLIGHT RSCH', 
+     &                QPERI, CLIGHT, RSCHW 
               IPHASE = -1
               GO TO 30 
            END IF           
@@ -365,7 +363,9 @@ c$$$              IF (IPHASE.LT.0) GO TO 30
           END IF
       END IF
 *
-   30 RETURN
+   30 CONTINUE
+*
+      RETURN
 *
       END
       

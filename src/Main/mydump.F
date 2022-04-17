@@ -16,8 +16,13 @@
      &    NG=132,NL=99,NO=20*MCL+16,NP=32*NTMAX,NQ=31*MMAX,
      &    NS=44*MMAX)
       REAL*4  B,C,D,E,G,L,M,O,P,Q,S
-      INTEGER K,I,NTSAVE,NPARTMP(10),KSTAR,NCOMM,IA
+      INTEGER K,I,NPARTMP(10),KSTAR,NCOMM,IA
 *
+#ifdef PARALLEL
+      integer iinl,iisize,inl,istart,iend,ilen,irun,idiff,jsize
+      integer inum(maxpe),ista(maxpe)
+      data iisize/4/
+#endif
       COMMON/NAMES/  NTOT,NPAIRS,NTTOT,IA(NA)
       COMMON/COUNTS/ B(NB)
       COMMON/PARAMS/ C(NC)
@@ -104,12 +109,6 @@
          END IF
        end if
 *
-*       Check expanding arrays to include possible tidal tails (up to NTTOT).
-        NTSAVE = NTOT
-        IF (NTTOT.GT.0) THEN
-            NTOT = NTTOT
-        END IF
-*
         if(rank.eq.0)then
          IF(MOD(J-201,NCOMM).EQ.0)THEN
         WRITE (J) ((x(k,i),k=1,3),i=1,ntot),((x0(k,i),k=1,3),i=1,ntot),
@@ -161,9 +160,7 @@
         END IF
         end if
 *
-*       Restore standard array pointer.
-        NTOT = NTSAVE
-      else
+      ELSE
         if(rank.eq.0) then
 *
         J = II + 1
@@ -248,10 +245,6 @@
           stop
         end if
 
-        NTSAVE = NTOT
-        IF (NTTOT.GT.0) THEN
-            NTOT = NTTOT
-        END IF
         if(rank.eq.0)then 
         read (J) ((x(k,i),k=1,3),i=1,ntot),((x0(k,i),k=1,3),i=1,ntot),
      *   ((x0dot(k,i),k=1,3),i=1,ntot),((xdot(k,i),k=1,3),i=1,ntot),
@@ -310,21 +303,14 @@
            KVEC(2*K-1) = K
            KVEC(2*K) = K
         END DO
-      END IF
 
 #ifdef PARALLEL
         call cputim(tt998)
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         call cputim(tt999)
-        ttbar = ttbar + (tt999-tt998)*60
-        ibarcount=ibarcount+1
-
+        if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
+        if(rank.eq.0)ibarcount=ibarcount+1
 *
-*     READ ntot,npairs,nttot,a,b,c,d,e,g,l,m,o,p,q,s
-*     --04/25/13 10:16-lwang-debug--------------------------------------*
-***** Note: add MPI_BCAST of ntsave since it last used to initial ntot-**
-         CALL MPI_BCAST(ntsave,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-*     --04/25/13 10:17-lwang-end-debug----------------------------------*
          CALL MPI_BCAST(ntot,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
          CALL MPI_BCAST(npairs,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
          CALL MPI_BCAST(nttot,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -341,10 +327,6 @@
          CALL MPI_BCAST(Q(1),NQ,MPI_REAL4,0,MPI_COMM_WORLD,ierr)
          CALL MPI_BCAST(S(1),NS,MPI_REAL4,0,MPI_COMM_WORLD,ierr)
 *
-*       read (J) x,x0,xn,xndot,x0dot,f,fdot,xdot (3,ntot)
-*                fi,d1,d2,d3,fr,d1r,d2r,d3r,fidot,d0,frdot,d0r (3,ntot)
-*                body, rs, step, t0, stepr, t0r,timenw,radius, tev (ntot)
-*                tev0,body0,epoch,spin,xstar,zlmsty,kstar (ntot),iminr(ntot)
        CALL MPI_BCAST(X(1,1),3*NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(XDOT(1,1),3*NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(X0(1,1),3*NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
@@ -381,9 +363,6 @@
        CALL MPI_BCAST(KSTAR(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(IMINR(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 *
-*       read u,u0,udot,fu,fudot,fudot2,fudot3,fp0,fd0 (4,npairs) sf(7,npairs)
-*            h,hdot,hdot2,hdot3,hdot4,dtau,tdot2,tdot3,r,r0,gamma,h0 (npairs)
-*            tblist,dtb      (real)        kblist (10*kmax), kslow(npairs) name(ntot)
        CALL MPI_BCAST(SF(1,1),7*NPAIRS,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(U(1,1),4*NPAIRS,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(U0(1,1),4*NPAIRS,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
@@ -417,11 +396,25 @@
        CALL MPI_BCAST(DTGW(1),NPAIRS,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(NAME(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 *
-*     read list(1,i),(list(k,i),k=2,list(1,i)+1),i=1,ntot)
-       CALL MPI_BCAST(LIST(1,1),LMAX*NTOT/2,MPI_INTEGER,0,
+           iinl = NTOT
+*
+           inl = iinl/iisize
+           jsize = iisize*inl
+           idiff = iinl - jsize
+           irun = 0
+*
+           do ix = 1,iisize
+              inum(ix)=inl
+              if(ix.le.idiff)inum(ix) = inum(ix) + 1
+              ista(ix) = irun+1
+              if(ista(ix).gt.iinl)inum(ix) = 0
+              irun = irun + inum(ix)
+           end do
+*
+           do ix = 1,iisize
+       CALL MPI_BCAST(LIST(1,ista(ix)),LMAX*inum(ix),MPI_INTEGER,0,
      &                                      MPI_COMM_WORLD,ierr)
-       CALL MPI_BCAST(LIST(1,NTOT/2+1),LMAX*NTOT/2,MPI_INTEGER,0,
-     &                                      MPI_COMM_WORLD,ierr)
+           end do
        CALL MPI_BCAST(NXTLIMIT,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(NXTLST(1),NMAX,MPI_INTEGER,0,MPI_COMM_WORLD,
      &      ierr)
@@ -453,11 +446,11 @@
        call cputim(tt998)
        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
        call cputim(tt999)
-       ttbar = ttbar + (tt999-tt998)*60
-       ibarcount=ibarcount+1
+       if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
+       if(rank.eq.0)ibarcount=ibarcount+1
 #endif         
 *
-        NTOT = NTSAVE
+      END IF
 *
       RETURN
 *

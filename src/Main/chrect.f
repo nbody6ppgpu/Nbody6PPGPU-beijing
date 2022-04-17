@@ -96,7 +96,7 @@
          IF (DMR.GE.0.0D0) THEN
             KSTAR(I) = -KSTAR(I)
 *     ks MPI communication TEV
-            call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*           call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
             CALL SPIRAL(IPAIR)
             IF (IPHASE.LT.0.OR.KSTAR(I).GT.0) GO TO 30
          END IF
@@ -108,7 +108,7 @@
 *     Restrict lookup time to TC/2 for exit from possible merger.
          TEV(I1) = MIN(TEV(I1),TIME + 0.5*TC/TSTAR)
 *     ks MPI communication TEV
-         call ksparmpi(K_store,K_real8,K_TEV,I1,0,TEV(I1))
+*        call ksparmpi(K_store,K_real8,K_TEV,I1,0,TEV(I1))
 *     TEV(I2) = TEV(I1)
       END IF
 *     
@@ -166,7 +166,7 @@
          IF (SLEEP) THEN
             KSTAR(I) = 0
 *     ks MPI communication TEV
-            call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*           call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
             NSLP = NSLP + 1
             TK = SEMI*SQRT(SEMI/BODY(I))
             TB = YRS*TK
@@ -220,7 +220,7 @@
 *     Activate spiral indicator and save time, pericentre & eccentricity.
             KSTAR(I) = -2
 *     ks MPI communication TEV
-            call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*           call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
             TOSC(IC) = TIME
             RP(IC) = QPERI
             ES(IC) = ECC
@@ -249,7 +249,7 @@
             CALL SPIRAL(II)
             KSTAR(I) = 0
 *     ks MPI communication TEV
-            call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*           call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
             call jpred(I,time,time)
             KSPAIR = IPAIR
 *       Delay collision/coalescence until end of KSINT using IPHASE < 0.
@@ -281,7 +281,7 @@ c$$$            CALL CMBODY(2)
                CALL KSPERI(IPAIR)
                KSTAR(I) = 0
 *     ks MPI communication TEV
-               call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*              call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
 c$$$               KSPAIR = IPAIR
 c$$$               IQCOLL = 2
 c$$$               CALL CMBODY(2)

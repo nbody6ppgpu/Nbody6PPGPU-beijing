@@ -67,7 +67,8 @@
                   LIST(NNB1,I1) = J
               ELSE IF (J.GT.N) THEN
 *       Employ a more generous criterion for possible wide binary.
-                  RJ = BODY(J)/H(J-N)
+                  RJ = MIN(10.0*ABS(SEMI),-BODY(J)/H(J-N))
+*                  RJ = BODY(J)/H(J-N)
                   IF (RSEP2.LT.CMSEP2*RJ**2) THEN
                       NNB1 = NNB1 + 1
                       LIST(NNB1,I1) = J
@@ -77,13 +78,13 @@
    10 CONTINUE
 *
 *       Ensure at least one perturber first time (max 5 tries except CHAOS).
-      IF (NNB1.EQ.1.AND.IPHASE.GT.0.AND.NNB2.GT.1.AND.TIME.GT.0.0) THEN
-          RCRIT2 = 2.0*RCRIT2
-          RCRIT3 = 2.0*RCRIT3
-          IT = IT + 1
+*     IF (NNB1.EQ.1.AND.IPHASE.GT.0.AND.NNB2.GT.1.AND.TIME.GT.0.0) THEN
+*         RCRIT2 = 2.0*RCRIT2
+*         RCRIT3 = 2.0*RCRIT3
+*         IT = IT + 1
 *       Skip repeat for small size (next KSLIST requires many periods).
-          IF ((SEMI*SU.GT.10.0.AND.IT.LE.5).OR.KSTAR(I).EQ.-1) GO TO 6
-      END IF
+*         IF ((SEMI*SU.GT.10.0.AND.IT.LE.5).OR.KSTAR(I).EQ.-1) GO TO 6
+*     END IF
 *
 *       Check case of no perturbers (dual purpose).
       IF (NNB1.EQ.1) THEN

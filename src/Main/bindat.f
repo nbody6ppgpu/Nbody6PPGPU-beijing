@@ -87,7 +87,7 @@ C              RM = MIN(RM,99.9D0)
               BODYCM = MAX(BODYCM,1.0D-10)
               EB(JPAIR) = BODYJ1*BODYJ2*H(JPAIR)/BODYCM
               SEMI = -0.5*BODYCM/H(JPAIR)
-              ECC2 = (1.0 - SEMI/R(JPAIR))**2
+              ECC2 = (1.0 - R(JPAIR)/SEMI)**2
           END IF
           ECC(JPAIR) = SQRT(ECC2)
 C          EB(JPAIR) = MAX(EB(JPAIR),-9.99999)

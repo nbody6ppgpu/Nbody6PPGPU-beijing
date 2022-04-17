@@ -54,7 +54,8 @@
           RI2 = X(1,I)**2 + X(2,I)**2 + X(3,I)**2
           RS(I) = RS0*SQRT(1.0 + RI2)
 *       Set an estimated r-dependent regular time-step.
-          STEPR(I) = SMAX/8.0D0*SQRT(1.0 + RI2)
+          STEPR(I) = SMAX*SQRT(1.0 + RI2)
+*          STEPR(I) = SMAX/8.0D0*SQRT(1.0 + RI2)
           STEPR(I) = MIN(STEPR(I),SMAX)
           DO 5 K = 1,3
               F(K,I) = 0.0
@@ -339,10 +340,10 @@ c$$$     &     ' size',icnt,' isend',isend,' irecv',irecv
       call cputim(ttb)
       call mpi_barrier(MPI_COMM_WORLD,ierr)
       call cputim(tt999)
-      ibarcount=ibarcount+1
-      ttbar = ttbar + (tt999-ttb)*60
-      xtsub2 = xtsub2 + dble((13*8+lmax*8)*(icnt+icnt2))
-      ttsub2 = ttsub2 + (ttb-tta)*60.
+      if(rank.eq.0)ibarcount=ibarcount+1
+      if(rank.eq.0)ttbar = ttbar + (tt999-ttb)*60.
+      if(rank.eq.0)xtsub2 = xtsub2 + dble((13*8+lmax*8)*(icnt+icnt2))
+      if(rank.eq.0)ttsub2 = ttsub2 + (ttb-tta)*60.
 c$$$      print*, 'rank ',rank,' istsen ',istsen,' istrec ',istrec,
 c$$$     &     ' after fi(1) ',fi(1,istsen), ' fi(e) ',fi(1,istrec)
 #endif

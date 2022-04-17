@@ -299,11 +299,11 @@
      &      RADIUS(JX1)*SU,RADIUS(JX2)*SU,R(IPAIR)*SU,R(JXAIR)*SU
    21     FORMAT (/,' END MERGER: ',1P,' TIME',E12.5,' IC,JC,IP=',3I10,
      &         ' N IC,JC,ICM=',3I10,' KW IC,JC,ICM=',3I4,
-     &         ' M1,2[NB]',2E10.2,' JX1,JX2,JP=',3I10,' N JX1,JX2,JP=',
-     &         3I0,' KW JX1,JX2,JCM=',3I4,' M3,4[NB]',2E10.2,
-     &         '  R12',E10.2,' H',E10.2,' R34',E10.2,' H2',E10.2,
-     &         ' M1,2[*]',2E10.2,' RAD1,2[*]',2E10.2,'  M3,4[*]',
-     &         2E10.2,' RAD3,4[*]',2E10.2,' SEPI/J',2E10.2)
+     &         ' M1,2[NB]',2E11.3,' JX1,JX2,JP=',3I10,' N JX1,JX2,JP=',
+     &         3I0,' KW JX1,JX2,JCM=',3I4,' M3,4[NB]',2E11.3,
+     &         '  R12',E11.3,' H',E11.3,' R34',E11.3,' H2',E11.3,
+     &         ' M1,2[*]',2E11.3,' RAD1,2[*]',2E11.3,'  M3,4[*]',
+     &         2E11.3,' RAD3,4[*]',2E11.3,' SEPI/J',2E11.3)
           call flush(6)
           END IF
 

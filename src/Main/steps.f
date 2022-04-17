@@ -30,12 +30,7 @@
 *     Convert predicted step to nearest block time-step (truncated down).
           CALL STEPK(DT,DTN)
           CALL STEPK(DTR,DTRN)
-*     --11/22/13 20:26-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$         IF(I.EQ.12534.and.rank.eq.0) then
-c$$$             print*,'I',I,'T',time,'TB',tblock,'DT',dt,'DTN',dtn
-c$$$          end if
-*     --11/22/13 20:26-lwang-end----------------------------------------*
+*
           IF (TIME.LE.0.0D0) THEN
               STEP(I) = DTN
               STEPR(I) = DTRN
@@ -44,26 +39,30 @@ c$$$          end if
               STEP(I) = DTN
               STEPR(I) = DTRN
               ITER = 0
-   10         IF (DMOD(TIME,STEP(I)).NE.0.0D0) THEN
+   10         CONTINUE
+              IF (DMOD(TIME,STEP(I)).NE.0.0D0) THEN
                   STEP(I) = 0.5D0*STEP(I)
                   ITER = ITER + 1
                   IF (ITER.LT.16.OR.STEP(I).GT.DTK(40)) GO TO 10
                   STEP(I) = DTK(40)
                   if(rank.eq.0)
-     &        WRITE (6,15) I,NAME(I),ITER,TIME/STEP(I),DT,STEP(I)
-   15             FORMAT (' WARNING!   I N ITER T/STEP DT STEP ',
-     &                                 I10,I10,I6,E16.4,1P,2E9.1)
+     &        WRITE (6,15) TTOT,TIME,I,NAME(I),KSTAR(I),BODY(I)*ZMBAR,
+     &            ITER,TIME/STEP(I),DT,STEP(I)
+   15       FORMAT (' WARNING! TT T I N K M ITER T/STEP DT STEP ',
+     &                 1P,2E11.3,2I10,I4,E11.3,I6,4E16.4)
               END IF
               ITER = 0
-   18         IF (DMOD(TIME,STEPR(I)).NE.0.0D0) THEN
+   18         CONTINUE
+              IF (DMOD(TIME,STEPR(I)).NE.0.0D0) THEN
                   STEPR(I) = 0.5D0*STEPR(I)
                   ITER = ITER + 1
                   IF (ITER.LT.16.OR.STEPR(I).GT.DTK(40)) GO TO 18
                   STEPR(I) = DTK(40)
                   if(rank.eq.0)
-     &        WRITE (6,20) I,NAME(I),ITER,TIME/STEPR(I),DTR,STEPR(I)
-   20             FORMAT (' WARNING!   I N ITER T/STEPR DTR STEPR ',
-     &                                 I10,I10,I6,E16.4,1P,2E9.1)
+     &        WRITE (6,20) TTOT,TIME,I,NAME(I),KSTAR(I),BODY(I)*ZMBAR,
+     &         ITER,TIME/STEP(I),DTR,STEPR(I)
+   20       FORMAT (' WARNING! TT T I N K M ITER T/STEPR DTR STEPR ',
+     &                1P,2E11.3,2I10,I4,1P,E11.3,I6,4E16.4)
               END IF
           END IF
 *

@@ -1,0 +1,17 @@
+  PE       N        Total     Inti.    Intgrt      Reg.      Irr.     Pred.   Init.B.      Mdot      Move   Comm.I.   Comm.R.   Send.I.   Send.R.        KS    Adjust     OUT      Barr.   Barr.I.   Barr.R. Reg.GPU.S Reg.GPU.P Comm.Adj. Mdot.Fic.  Mdot.Fc. Mdot.Pot.  Mdot.EC.   Sort.B.    HighV  KS.Init.B  KS.Int.S  KS.Int.P  KS.Comm.  KS.Barr.   KS.Move   KS.Cmb. KS.Insert  KS.Init.  KS.Term.     Hiar.     KS.UP   KS.TP    TIDES3    GRRAD      xtsub1       xtsub2  itides3  igrrad
+  16 5000000   5299.66850    886.63   4381.95   1375.55     59.84   1445.60     69.09      0.00    139.97     13.09     95.11     32.57   1040.85     18.48     75.51      0.02    116.17     77.74     36.38    793.98    581.27      0.05      0.00      0.00      0.00      0.00     16.37      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00     13.63      4.81      0.01      0.00      0.00      1.24      0.00  3.31335E+11  1.13463E+12         0         0
+
+ TIME[NB]    1.000000E-01  N  5000000  <NB>    76  NPAIRS       0  NMERGE     0 MULT    0 NS  5000000  NSTEP(I,B,R,U)    1106111684          118    225982850          381  DE   -0.696285E-04  E         -0.250018 M   1.00000000
+
+ STEP I      154    3228   21316   63396   15422   35843  126150   81764  194307  402644 1023941 1474525 1332998  210475   10638    2396     609     170      22       2
+ STEP R      190    3559   22296   64757  112043  288520  600261  894275 1216954 1011987  515671  202727   55799    9607    1057     240      48       9
+
+
+
+  PE       N        Total     Inti.    Intgrt      Reg.      Irr.     Pred.   Init.B.      Mdot      Move   Comm.I.   Comm.R.   Send.I.   Send.R.        KS    Adjust     OUT      Barr.   Barr.I.   Barr.R. Reg.GPU.S Reg.GPU.P Comm.Adj. Mdot.Fic.  Mdot.Fc. Mdot.Pot.  Mdot.EC.   Sort.B.    HighV  KS.Init.B  KS.Int.S  KS.Int.P  KS.Comm.  KS.Barr.   KS.Move   KS.Cmb. KS.Insert  KS.Init.  KS.Term.     Hiar.     KS.UP   KS.TP    TIDES3    GRRAD      xtsub1       xtsub2  itides3  igrrad
+  16 5000000   5494.04750    860.68   4602.86   1961.92     60.55      0.00     79.86      0.00    157.60     14.17    102.63     32.74   2109.56     17.93     75.73      0.04     88.86     48.16     39.20   1314.01    647.38      0.03      0.00      0.00      0.00      0.00     23.13      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00     13.10      4.73      0.02      0.00      0.00      1.24      0.00  3.37531E+11  1.27330E+12         0         0
+ TIME[NB]    1.000000E-01  N  5000000  <NB>    76  NPAIRS       0  NMERGE     0 MULT    0 NS  5000000  NSTEP(I,B,R,U)    1127150944          116    253650339          378  DE   -0.674071E-04  E         -0.250017 M   1.00000000
+
+ STEP I      154    3228   21316   63396   15264   30410  125229   82846  196029  405070 1012273 1463637 1342047  221557   13402    3054     861     202      23       2
+ STEP R      190    3559   22296   64757  108998  277567  596045  906696 1219216  998679  492033  204938   79436   20441    3898     907     299      44       1
+

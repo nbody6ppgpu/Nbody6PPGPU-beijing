@@ -189,7 +189,7 @@
 *     PMIN = SEMI*(1.0 - SQRT(ECC2))
 *     if(rank.eq.0)
 *     &    WRITE (6,56)  TIME+TOFF, NAME(ICOMP), NAME(JCOMP), PMIN
-*     56     FORMAT (' HYPERBOLIC    T NAM PMIN ',F8.2,2I6,1P,E10.2)
+*     56     FORMAT (' HYPERBOLIC    T NAM PMIN ',F8.2,2I6,1P,E11.3)
 *     END IF
 *     
 *     Set 2*SEMI as termination scale for hard binary if 2*SEMI < RS/20.

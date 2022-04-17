@@ -18,8 +18,8 @@
           RADIUS(I1) = 0.0
           RADIUS(I2) = 0.0
 *     ks MPI communication RADIUS
-          call ksparmpi(K_store,K_real8,K_RADIUS,I1,0,RADIUS(I1))
-          call ksparmpi(K_store,K_real8,K_RADIUS,I2,0,RADIUS(I2))
+*         call ksparmpi(K_store,K_real8,K_RADIUS,I1,0,RADIUS(I1))
+*         call ksparmpi(K_store,K_real8,K_RADIUS,I2,0,RADIUS(I2))
       END IF
 *
       NCOLL = NCOLL + 1

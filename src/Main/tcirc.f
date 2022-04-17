@@ -149,7 +149,7 @@
          IF (ES0.LE.ECCM1.AND.KSTAR(N+IP).EQ.0) THEN
             KSTAR(N+IP) = 10
 *     ks MPI communication
-            call ksparmpi(K_store,K_int,K_KSTAR,N+IP,0,KSTAR(N+IP))
+*           call ksparmpi(K_store,K_int,K_KSTAR,N+IP,0,KSTAR(N+IP))
          END IF
       ELSE
 *     Note ICIRC = -1 for some calls.

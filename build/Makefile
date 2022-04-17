@@ -16,20 +16,20 @@ CXX = g++
 CC = gcc
 NVCC = nvcc
 
-RESULT = nbody6++.sse.gpu.mpi.hdf5
+RESULT = nbody6++.sse.gpu.mpi
 #FFLAGS = -O3 -fbounds-check -fbacktrace -fno-automatic -fmax-stack-var-size=0 -fPIC -mcmodel=large -Wall
 OMP_FLAGS= -D OMP
 MPI_FLAGS = -D PARALLEL -D PUREMPI
 GPU_FLAGS = -D GPU
 SIMD_FLAGS = -D SIMD
-HDF5_FLAGS = -D H5OUTPUT -I/usr/include/openmpi-x86_64/ -L/usr/lib64/openmpi/lib/ -lhdf5_fortran
+HDF5_FLAGS = -D H5OUTPUT -I$(HDF5_DIR)/include/ -L$(HDF5_DIR)/lib/ -lhdf5_fortran
 DEBUG_FLAGS= -D DEBUG
 TT_FLAGS= -D TT
 INTEL_FLAGS= -D __USE_INTEL -no-wrap-margin
 
-FFLAGS =  -O0 -fPIC -mcmodel=large -fopenmp -I../include $(GPU_FLAGS) $(MPI_FLAGS) ${SIMD_FLAGS} ${OMP_FLAGS} ${HDF5_FLAGS}
+FFLAGS = -g -fbounds-check -fbacktrace -O3 -fPIC -mcmodel=large -fopenmp -I../include $(GPU_FLAGS) $(MPI_FLAGS) ${SIMD_FLAGS} ${OMP_FLAGS} ${HDF5_FLAGS}
 CXXFLAGS =  -O3 -fopenmp -I../include -march=native -fPIC -mcmodel=large -msse ${OMP_FLAGS}
-CUFLAGS =  -O0 -D CUDA_5 -I /usr/local/cuda-7.5/samples/common/inc
+CUFLAGS =  -O3 -I ../extra_inc/cuda
 LDFLAGS = -o $(RESULT)
 
 MPI_FSOURCES= energy_mpi.f fpoly1_mpi.f fpoly2_mpi.f
@@ -77,7 +77,7 @@ impact.f induce.f input.f insert.f instar.f intgrt.f \
 jacobi.f kick.f kick2.f ksapo.f kscorr.f \
 ksin2.f ksinit.f ksint.f kslist.f ksmod.f ksperi.f kspert.f \
 kspoly.f kspred.f ksrect.f ksreg.f ksres.f ksres2.f ksterm.f \
-kstide.f lagr.f lagr2.f levels.f magbrk.f matrix.f mdot.f merge.f \
+kstide.f lagr.f levels.f magbrk.f matrix.f mdot.f merge.f \
 merge2.f mix.f mloss.f mlwind.f modify.f mrenv.f mydump.f \
 nbint.f nblist.f nbpot.f nbrem.f nbrest.f \
 newtev.f nstab.f offset.f orbit.f output.f peri.f permit.f \
@@ -118,7 +118,7 @@ OBJECTS = $(SOURCE:.f=.o)
 TARGET: $(RESULT) 
 
 $(RESULT): $(OBJECTS) $(EXTRAOBJ)
-	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++ -L/usr/local/cuda-7.5/lib64 -lcudart
+	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++ -lcudart
 
 libinitial.so: initial.h initial.cpp
 	$(CXX) -shared $(CXXFLAGS) ../src/Tools/initial.cpp -o libinitial.so

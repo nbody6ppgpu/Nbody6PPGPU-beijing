@@ -66,7 +66,7 @@
       IF (KSTAR(I).GT.0) THEN
          KSTAR(I) = -KSTAR(I)
 *     ks MPI communication KSTAR
-         call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*        call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
          ISTAR = 1
       END IF
 *     
@@ -347,8 +347,8 @@
      &        0.21*MC2/SMU*RCS2**2)*spin2
       END IF
 *     ks MPI communication SPIN
-      call ksparmpi(K_store,K_real8,K_SPIN,J1,0,SPIN(J1))
-      call ksparmpi(K_store,K_real8,K_SPIN,J2,0,SPIN(J2))
+*     call ksparmpi(K_store,K_real8,K_SPIN,J1,0,SPIN(J1))
+*     call ksparmpi(K_store,K_real8,K_SPIN,J2,0,SPIN(J2))
 *     
 *     Obtain the tidal contributions from integration.
       A0 = RP0/(1.0 - ES0)
@@ -373,7 +373,7 @@
          IONE = 0
          KSTAR(I) = 10
 *     ks MPI communication KSTAR
-         call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*        call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
          NCIRC = NCIRC + 1
          TB = DAYS*SEMI*SQRT(SEMI/BODY(I))
 *     Ensure the dominant star has synchronous rotation.
@@ -384,7 +384,7 @@
      &           0.21*MC1/SMU*RC1**2)*meanmotion
          END IF
 *     ks MPI communication SPIN
-         call ksparmpi(K_store,K_real8,K_SPIN,J1,0,SPIN(J1))
+*        call ksparmpi(K_store,K_real8,K_SPIN,J1,0,SPIN(J1))
          DOM = (spin1 - meanmotion)/meanmotion
          if(rank.eq.0)
      &        WRITE (6,15)  TTOT, IPAIR, ES0, ECC, 
@@ -435,8 +435,8 @@
       ECOLL = ECOLL + DETMP
       EGRAV = EGRAV + DETMP
 *     ks MPI communication ECOLL EGRAV
-      call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DETMP)
-      call ksparmpi(K_store,K_real8,K_EGRAV,0,0,DETMP)
+*     call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DETMP)
+*     call ksparmpi(K_store,K_real8,K_EGRAV,0,0,DETMP)
 *     
 *     Rectify large eccentricity deviation from integrated value.
       ECC2 = (1.0 - R(IPAIR)/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
@@ -514,9 +514,9 @@ c$$$      END IF
          EGRAV = EGRAV + DETMP
          KSTAR(I) = 10
 *     ks MPI communication ECOLL EGRAV KSTAR
-         call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DETMP)
-         call ksparmpi(K_store,K_real8,K_EGRAV,0,0,DETMP)
-         call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*        call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DETMP)
+*        call ksparmpi(K_store,K_real8,K_EGRAV,0,0,DETMP)
+*        call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
          if(rank.eq.0)WRITE (6,21)  ES0, ECC, AF/SEMI, DTR, SEMI, AF
  21      FORMAT (' WARNING!    SPIRAL TERM    E0 E A/A0 DTR A AF ',
      &        2F8.4,F6.2,1P,3E10.2)
@@ -529,7 +529,7 @@ c$$$      END IF
      &           0.21*MC1/SMU*RC1**2)*meanmotion
          END IF
 *     ks MPI communication SPIN
-         call ksparmpi(K_store,K_real8,K_SPIN,J1,0,SPIN(J1))
+*        call ksparmpi(K_store,K_real8,K_SPIN,J1,0,SPIN(J1))
          DOM = (spin1 - meanmotion)/meanmotion
          if(rank.eq.0)WRITE (6,26)  NAME(J1), Q1, QC, DOM
  26      FORMAT (' ENFORCED ROCHE   NM(J1) Q1 QC DOM/OM',I8,2F8.2,F7.3)
@@ -590,7 +590,7 @@ c$$$      END IF
          CALL TRFLOW(IPAIR,DTR)
          TEV(I) = TIME + DTR
 *     ks MPI communication
-         call ksparmpi(K_store,K_real8,K_TEV,I,0,TEV(I))
+*        call ksparmpi(K_store,K_real8,K_TEV,I,0,TEV(I))
          TK = DAYS*SEMI*SQRT(SEMI/BODY(I))
 *     
          if(rank.eq.0)
@@ -603,7 +603,7 @@ c$$$      END IF
          CALL TRDOT(J1,DTM,ZM1)
          TEV(J1) = TIME + DTM
 *     ks MPI communication
-         call ksparmpi(K_store,K_real8,K_TEV,J1,0,TEV(J1))
+*        call ksparmpi(K_store,K_real8,K_TEV,J1,0,TEV(J1))
 *     IF (DTR.LT.0.1/TSTAR) THEN
 *     TEV(I1) = TEV(I) + 2.0*STEPX
 *     TEV(I2) = TEV(I1)
@@ -644,7 +644,7 @@ c$$$         END IF
             CALL DEFORM(IPAIR,ECC,ECCM)
             KSTAR(I) = 10
 *     ks MPI communication KSTAR
-            call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*           call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
             NCIRC = NCIRC + 1
             CALL RESOLV(IPAIR,1)
             CALL KSPOLY(IPAIR,1)
@@ -664,7 +664,7 @@ c$$$         END IF
          IF (TC.GT.1.0D+04) THEN
             KSTAR(I) = 0
 *     ks MPI communication KSTAR
-            call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*           call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
             IREM = IC
             if(rank.eq.0)WRITE (6,29)  NAME(I1), LIST(1,I1), ECC, TC
  29         FORMAT (' FROZEN CIRC    NM NP E TC ',I7,I4,F9.5,1P,E9.1)

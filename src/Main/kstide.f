@@ -6,9 +6,9 @@
 *
       Include 'kspars.h'
       INCLUDE 'common6.h'
+      INCLUDE 'timing.h'
       REAL*8  DE(5), TD2, F1,F2,F3,FTOT
       CHARACTER*8  WHICH1
-      INTEGER, SAVE :: COUNTER=0
       INTEGER  IS(2),I_PER,IND_PER
 *     For diagnostic, thus safe for parallel
       SAVE  TTIDE,IONE
@@ -39,12 +39,8 @@
 *       Distinguish between sequential circularization, standard chaos & GR.
 *
 *       Special Treatment of GR for compact binaries RSp March 2019
-      IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &   (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
-         IF(DABS(QPERI)*SU.LT.5.0D1) THEN
-             GO TO 5
-         END IF 
-      END IF
+*       Special binary type -25 for GR shrinking binary
+        IF(KSTAR(I).EQ.-25) GO TO 5
 *
       R1 = MAX(RADIUS(I1),RADIUS(I2))
       IF (KZ(27).EQ.1) THEN
@@ -79,14 +75,14 @@
       IF (ECC.LE.ECCM.AND.KSTAR(I).LT.10) THEN
           KSTAR(I) = 10
 *     ks MPI communication TEV
-          call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*         call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
           GO TO 50
       END IF
 *     
-*       Consider sequential circularization or GR evolution.
-      IF (KZ(27).EQ.1) THEN
          RI = SQRT(X(1,I)**2 + X(2,I)**2 + X(3,I)**2)
          VI = SQRT(XDOT(1,I)**2 + XDOT(2,I)**2 + XDOT(3,I)**2)
+*       Consider sequential circularization or GR evolution.
+      IF (KZ(27).EQ.1) THEN
 *       Suppress the old PT procedure (DH => ECC from AM0 = const).
 *         ECC2 = ECC**2 + 2.0D0*AM0*DH/BODY(I)
 *         ECC2 = MAX(ECC2,ECCM2)
@@ -111,72 +107,38 @@
 *       Special Treatment of GR for compact binaries RSp March 2019
         END IF
 *
-* June 2019 Francesco Rizzuto
-* Start GR corrections only for QPERI < 50 solar radii
+* Dec 2021 Rainer Spurzem
 *
  5    CONTINUE
-        IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &  (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14)) THEN
-           IF(DABS(QPERI)*SU.LT.5.0D1) THEN
+*       Special binary type -25 for GR shrinking binary
+        IF (KSTAR(I).EQ.-25) THEN
            DTX = DTGW(IPAIR)
+           call cputim(ttgr3)
            CALL TIDES3(SEMI,BODY(I1),BODY(I2),ECC,VSTAR,DTX,DE)
-             SEMI1 = SEMI - 1.0D+0*DE(3)
-             ECC1 = ECC - 1.0D+0*DE(4)
-* Avoid negative ECC1 (R.Sp. Aug. 2021).
-             IF(ECC1.LT.0.D0.OR.DABS(ECC1).LT.1.E-04) ECC1 = 1.E-04
-* Avoid hyperbolic orbit as safety measure (R.Sp. Nov. 2021)
-             IF(ECC1.GT.1.D0)ECC1 = 0.999D0
+           call cputim(ttgr4)
+           if(rank.eq.0)tttides3 = tttides3 + (ttgr4-ttgr3)*60.
+           if(rank.eq.0)itides3 = itides3 + 1
+           CL2 = CLIGHT**2
+           A_EIN = 3.0*TWOPI*BODY(I)/(SEMI*CL2*(1-ECC2))
+             TORB = TWOPI*SQRT(SEMI**3/BODY(I))
+             TGR = DABS(DTX*SEMI/DE(3))
+             RSCHW = 2.0*BODY(I)/CL2
+             SEMI1 = SEMI - DE(3)
+             ECC1 = ECC - DE(4)
              DH = -DE(1)/ZMU
-             COUNTER = COUNTER + 1 
-                IF((MOD(COUNTER,1).eq.0).AND.(rank.eq.0)) THEN
-                 PRINT *,'GR TIDES COUNTER T DT M12 NAM12 K12 SEMI ECC',
-     &                   'H DE DSEMI DECC DH QP LIST LIST_CM GAMMA ',
-     &           COUNTER,TTOT, DTGW(IPAIR),BODY(I1),BODY(I2),
-     &           NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),
-     &           SEMI,ECC,HI,DE(1),DE(3),DE(4),DH,
-     &           QPERI,LIST(1,I1),LIST(1,I),GAMMA(IPAIR) 
-*   LIST(1,I1) = Number of perturbers LIST(1,I) = Number near by Part. 
-*   Print Perturbers pos and velocity LIST(2-N,I1) =Perturbers index
-*    Print Perturbers
-*                 if(LIST(1,I1).lt.0) then 
-*                 DO I_PER = 2,LIST(1,I1)+1
-*                    IND_PER = LIST(I_PAR,I1)                       
-*                    PRINT *,'PERTURBERS NAM M POS VEL', 
-*     &              NAME(IND_PER),BODY(IND_PER),
-*     &              X(1,IND_PER),X(2,IND_PER),X(3,IND_PER),
-*     &              XDOT(1,IND_PER),XDOT(2,IND_PER),XDOT(3,IND_PER)
-*                 END DO
-*                 end if   
-*    Print Neighbours Particles
-*                DO I_PER = 1,LIST(1,I)+1
-*                    if(I_PER.eq.1) then
-*                        PRINT *,'NEIGHBOURS NAM M POS VEL', 
-*     &                  NAME(I1),BODY(I1),X(1,I1),X(2,I1),X(3,I1),
-*     &                  0.0,0.0,0.0,ECC,SEMI,TTOT,0.0
-*                        PRINT *,'NEIGHBOURS NAM M POS VEL', 
-*     &                  NAME(I2),BODY(I2),X(1,I2),X(2,I2),X(3,I2),
-*     &                  0.0, 0.0, 0.0, 0.0, 0.0,TTOT,0.0             
-*                    else   
-*                       IND_PER = LIST(I_PER,I)
-**    Compute the Force for each neigh
-*                       F1=BODY(IND_PER)*(X(1,I1)-X(1,IND_PER))
-**     &                     /(X(1,I1)-X(1,IND_PER))**3
-*                       F2=BODY(IND_PER)*(X(2,I1)-X(2,IND_PER))
-*     &                     /(X(2,I1)-X(2,IND_PER))**3
-*                       F3=BODY(IND_PER)*(X(3,I1)-X(3,IND_PER))
-*     &                     /(X(3,I1)-X(3,IND_PER))**3 
-*                       FTOT = SQRT(F1*F1 + F2*F2 + F3*F3)       
-*                       PRINT *,'NEIGHBOURS NAM M POS VEL', 
-*     &                 NAME(IND_PER),BODY(IND_PER),
-*     &                 X(1,IND_PER),X(2,IND_PER),X(3,IND_PER),
-*     &                 F1,F2,F3, 0.0,0.0,TTOT,FTOT
-*                   end if                 
-*                 END DO
-                END IF                                         
-                DTGW(IPAIR) = 0.0D0
-           END IF 
+      if(rank.eq.0)WRITE(6,665)
+     &   TTOT,DTGW(IPAIR),STEP(I1),I,IPAIR,LIST(1,I1),
+     &   NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
+     &   BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,SEMI,QPERI,RSCHW,
+     &   H(IPAIR),GAMMA(IPAIR),A_EIN,TORB,TGR,DE(1),DE(3),DE(4),DH,PERI
+ 665  FORMAT(1X,' GR KSTIDE T DTGW STEP',1P,3E13.5,' I IP NPERT',
+     &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
+     &   ' e,a,QP,RS[NB]=',4E13.5,' H, GAMMA=',2E13.5,
+     &   ' A_EIN, TORB, TGR(PM)=',3E13.5,' decc,dsemi=',2E13.5,
+     &   ' de,dh,oldQP=',3E13.5)
         END IF
-*
+*       Return for merger
+      IF (TGR.LT.TORB) GO TO 50
 *       Skip possible hyperbolic case.
       IF (H(IPAIR) + DH.GT.0.0) GO TO 50
 *
@@ -186,9 +148,9 @@
       E(10) = E(10) + DETMP
       EGRAV = EGRAV + DETMP
 *     ks MPI communication ECOLL E(10) EGRAV
-      call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DETMP)
-      call ksparmpi(K_store,K_real8,K_EGRAV,0,0,DETMP)
-      call ksparmpi(K_store,K_real8,K_E10,0,0,DETMP)
+*     call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DETMP)
+*     call ksparmpi(K_store,K_real8,K_EGRAV,0,0,DETMP)
+*     call ksparmpi(K_store,K_real8,K_E10,0,0,DETMP)
 *       Determine pericentre variables U & UDOT by backwards integration.
       CALL KSPERI(IPAIR)
 
@@ -197,46 +159,54 @@
 *       Print first and last energy change and update indicator.
       IF (KZ(27).EQ.1.AND.(KSTAR(I).EQ.0.OR.KSTAR(I).EQ.9)) THEN
           P = DAYS*SEMI1*SQRT(SEMI1/BODY(I))
+          RCOLL = 0.75*(RADIUS(I1) + RADIUS(I2))
+*
           IF (KSTAR(I).EQ.0.AND.ECC1.GT.ECCM) THEN
               WHICH1 = 'NEW CIRC'
               KSTAR(I) = 9
 *     ks MPI communication TEV
-              call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
-              if(rank.eq.0)
-     &        WRITE (6,8)  WHICH1, NAME(I1), NAME(I2), KSTAR(I1),
-     &                     KSTAR(I2), BODY(I1)*ZMBAR, BODY(I2)*ZMBAR,
-     &                     TTOT, ECC, ECC1, P, SEMI1, R1,
-     &                     RADIUS(I1)*SU,RADIUS(I2)*SU, RI, VI
+*             call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+      if(rank.eq.0)WRITE(6,608)
+     & WHICH1,TTOT,STEP(I1),I,IPAIR,LIST(1,I1),
+     & NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
+     & BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,ECC1,ECCM,SEMI,SEMI1,QPERI,HI,
+     & GAMMA(IPAIR),P,RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RCOLL*SU,
+     & RI,VI
           ELSE IF (ECC1.LE.ECCM) THEN
               WHICH1 = 'END CIRC'
               KSTAR(I) = 10
 *     ks MPI communication TEV
-              call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+*             call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
               NCIRC = NCIRC + 1
-              if(rank.eq.0)
-     &        WRITE (6,8)  WHICH1, NAME(I1), NAME(I2), KSTAR(I1),
-     &                     KSTAR(I2), BODY(I1)*ZMBAR, BODY(I2)*ZMBAR,
-     &                     TTOT, ECC, ECC1, P, SEMI1, R1,
-     &                     RADIUS(I1)*SU,RADIUS(I2)*SU, RI, VI
-    8     FORMAT (' ',A8,' NM,KW=',2I8,2I4,' M1,2[*]',1P,2E9.2,
-     &            ' T,e,e1,p,a=',5E9.2,' RMIN,RAD1,2[*]',3E9.2,
-     &            ' RI,VI=',2E9.2)
+      if(rank.eq.0)WRITE(6,608)
+     & WHICH1,TTOT,STEP(I1),I,IPAIR,LIST(1,I1),
+     & NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
+     & BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,ECC1,ECCM,SEMI,SEMI1,QPERI,HI,
+     & GAMMA(IPAIR),P,RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RCOLL*SU,
+     & RI,VI
+ 608  FORMAT(1X,A8,' T DT ',1P,2E13.5,' I IP NPERT',
+     &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
+     &   ' e0,e,em,a0,a,QP=',6E13.5,' H, GAMMA=',2E13.5,
+     &   ' PD, R1,2,SEP,RCOLL[R*]=',5E13.5,' RI,VI=',2E13.5)
           END IF
       END IF
 *
 *       Set new pericentre.
-   10 PERI1 = SEMI1*(1.0D0 - ECC1)
+   10   CONTINUE
+        PERI1 = SEMI1*(1.0D0 - ECC1)
+        IF(KSTAR(I).EQ.-25.and.rank.eq.0)THEN
+        IF(ECC1 .LT. 0.0 .OR. ECC1.GT.1.0 .OR. SEMI1.LT.0.0)PRINT*,
+     &     ' KSTIDE: Warning! ECC1<0 or >1 or SEMI1 < 0.0 -->',
+     &     ' ecc/1,semi/1,peri/1 ',ECC,ECC1,SEMI,SEMI1,PERI,PERI1
+        ENDIF
+********************************************************************+
 *
 *       Form KS coordinate scaling factor from pericentre ratio.
       C1 = SQRT(PERI1/PERI)
 *
 *       Specify KS velocity scaling (conserved J, chaos or GR treatment).
       IF (KZ(27).EQ.1) THEN
-          IF (KSTAR(I).EQ.25) THEN
-              C2 = SQRT((BODY(I) + H(IPAIR)*PERI1)/(BODY(I) + HI*PERI))
-          ELSE 
               C2 = 1.0/C1
-          END IF 
       ELSE
 *       Note that PERI should not change in GR case (hence same C2).
           C2 = SQRT((BODY(I) + H(IPAIR)*PERI1)/(BODY(I) + HI*PERI))
@@ -302,7 +272,7 @@
       DP = POT2 - POT1
       ECOLL = ECOLL + DP
 *     ks MPI communication ECOLL E(10) EGRAV
-      call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DP)
+*     call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DP)
 *
 *       Produce diagnostic output for interesting new case (first time).
       IF (ECC.GT.0.99.AND.ABS(ECC - ECC1).GT.0.01.AND.IONE.EQ.0) THEN
@@ -310,7 +280,7 @@
      &    WRITE (6,20)  NAME(I1), NAME(I2), SEMI1, ECC, ECC1, HI,
      &                  QPERI, DH, DP
    20     FORMAT (' NEW KSTIDE    NAM AF E0 EF HI QP DH DP ',
-     &                            2I5,1P,E10.2,0P,2F8.3,F9.1,1P,3E10.2)
+     &                            2I5,1P,E11.3,0P,2F8.3,F9.1,1P,3E11.3)
           TTIDE = TIME + TOFF
           IONE = IONE + 1
       END IF
@@ -371,31 +341,38 @@ c$$$                  JCOMP = J
      &    WRITE (6,35)  TIME+TOFF, NAME(I1), NAME(I2), ECC, ECC1, QPS,
      &                  SEMI1
    35     FORMAT (' NEW CAPTURE    T NM E EF QP/R* A1 ',
-     &                             F9.2,2I6,2F9.4,1P,2E10.2)
+     &                             F9.2,2I6,2F9.4,1P,2E11.3)
       END IF
 *       Special Treatment of GR for compact binaries RSp March 2019
-        IF (KZ273.EQ.3.AND.(KSTAR(I1).EQ.13.OR.KSTAR(I1).EQ.14).AND.
-     &     (KSTAR(I2).EQ.13.OR.KSTAR(I2).EQ.14).AND.
-     &   DABS(QPERI)*SU.LT.5.0D1) GO TO 50
+*       Special binary type -25 for GR shrinking binary
+        IF(KSTAR(I).EQ.-25) GO TO 50
 *       Special Treatment: Skip sections specific for tides and roche.
 *       Record diagnostics for new synchronous orbit and activate indicator.
       IF (ECC.GT.ECCM.AND.ECC1.LT.ECCM.AND.KZ(27).LE.2) THEN
           NSYNC = NSYNC + 1
           ESYNC = ESYNC + ZMU*H(IPAIR)
           KSTAR(I) = 10
+          PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(I))*TSTAR*365.24D6
+          RCOLL = 0.75*(RADIUS(I1) + RADIUS(I2))
 *     ks MPI communication TEV
-          call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
-          if(rank.eq.0)
-     &    WRITE (6,38)  NAME(I1), NAME(I2), KSTAR(I1), KSTAR(I2), SEMI1,
-     &                  ECC, ECC1, HI, QPERI, R1
-   38     FORMAT (' CIRCULARIZED    NAM K* AF E0 EF HI QP R* ',
-     &                         2I6,2I3,1P,E10.2,0P,2F8.3,F9.1,1P,2E10.2)
+*         call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+      if(rank.eq.0)WRITE(6,638)
+     & TTOT,STEP(I1),I,IPAIR,LIST(1,I1),
+     & NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
+     & BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,ECC1,ECCM,SEMI,SEMI1,QPERI,HI,
+     & GAMMA(IPAIR),PD,RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RCOLL*SU,
+     & RI,VI
+ 638  FORMAT(1X,' CIRCULARIZED T DT ',1P,2E13.5,' I IP NPERT',
+     &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
+     &   ' e0,e,em,a0,a,QP=',6E13.5,' H, GAMMA=',2E13.5,
+     &   ' PD, R1,2,SEP,RCOLL[R*]=',5E13.5,' RI,VI=',2D13.5)
+*
 *       Check time interval until Roche overflow.
           IF (KZ(34).GT.0) THEN
               CALL TRFLOW(IPAIR,DTR)
               TEV(I) = TIME + DTR
 *     ks MPI communication TEV
-              call ksparmpi(K_store,K_real8,K_TEV,I,0,TEV(I))
+*             call ksparmpi(K_store,K_real8,K_TEV,I,0,TEV(I))
 *       Update TEV but leave ROCHE call for treatment in MDOT (16/08/2006). 
 *             IF (DTR.LT.STEP(I1)) THEN
 *                 CALL ROCHE(IPAIR)
@@ -410,16 +387,24 @@ c$$$                  JCOMP = J
      &    KSTAR(I).LT.10) THEN
           KSTAR(I) = 10
 *     ks MPI communication TEV
-          call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
-          if(rank.eq.0)
-     &    WRITE (6,40)  ECC1, SEMI1, R(IPAIR), RCOLL, R1
-   40     FORMAT (' INACTIVE PHASE    E A R RC R* ',F7.3,1P,4E10.2)
+*         call ksparmpi(K_store,K_int,K_KSTAR,I,0,KSTAR(I))
+      if(rank.eq.0)WRITE(6,640)
+     & TTOT,STEP(I1),I,IPAIR,LIST(1,I1),
+     & NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
+     & BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,ECC1,ECCM,SEMI,SEMI1,QPERI,HI,
+     & GAMMA(IPAIR),PD,RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RCOLL*SU,
+     & RI,VI
+ 640  FORMAT(1X,' INACTIIVE PHASE T DT ',1P,2E13.5,' I IP NPERT',
+     &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
+     &   ' e0,e,em,a0,a,QP=',6E13.5,' H, GAMMA=',2E13.5,
+     &   ' PD, R1,2,SEP,RCOLL[R*]=',5E13.5,' RI,VI=',2D13.5)
+*
 *       Check time interval until Roche overflow.
           IF (KZ(34).GT.0) THEN
               CALL TRFLOW(IPAIR,DTR)
               TEV(I) = TIME + DTR
 *     ks MPI communication TEV
-              call ksparmpi(K_store,K_real8,K_TEV,I,0,TEV(I))
+*             call ksparmpi(K_store,K_real8,K_TEV,I,0,TEV(I))
 *       Update TEV but leave ROCHE call for treatment in MDOT (16/08/2006). 
 *             IF (DTR.LT.STEP(I1)) THEN
 *                 CALL ROCHE(IPAIR)
@@ -434,7 +419,7 @@ c$$$                  JCOMP = J
           if(rank.eq.0)
      &    WRITE (6,42)  TTOT, IPAIR, ECC2, ECC, R(IPAIR), SEMI1
    42     FORMAT (' WARNING!    E > E0    T IP E E0 R A ',
-     &                                    F10.4,I5,2F8.4,1P,2E10.2)
+     &                                    F10.4,I5,2F8.4,1P,2E11.3)
       END IF
 *
 *       Reduce radius by DR/R to delay dissipation for small energy loss.
@@ -446,7 +431,7 @@ c$$$                  JCOMP = J
           YF = MAX(ABS(DR),0.01D0)
           RADIUS(J1) = (1.0 - MIN(YF,0.1D0))*RADIUS(J1)
 *     ks MPI communication RADIUS
-          call ksparmpi(K_store,K_real8,K_RADIUS,J1,0,RADIUS(J1))
+*         call ksparmpi(K_store,K_real8,K_RADIUS,J1,0,RADIUS(J1))
           DE1 = (DE(1) + DE(2))/(ZMU*ABS(H(IPAIR)))
           if(rank.eq.0)
      &    WRITE (6,44)  TTOT, KSTAR(J1), H(IPAIR), QPERI, DR, DE1
@@ -460,7 +445,7 @@ c$$$                  JCOMP = J
      &    WRITE (6,48) TTOT, IPAIR, LIST(1,I1), ECC, SEMI, QPERI,
      &                 RADIUS(I1), RADIUS(I2)
    48     FORMAT (' DISRUPTED CHAOS    T KS NP E A QP R* ',
-     &                                 F9.2,I6,I4,F8.4,1P,4E10.2)
+     &                                 F9.2,I6,I4,F8.4,1P,4E11.3)
           CALL KSPERI(IPAIR)
           CALL JPRED(I,time,time)
           IF (IPHASE.EQ.0) IPHASE = -1
@@ -469,6 +454,7 @@ c$$$          IQCOLL = 1
 c$$$          CALL CMBODY(2)
       END IF
 *
-   50 RETURN
+   50 CONTINUE
+      RETURN
 *
       END

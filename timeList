@@ -1,50 +1,49 @@
-file modified time information
-Nbody6++GPU-Dec2021/  
+Nbody6++GPU-Jan2022-beta-fixed/  
 2020-06-29 23:35:57 extra_inc
 2020-07-09 23:24:04 src
-2020-07-12 20:40:04 doc
 2020-09-25 22:53:54 config.examples
 2020-09-25 22:53:55 noauto.bat
-2020-09-25 22:53:55 Makefile.in
 2020-09-25 22:53:55 configure.ac
-2020-09-25 22:53:55 modulesNbody
-2020-10-29 19:02:13 configure
-2021-07-27 04:52:23 nb6++gpu.sbatch.KEPLER
-2021-08-18 17:27:59 config.status
-2021-08-18 17:27:59 Makefile
-2021-08-18 17:28:00 config.log
-2021-10-22 23:44:20 build
-2021-10-28 18:55:18 include
-2021-11-08 21:59:13 sample
-2022-03-16 11:09:48 timeList
-
-./Nbody6++GPU-Dec2021/build/  
-2020-09-25 22:53:55 Makefile.debug
 2020-09-25 22:53:55 Makefile.in
-2020-09-25 22:53:55 Makefile.save.hdf5
-2021-09-09 21:18:47 Makefile
+2022-01-27 00:52:08 configure
+2022-02-19 06:39:21 config.status
+2022-02-19 06:39:21 Makefile
+2022-02-19 06:39:22 include
+2022-02-19 06:39:22 config.log
+2022-03-29 21:05:54 build
+2022-04-07 19:23:39 sample
+2022-04-07 20:43:17 doc
+2022-04-07 20:45:31 README
+2022-04-16 22:30:56 timeList
 
-./Nbody6++GPU-Dec2021/doc/  
-2019-10-30 13:02:58 nbody6++_manual.pdf
+Nbody6++GPU-Jan2022-beta-fixed/build/  
+2020-09-25 22:53:55 Makefile.debug
+2021-12-10 17:11:37 nbody6++.sse.gpu.mpi.hdf5
+2022-01-08 03:54:19 Makefile.in
+2022-01-08 03:55:51 Makefile.save.hdf5
+2022-02-19 07:13:41 Makefile
 
-./Nbody6++GPU-Dec2021/extra_inc/  
-2020-06-29 23:35:57 cuda
+Nbody6++GPU-Jan2022-beta-fixed/doc/  
+2022-04-07 20:43:03 nbody6++_manual.txt
+
+Nbody6++GPU-Jan2022-beta-fixed/extra_inc/  
 2020-06-29 23:35:57 noomp
 2020-06-29 23:35:57 nompi
+2020-06-29 23:35:57 cuda
 
-./Nbody6++GPU-Dec2021/extra_inc/cuda/  
+Nbody6++GPU-Jan2022-beta-fixed/extra_inc/cuda/  
 2020-06-29 23:35:57 helper_string.h
 2020-06-29 23:35:57 helper_cuda.h
 2020-06-29 23:35:57 cutil.h
 
-./Nbody6++GPU-Dec2021/extra_inc/nompi/  
+Nbody6++GPU-Jan2022-beta-fixed/extra_inc/nompi/  
 2020-06-29 23:35:57 mpif.h
 
-./Nbody6++GPU-Dec2021/extra_inc/noomp/  
+Nbody6++GPU-Jan2022-beta-fixed/extra_inc/noomp/  
 2020-06-29 23:35:57 omp_lib.h
 2020-06-29 23:35:57 omp.h
 
-./Nbody6++GPU-Dec2021/include/  
+Nbody6++GPU-Jan2022-beta-fixed/include/  
 1995-08-17 17:49:18 commonc.h
 1995-08-17 17:49:18 common2.h
 2002-05-17 05:29:42 zdata.h
@@ -58,25 +57,31 @@ Nbody6++GPU-Dec2021/
 2016-01-06 10:58:57 kspars.h
 2016-01-06 10:58:57 initial.h
 2016-01-06 10:58:57 galaxy.h
-2016-11-18 13:45:35 timing.h
 2016-11-18 13:45:35 simd_define.h
 2016-11-18 13:45:35 output_merger.h
 2016-11-18 13:45:35 output.h
-2020-01-04 23:25:16 params.h.in
 2020-12-17 00:21:31 tlist.h
-2021-08-18 17:28:00 params.h
 2021-08-22 23:37:10 scale_out.h
 2021-09-13 23:14:42 output_single.h
 2021-09-26 22:05:29 common6.h
 2021-10-28 18:55:08 output_binary.h
+2021-12-22 00:48:52 params.h.in
+2022-01-25 03:23:43 params.h.b10m
+2022-01-27 00:56:07 params.h.b1m
+2022-01-27 01:01:38 params.h.b4m
+2022-02-07 23:19:49 timing.h
+2022-02-19 06:39:21 params.h
 
-./Nbody6++GPU-Dec2021/sample/  
-2021-11-02 18:35:50 N100k.inp
+Nbody6++GPU-Jan2022-beta-fixed/sample/  
+2021-12-16 18:38:31 dat.10
+2022-04-05 22:15:17 N100k.inp.orig
+2022-04-05 22:15:17 N100k.inp
+2022-04-07 18:48:11 N100k.inp.restart
 
-./Nbody6++GPU-Dec2021/src/  
-2021-12-09 18:25:19 Main
+Nbody6++GPU-Jan2022-beta-fixed/src/  
+2022-04-07 18:36:03 Main
 
-./Nbody6++GPU-Dec2021/src/Main/  
+Nbody6++GPU-Jan2022-beta-fixed/src/Main/  
 1995-11-14 18:13:08 ksphys.f
 1995-11-14 18:13:09 qforce.f
 1995-11-14 18:13:09 physks.f
@@ -160,7 +165,6 @@ Nbody6++GPU-Dec2021/
 2010-10-25 17:09:19 offset.f
 2010-10-31 15:07:52 cmfreg.f
 2011-01-27 18:34:18 setsys.f
-2011-01-28 22:15:30 stepk.f
 2013-10-31 14:05:55 xtf.f
 2013-10-31 14:05:55 stability.f
 2013-10-31 14:05:55 slow.f
@@ -198,8 +202,6 @@ Nbody6++GPU-Dec2021/
 2016-01-06 10:58:57 tstep2.f
 2016-01-06 10:58:57 tstab.f
 2016-01-06 10:58:57 triple.f
-2016-01-06 10:58:57 trflow.f
-2016-01-06 10:58:57 tcirc.f
 2016-01-06 10:58:57 subsys.f
 2016-01-06 10:58:57 string_left.f
 2016-01-06 10:58:57 steps2.f
@@ -208,38 +210,34 @@ Nbody6++GPU-Dec2021/
 2016-01-06 10:58:57 stablz.f
 2016-01-06 10:58:57 stabl4.f
 2016-01-06 10:58:57 stabl3.f
-2016-01-06 10:58:57 spiral.f
 2016-01-06 10:58:57 shrink_tlist.f
 2016-01-06 10:58:57 shrink.f
 2016-01-06 10:58:57 search.f
 2016-01-06 10:58:57 resolv.f
 2016-01-06 10:58:57 reset2.f
 2016-01-06 10:58:57 rename_ks.F
+2016-01-06 10:58:57 remove_ks.F.old
 2016-01-06 10:58:57 remove.f
 2016-01-06 10:58:57 reinit.f
 2016-01-06 10:58:57 reg.sse.cpp
 2016-01-06 10:58:57 reg.avx.cpp
 2016-01-06 10:58:57 reduce.f
-2016-01-06 10:58:57 recoil.f
 2016-01-06 10:58:57 qpmod4.f
 2016-01-06 10:58:57 qpmod3.f
 2016-01-06 10:58:57 proto_star.f
 2016-01-06 10:58:57 pot.sse.cpp
 2016-01-06 10:58:57 pot.avx.cpp
-2016-01-06 10:58:57 permit.f
 2016-01-06 10:58:57 orbit.f
 2016-01-06 10:58:57 merge2.f
 2016-01-06 10:58:57 merge.f
 2016-01-06 10:58:57 ksres2.f
+2016-01-06 10:58:57 ksreg.F.old
 2016-01-06 10:58:57 kspoly.f
 2016-01-06 10:58:57 kspert.f
 2016-01-06 10:58:57 ksperi.f
 2016-01-06 10:58:57 ksparmpi.F
 2016-01-06 10:58:57 ksmod.f
-2016-01-06 10:58:57 kslist.f
 2016-01-06 10:58:57 ksin2.f
-2016-01-06 10:58:57 ksapo.f
-2016-01-06 10:58:57 kick2.f
 2016-01-06 10:58:57 kcpert_cor.f
 2016-01-06 10:58:57 kcpert.f
 2016-01-06 10:58:57 k_step.f
@@ -254,12 +252,10 @@ Nbody6++GPU-Dec2021/
 2016-01-06 10:58:57 hidat.f
 2016-01-06 10:58:57 hiarch.f
 2016-01-06 10:58:57 giant2.f
-2016-01-06 10:58:57 giant.f
 2016-01-06 10:58:57 gcint.F
 2016-01-06 10:58:57 gcinit.f
 2016-01-06 10:58:57 fpoly2_ks.f
 2016-01-06 10:58:57 fpoly2.f
-2016-01-06 10:58:57 fpoly1_mpi.f
 2016-01-06 10:58:57 fpoly1.f
 2016-01-06 10:58:57 fpert.f
 2016-01-06 10:58:57 fpcorr.F
@@ -272,8 +268,6 @@ Nbody6++GPU-Dec2021/
 2016-01-06 10:58:57 fbulge.f
 2016-01-06 10:58:57 expel2.f
 2016-01-06 10:58:57 events.f
-2016-01-06 10:58:57 energy_mpi.F
-2016-01-06 10:58:57 encorr_mdot.F
 2016-01-06 10:58:57 efac3.f
 2016-01-06 10:58:57 difsy1.f
 2016-01-06 10:58:57 derqp.f
@@ -286,16 +280,12 @@ Nbody6++GPU-Dec2021/
 2016-01-06 10:58:57 core.f
 2016-01-06 10:58:57 cmcorr.f
 2016-01-06 10:58:57 chstab.f
-2016-01-06 10:58:57 chrect.f
 2016-01-06 10:58:57 chmod_chain.f
 2016-01-06 10:58:57 chlist.f
 2016-01-06 10:58:57 chinit.f
 2016-01-06 10:58:57 checkl.F
 2016-01-06 10:58:57 check.f
-2016-01-06 10:58:57 chaos.f
 2016-01-06 10:58:57 cfuncs.f
-2016-01-06 10:58:57 brake.f
-2016-01-06 10:58:57 bodies.f
 2016-01-06 10:58:57 binev.f
 2016-04-14 04:04:45 trdot.f
 2016-11-18 13:45:35 sort1.f
@@ -305,7 +295,6 @@ Nbody6++GPU-Dec2021/
 2016-11-18 13:45:36 tpert.f
 2016-11-18 13:45:36 counter_reset.f
 2016-11-23 12:02:36 comenv.f
-2017-03-30 23:02:10 x.f
 2017-04-04 04:42:51 fchain.f
 2017-04-04 04:43:53 cmfirr.f
 2017-04-04 04:44:14 cmfirr_ucor.f
@@ -314,152 +303,149 @@ Nbody6++GPU-Dec2021/
 2017-04-04 04:45:43 bhplot.f
 2017-04-05 20:14:40 isnan.f
 2017-04-05 20:48:46 fpoly1_ks.f
-2017-04-05 21:31:03 xbpredall.f
 2017-04-05 21:31:59 xvpred.f
 2017-04-06 20:07:33 nbint.F
 2017-04-06 20:08:25 jpred_int.f
-2017-06-05 08:01:58 grrad-old.f
-2017-06-05 08:01:58 escape-original.F
-2017-06-05 08:01:58 coal-original.f
-2017-06-05 08:01:59 search-original.f
-2017-06-05 08:01:59 roche-original.f
-2017-06-05 08:01:59 ksterm-original.F
-2017-10-21 15:25:19 ksterm.F
-2017-10-21 15:26:26 ksinit.F
-2017-11-05 18:00:00 start.F.old
-2017-11-05 18:00:00 star.f.old
-2017-11-05 18:00:00 scale.F.old
-2017-11-05 18:00:00 mlwind.f.old
-2017-11-05 18:00:00 mix.f.old
-2017-11-05 18:00:00 levels.f.old
-2017-11-05 18:00:00 lagr.f.old
-2017-11-05 18:00:00 kick.F.old
-2017-11-05 18:00:00 irr.sse.cpp.old
-2017-11-05 18:00:00 irr.avx.cpp.old
-2017-11-05 18:00:00 imfbd.f.old
-2017-11-05 18:00:00 hrdiag.f.old
-2017-11-05 18:00:00 custom_output_facility.F.old
-2017-11-05 18:00:00 comenv.f.old
-2017-11-05 18:00:00 adjust.F.old
-2018-09-07 20:39:35 chain-old.f
-2018-09-07 20:52:48 subint.F
 2019-03-29 20:35:17 grrad.f
 2019-06-28 20:26:23 irr.avx.cpp
 2019-06-28 20:26:33 irr.sse.cpp
-2019-06-28 21:36:42 custom_output_facility.F.new
-2019-11-18 15:05:15 eigenvalue.o
 2019-11-18 18:03:01 star.f
-2019-11-18 18:03:59 mlwind.f.new
-2019-11-19 13:16:42 kick.F.new
 2019-11-19 13:24:48 imfbd.f
-2019-11-19 13:38:22 hrdiag.f.new
-2019-12-13 03:45:06 hrplot.F.new
-2020-06-12 22:41:14 tides3.f
 2020-07-11 22:05:18 bsetid.f
 2020-07-13 04:19:53 gpunb.gpu.cu
 2020-07-14 00:35:56 imf2.f
 2020-09-11 19:06:17 regint.f
-2020-10-14 09:32:00 remove_ks.F
-2020-10-14 09:32:00 ksreg.F
-2020-10-20 23:08:05 gpunb.velocity.cu.single
-2020-10-20 23:08:05 gpunb.velocity.cu.mpi
-2020-10-23 15:30:58 gpunb.velocity.cu.openmp
 2020-10-30 22:22:41 verify.f
-2020-12-03 22:49:56 binout.f
-2020-12-04 00:03:30 kspinit.f
-2020-12-04 00:03:54 kspreg.F
-2020-12-05 00:48:54 util_gpu.F
-2020-12-09 20:23:01 gpunb.velocity.cu.multi
-2020-12-15 01:26:11 fpoly2_mpi.f
-2020-12-17 00:46:07 gpunb.velocity.cu.intel
-2020-12-17 00:46:07 gpunb.velocity.cu
 2020-12-17 18:46:58 ficorr.F
-2020-12-19 00:36:53 fpoly0.F
 2020-12-27 22:47:06 mlwind.f
 2020-12-28 23:16:13 qpmod.f
-2020-12-29 00:43:49 impact.f
-2021-01-01 01:22:24 steps.f
 2021-01-14 18:53:10 mix.f
 2021-01-14 18:53:31 hrdiag.f
 2021-02-03 00:31:32 units.f
-2021-02-09 04:17:35 bindat.f
 2021-02-09 04:59:33 hrplot.F
-2021-03-16 13:56:00 mdot.F
-2021-05-25 18:45:54 kscorr.f
 2021-06-12 19:22:06 update.F
 2021-08-25 21:05:02 setup.F
 2021-08-25 21:05:48 scale.F
 2021-08-25 21:25:33 cputim.F
-2021-08-25 21:25:42 data.F
 2021-08-26 19:08:40 synch.f
+2021-08-26 21:00:19 ksreg.F.diag
+2021-08-26 21:02:42 remove_ks.F.diag
 2021-09-02 23:05:45 xtrnl0.F
 2021-09-02 23:14:11 degen.f
 2021-09-02 23:26:32 binpop.F
 2021-09-02 23:34:48 cmbody.f
 2021-09-03 15:18:57 global_output.F
-2021-09-03 15:30:16 nbody6.F
-2021-09-03 15:30:29 start.F
 2021-09-05 21:52:48 absorb.f
 2021-09-05 21:53:32 add_tlist.f
 2021-09-05 21:56:05 assess.f
 2021-09-05 21:57:58 brake2.f
-2021-09-05 21:58:24 brake3.f
 2021-09-05 22:06:10 decide.f
 2021-09-05 22:07:26 delay_store_tlist.f
 2021-09-05 22:08:47 eccmod.f
 2021-09-05 22:11:47 exchange_tlist.f
-2021-09-05 23:05:47 higrow.f
 2021-09-05 23:07:20 hipop.F
 2021-09-05 23:08:06 hirect.f
 2021-09-05 23:08:55 hotsys.f
 2021-09-05 23:10:05 hut.f
 2021-09-05 23:13:48 jacobi.F
 2021-09-05 23:14:24 jacobi_transform.f
-2021-09-05 23:18:34 lagr2.f
 2021-09-05 23:25:25 newtev.f
 2021-09-05 23:26:17 next_tlist.f
 2021-09-05 23:26:34 ntint.f
 2021-09-05 23:27:58 qtides.f
-2021-09-05 23:29:22 regcor_gpu.F
-2021-09-05 23:29:43 nbint_cor.f
 2021-09-05 23:30:33 remove_tlist.f
 2021-09-05 23:31:46 repair_tlist.f
 2021-09-05 23:32:56 replace_tlist.f
-2021-09-05 23:33:48 reset.f
 2021-09-05 23:37:24 shift_tlist.f
-2021-09-05 23:38:16 sort_tlist.f
 2021-09-05 23:39:20 stablc.f
 2021-09-05 23:40:38 tail0.f
-2021-09-05 23:41:17 touch.f
 2021-09-05 23:42:47 ttcal.f
 2021-09-05 23:45:02 ttinit.f
 2021-09-08 15:23:41 rkint.f
-2021-09-08 15:23:50 kick.F
 2021-09-08 15:32:40 himod.f
-2021-09-08 16:15:43 kstran.f
-2021-09-08 22:33:50 coal.f
-2021-09-26 22:08:15 intgrt.F
-2021-10-24 05:03:28 instar.F
 2021-10-24 20:20:34 input.F
-2021-11-01 01:09:06 levels.f
-2021-11-03 20:47:12 roche.f
-2021-11-09 17:48:08 expel.f
 2021-11-10 00:23:49 chterm.f
-2021-11-11 04:09:52 chain.f
 2021-11-18 19:37:08 custom_output_facility.F
 2021-11-25 01:07:53 custom_output.F
 2021-11-25 01:12:30 ksres_op.f
-2021-11-25 16:17:29 mydump.F
-2021-11-30 00:24:44 unpert.f
-2021-11-30 00:25:30 ksint.f
-2021-12-02 02:00:31 file_init.F
-2021-12-06 00:46:50 modify.F
-2021-12-07 02:18:04 escape.F
 2021-12-07 02:26:16 rmesc_tlist.f
 2021-12-07 20:47:49 ellan.f
 2021-12-07 22:43:56 lagr.f
-2021-12-08 00:15:27 kstide.f
-2021-12-09 18:25:18 ksrect.f
-2021-12-09 19:53:41 output.F
-2021-12-09 20:43:05 adjust.F
+2021-12-12 23:17:34 remove_ks.F
+2021-12-12 23:17:34 ksreg.F
+2021-12-13 19:01:52 kstran.f
+2021-12-16 01:16:40 bodies.f
+2021-12-16 21:04:01 kscorr.f
+2021-12-27 23:07:48 binout.f
+2021-12-29 00:24:56 tides3.f
+2022-01-01 18:11:43 regcor_gpu.F
+2022-01-01 20:01:08 coal.f
+2022-01-01 20:01:31 chain.f
+2022-01-01 20:05:05 kspreg.F
+2022-01-01 20:07:47 reset.f
+2022-01-03 00:42:39 steps.f
+2022-01-03 00:43:43 ksterm.F
+2022-01-08 01:51:36 kick2.f
+2022-01-19 21:33:54 instar.F
+2022-01-21 05:18:26 kslist.f
+2022-01-23 05:25:00 levels.f
+2022-01-23 05:26:34 file_init.F
+2022-01-25 00:03:24 stepk.f
+2022-01-27 19:56:19 kspinit.f
+2022-01-28 18:12:16 permit.f
+2022-01-28 18:13:09 spiral.f
+2022-01-28 18:14:04 tcirc.f
+2022-01-28 18:14:14 touch.f
+2022-01-28 18:14:23 trflow.f
+2022-01-28 18:15:42 chaos.f
+2022-01-28 18:16:10 chrect.f
+2022-01-28 18:16:36 giant.f
+2022-01-28 18:18:07 kick.F
+2022-01-28 18:18:21 ksapo.f
+2022-01-28 18:18:53 ksrect.f.diag
+2022-01-28 18:19:03 ksrect.f.old
+2022-01-28 18:23:16 higrow.f
+2022-01-28 18:23:39 impact.f
+2022-01-28 20:13:36 xbpredall.f.old
+2022-01-28 20:16:45 start.F
+2022-01-29 02:42:32 xx
+2022-01-29 18:00:24 sort_tlist.f
+2022-01-31 22:47:20 brake3.f
+2022-01-31 22:48:38 encorr_mdot.F
+2022-01-31 22:49:22 energy_mpi.F
+2022-01-31 22:50:02 fpoly0.F
+2022-01-31 22:50:39 fpoly2_mpi.f
+2022-01-31 22:51:31 data.F
+2022-01-31 22:52:15 fpoly1_mpi.f
+2022-01-31 22:53:18 kstide.f
+2022-01-31 22:58:46 nbody6.F
+2022-01-31 22:59:20 roche.f
+2022-01-31 23:01:49 subint.F
+2022-01-31 23:02:11 unpert.f
+2022-02-01 02:05:54 recoil.f
+2022-02-13 02:06:55 brake.f
+2022-02-13 02:06:55 escape.F
+2022-02-13 02:06:55 gpunb.velocity.cu
+2022-02-13 02:06:55 gpunb.velocity.cu.intel
+2022-02-13 02:06:55 gpunb.velocity.cu.mpi
+2022-02-13 02:06:55 gpunb.velocity.cu.multi
+2022-02-13 02:06:55 gpunb.velocity.cu.openmp
+2022-02-13 02:06:55 gpunb.velocity.cu.single
+2022-02-13 02:06:55 xbpredall.F.new
+2022-02-21 04:16:20 xbpredall.F
+2022-02-21 04:16:59 util_gpu.F
+2022-02-21 04:18:26 nbint_cor.f
+2022-02-21 04:21:33 intgrt.F
+2022-03-07 22:13:57 adjust.F
+2022-03-22 22:48:30 mydump.F
+2022-04-04 17:07:40 output.F
+2022-04-05 22:07:47 bindat.f
+2022-04-07 00:39:24 ksinit.F
+2022-04-07 00:47:14 expel.f
+2022-04-07 00:47:56 ksrect.f
+2022-04-07 00:53:55 mdot.F.standard
+2022-04-07 00:54:37 mdot.F.diag
+2022-04-07 00:55:01 mdot.F
+2022-04-07 00:59:28 ksint.f
+2022-04-07 18:58:17 modify.F
 

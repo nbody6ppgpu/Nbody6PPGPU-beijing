@@ -54,6 +54,8 @@
 *       Save sum of relative energy error for main output and accumulate DE.
       ERROR = ERROR + DE
 *
+  10  CONTINUE
+*
 *       Find density centre & core radius (Casertano & Hut, Ap.J. 298, 80).
       IF (N.GE.20.AND.KZ(29).EQ.0) THEN
           CALL CORE
@@ -67,7 +69,7 @@
       IF(KZ(49).GT.0) CALL ELLAN
 *
 *       Initialize diagnostic variables.
-   10 NP = 0
+      NP = 0
       IUNP = 0
       AMIN = 100.0
       MULT = 0
@@ -179,14 +181,15 @@
      &                   F6.2,2I8,F9.3,F8.4,F11.6,2F7.3,F6.2,2I6,F6.1)
 *
       WRITE (6,60)
-   60 FORMAT (/,7X,'   NIRRF      NBCORR  NNPRED  NBFULL  NBVOID ',
-     &     '  NICONV  NLSMIN NBSMIN   NBDIS  NBDIS2  NCMDER  ',
-     &     'NFAST NBFAST      NBLOCK      NBLCKR    NBFLUX')
-      WRITE (6,65)  NIRRF, NBCORR, NNPRED, NBFULL, NBVOID, NICONV,
+   60 FORMAT (/,7X,6X,'NBCORR',6X,'NBFULL',6X,
+     &   'NBVOID',6X,'NICONV',6X,'NLSMIN',6X,'NBSMIN',6X,' NBDIS',6X,
+     &   'NBDIS2',6X,'NCMDER',6X,' NFAST',6X,'NBFAST',6X,'NBLOCK',6X,
+     &   'NBLCKR',10X,'NNPRED',10X,'NBFLUX')
+      WRITE (6,65)  NBCORR, NBFULL, NBVOID, NICONV,
      &              NLSMIN, NBSMIN, NBDIS, NBDIS2, NCMDER,  NFAST,
-     &              NBFAST, NBLOCK, NBLCKR,  NBFLUX
+     &              NBFAST, NBLOCK, NBLCKR, NNPRED, NBFLUX
 *
-   65 FORMAT (' #2',11I12,2I7,2I12,I10)
+   65 FORMAT (' #2',13I12,2I16)
 *
       WRITE (6,70)
    70 FORMAT (/,5X,'   NKSTRY     NKSREG     NKSHYP     NKSPER  ',
@@ -209,7 +212,7 @@
      &           'N NS NPAIRS NUPKS NPKS NMERGE MULT <NB> NC NESC ',
      &           'NSTEPI NSTEPB NSTEPR NSTEPU NSTEPT NSTEPQ NSTEPC ',
      &           'NBLOCK NBLCKR NNPRED ',
-     &           'NIRRF NBCORR NBFLUX NBFULL NBVOID NICONV NLSMIN ',
+     &           'NBCORR NBFLUX NBFULL NBVOID NICONV NLSMIN ',
      &           'NBSMIN NBDIS NBDIS2 NCMDER ',
      &           'NFAST NBFAST ',
      &           'NKSTRY NKSREG NKSHYP NKSPER NKSMOD',
@@ -222,12 +225,12 @@
      &        N,NS,NPAIRS,IUNP,NP,NMERGE,MULT,NNB,NC,NESC,
      &        NSTEPI,NSTEPB,NSTEPR,NSTEPU,NSTEPT,NSTEPQ,NSTEPC,
      &        NBLOCK,NBLCKR,NNPRED,
-     &        NIRRF,NBCORR,NBFLUX,NBFULL,NBVOID,NICONV,NLSMIN,NBSMIN,
+     &        NBCORR,NBFLUX,NBFULL,NBVOID,NICONV,NLSMIN,NBSMIN,
      &        NBDIS,NBDIS2,NCMDER,
      &        NFAST,NBFAST,
      &        NKSTRY,NKSREG,NKSHYP,NKSPER,NKSMOD,
      &        NTTRY,NTRIP,NQUAD,NCHAIN,NMERG,NEWHI
- 77      format(21E26.17,44I12)
+ 77      format(21E26.17,43I12)
          call flush(30)
       END IF
 *
@@ -503,7 +506,7 @@ c$$$     &           nmerge,name(j1),name(j2),name(icm)
 *        Write all data in binary format on unit 3 = conf.3.
 *
       if(rank.eq.0)then
-         IF(TTOT.EQ.0.0.AND.KZ(46).GT.0.AND.KZ(40).GT.0)
+         IF(TTOT.EQ.0.0.AND.KZ(46).GT.0.AND.KZ(40).EQ.0)
      &     PRINT*,' Warning no higher derivs initially in CUSTOM output'
          IF(KZ(46).EQ.1.OR.KZ(46).EQ.3) THEN
             if(TTOT.GT.0.0D0) THEN

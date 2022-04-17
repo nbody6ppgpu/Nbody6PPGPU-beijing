@@ -86,6 +86,8 @@
       SPNFAC = ZMBAR*SU**2/(1.0D+06*TSTAR)
 *
       EPOCH1 = EPOCH0
+      ILOWM = 0
+      XMMIN = 1.D+30
       DO 10 I = 1,N
 *
 *       Obtain stellar parameters at current epoch.
@@ -105,10 +107,18 @@
                 KW = KSTAR(I)
              ELSE
                 KW = 1
+                IF(M1.LT.0.08D0) THEN
+                   ILOWM = ILOWM + 1
+                   IF(M1.LT.XMMIN) XMMIN = M1
+                   M1 = 0.08
+                   BODY(I) = M1/ZMBAR
+                   M0 = M1
+                END IF
 *               IF(M0.LE.0.01D0) KW = 10
 *               IF(M0.GE.100.D0) KW = 14
              ENDIF
           ENDIF
+*
           MC = 0.D0
           AGE = TIME*TSTAR - EPOCH1
           CALL star(KW,M0,M1,TM,TN,TSCLS,LUMS,GB,ZPARS)
@@ -160,6 +170,9 @@
 *
    10 CONTINUE
 *
+          IF(ILOWM.GT.0.and.rank.eq.0)PRINT*,' Warning ',ILOWM,
+     &     ' too small masses, min=',XMMIN,' msol'
+
 *       Define first quantized step < 1000 yrs (minimum interval for MDOT).
 *       (changed to 100 yr to be consistent with trdot: 2/8/02)
       DT = 1.0d-04/TSCALE

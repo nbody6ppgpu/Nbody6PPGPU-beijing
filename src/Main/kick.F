@@ -163,7 +163,7 @@
 *         END IF
           KSTAR(IN) = IABS(KSTAR(IN))
 *     ks MPI communication KSTAR
-          call ksparmpi(K_store,K_int,K_KSTAR,IN,0,KSTAR(IN))
+*         call ksparmpi(K_store,K_int,K_KSTAR,IN,0,KSTAR(IN))
 *
 *     When call expel in cmbody and WD/NS binary form after Binary CE, 
 *     There is big energy error when DM is large. It seems here the DM 
@@ -189,8 +189,8 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
           EKICK = EKICK + EB
           EGRAV = EGRAV + EB
 *     ks MPI communicaton EKICK EGRAV
-          call ksparmpi(K_store,K_real8,K_EGRAV,0,0,EB)
-          call ksparmpi(K_store,K_real8,K_EKICK,0,0,EB)
+*         call ksparmpi(K_store,K_real8,K_EGRAV,0,0,EB)
+*         call ksparmpi(K_store,K_real8,K_EKICK,0,0,EB)
           I2 = I1 + 1
           if(rank.eq.0)
      &    WRITE (6,1)  TTOT*TSTAR, NAME(I1), NAME(I2), KSTAR(I1), 
@@ -206,8 +206,8 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
               CALL SPIRAL(II)
               KSTAR(N+IPAIR) = 0
 *     ks MPI communication KSTAR
-              call ksparmpi(K_store,K_int,K_KSTAR,N+IPAIR,0,
-     &             KSTAR(N+IPAIR))
+*             call ksparmpi(K_store,K_int,K_KSTAR,N+IPAIR,0,
+*    &             KSTAR(N+IPAIR))
           END IF
           GO TO 30
       END IF
@@ -549,7 +549,7 @@ c		Sambaran 2019.11.19.
       DETMP = - 0.5*BODY(I)*(VF2 - VI2)
       ECDOT = ECDOT + DETMP
 *     ks MPI communication
-      call ksparmpi(K_store,K_real8,K_ECDOT,0,0,DETMP)
+*     call ksparmpi(K_store,K_real8,K_ECDOT,0,0,DETMP)
       NKICK = NKICK + 1
 *
 *       Replace final velocity by relative velocity for binary kick.
@@ -573,8 +573,8 @@ c		Sambaran 2019.11.19.
               EKICK = EKICK - EB1
               EGRAV = EGRAV - EB1
 *     ks MPI communicaton EKICK EGRAV
-              call ksparmpi(K_store,K_real8,K_EGRAV,0,0,-EB1)
-              call ksparmpi(K_store,K_real8,K_EKICK,0,0,-EB1)
+*             call ksparmpi(K_store,K_real8,K_EGRAV,0,0,-EB1)
+*             call ksparmpi(K_store,K_real8,K_EKICK,0,0,-EB1)
           END IF
           IPAIR = 0
       END IF
@@ -583,14 +583,13 @@ c		Sambaran 2019.11.19.
 *    &    (KW.GE.13.AND.TTOT*TSTAR.GT.100.0)) THEN
           ZM = BODY(I)*ZMBAR
           if(rank.eq.0)
-     &    WRITE (6,20)  I, NAME(I), (TIME+TOFF)*TSTAR, KSTAR(I), KW, KC,
+     &    WRITE (6,20) TTOT,I,NAME(I),KSTAR(I),KW,KC,
      &         BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR, VKICK*VSTAR, 
      &         SQRT(VF2)*VSTAR, VK(4),FBFAC
-   20     FORMAT (' VELOCITY KICK: I',I10'  NAME',I10,
-     &         '  Time[Myr]',E12.5,'  K*0',I4,
-     &         '  K*',I4,'  K*(ICM)',I4'  M0[M*]',F9.4,'  MN[M*]',F9.4,
-     &         '  VI[km/s]',F9.4,'  VK[km/s]',F9.4'  VF[km/s]',F9.4,
-     &         '  VK0[km/s]',F9.4,'  FB',F9.4)
+   20     FORMAT (' VELOCITY KICK: T I N KW0/KW/KC ',1P,E14.6,2I10,3I4,
+     &         ' M0[M*]',E11.3,' MN[M*]',E11.3,
+     &         ' VI[km/s]',E11.3,' VK[km/s]',E11.3,' VF[km/s]',E11.3,
+     &         ' VK0[km/s]',E11.3,' FB',E11.3)
           KC = 0
 *     END IF
 *

@@ -398,7 +398,7 @@ C                      call delay_remove_tlist(I1,STEP,DTK)
               if(rank.eq.0)then
               WRITE (6,36) NAME(ICOMP), NAME(JCOMP), LIST(1,2*NPAIRS-1),
      &                     R(NPAIRS), H(NPAIRS), STEP(NTOT)
-   36         FORMAT (' COAL KS    NM NP R H DTCM  ',2I6,I4,1P,3E10.2)
+   36         FORMAT (' COAL KS    NM NP R H DTCM  ',2I6,I4,1P,3E11.3)
               end if
               I2 = JMIN
 *       Note that T0(I2) may not have a large value after #I2 is exchanged.
@@ -477,10 +477,10 @@ C 50      FORMAT (1X,F7.1,2I6,3I4,3F5.1,2F7.2,F6.1,F7.2,F9.5,1P,E9.1)
      &   KW1,MASS(1),MASS(2),RIJ,ECC,SEMI,EB,DP,TK,ZM1,ZM2,ZMNEW*ZMBAR,
      &   DM*ZMBAR,RADIUS(I1)*SU,RADIUS(I2)*SU,RCOLL*SU,VINF,RI,VI
  55   FORMAT (/,A8,'COAL: IQCOLL',I3,' TIME[NB]',1P,E17.10,' N1,2',2I10,
-     &     ' KW1,2,S',3I4,' M1,2[NB]',1P,2E10.2,' R12[NB]',E10.2,
-     &         ' e,a,eb,dp[NB]=',2E12.4,2E10.2,' P[d]=',E10.2,
-     &     '  M12S,DM[*]',4E10.2,' RAD1,2[*]',2E10.2,' RCOLL[R*]',E10.2,
-     &     ' VINF[km/s]',E10.2,' RI,VI[NB]=',2E10.2)
+     &     ' KW1,2,S',3I4,' M1,2[NB]',1P,2E11.3,' R12[NB]',E11.3,
+     &         ' e,a,eb,dp[NB]=',2E12.4,2E11.3,' P[d]=',E11.3,
+     &     '  M12S,DM[*]',4E11.3,' RAD1,2[*]',2E11.3,' RCOLL[R*]',E11.3,
+     &     ' VINF[km/s]',E11.3,' RI,VI[NB]=',2E11.3)
       end if
 *
       KSTAR(I1) = KW1

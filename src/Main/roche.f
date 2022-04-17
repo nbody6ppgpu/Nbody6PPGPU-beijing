@@ -7,6 +7,7 @@
 *       ---------------------------------------
 *
       INCLUDE 'common6.h'
+      INCLUDE 'timing.h'
       COMMON/RCHE/ CMRCH(13,MMAX),NAMER(2,MMAX),KSTARR(3,MMAX)
       REAL*8 TSCLS(20),LUMS(10),GB(10),TM,TN,TPHYS0
       REAL*8 M01,M1,AGE,R1,LUM,MC,RCC,SEP,M1CE,M2CE,RCE,KM0,KM,M2,MCX
@@ -220,6 +221,7 @@
           OORB = TWOPI/TB
           JORB = MASS(1)*MASS(2)/(MASS(1)+MASS(2))
      &           *SQRT(ABS(1.D0-ECC*ECC))*SEP*SEP*OORB
+          EB = H(IPAIR)*BODY(J1)*BODY(J2)/BODY(I)
 *
 *       Define first/second Roche overflow stage and increase event counter.
           IF (KSTAR(I).LE.10.OR.
@@ -227,11 +229,27 @@
               KSTAR(I) = KSTAR(I) + 1
               NRO = NRO + 1
               INEW = 1
-              if(rank.eq.0)
-     &        WRITE (6,8)  NAME(J1), NAME(J2), TPHYS, KW1, KW2,
-     &                     KSTAR(I), MASS, SEP, TK, RAD, RL1
-    8         FORMAT (' NEW ROCHE    NAM TP K* M A P R* RL ',
-     &                               2I6,F9.2,3I4,2F8.4,F8.2,1P,4E10.2)
+          RI = SQRT((X(1,I) - RDENS(1))**2 +
+     &              (X(2,I) - RDENS(2))**2 +
+     &              (X(3,I) - RDENS(3))**2)
+          VI = SQRT(XDOT(1,I)**2+XDOT(2,I)**2+XDOT(3,I)**2)
+
+          if(rank.eq.0)
+     &    WRITE (6,8)  TTOT,NAME(J1),NAME(J2),
+     &         NAME(I),KW1,KW2,KSTAR(I),
+     &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(I),LIST(1,J1),LIST(1,I),
+     &         MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
+     &         RAD(1),RAD(2),ROL(1),ROL(2),SEP,RL1
+  8      FORMAT (/,' NEW ROCHE   TIME[NB]',1P,E17.10,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
+     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
+     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RI,VI[NB]=',2E11.3,
+     &         ' SEP[*]',2E11.3,
+     &         ' RAD1,2 ROL1,2[*]=',4E11.3,' SEMI[*],RL1[*]=',2E11.3)
               IF(rank.eq.0.and.KSTAR(I).EQ.50)THEN
                  WRITE(6,9)NAME(J1),NAME(J2),KW1,KW2
     9            FORMAT(' WARNING: TOO MUCH ROCHE  NAM K* ',2I6,2I3)
@@ -258,16 +276,6 @@
               CALL FLUSH(85)
               end if
           ENDIF
-          
-          if(rank.eq.0)then
-          WRITE (6,5555)  NAME(J1), NAME(J2), KW1, KW2,
-     &              BODY(J1)*ZMBAR, BODY(J2)*ZMBAR,
-     &              RADIUS(J1)*SU,RADIUS(J2)*SU
- 5555       FORMAT (' BEGIN ROCHE.F:  NAME1,2 ',2I10,
-     &     '  KW1,2 ',2I3,' M1,2 [M*] ',1P,2E10.3,
-     &     '  RAD1,2[*]',1P,2E10.3)  
-          end if
-
 *
 *       Evaluate 1/10 of nuclear time interval (yrs).
           M1 = MASS(1)
@@ -341,16 +349,6 @@
       TDYN = 5.05D-05*SQRT(RAD(1)**3/MASS(1))
 * Identify special cases.
 *
-
-      if(rank.eq.0)then
-          WRITE (6,5556)  NAME(J1), NAME(J2), KW1, KW2,
-     &              BODY(J1)*ZMBAR, BODY(J2)*ZMBAR,
-     &              RADIUS(J1)*SU,RADIUS(J2)*SU
- 5556       FORMAT (' 2 ROCHE.F:  NAME1,2 ',2I10,
-     &     '  KW1,2 ',2I3,' M1,2 [M*] ',1P,2E10.3,
-     &     '  RAD1,2[*]',1P,2E10.3)  
-      end if
-
       IF(KSTAR(J1).EQ.2)THEN
          QC = 4.D0
       ELSEIF(KSTAR(J1).EQ.3.OR.KSTAR(J1).EQ.5.OR.KSTAR(J1).EQ.6)THEN
@@ -466,17 +464,43 @@
 *
          M1CE = MASS(1)
          M2CE = MASS(2)
-         if(rank.eq.0)
-     &   WRITE (6,20)  MASS, KSTAR(J1), KSTAR(J2), RAD, ROL, SEP
-   20    FORMAT (' NEW CE    M K R RL A ',2F7.3,2I3,4F9.3,F9.3)
+          if(rank.eq.0)
+     &    WRITE (6,20)  TTOT,NAME(J1),NAME(J2),
+     &         NAME(I),KW1,KW2,KSTAR(I),
+     &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(I),LIST(1,J1),LIST(1,I),
+     &         MASS(1),MASS(2),MASSC(1),MASSC(2),RI,VI,R(IPAIR)*SU,
+     &         RAD(1),RAD(2),ROL(1),ROL(2),SEP,RL1
+ 20      FORMAT (/,' NEW CE   TIME[NB]',1P,E17.10,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
+     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
+     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' MC1,2[*]',2E11.3,
+     &         ' RI,VI[NB]=',2E11.3,' SEP[*]',E11.3,
+     &         ' RAD1,2 ROL1,2[*]=',4E11.3,' SEMI[*],RL1[*]=',2E11.3)
          KW1 = KSTAR(J1)
          KW2 = KSTAR(J2)
          CALL comenv(MASS0(1),MASS(1),MASSC(1),AJ(1),JSPIN(1),KW1,
      &               MASS0(2),MASS(2),MASSC(2),AJ(2),JSPIN(2),KW2,
      &               ECC,SEP,COALS)
-         if(rank.eq.0)
-     &   WRITE (6,25)  MASS, KW1, KW2, SEP, MASSC(1), MASSC(2)
-   25    FORMAT (' END CE    M K A MC',2F7.3,2I3,3F9.3)
+          if(rank.eq.0)
+     &    WRITE (6,25)  TTOT,NAME(J1),NAME(J2),
+     &         NAME(I),KW1,KW2,KSTAR(I),
+     &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(I),LIST(1,J1),LIST(1,I),
+     &         MASS(1),MASS(2),MASSC(1),MASSC(2),RI,VI,R(IPAIR)*SU,
+     &         RAD(1),ROL(1),RAD(2),ROL(2),SEP,RL1
+ 25      FORMAT (/,' END CE   TIME[NB]',1P,E17.10,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
+     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
+     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' MC1,2[*]',2E11.3,
+     &         ' RI,VI[NB]=',2E11.3,' SEP[*]',E11.3,
+     &         ' RAD1,2 ROL1,2[*]=',4E11.3,' SEMI[*],RL1[*]=',2E11.3)
 *
 * Next step should be made without changing the time.
 *
@@ -621,7 +645,7 @@
 *
             if(rank.eq.0)
      &      WRITE (6,28)  SEP, DM1, RAD(1), ROL(1)
-   28       FORMAT (' OVERFILL    A DM1 RAD ROL ',F7.1,1P,3E10.2)
+   28       FORMAT (' OVERFILL    A DM1 RAD ROL ',F7.1,1P,3E11.3)
 *
 *       Form new star by combining the components inelastically.
             IQCOLL = 3
@@ -723,7 +747,7 @@
 *
 * Make a new giant envelope.
 *
-               DM2 = DM1
+       DM2 = DM1
 *
 * Check for planets or low-mass WDs.
 *
@@ -850,20 +874,33 @@
 *
 * For very close systems include gravitational radiation.
 *
-      ACRIT = 10.0
-*    changed RS/MG Oct 2017 test
-      IF (MASS(1) + MASS(2).GT.10.0) ACRIT = 1000.0
+         call cputim(ttgr5)
+         CALL GRRAD(MASS(1),MASS(2),SEP,ECC,JORB,DJGR,DELET1)
+         call cputim(ttgr6)
+         if(rank.eq.0)ttgrrad = ttgrrad + (ttgr6-ttgr5)*60.
+         if(rank.eq.0)igrrad = igrrad + 1
 *
-         IF(SEP.LE.ACRIT)THEN
-            CALL GRRAD(MASS(1),MASS(2),SEP,ECC,JORB,DJGR,DELET1)
-            DJGR = DJGR*DTM0
+         DJGR = DJGR*DTM0
+         IF(DJGR.GT.1.E-06) THEN
+*
             DJORB = DJORB + DJGR
-* RSp updated output July 2020
-            IF (rank.eq.0.and.DJGR.GT.1.E-06)
-     &      WRITE (6,45)TTOT,MASS,KW1,KW2,SEP,ECC,JORB,DJGR,DTM0
-   45       FORMAT (' GR BRAKE T M1 M2 K1 K2 SEP ECC JORB DJGR DTM0 ',
-     &            1P,3E14.5,2I4,5E14.5)
-         ENDIF
+            CL2 = CLIGHT**2
+            A_EIN = 3.0*TWOPI*BODY(I)/(SEMI*CL2*(1-ECC2))
+            TORB = TWOPI*SQRT(SEMI**3/BODY(I))
+            TGR = JORB/DJGR
+            RSCHW = 2.0*BODY(I)/CL2
+* RSp updated output Dec. 2021
+      if(rank.eq.0)WRITE(6,665)
+     &   TTOT,DTGW(IPAIR),STEP(J1),I,IPAIR,LIST(1,J1),
+     &   NAME(J1),NAME(J2),NAME(I),KSTAR(J1),KSTAR(J2),KSTAR(I),
+     &   MASS(1),MASS(2),ECC,SEMI,QPERI,RSCHW,
+     &   H(IPAIR),GAMMA(IPAIR),A_EIN,TORB,TGR,JORB,DJGR,DTM0,DELET1
+ 665  FORMAT(1X,' GR BRAKE T DTGW STEP',1P,3E13.5,' I IP NPERT',
+     &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
+     &   ' e,a,QP,RS[NB]=',4E13.5,' H, GAMMA=',2E13.5,
+     &   ' A_EIN, TORB, TGR(PM)=',3E13.5,' j,dj=',2E13.5,
+     &   ' DTM0,de=',2E13.5)
+	 END IF
 *
          DMS(1) = KM*DMS(1)
          IF(KSTAR(J1).LT.10) DMS(1) = MIN(DMS(1),MASS(1) - MASSC(1))
@@ -989,7 +1026,7 @@
             JSPBRU = (K2STR(K)*(MASS(K)-MASSC(K))*RADX(K)*RADX(K) +
      &                K3*MASSC(K)*RADC(K)*RADC(K))*OSPBRU
             IF(JSPIN(K).GT.JSPBRU)THEN
-               DJORB = DJORB - (JSPIN(K) - JSPBRU)
+              DJORB = DJORB - (JSPIN(K) - JSPBRU)
                JSPIN(K) = JSPBRU
             ENDIF
             IF(KSTAR(J).EQ.2.AND.MASS0(K).LE.ZPARS(3))THEN
@@ -1308,7 +1345,12 @@
                J = J2
             ENDDO
 * Include gravitational radiation.
+         call cputim(ttgr11)
             CALL GRRAD(MASS(1),MASS(2),SEP,ECC,JORB,DJGR,DELET1)
+         call cputim(ttgr12)
+         if(rank.eq.0)ttgrrad = ttgrrad + (ttgr12-ttgr11)*60.
+         if(rank.eq.0)igrrad = igrrad + 1
+
             DELET = DELET + DELET1
 * Include magnetic braking.
             CALL MAGBRK(KSTAR(J1),MASS(1),MENV(1),RAD(1),OSPIN(1),DJMB)
@@ -1352,9 +1394,9 @@
             IF(ITERB.EQ.0.AND.NWARN.LT.50)THEN
                if(rank.eq.0)
      &         WRITE(6,710)NAME(J1),KSTAR(J1),KSTAR(J2),ECC0,FAC0,
-     &                     TC,TSYN
+     &                     TC,TSYN,JORB,OORB,SEP
   710          FORMAT(' CIRC & SYNCH NM K* ECC0 SPIN1/OORB TC TSYN ',
-     &                                I7,2I4,F7.4,F9.3,1P,2E10.2)
+     &         I7,2I4,F7.4,F9.3,1P,2E11.3,' JORB OORB SEP ',3E11.3)
                NWARN = NWARN + 1
             ENDIF
 *
@@ -1407,7 +1449,7 @@
                    DELET = 0.1*JORB*DELET/ABS(DJORB)
                    ITRO = ITRO + 1
                    IF (JORB.GT.0.0D0) WRITE (6,83)  DJORB/JORB, JORB
-   83              FORMAT (' ROCHE LIMIT    DJO/JORB JORB ',1P,2E10.2)
+   83              FORMAT (' ROCHE LIMIT    DJO/JORB JORB ',1P,2E11.3)
                    GO TO 81
                ENDIF
 *     --02/28/13 9:58-lwang-end-add------------------------------------*
@@ -1459,7 +1501,7 @@
             if(rank.eq.0)
      &      WRITE(6,711)ECC,OSPIN(1)/OORB,SEP,TK,RAD(1),ROL(1)
   711       FORMAT(' NEW PARAMS    ECC SPIN1/OORB A P R1 RL1 ',
-     &                             F7.4,F9.3,F8.2,1P,3E10.2)
+     &                             F7.4,F9.3,F8.2,1P,3E11.3)
             SPIN(J1) = JSPIN(1)/SPNFAC
             SPIN(J2) = JSPIN(2)/SPNFAC
 *       Set new orbital elements (ECC, SEMI & JORB have changed).
@@ -1542,7 +1584,7 @@
      &      WRITE (6,73)  KSTAR(J1), KSTAR(J2), MASS(1), MASS(2),
      &                    RAD(1), ROL(1), DM1, DM2, DTM
    73       FORMAT (' BIG ROCHE    K12 M12 R1 RL1 DM12 DT ',
-     &                             2I3,2F7.3,2F8.3,1P,3E10.2)
+     &                             2I3,2F7.3,2F8.3,1P,3E11.3)
           END IF
 *
 *       Produce diagnostics for cases involving degenerate objects.
@@ -1570,7 +1612,7 @@
      &    WRITE (6,76)  KSTAR(J1), KSTAR(J2), MASS(1),
      &                  MASS(2),RAD(1), ROL(1), DM1, DM2, DTM
    76     FORMAT(' END ROCHE    K12 M12 R1 RL1 DM DT ',
-     &                          2I3,2F7.3,2F8.2,2F8.3,1P,E10.2)
+     &                          2I3,2F7.3,2F8.2,2F8.3,1P,E11.3)
 *       Check optional diagnostics for degenerate objects.
           IF(MAX(KSTAR(J1),KSTAR(J2)).GE.10)THEN
              IF(KZ(9).GE.3)THEN
@@ -1675,7 +1717,8 @@
           IQCOLL = 0
       ENDIF
 *
-  200 RETURN
+  200 CONTINUE
+      RETURN
 *
       END
 ***

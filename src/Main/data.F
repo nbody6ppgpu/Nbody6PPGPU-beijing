@@ -28,6 +28,9 @@
      &     KZ(22).EQ.9.OR.KZ(22).EQ.10) THEN
           DO 5 I = 1,N
               READ (10,*)  BODY(I), (X(K,I),K=1,3), (XDOT(K,I),K=1,3)
+*        Start with black holes only
+*             KSTAR(I) = 14
+*             TEV(I) = 1.d10
     5     CONTINUE
 *
 *       Read tidal radius if cutoff required
@@ -99,9 +102,9 @@
       CALL MPI_BCAST(XDOT(1,1),3*N,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
       call cputim(tt998)
       CALL mpi_barrier(MPI_COMM_WORLD,ierr)
-      ibarcount=ibarcount+1
+      if(rank.eq.0)ibarcount=ibarcount+1
       call cputim(tt999)
-      ttbar = ttbar + (tt999-tt998)*60
+      if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
 #endif
 *
 *       Read mass function parameters, # primordials, Z-abundance & epoch.
@@ -197,9 +200,9 @@
       if(rank.eq.0)then
       WRITE (6,15) ALPHAS, BODY1, BODYN, ZMASS, NBIN0, NHI0,
      &     ZMET, EPOCH0
-   15 FORMAT (/,12X,' ALPHAS =',F5.2,
-     &    '  BODY1 =',F5.1,'  BODYN =',F5.2,' ZMASS =',1P,E12.5,0P,
-     &    ' NBIN0 =',I8,' NHI0 =',I5,' ZMET =',F7.4,' EPOCH0 =',F5.2)
+   15 FORMAT (/,12X,' ALPHAS =',1P,E13.5,
+     &    '  BODY1 =',E13.5,'  BODYN =',E13.5,' ZMASS =',E13.5,
+     &    ' NBIN0 =',I8,' NHI0 =',I5,' ZMET =',E13.5,' EPOCH0 =',E13.5)
       end if
       call flush(6)
 *

@@ -10,7 +10,7 @@
       INCLUDE 'omp_lib.h'
       COMMON/POTDEN/  RHO(NMAX),XNDBL(NMAX),PHIDBL(NMAX)
       
-      INTEGER IREG(NMAX), istart, iend
+      INTEGER IREG(NMAX), istart, iend, L
       INTEGER LISTGP(LMAX,maxthr),NOFL,M_FLAG
 #ifdef GPU
       REAL*8 GPU_RS(maxthr),GPU_DTR(maxthr)
@@ -54,13 +54,12 @@
             v_i(1:3,ii) = XDOT(1:3,idi)
          END DO
 !!$omp end parallel do
-
 *     GPU first call with first values of GPU_POT, GPU_A & GPU_JERK
  550     call cputim(tt53)
          CALL gpunb_regf(ni,GPU_RS,GPU_DTR,x_i,v_i,GPU_A,GPU_JERK,
      &        GPU_POT,lmax,nnbmax,LISTGP,M_FLAG)
          call cputim(tt54)
-         ttgpu = ttgpu + (tt54-tt53)*60.0
+         if(rank.eq.0)ttgpu = ttgpu + (tt54-tt53)*60.0
 
 *     Save new neighbour list on intermediate vector for regint
          DO II = 1,NI
@@ -123,7 +122,7 @@ C$$$#endif
          CALL regint(L,NI,IREG,IFIRST,NTOT,X,XDOT,BODY,STEPR,BODYM,
      &        M_FLAG,NB_FLAG,NNBOPT,RS,GPU_A,GPU_JERK,LISTGP,PHIDBL)
          call cputim(tt54)
-         ttgpu = ttgpu + (tt54-tt53)*60.0
+         if(rank.eq.0)ttgpu = ttgpu + (tt54-tt53)*60.0
 #endif
          CALL FLUSH(41)
 

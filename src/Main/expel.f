@@ -49,7 +49,9 @@
       I = N + IPAIR
       SEMI0 = -0.5d0*BODY(I)/H(IPAIR)
       SEP = SEMI0*SU
-      ECC2 = (1.D0-R(IPAIR)/SEMI0)**2+TDOT2(IPAIR)**2/(SEMI0*BODY(I))
+*       Use modulus for hyperbolic case (RS Apr 2022)
+      ASEMI = DABS(SEMI0)
+      ECC2 = (1.0-R(IPAIR)/ASEMI)**2+TDOT2(IPAIR)**2/(ASEMI*BODY(I))
       ECC = SQRT(ECC2)
       ECC0 = ECC
       DM2 = 0.0
@@ -95,7 +97,7 @@ cnew-abbas-26/07/2017
       DMS = M1 + M2 - BODY(I)*SMU
       IF (ABS(DMS).LT.1.0D-10.AND..NOT.COALS) THEN
 *         if(rank.eq.0)WRITE (77,7)  TIME, ECC, DMS, SEMI0*SU-SEP
-*   7     FORMAT (' FAIL!    T ECC DMS DSEP ',F12.4,F8.4,1P,2E10.2)
+*   7     FORMAT (' FAIL!    T ECC DMS DSEP ',F12.4,F8.4,1P,2E11.3)
 *         CALL FLUSH(77)
           IPHASE = 0
           GO TO 60
@@ -183,7 +185,7 @@ cnew-abbas-26/07/2017
           RL1 = RL(Q1)
           RL2 = RL(Q2)
           if(rank.eq.0)
-     &    WRITE (6,1010)  WHICH1,TTOT,NAME(I1),NAME(I2),NAME(IPAIR),
+     &    WRITE (6,1010)  WHICH1,TTOT,NAME(I1),NAME(I2),NAME(ICM),
      &      KSTAR(I1),KSTAR(I2),KSTAR(ICM),KW1,KW2,
      &         IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
      &         R(IPAIR),ECC0,ECC,SEMI0,SEMI,EB,PD,
@@ -191,11 +193,11 @@ cnew-abbas-26/07/2017
      &         R(IPAIR)*SU,SEP*RL1,SEP*RL2,SEMI0*SU,SEMI*SU,RI,VI,ITER
  1010     FORMAT (A8,'CE : T=',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW0-1,2,S=',3I4,' KW1,2=',2I4,' IPAIR',I9,
-     &         ' DTAU',E10.2,' M1,2[NB]',2E10.2,' R12[NB]',E10.2,
-     &         ' e0,e,a0,a=',4E12.4,' eb[NB],P[d]=',2E10.2,' H',E10.2,
-     &         ' GAMMA',E10.2,' STEP(ICM)',E10.2,' M1,2,DM[*]',3E10.2,
-     &         ' RAD1,2,S[*]',3E10.2,' SEP*RL1/2=',2E10.2,
-     &         ' a0,a[*]=',2E10.2,' RI,VI[NB]=',2E10.2,' ITER=',I5)
+     &         ' DTAU',E11.3,' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+     &         ' e0,e,a0,a=',4E12.4,' eb[NB],P[d]=',2E11.3,' H',E11.3,
+     &         ' GAMMA',E11.3,' STEP(ICM)',E11.3,' M1,2,DM[*]',3E11.3,
+     &         ' RAD1,2,S[*]',3E11.3,' SEP*RL1/2=',2E11.3,
+     &         ' a0,a[*]=',2E11.3,' RI,VI[NB]=',2E11.3,' ITER=',I5)
 *
 *       Check common envelope condition again after circularization (09/08).
           IF (ECC0.GT.0.001D0.AND.ECC.LE.0.001D0) THEN
@@ -259,7 +261,7 @@ cnew-abbas-26/07/2017
                D3(K,I) = 0.0D0
    12       CONTINUE
             if(rank.eq.0)WRITE (6,13)  NAME(I), KSTAR(I), BODY(I)*ZMBAR
-   13       FORMAT (' MASSLESS GHOST    NAM K* M ',I6,I4,1P,E10.2)
+   13       FORMAT (' MASSLESS GHOST    NAM K* M ',I6,I4,1P,E11.3)
 *       Include special treatment for velocity kick of KS binary.
           ELSE IF (KW1.GE.10) THEN
 *

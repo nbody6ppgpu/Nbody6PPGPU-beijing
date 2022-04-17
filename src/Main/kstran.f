@@ -22,11 +22,11 @@
       XI(5) = XI(2) - Q2
       XI(6) = XI(3) - Q3
 *
-      IF (NSTEPU.LT.10) THEN
-      if(rank.eq.0)WRITE (6,6)  XI(1), XI(2) - XI(4)
- 6     FORMAT (' TRANSF    X1 DX  ',1P,3E12.4)
-      CALL FLUSH(6)
-      END IF
+*     IF (NSTEPU.LT.10) THEN
+*     if(rank.eq.0)WRITE (6,6)  XI(1), XI(2) - XI(4)
+*6     FORMAT (' TRANSF    X1 DX  ',1P,3E12.4)
+*     CALL FLUSH(6)
+*     END IF
 *       Set current transformation matrix.
       CALL MATRIX(UI,A1)
 *

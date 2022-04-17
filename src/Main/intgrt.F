@@ -22,6 +22,8 @@
       INTEGER JHIST,JHISTR,LSHORT(NMAX)
       INTEGER IREG(NMAX),IMINR_TMP(NMAX)
       REAL*8 FIRR_SIMD(3,NMAX),FD_SIMD(3,NMAX)
+      INTEGER STI(NMAX)
+      LOGICAL FLAG
 #ifdef DEBUG
 *     --10/03/14 19:40-lwang-debug--------------------------------------*
 ***** Note: For interuption of simulations------------------------------------------------------------**
@@ -42,8 +44,6 @@
 
       REAL*8 DTOUT
       SAVE DTOUT
-
-
 *
 *       Update quantized value of STEPM for large N (first time only).
       call cputim(tttbegin)
@@ -140,9 +140,13 @@
                CALL custom_output(NXTLEN,NXTLST,
      &              NXTLIMIT,NGHOSTS)
             END IF
-
+ 
 *     Sorting NXTLST
-            call sort_tlist(STEP,DTK,.true.)
+            call cputim(tt335)
+            FLAG = .true.
+            call sort_tlist(STEP,DTK,FLAG)
+            call cputim(tt336)
+            if(rank.eq.0)ttnewt = ttnewt + (tt336 - tt335)*60.
             NXTLEVEL = NDTMAX
 
 *     Initial tcheck block step level
@@ -180,7 +184,7 @@
          IPSTART = .false.
       END IF
       call cputim(tttiend)
-      ttintb = ttintb +(tttiend-tttbegin)*60
+      if(rank.eq.0)ttintb = ttintb +(tttiend-tttbegin)*60.
 *
 *       Search for high velocities after escape or KS/chain termination.
   999 IF (KZ(37).GT.0.AND.(IPHASE.EQ.-1.OR.IPHASE.GE.2)) THEN
@@ -200,7 +204,7 @@
 !$omp end parallel do
       END IF
       call cputim(ttsimdb)
-      ttsimdsend = ttsimdsend +(ttsimdb-ttsimda)*60
+      if(rank.eq.0)ttsimdsend = ttsimdsend +(ttsimdb-ttsimda)*60.
 #endif
       call cputim(tttbegin)
 
@@ -211,11 +215,10 @@
       IF (IQ.LT.0) ICALL = 0
       IQ = 0
       call cputim(tttiend)
-      ttintb = ttintb +(tttiend-tttbegin)*60
+      if(rank.eq.0)ttintb = ttintb +(tttiend-tttbegin)*60.
 *
 *       Find all particles due at next block time.
     1 CONTINUE
-*
 *
 *       Redetermine TMIN after main change to catch new small steps after chain.
       ICALL = ICALL + 1
@@ -272,6 +275,7 @@ C         IF(J.EQ.9951) print*,'L',L,'J',J,'T',TIME
       END DO
 *     --07/07/14 23:44-lwang-end----------------------------------------*
 #endif
+*
 *     Determine MPI NXTLST and Regular block
       NREG = 0
       DO L = 1, NXTLEN
@@ -350,7 +354,7 @@ C         IF(J.EQ.9951) print*,'L',L,'J',J,'T',TIME
        END IF
 
       call cputim(tttiend)
-      ttintb = ttintb +(tttiend-tttbegin)*60
+      if(rank.eq.0)ttintb = ttintb +(tttiend-tttbegin)*60.
 
 *
 *       Include commensurability test (may be suppressed if no problems).
@@ -388,8 +392,8 @@ C         IF(J.EQ.9951) print*,'L',L,'J',J,'T',TIME
          call cputim(tt5)
          CALL SUBINT(IQ,I10)
          call cputim(tt6)
-         ttksintgrt = ttksintgrt + (tt6-tt5)*60.
-         ttks = ttks + (tt6-tt5)*60.
+         if(rank.eq.0)ttksintgrt = ttksintgrt + (tt6-tt5)*60.
+         if(rank.eq.0)ttks = ttks + (tt6-tt5)*60.
 *
          IF (IQ.LT.0) GO TO 999
       END IF
@@ -452,9 +456,9 @@ c$$$  END IF
             END IF
          END IF
       END IF
-
+*
       call cputim(tt1)
-      ttintb=ttintb +(tt1-tttbegin)*60.
+      if(rank.eq.0)ttintb=ttintb +(tt1-tttbegin)*60.
 *
 *       Initialize counters for irregular & regular integrations.
       TPREV = TIME
@@ -506,18 +510,7 @@ C        if (TCCT.gt.2.0) stop
       end if
 *     --08/27/13 16:38-lwang-end-debug----------------------------------*
 #endif
-*     Do full prediction when regular block step come
-      ipredall = .false.
-      IF(NREG.GT.0) THEN
-         call cputim(tttpre1)
-*       Predict all particles (except TPRED=TIME) in C++ on host. 
-*         CALL CXVPRED(IFIRST,NTOT,TIME,T0,X0,X0DOT,F,FDOT,X,XDOT,TPRED)
-         call xbpredall
-         call cputim(tttpre2)
-         ttpre = ttpre + (tttpre2-tttpre1)*60
-         ttpreall = ttpreall + (tttpre2-tttpre1)*60
-      END IF
-
+*
 *     Predict chain variables and perturbers at new block-time.
       IF (NCH.GT.0) THEN
           ttime = TIME
@@ -534,13 +527,13 @@ C        if (TCCT.gt.2.0) stop
 *         call xbpred(NREG,1,NXTLEN,NXTLST)
 *#endif
 *         call cputim(ttnb2)
-*         ttpre = ttpre + (ttnb2-ttnb1)*60.
+*         if(rank.eq.0)ttpre = ttpre + (ttnb2-ttnb1)*60.
 #ifdef SIMD
 *     Use AVX/SSE to calculate irregular force and fdot
          call IRR_SIMD_FIRR_VEC(TIME,NXTLEN,NXTLST,FIRR_SIMD,FD_SIMD,
      &        IMINR_TMP)
          call cputim(ttsimdc)
-         ttsimdcalc = ttsimdcalc + (ttsimdc-ttnb1)*60.
+         if(rank.eq.0)ttsimdcalc = ttsimdcalc + (ttsimdc-ttnb1)*60.
 #else
 *         print*,' before nbint,t,nxtlen,lst=',time,nxtlen,
 *    &                              (nxtlst(k),k=1,nxtlen)
@@ -572,9 +565,7 @@ C        if (TCCT.gt.2.0) stop
          DO L = 1,NXTLEN
             I = NXTLST(L)
             X0(1:3,I) = XN(1:3,I)
-c$$$            X(1:3,I) = XN(1:3,I)
             X0DOT(1:3,I) = XNDOT(1:3,I)
-c$$$            XDOT(1:3,I) = XNDOT(1:3,I)
             D0(1:3,I) = FI(1:3,I)
             D1(1:3,I) = FIDOT(1:3,I)
             IMINR(I) = IMINR_TMP(L)
@@ -596,18 +587,18 @@ c$$$            XDOT(1:3,I) = XNDOT(1:3,I)
 !$omp end parallel do
 
          call cputim(tt3)
-         ttirr = ttirr + (tt3-ttnb1)*60.
+         if(rank.eq.0)ttirr = ttirr + (tt3-ttnb1)*60.
 *
 #ifdef PARALLEL
-*       start PARALLEL section for nbint
+*       Start PARALLEL section for nbint
         ELSE
 *
            call cputim(tt998)
            call mpi_barrier(MPI_COMM_WORLD,ierr)
            call cputim(tt999)
-           ttbar = ttbar + (tt999-tt998)*60
-           ibarcount=ibarcount+1
-           ttbarnb = ttbarnb + (tt999-tt998)*60
+           if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
+           if(rank.eq.0)ibarcount=ibarcount+1
+           if(rank.eq.0)ttbarnb = ttbarnb + (tt999-tt998)*60.
 *           print*, 'Nbint Barrier 1: rank iphase ttbarnb ttbar',
 *     &          ' dt nxtlen bcount',rank,ixxx,ttbarnb,ttbar,tttdet,
 *     &          nxtlen,ibarcount
@@ -639,34 +630,24 @@ c$$$            XDOT(1:3,I) = XNDOT(1:3,I)
            istart = ista(rank+1)
            iend = ista(rank+1) + inum(rank+1) - 1
 *
-*     if(time.lt.0.1d0)then
-*     print*,' rank ',rank,' NXTLEN ',NXTLEN,TIME,
-*    *    ' istart,iend=',istart,iend
-*     end if
-*
 c$$$      call cputim(tt998)
 c$$$      call mpi_barrier(MPI_COMM_WORLD,ierr)
 c$$$      call cputim(tt999)
-c$$$      tttdet=(tt999-tt998)*60
-c$$$      ttbar = ttbar + (tt999-tt998)*60
-c$$$      ibarcount=ibarcount+1
-c$$$      ttbarnb = ttbarnb + (tt999-tt998)*60
+c$$$      if(rank.eq.0)tttdet=(tt999-tt998)*60.
+c$$$      if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
+c$$$      if(rank.eq.0)ibarcount=ibarcount+1
+c$$$      if(rank.eq.0)ttbarnb = ttbarnb + (tt999-tt998)*60.
 *      print*, 'Nbint Barrier 2: rank iphase ttbarnb ttbar',
 *     &     ' dt nxtlen bcount',rank,ixxx,ttbarnb,ttbar,tttdet,
 *     &     nxtlen,ibarcount
 *
-*     if(time.lt.0.1d0)then
-*     print*,' rank ',rank,' NXT in DO L ',L,TIME,
-*    *    ' istart,iend=',istart,iend
-*     end if
-
            call cputim(ttnb1)
 *#ifndef SIMD
 *     Predict x and xdot
 *           call xbpred(NREG,istart_lst,iend_lst,NXTLST_MPI)
 *#endif
 *           call cputim(ttnb2)
-*           ttpre = ttpre + (ttnb2-ttnb1)*60.
+*           if(rank.eq.0)ttpre = ttpre + (ttnb2-ttnb1)*60.
 
            NPART_LEN = iend_lst - istart_lst + 1
 #ifdef SIMD
@@ -674,7 +655,6 @@ c$$$      ttbarnb = ttbarnb + (tt999-tt998)*60
            call IRR_SIMD_FIRR_VEC(TIME,NPART_LEN,NXTLST_MPI(istart_lst),
      &          FIRR_SIMD,FD_SIMD,IMINR_TMP)
            call cputim(ttsimdc)
-           ttsimdcalc = ttsimdcalc + (ttsimdc-ttnb1)*60.
 #else
 *     OpenMP version of irregular force and fdot
            CALL NBINT(TIME,NPART_LEN,NXTLST_MPI(istart_lst),
@@ -708,7 +688,7 @@ c$$$      ttbarnb = ttbarnb + (tt999-tt998)*60
            END DO
 *
            call cputim(tt3)
-           ttirr = ttirr + (tt3-ttnb1)*60.
+           if(rank.eq.0)ttirr = ttirr + (tt3-ttnb1)*60.
 *
 *        Distribute variables into private vectors again T3E (R.Sp.)
 *
@@ -748,14 +728,14 @@ c$$$      ttbarnb = ttbarnb + (tt999-tt998)*60
               call cputim(ttb)
               call mpi_barrier(MPI_COMM_WORLD,ierr)
               call cputim(tt999)
-              ttbar = ttbar + (tt999-ttb)*60
-              ttbarnb = ttbarnb + (tt999-ttb)*60
-              ibarcount=ibarcount+1
+              if(rank.eq.0)ttbar = ttbar + (tt999-ttb)*60.
+              if(rank.eq.0)ttbarnb = ttbarnb + (tt999-ttb)*60.
+              if(rank.eq.0)ibarcount=ibarcount+1
 *     print*, 'Nbint Barrier 3: rank iphase ttbarnb ttbar',
 *     &     ' dt nxtlen bcount',rank,ixxx,ttbarnb,ttbar,tttdet,
 *     &     nxtlen,ibarcount
-              xtsub1 = xtsub1 + dble(20*8*(icnt+icnt2))
-              ttsub = ttsub + (ttb-tta)*60.
+              if(rank.eq.0)xtsub1 = xtsub1 + dble(20*8*(icnt+icnt2))
+              if(rank.eq.0)ttsub = ttsub + (ttb-tta)*60.
 #endif
 *
 #ifdef SHMEM
@@ -782,9 +762,7 @@ c$$$      ttbarnb = ttbarnb + (tt999-tt998)*60
                  I = NXTLST_MPI(LL)
                  L = LL - Loffset
                  X0(1:3,I) = XMPI(1:3,L)
-*              X(1:3,I) = XMPI(1:3,L)
                  X0DOT(1:3,I) = XMPI(4:6,L)
-*              XDOT(1:3,I) = XMPI(4:6,L)
                  D2(1:3,I) = XMPI(7:9,L)
                  D3(1:3,I) = XMPI(10:12,L)
                  FI(1:3,I) = XMPI(13:15,L)
@@ -813,7 +791,7 @@ c$$$      ttbarnb = ttbarnb + (tt999-tt998)*60
            END DO
 *
            call cputim(tt4)
-           ttmov = ttmov + (tt4-ttmov3)*60.
+           if(rank.eq.0)ttmov = ttmov + (tt4-ttmov3)*60.
 *     
         END IF
 *          End PARALLEL section for nbint
@@ -865,7 +843,7 @@ c$$$**!$omp end parallel do
 *             call cputim(ttnb1)
 *             call xbpredall
 *             call cputim(ttnb2)
-*             ttpre = ttpre + (ttnb2-ttnb1)*60.
+*             if(rank.eq.0)ttpre = ttpre + (ttnb2-ttnb1)*60.
               I = ICOMP
               ICOMP = MIN(ICOMP,JCOMP)
               JCOMP = MAX(I,JCOMP)
@@ -892,13 +870,17 @@ c$$$              end if
 
 *
 c$$$      call cputim(ttt33)
-c$$$      ttnewt = ttnewt + (ttt33 - ttt32)*60.
-
+c$$$      if(rank.eq.0)ttnewt = ttnewt + (ttt33 - ttt32)*60.
 ***** --Regular force calculation--------------------------------------**
       IF(NREG.GT.0)THEN
-*     if(time.lt.0.01)write(6,*)rank,' reg ',
-*    & time,nreg,(ireg(k),name(ireg(k)),stepr(ireg(k)),k=1,min(5,nreg))
-      
+*    Do full prediction when regular block step come
+      ipredall = .false.
+         call cputim(tttpre1)
+*
+*       Predict single + c.m.
+         call xbpredall
+         call cputim(tttpre2)
+         if(rank.eq.0)ttpreall = ttpreall + (tttpre2-tttpre1)*60.
 #ifdef GPU
 *       Send all single particles to GPU memory
          call cputim(tt51)
@@ -916,7 +898,7 @@ c$$$            write(100,*) NREG, Name(L), STEPR(L),TIME
 c$$$         end do
 c$$$      end if
 *     --09/26/13 16:58-lwang-end----------------------------------------*
-         ttgrcomm = ttgrcomm + (tt52-tt51)*60.0
+        if(rank.eq.0)ttgrcomm = ttgrcomm + (tt52-tt51)*60.0
 #endif
 *
 *       Block-Step Level Diagnostics (R.Sp. 29.Apr. 1993)
@@ -929,7 +911,8 @@ c$$$      end if
             call cputim(tt1)
             CALL CALC_REG_ON_GPU(IREG,1,NREG)
             call cputim(tt2)
-            ttgrcalc = ttgrcalc + (tt2-tt1)*60.0
+            if(rank.eq.0)ttgrcalc = ttgrcalc + (tt2-tt1)*60.0
+            if(rank.eq.0)ttreg = ttreg + (tt2-tt1)*60.0
 *
 !$omp parallel do private(L,I)
             DO L = 1,NREG
@@ -941,9 +924,7 @@ c$$$      end if
                FDOT(2,I) = ONE6*(FIDOT(2,I) + FRDOT(2,I))
                FDOT(3,I) = ONE6*(FIDOT(3,I) + FRDOT(3,I))               
                X0(1:3,I) = XN(1:3,I)
-c$$$               X(1:3,I) = XN(1:3,I)
                X0DOT(1:3,I) = XNDOT(1:3,I)
-c$$$               XDOT(1:3,I) = XNDOT(1:3,I)
 *     Copy neighbor list
 *               NNB = IMPI(1,L) + 1 
 *               LIST(1:NNB,I) = IMPI(1:NNB,L)
@@ -961,7 +942,7 @@ c$$$               XDOT(1:3,I) = XNDOT(1:3,I)
 *     
             NBSUM = 0
             call cputim(tt2)
-            ttreg = ttreg + (tt2-tt1)*60.
+            if(rank.eq.0)ttreg = ttreg + (tt2-tt1)*60.
 
 #ifdef PARALLEL
 *       Start PARALLEL section for regint
@@ -970,9 +951,9 @@ c$$$               XDOT(1:3,I) = XNDOT(1:3,I)
             call cputim(tt998)
             call mpi_barrier(MPI_COMM_WORLD,ierr)
             call cputim(tt999)
-            ibarcount=ibarcount+1
-            ttbar = ttbar + (tt999-tt998)*60
-            ttbarreg = ttbarreg +(tt999-tt998)*60
+            if(rank.eq.0)ibarcount=ibarcount+1
+            if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
+            if(rank.eq.0)ttbarreg = ttbarreg +(tt999-tt998)*60.
 
 *
             nl = NREG
@@ -1016,8 +997,8 @@ c$$$      end if
             call cputim(tt1)
             CALL CALC_REG_ON_GPU(IREG,istart,iend)
             call cputim(tt2)
-            ttgrcalc2 = ttgrcalc2 + (tt2-tt1)*60.0
-            ttreg = ttreg + (tt2-tt1)*60.0
+            if(rank.eq.0)ttgrcalc2 = ttgrcalc2 + (tt2-tt1)*60.0
+            if(rank.eq.0)ttreg = ttreg + (tt2-tt1)*60.0
 
 !$omp parallel do private(L,I,NNB)
             DO L = istart,iend
@@ -1060,7 +1041,7 @@ c$$$      end if
             JMPI(10) = NBFLUX - NBSUM
             JMPI(11) = NBPRED - NC12
             call cputim(tt3)
-            ttmov = ttmov +(tt3-tt2)*60.
+            if(rank.eq.0)ttmov = ttmov +(tt3-tt2)*60.
 *
 *
 *        Distribute variables into private vectors again T3E (R.Sp.)
@@ -1102,11 +1083,11 @@ c$$$  call mpi_barrier(MPI_COMM_WORLD,ierr)
                call cputim(ttb)
                call mpi_barrier(MPI_COMM_WORLD,ierr)
                call cputim(tt999)
-               ibarcount=ibarcount+1
-               ttbar = ttbar + (tt999-ttb)*60
-               ttbarreg = ttbarreg +(tt999-ttb)*60
-               xtsub2 = xtsub2 + dble((41*8+lmax*4)*(icnt+icnt2))
-               ttsub2 = ttsub2 + (ttb-tta)*60.
+           if(rank.eq.0)ibarcount=ibarcount+1
+           if(rank.eq.0)ttbar = ttbar + (tt999-ttb)*60.
+           if(rank.eq.0)ttbarreg = ttbarreg +(tt999-ttb)*60.
+           if(rank.eq.0)xtsub2=xtsub2+dble((41*8+lmax*4)*(icnt+icnt2))
+           if(rank.eq.0)ttsub2 = ttsub2 + (ttb-tta)*60.
 #endif
 *
 #ifdef SHMEM
@@ -1126,8 +1107,8 @@ c$$$  call mpi_barrier(MPI_COMM_WORLD,ierr)
             call cputim(tt998)
             call mpi_barrier(MPI_COMM_WORLD,ierr)
             call cputim(tt999)
-            ibarcount=ibarcount+1
-            ttbar = ttbar + (tt999-tt998)*60
+            if(rank.eq.0)ibarcount=ibarcount+1
+            if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
 
 c          print*,' before do nreg=',time
 c          print*,' x(1,1-10)=',(x(1,nxtlst(k)),k=1,nxtlen)
@@ -1139,9 +1120,7 @@ c          print*,' x0dot(1,1-10)=',(x0dot(1,nxtlst(k)),k=1,nxtlen)
             DO L = 1,NREG
                I = IREG(L)
                X0(1:3,I) = YMPI(1:3,L)
-*               X(1:3,I) = YMPI(1:3,L)
                X0DOT(1:3,I) = YMPI(4:6,L)
-*               XDOT(1:3,I) = YMPI(4:6,L)
                FI(1:3,I) = YMPI(7:9,L)
                FR(1:3,I) = YMPI(10:12,L)
                FIDOT(1:3,I) = YMPI(13:15,L)
@@ -1208,12 +1187,12 @@ c          print*,' x0dot(1,1-10)=',(x0dot(1,nxtlst(k)),k=1,nxtlen)
                NBPRED = NBPRED + JMPILOCAL(11,J)
             END DO
             call cputim(tt3)
-            ttmov = ttmov + (tt3-tt999)*60.
+            if(rank.eq.0)ttmov = ttmov + (tt3-tt999)*60.
 *
 *      call mpi_barrier(MPI_COMM_WORLD,ierr)
 *      call cputim(tt999)
-*      ibarcount=ibarcount+1
-*      ttbar = ttbar + (tt999-tt3)*60
+*      if(rank.eq.0)ibarcount=ibarcount+1
+*      if(rank.eq.0)ttbar = ttbar + (tt999-tt3)*60.
          END IF
 *         End PARALLEL section for regint
 #endif
@@ -1236,7 +1215,7 @@ c$$$c$$$*
 c$$$c$$$         END DO
 c$$$c$$$**!$omp end parallel do      
 c$$$         call cputim(tt334)
-c$$$         ttmov = ttmov +(tt334-tt333)*60
+c$$$         if(rank.eq.0)ttmov = ttmov +(tt334-tt333)*60.
 *
 *          OPEN(98,STATUS='OLD',ERR=123)
 *         print*,' last reg block t=',time,' length=',nreg
@@ -1258,7 +1237,7 @@ c$$$         ttmov = ttmov +(tt334-tt333)*60
       END DO
 !$omp end parallel do
       call cputim(ttirrs2)
-      ttsimdsend = ttsimdsend + (ttirrs2-ttirrs1)*60.
+      if(rank.eq.0)ttsimdsend = ttsimdsend + (ttirrs2-ttirrs1)*60.
 #endif
 *     custom output
       call cputim(ttiout1)
@@ -1266,15 +1245,29 @@ c$$$         ttmov = ttmov +(tt334-tt333)*60
          call custom_output(NXTLEN,NXTLST,NXTLIMIT,NGHOSTS,IMINR)
       END IF
       call cputim(ttiout2)
-      ttout = ttout + (ttiout2 - ttiout1)*60.
+      if(rank.eq.0)ttout = ttout + (ttiout2 - ttiout1)*60.
 
 
+******* Checking sort_tlist
+*     I=0
+*     DO L = 1,NXTLEN
+*         J = NXTLST(L)
+*         STEPCR = DTK(NDTMAX)
+*         IF(STEP(J).LE.STEPCR)THEN
+*             I=I+1
+*             STI(I) = J
+*         END IF
+*     END DO
+*     PRINT*,' I,NDTMAX,T,DTCR=',I,NDTMAX,TTOT,STEPCR
+*     PRINT*,' J,I,N,K,M,STEP=',(J,STI(J),NAME(STI(J)),KSTAR(STI(J)),
+*    &  BODY(STI(J))*ZMBAR,STEP(STI(J)),J=1,I)
 *     Resorting the NXTLST
       call cputim(tt335)
-      call sort_tlist(STEP,DTK,.false.)
+      FLAG = .false.
+      call sort_tlist(STEP,DTK,FLAG)
       call cputim(tt336)
-      ttintb =ttintb + (tt336-tt335)*60
-      ttnewt = ttnewt + (tt336 - tt335)*60.      
+      if(rank.eq.0)ttintb =ttintb + (tt336-tt335)*60.
+      if(rank.eq.0)ttnewt = ttnewt + (tt336 - tt335)*60.      
 *
 #ifdef DEBUG
 *     --07/08/14 15:38-lwang-debug--------------------------------------*
@@ -1381,7 +1374,7 @@ c$$$*     --10/27/13 10:33-lwang-end----------------------------------------*
               END IF
           END IF
           call cputim(tttsb)
-          ttshk = ttshk + (tttsb-tttsa)*60.0
+          if(rank.eq.0)ttshk = ttshk + (tttsb-tttsa)*60.0
       END IF
 *
 *       Check optional mass loss time.
@@ -1397,7 +1390,7 @@ c$$$          IF (TIME.GT.TMDOT.AND.DMOD(TIME,STEPX).EQ.0.0D0) THEN
                 CALL MLOSS
              END IF
              call cputim(tttmdotb)
-             ttmdot = ttmdot +(tttmdotb-tttmdota)*60
+             if(rank.eq.0)ttmdot = ttmdot +(tttmdotb-tttmdota)*60.
              IF (IPHASE.LT.0.OR.IPHASE.EQ.1.OR.IPHASE.EQ.2) GO TO 999
           END IF
       END IF
@@ -1484,8 +1477,8 @@ C      END IF
       call cputim(tt998)
       CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
       call cputim(tt999)
-      ibarcount=ibarcount+1
-      ttbar = ttbar + (tt999-tt998)*60
+      if(rank.eq.0)ibarcount=ibarcount+1
+      if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
       CALL MPI_ABORT(MPI_COMM_WORLD,ierr)
 #endif
       STOP

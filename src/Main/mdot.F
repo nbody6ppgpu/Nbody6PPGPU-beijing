@@ -28,9 +28,9 @@
       REAL*8 RJ,HJ,TJ2,VORB2,VWIND2,IVSQM,OMV2,DTXMIN,DMXMAX,DELET
       REAL*8 JSPIN(2),OSPIN(2),DJSPIN(2),JORB,OORB,AURSUN
       PARAMETER(AURSUN=214.95d0)
-      REAL*8 K2,K3,ACC1,ACC2,BETA,XI
+      REAL*8 K2,K3,ACC1,ACC2,BETA,XI,DMMIN
       PARAMETER(K3=0.21d0,ACC1=3.920659d+08,ACC2=1.5d0)
-      PARAMETER(BETA=0.125d0,XI=1.d0,MAXBLK=40)
+      PARAMETER(BETA=0.125d0,XI=1.d0,MAXBLK=40,DMMIN=1.E-08)
       REAL*8 MLWIND,RL
       EXTERNAL MLWIND,RL
       CHARACTER*8  WHICH1
@@ -40,13 +40,6 @@
 *      INTEGER NDMLIST(NMAX),NPNUM
 *      REAL*8 DMLIST(NMAX)
 *      LOGICAL IGPUDM,IGPUSWITCH
-*     --11/10/13 15:34-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      INTEGER MDOT_C
-c$$$      DATA MDOT_C /0/
-c$$$      SAVE MDOT_C
-c$$$      MDOT_C = MDOT_C + 1
-*     --11/10/13 15:34-lwang-end----------------------------------------*
 *
 *       Define current time (unit of million years) and update counter.
       TTOT = TIME + TOFF
@@ -80,6 +73,9 @@ c$$$      NCNUM = 0
 *     Find global index of next star to be checked (NB! reset KS & IKS).
  4    ML = ML + 1
       I = MLIST(ML)
+*       Beware reduction of NTOT by KSTERM since last update!! (bug 2/17 Nbody6).
+*       Detected and ported here R.Sp. Dec. 2021
+      IF (I.GT.NTOT.OR.ML.GT.ML0) GO TO 103
 *     Avoid the same binary or merger do the loop again
       IF(TEV(I).GT.TIME) THEN
          IF(ML.LT.ML0) THEN
@@ -130,14 +126,12 @@ C             END IF
              JCOMP = 0
              IPHASE = 7
              IPOLY = -1
-*     Do enery correction before particle index change
-*             call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,IGPUSWITCH)
              CALL RESET
 *     If reset, send new jparticle to gpu and use gpupot_dm
-c#ifdef GPU             
-c             IGPUDM = .true.
-c             IGPUSWITCH = .true.
-c#endif             
+c$$$#ifdef GPU             
+c$$$             IGPUDM = .true.
+c$$$             IGPUSWITCH = .true.
+c$$$#endif             
           ENDIF
           GO TO 1
       END IF
@@ -161,9 +155,6 @@ c#endif
                   IPHASE = 7
                   IPOLY = -1
                   KSPAIR = IP
-*     Do enery correction before particle index change
-*                  call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,
-*     &                 IGPUSWITCH)
                   CALL RESET
 *     If reset, send new jparticle to gpu and use gpupot_dm
 *#ifdef GPU             
@@ -179,11 +170,10 @@ c#endif
       IF (I.GT.N.AND.KZ(34).GT.0.AND.BODY(I).GT.0.0D0.AND.
      &    KSTAR(I).GE.10) THEN
           IPAIR = I - N
+          I1 = 2*IPAIR - 1
+          I2 = 2*IPAIR
 *       Consider odd types (11, 13, etc.) for Roche updating or treatment.
           IF (MOD(KSTAR(I),2).NE.0) THEN
-*     Do enery correction before particle index change
-*             call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,
-*     &            IGPUSWITCH)
              CALL ROCHE(IPAIR)
 *     If reset, send new jparticle to gpu and use gpupot_dm
 *#ifdef GPU             
@@ -205,9 +195,6 @@ c#endif
               CALL TRFLOW(IPAIR,DTR)
               IF (DTR.LT.STEP(I)) THEN
                   TEV(I) = TIME + DTR
-*     Do enery correction before particle index change
-*                  call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,
-*     &                 IGPUSWITCH)
                   CALL ROCHE(IPAIR)
 *     If reset, send new jparticle to gpu and use gpupot_dm
 *#ifdef GPU             
@@ -244,9 +231,6 @@ c#endif
                   IF (I.LT.2*KSPAIR.OR.NAME(I).GT.NZERO) THEN
                       IPHASE = 7
                       IPOLY = -1
-*     Do enery correction before particle index change
-*                      call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,
-*     &                     IGPUSWITCH)
                       CALL RESET
 *     If reset, send new jparticle to gpu and use gpupot_dm
 *#ifdef GPU             
@@ -298,7 +282,7 @@ c#endif
               IF (rank.eq.0.and.I.EQ.IGHOST) WRITE(6,906) I, NAME(I),
      &                                       KSTAR(I), TEV(I), BODY(I)
  906          FORMAT(' GHOST SWITCH:    I NAM K* TEV BODY ',
-     &                                   3I5,F9.2,1P,E10.2)
+     &                                   3I5,F9.2,1P,E11.3)
           ELSE
 *       Save KS component for updating look-up time.
               I0 = I
@@ -315,9 +299,6 @@ c#endif
      &            WRITE(6,908) IGHOST, I0, I, NAME(I), KSTAR(I), TEV(I)
  908              FORMAT(' OUTER GHOST:    IG I0 I NM K* TEV',5I6,F9.2)
                   IF(KSTAR(N+KSPAIR).GE.10) THEN
-*     Do enery correction before particle index change
-*                     call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,
-*     &                    IGPUSWITCH)
 *     If reset, send new jparticle to gpu and use gpupot_dm
                      CALL RESET
 *#ifdef GPU             
@@ -350,9 +331,6 @@ c#endif
               IF (NAMEM(IMERGE).LT.-2*NZERO) THEN
                   IPHASE = 7
                   IPOLY = -1
-*     Do enery correction before particle index change
-*                  call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,
-*     &                 IGPUSWITCH)
                   CALL RESET
 *     If reset, send new jparticle to gpu and use gpupot_dm
 *#ifdef GPU             
@@ -396,7 +374,7 @@ c#endif
 *               WRITE(6,910) I, NAME(I), KSTAR(I1), KSTAR(I2), KSTAR(I),
 *    &                       TTOT, TM - TEV(I)
 *910            FORMAT(' WARNING!    MDOT:    I NAM K* T D(TEV) ',
-*    &                               2I6,3I4,F9.2,1P,E10.2)
+*    &                               2I6,3I4,F9.2,1P,E11.3)
 *            END IF
 *         ENDIF
           IF (KSTAR(I).LT.10) THEN
@@ -407,8 +385,6 @@ c#endif
               DTR = MAX(DTR,0.0D0)
               IF (DTR.LT.STEP(I)) THEN
                   TEV(I) = TIME + DTR
-*                  call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,
-*     &                 IGPUSWITCH)
                   CALL ROCHE(IPAIR)
 *#ifdef GPU             
 *                  IGPUDM = .true.
@@ -471,8 +447,6 @@ c#endif
          IF (BODY(J).EQ.0.0D0) THEN
              IPHASE = 7
              IPOLY = -1
-*     Do enery correction before particle index change
-*             call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,IGPUSWITCH)
              CALL RESET
 *#ifdef GPU             
 *             IGPUDM = .true.
@@ -482,7 +456,11 @@ c#endif
          END IF
          SEMI = -0.5d0*BODY(J)/HJ
          SEP = SEMI*SU
-         ECC2 = (1.d0 - RJ/SEMI)**2 + TJ2**2/(BODY(J)*SEMI)
+*       Use modulus for hyperbolic case (RS Apr 2022)
+         ASEMI = DABS(SEMI)
+         ECC2 = (1.D0 - RJ/ASEMI)**2 + TJ2**2/(ASEMI*BODY(J))
+         ECC = SQRT(ECC2)
+*
          IF(ECC2.LT.1.0)THEN
             KACC = 2
             Q = MASS(1)/MASS(2)
@@ -528,8 +506,10 @@ c#endif
      &             *SQRT(1.D0-ECC2)*SEP*SEP*OORB
          ELSE
             if(rank.eq.0)
-     &      WRITE(6,912)JX,NAME(N+KSPAIR),SQRT(ECC2),TTOT
- 912        FORMAT(' MDOT ECC2 > 1.0 I1 I2 N(ICM) e T ', 3I6,F6.2,E9.2)
+     &      WRITE(6,912)JX,NAME(JX(1)),NAME(JX(2)),
+     &           NAME(N+KSPAIR),SQRT(ECC2),ECC2NG,SEMI,SEP/SU
+ 912        FORMAT(' MDOT ECC2 > 1.0 I12 N12 N(ICM) e a sep ',
+     &    5I10,1P,5E11.3)
             KACC = 1
          ENDIF
       ELSE
@@ -644,7 +624,7 @@ c$$$            end if
      &                     KSTAR(JX(3-K)),TPHYS,MASS,SEP,DMX(3-K),DMA(K)
  913              FORMAT(' WINDAC    NAME NAME(JC) K* K*(JC) Time[Myr]',
      &                 'M[M*] SEMI[R*] DMX(JC) DMA',
-     &                 2I12,2I4,1P,E25.16,4E12.5,0P)
+     &                 2I12,2I4,1P,E25.16,5E12.5)
                   CALL FLUSH(20)
                ENDIF
             ENDIF
@@ -716,16 +696,29 @@ c$$$            end if
       IF(KACC.EQ.2)THEN
 *
          DTXMIN = MIN(DTX(1),DTX(2))
+         call cputim(ttgr7)
          CALL GRRAD(MASS(1),MASS(2),SEP,ECC,JORB,DJGR,DELET)
+         call cputim(ttgr8)
+         if(rank.eq.0)ttgrrad = ttgrrad + (ttgr8-ttgr7)*60.
+         if(rank.eq.0)igrrad = igrrad + 1
          DJORB = DJT + DJGR
-            DTGR = 0.02D0*JORB/ABS(DJORB)
-* RSp updated output July 2020
-            IF (rank.eq.0.and.DJGR.GT.1.E-06)
-     &      WRITE (6,45)TTOT,MASS,SEP,ECC,JORB,DJGR,DTM
-   45       FORMAT (' GR BRAKE T M1 M2 SEP ECC JORB DJGR DTM ',
-     &            1P,8E14.5)
-*        if(rank.eq.0)
-*    &   write(*,*)' grrad ',sep,ecc,djgr,delet,dtxmin
+         DTGR = 0.02D0*JORB/ABS(DJORB)
+         CL2 = CLIGHT**2
+         A_EIN = 3.0*TWOPI*BODY(J)/(SEMI*CL2*(1-ECC2))
+         TORB = TWOPI*SQRT(SEMI**3/BODY(J))
+         TGR = JORB/DJGR
+         RSCHW = 2.0*BODY(J)/CL2
+* RSp updated output Dec. 2021
+      if(rank.eq.0.AND.DJGR.GT.1.E-06)WRITE(6,665)
+     &   TTOT,DTGR,STEP(J1),I,IPAIR,LIST(1,J1),
+     &   (NAME(JX(3-K)),K=1,2),NAME(J),(KSTAR(JX(3-K)),K=1,2),
+     &   KSTAR(J),MASS(1),MASS(2),ECC,SEMI,QPERI,RSCHW,
+     &   H(KSPAIR),GAMMA(KSPAIR),A_EIN,TORB,TGR,JORB,DJGR,DTXMIN,DELET
+ 665  FORMAT(1X,' GR BRAKE T DTGR STEP',1P,3E13.5,' I IP NPERT',
+     &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
+     &   ' e,a,QP,RS[NB]=',4E13.5,' H, GAMMA=',2E13.5,
+     &   ' A_EIN, TORB, TGR(PM)=',3E13.5,' j,dj=',2E13.5,
+     &   ' DTXMIN,de=',2E13.5)
 *
 *       Limit orbital angular momentum change to 2%.
 *
@@ -784,7 +777,7 @@ c$$$            end if
          ICORR = .FALSE.
          DMS(K) = (DMX(K) - DMA(K))*DT
          DMR = ABS(DMS(K)/(MASS(K) + 1.0d-10))
-         IF(DMR.GT.TINY)THEN
+         IF(DMR.GT.DMMIN)THEN
             ICORR = .TRUE.
             M1 = M1 - DMS(K)
 *       Check rejuvenation of MS, HG or HE star.
@@ -807,7 +800,7 @@ c$$$            end if
          DJSPIN(K) = DJSPIN(K)*DT
 *
 *       Check for blue straggler formation (TM < TPHYS).
-         IF(DMR.GT.TINY.AND.KW.LE.1.AND.NAME(I).NE.IBLUE)THEN
+         IF(DMR.GT.DMMIN.AND.KW.LE.1.AND.NAME(I).NE.IBLUE)THEN
             TPHYS2 = (TEV0(I)+TOFF)*TSTAR - EPOCH0
             IF(TM0(K).GT.TPHYS2.AND.TM.LT.0.98D0*TPHYS2)THEN
                J = JX(1)
@@ -828,33 +821,35 @@ c$$$            end if
          AGE = TEVK*TSTAR - EPCH0(K)
          AGEOLD = AGE0(K)
          AGE0(K) = AGE
+         MC = 0.D0
 *
 *       Determine stellar evolution time scales and luminosity.
          CALL star(KW,M0,M1,TM,TN,TSCLS,LUMS,GB,ZPARS)
 *
 *       Include temporary error check.
          IF((AGE-TN).GT.1.0d-02)THEN
-*           IF(I.GE.IFIRST.OR.(I.LT.IFIRST.AND.NAME(ICM).GT.0))THEN
-               if(rank.eq.0)
-     &         WRITE(6,994)NAME(I), KW, DMS(K), AGE, TN
-*           ENDIF
- 994        FORMAT(' MDOT WARNING! AGE > TN   NM KW DMS AGE TN ',
-     &                                   I6,I4,F7.3,1P,2E9.1)
+            if(rank.eq.0)
+     &      WRITE(666,994)TTOT,I,IFIRST,NAME(I),KW,
+     &    BODY(I)*ZMBAR,K,DMS(K),AGE,TN,AGE-TN,TSCLS(11),TSCLS(5)
+ 994        FORMAT(' MDOT WARNING! AGE > TN: T I IF N K M=',
+     &       1P,E11.3,3I10,I4,E11.3,' K DMS AGE TN AGE-TN=',
+     &         I4,4E11.3,' TSCLS11,5=',2E11.3)
+*      Following is standard condition
+               AGE = MIN(AGE,1.0001D0*TN)
+*      Double security measures
             IF(KW.LE.6)THEN
                AGE = MIN(AGE,0.9999D0*TSCLS(11))
             ELSE
                AGE = MIN(AGE,0.9999D0*TSCLS(5))
-               AGE = MIN(AGE,1.0001D0*TN)
             ENDIF
          ENDIF
-*##
 *       Obtain stellar parameters at current epoch.
          CALL hrdiag(M0,AGE,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
      &               RM,LUM,KW,MC,RCC,ME,RE,K2)
 *
          IF(KW.NE.KSTAR(I).AND.DABS(M1-M0)/M0.GT.0.05D0)THEN
 * RSp Debugging July 2020
-            IF (rank.eq.0.and.KW.GE.10) THEN
+            IF (rank.eq.0.and.KW.GE.10.and.KW.LT.15) THEN
       WRITE (6,190)TIME+TOFF,I, K, NAME(I), KSTAR(I), KW, AGE,AGEOLD,
      &      BODY(I)*ZMBAR,MASS(K), M0, M1, RADIUS(I)*SU, VI, RI, RCC, MC
   190 FORMAT (' WD/NS/BH FORMATION T=',1P,E13.5,
@@ -864,11 +859,9 @@ c$$$            end if
             END IF
 *
          END IF
-*        IF(rank.eq.0.and.KW.EQ.14)PRINT*,' MDOT: T,M0,MC,AGE=',
-*    &                TTOT,M0,MC,AGE
 *
 *       Check for change of CO WD to ONe on rapid accretion (21/11/08).
-         IF(DMR.GT.TINY.AND.KW.EQ.11)THEN
+         IF(DMR.GT.DMMIN.AND.KW.EQ.11)THEN
             DME = 2.08D-03*(1.D0/(1.D0 + ZPARS(11)))*RM
             IF(ABS(DMA(K)).GT.0.4d0*DME) KW = 12
          ENDIF
@@ -877,15 +870,13 @@ c$$$            end if
          IF(KW.NE.KSTAR(I))THEN
             IF(KW.EQ.15)THEN
                if(rank.eq.0)
-     &         WRITE(6,915)I,NAME(I),M0,KSTAR(I),TEVK*TSTAR-EPCH0(K)
- 915           FORMAT (' MDOT WARNING! SN KW=15   I NM M0 KSTAR AGE ',
-     &                                            2I6,F7.3,I4,E9.1)
+     &       WRITE(6,915)TTOT,I,NAME(I),KSTAR(I),KW,M0,M1,MC,
+     &                   TEVK*TSTAR-EPCH0(K),TIME
+ 915           FORMAT (' MDOT WARNING! SN KW=15 I NM KW M0/1/C AGE T ',
+     &              1P,E13.5,2I10,2I4,5E13.5)
                IF (NAME(N+KSPAIR).LT.0) THEN
                   IPHASE = 7
                   IPOLY = -1
-*     Do enery correction before particle index change
-*                  call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,
-*     &                 IGPUSWITCH)
                   CALL RESET
 *     If reset, send new jparticle to gpu and use gpupot_dm
 *#ifdef GPU             
@@ -931,8 +922,6 @@ c$$$            end if
             IF (ITERM.GT.0) THEN
                IPHASE = 7
                IPOLY = -1
-*     Do enery correction before particle index change
-*               call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,IGPUSWITCH)
                CALL RESET
 *     If reset, send new jparticle to gpu and use gpupot_dm
 *#ifdef GPU             
@@ -978,7 +967,7 @@ c$$$            end if
                END IF
 *       Terminate for large mass loss or soft binary and re-determine index.
                IF ((DMR.GT.0.2.AND.R(KSPAIR).GT.RMIN).OR.
-     &            (DM.GT.0.0.AND.H(KSPAIR) + DM/SEMI.GT.-ECLOSE.AND.
+     &            (DM.GT.DMMIN.AND.H(KSPAIR) + DM/SEMI.GT.-ECLOSE.AND.
      &            KSTAR(N+KSPAIR).GE.0).OR.
 *    &            (KW.NE.KSTAR(I).AND.KW.GE.13)) THEN
      &            (KW.NE.KSTAR(I).AND.
@@ -995,9 +984,36 @@ c$$$            end if
                   IPHASE = 2
                   IF(IPOLY.GE.0) IPOLY = 2
                   JCOMP = 0
-*     Do enery correction before particle index change
-*                  call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,
-*     &                 IGPUSWITCH)
+          if(rank.eq.0) then
+          IPAIR = KSPAIR
+          ICM = N + KSPAIR
+          I1 = 2*KSPAIR - 1
+          I2 = 2*KSPAIR
+          RI = SQRT((X(1,ICM) - RDENS(1))**2 +
+     &              (X(2,ICM) - RDENS(2))**2 +
+     &              (X(3,ICM) - RDENS(3))**2)
+          VI = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
+          SEMI = -0.5*BODY(ICM)/H(IPAIR)
+*       Use modulus for hyperbolic case (RS Apr 2022)
+          ASEMI = DABS(SEMI)
+      ECC2 = (1.0-R(IPAIR)/ASEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*ASEMI)
+          EB = -0.5*BODY(I1)*BODY(I2)/SEMI
+          PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6
+          WRITE (6,16)  TIME+TOFF,NAME(I1),NAME(I2),
+     &         NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
+     &         IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
+     &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(ICM),LIST(1,I1),LIST(1,ICM),
+     &         BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
+     &         RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VI,DM,DMR
+  16      FORMAT (/,' MDEND KSREG TIME[NB]',1P,E17.10,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
+     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
+     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
+     &         ' RI,VI[NB]=',2E11.3,' DM,DMR=',2E13.5)
+          end if
                   CALL KSTERM
 *     If ksterm, send new jparticle to gpu and use gpupot_dm
 *#ifdef GPU
@@ -1005,7 +1021,7 @@ c$$$            end if
 *                  IGPUSWITCH = .true.
 *#endif                  
                   KS = 1
-               ELSE IF (DM.NE.0.D0) THEN
+               ELSE IF (DABS(DM).GT.DMMIN) THEN
 *       Implement mass loss and expand KS orbit at constant eccentricity.
                   CALL HCORR(I,DM,RNEW)
                   ITRY = 1
@@ -1013,18 +1029,15 @@ c$$$            end if
             ELSE
 *       Adopt KS treatment for single outer component or terminate merger.
                IF (I.EQ.2*KSPAIR.AND.NAME(I).LE.NZERO.AND.
-     &             NAME(N+KSPAIR).GT.-2*NZERO.AND.DM.GT.0.0D0.AND.
+     &             NAME(N+KSPAIR).GT.-2*NZERO.AND.DM.GT.DMMIN.AND.
 *    &             H(KSPAIR) + DM/SEMI.LT.-ECLOSE.AND.KW.LT.13) THEN
      &             H(KSPAIR) + DM/SEMI.LT.-ECLOSE.AND.
      &             (KW.LT.10.OR.(KW.LT.11.AND.KZ(25).LT.2).OR.
      &             (KW.LT.13.AND.KZ(25).LT.1))) THEN
                   CALL HCORR(I,DM,RNEW)
-               ELSEIF(DM.GT.0.D0)THEN
+               ELSEIF(DM.GT.DMMIN)THEN
                   IPHASE = 7
                   IPOLY = -1
-*     Do enery correction before particle index change
-*                  call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,
-*     &                 IGPUSWITCH)
                   CALL RESET
 *     If reset, send new jparticle to gpu and use gpupot_dm
 *#ifdef GPU             
@@ -1139,22 +1152,7 @@ C            END IF
 *               IF (T0(J).LT.TIME) THEN
 *                  CALL XVPRED(J,-2)
 *               END IF
-*     --09/27/13 10:39-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      if(time.ge.3.5373535156250000) then
-c$$$      write(112+rank,*),j,name(j),'x',(x(kk,j),kk=1,3),
-c$$$     *        'xdot',(xdot(kk,j),kk=1,3),'x0',(x0(kk,j),kk=1,3),
-c$$$     *        'x0dot',(x0dot(kk,j),kk=1,3),'t0',t0(j),'step',step(j),
-c$$$     *        'f',(f(kk,j),kk=1,3),'fdot',(fdot(kk,j),kk=1,3),
-c$$$     *        'd0',(d0(kk,j),kk=1,3),'d1',(d1(kk,j),kk=1,3),
-c$$$     *        'd2',(d2(kk,j),kk=1,3),'d3',(d3(kk,j),kk=1,3),
-c$$$     *        'd0r',(d0r(kk,j),kk=1,3),'d1r',(d1r(kk,j),kk=1,3),
-c$$$     *        'd2r',(d2r(kk,j),kk=1,3),'d3r',(d3r(kk,j),kk=1,3),
-c$$$     *        'body',body(j),'dt',time-t0(j),'time',time
-c$$$      end if
-*     --09/27/13 10:39-lwang-end----------------------------------------*
 *   40       CONTINUE
-*
 *       Define logical variable to control optional WD kicks (avoids NaN).
             IKICK = .FALSE.
             IF (KZ(25).EQ.1.AND.(KW.EQ.10.OR.KW.EQ.11)) IKICK = .TRUE.
@@ -1162,177 +1160,28 @@ c$$$      end if
 *       Ensure all NS/BH are assigned a kick (might depend on DM).
             IF (KW.EQ.13.OR.KW.EQ.14) IKICK = .TRUE.
 *
-c$$$       IF(rank.eq.0.and.KW.GE.13.AND.KW.LE.15) then
-c$$$          write(6,*), 'MDOT K*',KW,' K*0',KSTAR(I),' NAME',NAME(I),
-c$$$     &         ' IKICK',IKICK,' M0',M0,' MC',MC,' AGE',AGE,' TN',TN,
-c$$$     &         ' DM',DM,' DMSUN',DMSUN,' TIME',TIME
-c$$$       end if
-
-*     --09/27/13 10:39-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      if(time.ge.3.5373535156250000) then
-c$$$      il=3173
-c$$$      print*,rank,'m3',il,name(il),d3(1,il),d2r(1,il),d3r(1,il),time
-c$$$      print*,rank,'ff',i,dmsun,kw,ikick,iphase
-c$$$      call flush(6)
-c$$$      end if
-*     --09/27/13 10:39-lwang-end----------------------------------------*
-       
 *       Perform total force & energy corrections (delay dF if DMSUN > 0.1).
             IF (DMSUN.LE.0.05.AND.(KW.LT.10.OR..NOT.IKICK)) THEN
-c$$$          IF(NPNUM.GT.0) THEN
-c$$$             IF(NDMLIST(NPNUM).EQ.I) THEN
-c$$$                DMLIST(NPNUM) = DMLIST(NPNUM) + DM
-c$$$             ELSE
-c$$$                NPNUM = NPNUM + 1
-c$$$                NDMLIST(NPNUM) = I
-c$$$                DMLIST(NPNUM) = DM
-c$$$             END IF
-c$$$          ELSE
-c$$$             NPNUM = NPNUM + 1
-c$$$             NDMLIST(NPNUM) = I
-c$$$             DMLIST(NPNUM) = DM
-c$$$          END IF
                call cputim(tttfia)
                CALL FICORR(I,DM)
                call cputim(tttfib)
-               ttfic = ttfic + (tttfib-tttfia)*60
-*          call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,IGPUSWITCH)
-*     --11/10/13 15:36-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$  if(rank.eq.0) THEN
-c$$$  write(130,*) 1,MDOT_C,NAME(I),DMSUN,KW,TIME,
-c$$$  &                (tttfib-tttfia)*60
-c$$$  END if
-*     --11/10/13 15:36-lwang-end----------------------------------------*
+               if(rank.eq.0)ttfic = ttfic + (tttfib-tttfia)*60.
             ELSE
-c$$$          IF (KW.GE.10.AND.KW.LE.15) THEN
-c$$$             call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,IGPUSWITCH)
-c$$$  NCNUM = 0
-c$$$          END IF
                call cputim(tttfia)
                CALL FCORR(I,DM,KW)
                call cputim(tttfib)
-c$$$  if(NCNUM.GT.0.AND.DCLIST(NCNUM).EQ.I) THEN
-c$$$  DCLIST(NCNUM) = DCLIST(NCNUM) + DM
-c$$$  else
-c$$$  NCNUM = NCNUM + 1
-c$$$  NDCLIST(NCNUM) = I
-c$$$  DCLIST(NCNUM) = DM
-c$$$  end if
-               ttfc = ttfc + (tttfib-tttfia)*60
-*     --11/10/13 15:36-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$  if(rank.eq.0) THEN
-c$$$  write(130,*) 0,MDOT_C,NAME(I),DMSUN,KW,TIME,
-c$$$  &                (tttfib-tttfia)*60
-c$$$  end if
-*     --11/10/13 15:36-lwang-end----------------------------------------*
+               if(rank.eq.0)ttfc = ttfc + (tttfib-tttfia)*60.
             END IF
 *
 *       Set flag to ensure new sorting after CALL FPOLY (need IPHASE < 0).
             IF (I.GT.N) IPOLY = -1
 *
 *       Initialize new polynomials of neighbours & #I for DMSUN > 0.1.
-*     --11/16/13 10:40-lwang-check--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$       IF (KW.GE.10.AND.KW.LE.15.OR.IKICK) THEN
-c$$$          X0DOT(1:3,I) = XDOT(1:3,I)
-c$$$          X0(1:3,I) = X(1:3,I)
-c$$$          call fpoly1(I,I,0)
-c$$$          call fpoly2(I,I,0)
-c$$$          call steps(I,I)
-*     Reduce the steps to make safe
-c$$$          IF(T0(I)+0.5D0*STEP(I).GE.TBLOCK) THEN
-c$$$             STEP(I) = 0.5D0*STEP(I)
-c$$$             IF(T0(I)+0.5D0*STEP(I).GE.TBLOCK) STEP(I) = 0.5D0*STEP(I)
-c$$$          END IF
-c$$$          DO JK = 2, LIST(1,I)+1
-c$$$             JJ = LIST(JK,I)
-c$$$             IF(T0(JJ)+0.5D0*STEP(JJ).GE.TBLOCK) THEN
-c$$$                STEP(JJ) = 0.5D0*STEP(JJ)
-c$$$                IF(T0(JJ)+0.5D0*STEP(JJ).GE.TBLOCK) THEN
-c$$$                   STEP(JJ) = 0.5D0*STEP(JJ)
-c$$$                END IF
-c$$$             END IF
-c$$$          END DO
-
-*     Make iphase eq -1 thus the nxtlst will determined by full N loop
-c$$$          IPOLY = -1
-*     --03/20/14 13:41-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$          print*,'I KICK',I,'N',NAME(I),'T0',T0(I),'STEP',STEP(I)
-c$$$          call flush(6)
-c$$$          print*,rank,'KICK I',I,'N',NAME(I),'STEP',STEP(I),'T0',T0(I),
-c$$$     &         'STEPR',STEPR(I),'T0R',T0R(I),'T',TIME
-c$$$          call flush(6)
-*     --03/20/14 13:41-lwang-end----------------------------------------*
-c$$$       end if
-*     --11/16/13 10:40-lwang-end----------------------------------------*
-c$$$            IF (ABS(DMSUN).GT.0.1.OR.KW.GE.13.OR.IKICK) THEN
-c$$$*
-c$$$*     --09/06/13 16:21-lwang-template-----------------------------------*
-c$$$***** Note: Do full prediction before fpoly1----------------------------*
-c$$$*               call xbpredall
-c$$$*     --09/06/13 16:21-lwang-end----------------------------------------*
-c$$$*       Obtain new F & FDOT and time-steps (no gain skipping WDs).
-c$$$               DO 50 L = 2,NNB2
-c$$$                  J = ILIST(L)
-c$$$                  IF (L.EQ.NNB2) THEN
-c$$$                     J = I
-c$$$                  ELSE
-c$$$                     NNBJ=LIST(1,J)
-c$$$                     call xvpred(J,nnbj)
-c$$$                  end if
-c$$$*     --09/27/13 10:39-lwang-debug--------------------------------------*
-c$$$***** Note:------------------------------------------------------------**
-c$$$c$$$      if(time.ge.3.5373535156250000) then
-c$$$c$$$         do jk=2,list(1,j)+1
-c$$$c$$$            jj=list(jk,j)
-c$$$c$$$      write(117+rank,*),jj,name(jj),'x',(x(kk,jj),kk=1,3),
-c$$$c$$$     *        'xdot',(xdot(kk,jj),kk=1,3),'x0',(x0(kk,jj),kk=1,3),
-c$$$c$$$     *        'x0dot',(x0dot(kk,jj),kk=1,3),'t0',t0(jj),'step',step(jj),
-c$$$c$$$     *        'f',(f(kk,jj),kk=1,3),'fdot',(fdot(kk,jj),kk=1,3),
-c$$$c$$$     *        'd0',(d0(kk,jj),kk=1,3),'d1',(d1(kk,jj),kk=1,3),
-c$$$c$$$     *        'd2',(d2(kk,jj),kk=1,3),'d3',(d3(kk,jj),kk=1,3),
-c$$$c$$$     *        'd0r',(d0r(kk,jj),kk=1,3),'d1r',(d1r(kk,jj),kk=1,3),
-c$$$c$$$     *        'd2r',(d2r(kk,jj),kk=1,3),'d3r',(d3r(kk,jj),kk=1,3),
-c$$$c$$$     *        'body',body(jj),'dt',time-t0(jj),'time',time
-c$$$c$$$      end do
-c$$$c$$$      end if
-c$$$*     --09/27/13 10:39-lwang-end----------------------------------------*
-c$$$*                 CALL DTCHCK(TIME,STEP(J),DTK(MAXBLK)) ! no effect (08/10).
-c$$$                  DO 45 KK = 1,3
-c$$$                     X0DOT(KK,J) = XDOT(KK,J)
-c$$$   45             CONTINUE
-c$$$                  CALL FPOLY1_KS(J,J,0)
-c$$$                  CALL FPOLY2_KS(J,J,0)
-c$$$                  IPOLY = -1
-c$$$   50          CONTINUE
-c$$$*       Check optional c.m. correction.
-c$$$               IF (KZ(14).GE.3.AND.KZ(31).GT.0) THEN
-c$$$                  CALL XVPRED(IFIRST,NTOT)
-c$$$                  CALL CMCORR
-c$$$               END IF
-c$$$            END IF
-            
-C            TPREV = TIME - STEPX
 *       Set indicator < 0 for new sorting.
             IF (IGHOST.GT.0) I = II
             IF(IPHASE.EQ.-3) IPHASE = 0
          END IF
 *
-*     --09/27/13 10:39-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      if(time.ge.3.5373535156250000) then  
-c$$$      il=3173
-c$$$      print*,rank,'m4',il,name(il),d3(1,il),d2r(1,il),d3r(1,il),time
-c$$$      call flush(6)
-c$$$      call mpi_barrier(MPI_COMM_WORLD,ierr)      
-c$$$      stop
-c$$$      end if
-*     --09/27/13 10:39-lwang-end----------------------------------------*
-         
 *       Ensure that massless supernova remnant will escape next output.
          IF (KW.EQ.15) THEN
             T0(I) = TADJ + DTADJ
@@ -1445,7 +1294,7 @@ c$$$      end if
      &            DMR, ZMDOT, M0, M1, RADIUS(I)*SU, EMDOT
  926        FORMAT('MDOT NEW',A8,'Time[NB]',1P,E16.7,0P,' Time[Myr]',
      &           F12.3,' I',I8,' NAME',I8,' K*0',I3,' K*N',I3,
-     &           ' DM[M*]',1P,E10.2,' DM/M',E10.2,0P,' DMTOT[M*]',F12.2,
+     &           ' DM[M*]',1P,E11.3,' DM/M',E11.3,0P,' DMTOT[M*]',F12.2,
      &           ' M0[M*]',F7.2,' MN[M*]',F7.2,' RS[R*]',F7.1,
      &           ' EMDOT',F10.5)
          END IF
@@ -1476,6 +1325,27 @@ c$$$      end if
 *       Set temporary IPHASE > 0 for KSREG.
                IPHASE = 1
                IF(IPOLY.GE.0) IPOLY = 1
+          if(rank.eq.0) then
+          RI = SQRT((X(1,I) - RDENS(1))**2 +
+     &              (X(2,I) - RDENS(2))**2 +
+     &              (X(3,I) - RDENS(3))**2)
+          VII = SQRT(XDOT(1,I)**2+XDOT(2,I)**2+XDOT(3,I)**2)
+          PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(I))*TSTAR*365.24D6
+          WRITE (6,60)  TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+     &         NAME(I),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(I),
+     &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
+     &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(I),LIST(1,ICOMP),LIST(1,I),
+     &         BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,RADIUS(ICOMP)*SU,
+     &         RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,DM,DMR
+  60      FORMAT (/,' MDNEW KSREG TIME[NB]',1P,E17.10,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
+     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
+     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
+     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
+     &         ' RI,VI[NB]=',2E11.3,' DM,DMR=',2E13.5)
+        end if
                CALL KSREG
                KSPAIR = NPAIRS
 *       Restore current time to prevent small subsequent steps.
@@ -1485,13 +1355,15 @@ c$$$      end if
                   J = NTOT
                   SEMI = -0.5d0*BODY(J)/H(NPAIRS)
                   RA = R(NPAIRS)/SEMI
-                  ECC2 = (1.0 - RA)**2 + TDOT2(NPAIRS)**2/(BODY(J)*SEMI)
+*       Use modulus for hyperbolic case (RS Apr 2022)
+                  ASEMI = DABS(SEMI)
+                  ECC2 = (1.0-RA)**2 + TDOT2(NPAIRS)**2/(ASEMI*BODY(J))
                   TK = DAYS*SEMI*SQRT(SEMI/BODY(J))
                   if(rank.eq.0)
      &            WRITE(6,928) KW, SQRT(ECC2), RA, SEMI*SU, TK, STEP(J),
      &                         BODY(J)*ZMBAR, (XDOT(KK,J)*VSTAR,KK=1,3)
  928              FORMAT(' WD/NS BINARY    KW E R/A A P DT M V ',
-     &                                  I4,2F6.2,1P,3E10.2,0P,4F7.1)
+     &                                  I4,2F6.2,1P,3E11.3,0P,4F7.1)
                END IF
                IF(KW.GE.10.AND.H(NPAIRS).LT.0.0)THEN
                   IF(KZ(9).GE.3)THEN
@@ -1527,7 +1399,7 @@ c$$$      end if
                WRITE(6,932)I,KW,BODY0(I)*ZMBAR,BODY(I)*ZMBAR,RADIUS(I)
  932           FORMAT(' DANGER!  MDOT   I K* M0 M R ',2I5,2F7.2,1P,E9.1)
                WRITE(6,934) NAME(I), TTOT, TEV0(I), TEV(I)
- 934           FORMAT(' NAM T TEV0 TEV ',I6,3F10.2)
+ 934           FORMAT(' NAM T TEV0 TEV ',I6,1P,3E11.3)
                STOP
                ENDIF
             ENDIF
@@ -1626,9 +1498,6 @@ c$$$      end if
      &            MOD(KSTAR(I),2).EQ.0)THEN
                END IF
                IF(DTR.LT.STEP(I))THEN
-*     Do enery correction before particle index change
-c$$$                  call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,
-c$$$     &            IGPUSWITCH)
                   CALL ROCHE(IPAIR)
 c$$$#ifdef GPU             
 c$$$                  IGPUDM = .true.
@@ -1688,14 +1557,11 @@ c$$$      IF (TMDOT.LT.TIME) GO TO 1
      &            WRITE (6,108) NAMEG(IMERGE), NAME(N+KSPAIR),KSTAR(I1),
      &                          ES(IC), TMDIS(IMERGE), SEMI
   108             FORMAT (' TMDIS TERM    NAMG NAMCM K* E TMD A ',
-     &                                    2I7,I4,F8.4,F8.2,1P,E10.2)
+     &                                    2I7,I4,F8.4,F8.2,1P,E11.3)
 *       Terminate hierarchy (RESET calls SPIRAL via CHRECT).
                   IPHASE = 7
-*     Do enery correction before particle index change
-c$$$                  call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,
-c$$$     &                 IGPUSWITCH)
                   CALL RESET
-c$$$*     If ksterm, send new jparticle to gpu and use gpupot_dm
+*     If reset, send new jparticle to gpu and use gpupot_dm
 c$$$#ifdef GPU             
 c$$$                  IGPUDM = .true.
 c$$$                  IGPUSWITCH = .true.
@@ -1722,7 +1588,7 @@ c$$$     &      BODY(J).GT.0.0.AND.KZ(28).EQ.0)THEN
 c$$$            if(rank.eq.0)
 c$$$     &      WRITE(6,556)J,NAME(J),TEV(J)
 c$$$            TEV(J) = 1.0d+10
-c$$$ 556        FORMAT(' MDOT TEV SMALL ',2I8,1P,E10.2)
+c$$$ 556        FORMAT(' MDOT TEV SMALL ',2I8,1P,E11.3)
 c$$$         ENDIF
 c$$$ 122  CONTINUE
 *
@@ -1734,8 +1600,6 @@ c$$$ 122  CONTINUE
          IPHASE = IPOLY
       END IF
 *
-*     Do energy correction due to mass loss, only for small mass loss by ficorr
-c$$$      call encorr_mdot(NPNUM,NDMLIST,DMLIST,IGPUDM,IGPUSWITCH)
       RETURN
 *
       END

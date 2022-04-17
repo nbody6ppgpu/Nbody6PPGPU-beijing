@@ -1,0 +1,134 @@
+      subroutine xbpredall
+*
+*
+*     Predict x and xdot. (L.WANG)
+
+      INCLUDE 'common6.h'
+      INCLUDE 'timing.h'
+      INCLUDE 'omp_lib.h'
+      COMMON/XPRED/ TPRED(NMAX),TRES(KMAX),ipredall
+      REAL*8 TPRED
+      LOGICAL iPREDALL
+*
+#ifdef PARALLEL
+      integer inum(maxpe),ista(maxpe)
+*     REAL*8 PMPI(7,NMAX)
+#endif
+      IF (IPREDALL) RETURN
+*
+      NNPRED = NNPRED + 1
+*
+#ifdef PARALLEL
+      call cputim(tt998)
+      call mpi_barrier(MPI_COMM_WORLD,ierr)
+      call cputim(tt999)
+      if(rank.eq.0)ibarcount=ibarcount+1
+      if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
+*
+      nl = ntot-ifirst+1
+*
+      inl = nl/isize
+      idiff = nl - isize*inl
+      irun = 0
+*
+      do 1003 ix = 1,isize
+      inum(ix)=inl
+      if(ix.le.idiff)inum(ix) = inum(ix) + 1
+      ista(ix) = irun+1
+      irun = irun + inum(ix)
+ 1003 continue
+*
+      istart = ista(rank+1) + IFIRST - 1
+      iend = ista(rank+1) + inum(rank+1) - 2 + IFIRST
+#else
+      istart = ifirst
+      iend = ntot
+#endif
+*     print*,' rank xbpredall t istart iend ',rank,time,istart,iend
+*
+!$omp parallel do private(J,S,S1,S2)
+      DO 40 J = istart,iend
+         S = TIME - T0(J)
+         S1 = 1.5*S
+         S2 = 2.0*S
+*        PMPI(1:3,J) = ((FDOT(1:3,J)*S + F(1:3,J))*S +
+*    &        X0DOT(1:3,J))*S + X0(1:3,J)
+*        PMPI(4:6,J) = (FDOT(1:3,J)*S1 + F(1:3,J))*S2 + X0DOT(1:3,J)
+*        PMPI(7,J) = TIME
+         X(1:3,J) = ((FDOT(1:3,J)*S + F(1:3,J))*S +
+     &        X0DOT(1:3,J))*S + X0(1:3,J)
+         XDOT(1:3,J) = (FDOT(1:3,J)*S1 + F(1:3,J))*S2 + X0DOT(1:3,J)
+         TPRED(J) = TIME
+ 40   CONTINUE
+!$omp end parallel do
+*     Predict members of KS pairs (R.Sp. Jan22)
+      if(npairs.gt.0)then
+         do jpair = 1,npairs
+            TTIME = TIME
+            IF (LIST(1,2*JPAIR - 1).GT.0) THEN
+               ZZ = 1.0
+               IF (GAMMA(JPAIR).GT.1.0D-04) ZZ = 0.0
+               CALL KSRES2(JPAIR,J1,J2,ZZ,TTIME)
+            END IF
+         end do
+      end if
+*
+         call cputim(tttxpre)
+*        Distribute variables into private vectors again T3D (R.Sp.)
+#ifdef PARALLEL
+      isend = rank + 1
+      if(isend.eq.isize)isend = 0
+      irecv = rank - 1
+      if(irecv.eq.-1)irecv = isize - 1
+*
+      do 1001 ir = 0,isize-2
+*
+      irank = rank - ir
+      if(irank.lt.0)irank=irank+isize
+*
+      istart=ista(irank+1) + IFIRST - 1
+      icnt = inum(irank+1)
+*
+      if(irank.eq.0)irank=isize
+      istrec = ista(irank) + IFIRST - 1
+      icnt2 = inum(irank)
+*
+      if(time.gt.2.86744.and.time.lt.2.87)print*,' rank ',rank,' pred ',
+     *     ' istart,istrec,7*icnt,7*icnt2,isend,irecv ',
+     *  istart,istrec,7*icnt,7*icnt2,isend,irecv
+*     CALL MPI_SENDRECV(PMPI(1,istart),7*icnt,MPI_REAL8,isend,rank,
+*    *                  PMPI(1,istrec),7*icnt2,MPI_REAL8,irecv,irecv,
+*    *                  MPI_COMM_WORLD,status,ierr)
+*
+      CALL MPI_SENDRECV(X(1,istart),3*icnt,MPI_REAL8,isend,rank,
+     *                  X(1,istrec),3*icnt2,MPI_REAL8,irecv,irecv,
+     *                  MPI_COMM_WORLD,status,ierr)
+      CALL MPI_SENDRECV(XDOT(1,istart),3*icnt,MPI_REAL8,isend,rank,
+     *                  XDOT(1,istrec),3*icnt2,MPI_REAL8,irecv,irecv,
+     *                  MPI_COMM_WORLD,status,ierr)
+      CALL MPI_SENDRECV(TPRED(istart),icnt,MPI_REAL8,isend,rank,
+     *                  TPRED(istrec),icnt2,MPI_REAL8,irecv,irecv,
+     *                  MPI_COMM_WORLD,status,ierr)
+       call cputim(tt998)
+       call mpi_barrier(MPI_COMM_WORLD,ierr)
+       call cputim(tt999)
+       if(rank.eq.0)ibarcount=ibarcount+1
+       if(rank.eq.0)ttbarpr = ttbarpr + (tt999-tt998)*60.
+       if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
+*
+ 1001 continue
+*!$omp parallel do private(J)
+*      DO 50 J=IFIRST,NTOT
+*      X(1:3,J) = PMPI(1:3,J)
+*      XDOT(1:3,J) = PMPI(4:6,J)
+*      TPRED(J) = PMPI(7,J)
+* 50   CONTINUE
+*!$omp end parallel do
+#endif
+         call cputim(tttypre)
+         if(rank.eq.0)ttpre = ttpre + (tttypre-tttxpre)*60.
+*
+      return
+*
+      end
+      

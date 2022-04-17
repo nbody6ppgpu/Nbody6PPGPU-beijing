@@ -162,11 +162,6 @@ c$$$      end if
          RC2IN = 1.0/RC2
       END IF
 *     
-*     Check optional sorting of Lagrangian radii & half-mass radius.
-      IF (KZ(7).GT.0) THEN
-         CALL LAGR(RDENS)
-      END IF
-*     
 *     Scale average & maximum core density by the mean value.
       RHOD = 4.0*TWOPI*RHOD*RSCALE**3/(3.0*ZMASS)
       RHOM = 4.0*TWOPI*RHOM*RSCALE**3/(3.0*ZMASS)
@@ -284,29 +279,36 @@ C     New (Aug.1998) by P.Kroupa: (time also in Myr)
  51      FORMAT (/, '  RMIN =',1PE8.1,'  DTMIN =',E8.1,' RHOM =',E8.1,
      &        ' RSCALE =',E8.1,' RSMIN =',E8.1,'  ECLOSE =',
      &        0PF5.2,'  TC =',I5)
-*     
+*
+         xnpred = 0.d0
+         xnirrf = 0.d0
+         if(nblckr.gt.0)xnpred = xnpred/dble(nblckr)     
+         if(nblock.gt.0)xnirff = xnirrf/dble(nblock)
          WRITE(6,55)
- 55      FORMAT('  PE       N        Total     Inti.    Intgrt',
-     &        '      Reg.      Irr.     Pred.   Init.B.      Mdot',
-     &        '      Move   Comm.I.   Comm.R.   Send.I.   Send.R.',
-     &        '        KS    Adjust     OUT      Barr.   Barr.I.   ',
-     &        'Barr.R. Reg.GPU.S Reg.GPU.P Comm.Adj.',
-     &        ' Mdot.Fic.  Mdot.Fc. Mdot.Pot.  Mdot.EC.   Sort.B.',
-     &        '    HighV  KS.Init.B',
-     &        '  KS.Int.S  KS.Int.P  KS.Comm.  KS.Barr.   KS.Move',
-     &        '   KS.Cmb. KS.Insert  KS.Init.  KS.Term.     Hiar.',
-     &        '     KS.UP   KS.TP      xtsub1       xtsub2')
-         WRITE(6,56)isize,n,ttotal,ttinitial,ttint,ttreg,ttirr,ttpre,
-     &        ttintb,ttmdot,ttmov,ttsub,ttsub2,ttsimdsend,ttgrcomm,
-     &        ttks,ttadj,ttout,ttbar,ttbarnb,ttbarreg,ttgrcalc,
-     &        ttgrcalc2,ttsube,ttfic,ttfc,ttpot,ttecor,ttnewt,ttshk,
-     &        ttksblist,ttksints,ttksintp,ttkssub,ttksbar,ttkscp,
-     &        ttkscmb,ttksins,ttksinit,ttksterm,tttq,ttup,tttp,
-     &        xtsub1,xtsub2
- 56      FORMAT(1X,I3,I8,F13.5,40F10.2,1P,2E13.5)
+ 55      FORMAT('  rank   PE   N        Total     Inti.    Intgrt',
+     &      '      Reg.      Irr.   Predall     Pred.   Init.B.',
+     &      '      Mdot      Move   Comm.I.   Comm.R.   Send.I.',
+     &      '   Send.R.        KS    Adjust       OUT     Barr.',
+     &      '   Barr.P.   Barr.I.   Barr.R. Reg.GPU.S Reg.GPU.P',
+     &      ' Comm.Adj. Mdot.Fic.  Mdot.Fc. Mdot.Pot.  Mdot.EC.',
+     &      '   Sort.B.     HighV KS.Init.B',
+     &      '  KS.Int.S  KS.Int.P  KS.Comm.  KS.Barr.   KS.Move',
+     &      '   KS.Cmb. KS.Insert  KS.Init.  KS.Term.     Hiar.',
+     &      '     KS.UP     KS.TP    TIDES3     GRRAD',
+     &      '       xtsub1       xtsub2    xnirrf    xnpred',
+     &      '   itides3    igrrad')
+         WRITE(6,56)rank,isize,n,ttotal,ttinitial,ttint,ttreg,ttirr,
+     &      ttpreall,ttpre,ttintb,ttmdot,ttmov,ttsub,ttsub2,ttsimdsend,
+     &      ttgrcomm,ttks,ttadj,ttout,ttbar,ttbarpr,ttbarnb,ttbarreg,
+     &      ttgrcalc,ttgrcalc2,ttsube,ttfic,ttfc,ttpot,ttecor,ttnewt,
+     &      ttshk,ttksblist,ttksints,ttksintp,ttkssub,ttksbar,ttkscp,
+     &      ttkscmb,ttksins,ttksinit,ttksterm,tttq,ttup,tttp,
+     &      tttides3,ttgrrad,xtsub1,xtsub2,xnirrf,xnpred,itides3,igrrad
+ 56      FORMAT(1X,2I3,I8,F13.5,44F10.2,1P,2E13.5,2E10.2,2I10)
          CALL FLUSH(6)
+         xnpred = 0.d0
+         xnirrf = 0.d0
       end if
-
 #ifdef GPU      
 *     GPU profile
       call gpunb_profile(rank)
@@ -432,8 +434,8 @@ C     New (Aug. 1998): P.Kroupa
          call cputim(tt998)
          CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
          call cputim(tt999)
-         ibarcount=ibarcount+1
-         ttbar = ttbar + (tt999-tt998)*60
+         if(rank.eq.0)ibarcount=ibarcount+1
+         if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
 *         CALL MPI_ABORT(MPI_COMM_WORLD,ierr)
          CALL MPI_FINALIZE
 #endif
