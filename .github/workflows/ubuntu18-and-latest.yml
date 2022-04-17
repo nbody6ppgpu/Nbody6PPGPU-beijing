@@ -7,7 +7,7 @@ on:
     branches: [ stable , dev ]
 
 jobs:
-  _1k-no-dat-ubuntu18-GCC5:
+  _1k-ubuntu18-GCC5:
     runs-on: ubuntu-18.04
 
     steps:
@@ -18,7 +18,9 @@ jobs:
 
     - name: configure
       run: >
-        export CC=gcc-5; export CXX=g++-5; export FC=gfortran-5;
+        export CC=gcc-5; 
+        export CXX=g++-5; 
+        export FC=gfortran-5; 
         ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large --disable-mpi --disable-gpu
 
     - name: make
@@ -33,9 +35,14 @@ jobs:
         pwd; ls -alh
 
     - name: simulation
-      run: ulimit -s unlimited; cd autotest; ./nbody6++.sse < 1k.inp
+      run: >
+        ulimit -s unlimited; 
+        cd autotest; 
+        export OMP_NUM_THREADS=$((`grep -c processor /proc/cpuinfo` < 32 ? `grep -c processor /proc/cpuinfo` : 32)); 
+        export execname=`ls nbody6++*`; 
+        ./$execname < 1k.inp
 
-  _1k-no-dat-latest-latest:
+  _1k-ubuntu-latest-GCC9:
     runs-on: ubuntu-latest
 
     steps:
@@ -60,4 +67,9 @@ jobs:
         pwd; ls -alh
 
     - name: simulation
-      run: ulimit -s unlimited; cd autotest; ./nbody6++.sse < 1k.inp
+      run: >
+        ulimit -s unlimited; 
+        cd autotest; 
+        export OMP_NUM_THREADS=$((`grep -c processor /proc/cpuinfo` < 32 ? `grep -c processor /proc/cpuinfo` : 32)); 
+        export execname=`ls nbody6++*`; 
+        ./$execname < 1k.inp
