@@ -175,9 +175,7 @@ c$$$      end if
 *
 *       Obtain apocentre distance.
       SEMI = -0.5*BODY(NTOT)/H(IPAIR)
-*       Use modulus for hyperbolic case (RS Apr 2022)
-      ASEMI = DABS(SEMI)
-      ECC2 = (1.0-R(IPAIR)/ASEMI)**2+TDOT2(IPAIR)**2/(ASEMI*BODY(NTOT))
+      ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(SEMI*BODY(NTOT))
       RAP = SEMI*(1.0 + SQRT(ECC2))
 *
 *       Include suggestion for monitoring hyperbolic encounters (suppressed).

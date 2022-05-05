@@ -321,9 +321,7 @@ c$$$          END IF
           IF (RDOT*TD2.LT.0.0D0) THEN
 *       Determine pericentre for hyperbolic two-body motion.
               SEMI = -0.5D0*BODY(I)/HI
-*       Use modulus for hyperbolic case (RS Apr 2022)
-              ASEMI = DABS(SEMI)
-              ECC2 = (1.0-RI/ASEMI)**2+TDOT2(IPAIR)**2/(ASEMI*BODY(I))
+              ECC2 = (1.0-RI/SEMI)**2+TDOT2(IPAIR)**2/(SEMI*BODY(I))
               QPERI = SEMI*(1.0D0 - SQRT(ECC2))
               DMIN2 = MIN(DMIN2,QPERI)
 *
@@ -490,10 +488,8 @@ c$$$                      CALL CMBODY(2)
                           ICIRC = 1
                           TC = 0.0
                       ELSE IF (KZ(27).EQ.2) THEN
-*       Use modulus for hyperbolic case (RS Apr 2022)
-                          ASEMI = DABS(SEMI)
-                          ECC2 = (1.0 - RI/ASEMI)**2 +
-     &                                  TDOT2(IPAIR)**2/(ASEMI*BODY(I))
+                          ECC2 = (1.0 - RI/SEMI)**2 +
+     &                                  TDOT2(IPAIR)**2/(SEMI*BODY(I))
                           ECC = SQRT(ECC2)
                           ICIRC = 0
                           CALL TCIRC(QPERI,ECC,I1,I2,ICIRC,TC)
@@ -534,9 +530,7 @@ c$$$                      CALL CMBODY(2)
 *
 *       GR braking for compact object binaries RSp March 2019
       SEMI = -0.5*BODY(I)/HI
-*       Use modulus for hyperbolic case (RS Apr 2022)
-      ASEMI = DABS(SEMI)
-      ECC2 = (1.0-R(IPAIR)/ASEMI)**2+TDOT2(IPAIR)**2/(ASEMI*BODY(I))
+      ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(SEMI*BODY(I))
       ECC = SQRT(ECC2)
       QPERI = SEMI*(1.0D0 - ECC)
         LBRAKE = KZ273.EQ.3.AND.
@@ -592,9 +586,7 @@ c$$$      print*,rank,'rmax',rmax
           EB = BODY(I1)*BODY(I2)*HI*BODYIN
           IF (EB.LT.EBH) R0(IPAIR) = MAX(RMIN,2.0*SEMI)
       ELSE 
-*       Use modulus for hyperbolic case (RS Apr 2022)
-          ASEMI = DABS(SEMI)
-          ECC2 = (1.0-RI/ASEMI)**2+TDOT2(IPAIR)**2/(ASEMI*BODY(I))
+          ECC2 = (1.0-RI/SEMI)**2+TDOT2(IPAIR)**2/(SEMI*BODY(I))
           ECC = SQRT(ECC2)
           RP = SEMI*(1.0 - ECC)*(1.0 - 2.0*GI)
 *       Find merger index.

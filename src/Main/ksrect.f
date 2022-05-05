@@ -17,9 +17,7 @@
 *       Skip rectification for small eccentricity or large perturbation.
       I = N + IPAIR
       SEMI = -0.5*BODY(I)/H(IPAIR)
-*       Use modulus for hyperbolic case (RS Apr 2022)
-      ASEMI = DABS(SEMI)
-      ECC2 = (1.0-R(IPAIR)/ASEMI)**2+TDOT2(IPAIR)**2/(ASEMI*BODY(I))
+      ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(SEMI*BODY(I))
       ECC = SQRT(ECC2)
       IF(ISNAN(SEMI).OR.ISNAN(ECC2).OR.ISNAN(ECC))THEN
           i1 = 2*ipair-1

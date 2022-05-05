@@ -455,9 +455,7 @@ c$$$#endif
          END IF
          SEMI = -0.5d0*BODY(J)/HJ
          SEP = SEMI*SU
-*       Use modulus for hyperbolic case (RS Apr 2022)
-         ASEMI = DABS(SEMI)
-         ECC2 = (1.D0 - RJ/ASEMI)**2 + TJ2**2/(ASEMI*BODY(J))
+         ECC2 = (1.D0 - RJ/SEMI)**2 + TJ2**2/(SEMI*BODY(J))
          ECC = SQRT(ECC2)
 *
          IF(ECC2.LT.1.0)THEN
@@ -1304,9 +1302,7 @@ C            END IF
                   J = NTOT
                   SEMI = -0.5d0*BODY(J)/H(NPAIRS)
                   RA = R(NPAIRS)/SEMI
-*       Use modulus for hyperbolic case (RS Apr 2022)
-                  ASEMI = DABS(SEMI)
-                  ECC2 = (1.0-RA)**2 + TDOT2(NPAIRS)**2/(ASEMI*BODY(J))
+                  ECC2 = (1.0-RA)**2 + TDOT2(NPAIRS)**2/(SEMI*BODY(J))
                   TK = DAYS*SEMI*SQRT(SEMI/BODY(J))
                   if(rank.eq.0)
      &            WRITE(6,928) KW, SQRT(ECC2), RA, SEMI*SU, TK, STEP(J),

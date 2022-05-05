@@ -49,9 +49,7 @@
       I = N + IPAIR
       SEMI0 = -0.5d0*BODY(I)/H(IPAIR)
       SEP = SEMI0*SU
-*       Use modulus for hyperbolic case (RS Apr 2022)
-      ASEMI = DABS(SEMI0)
-      ECC2 = (1.0-R(IPAIR)/ASEMI)**2+TDOT2(IPAIR)**2/(ASEMI*BODY(I))
+      ECC2 = (1.D0-R(IPAIR)/SEMI0)**2+TDOT2(IPAIR)**2/(SEMI0*BODY(I))
       ECC = SQRT(ECC2)
       ECC0 = ECC
       DM2 = 0.0
