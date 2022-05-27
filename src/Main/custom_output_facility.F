@@ -643,7 +643,6 @@ cc          WRITE (h5_step_name, *), h5_step
      &      S_X1(1:N_SINGLE), S_X2(1:N_SINGLE), S_X3(1:N_SINGLE),
      &      S_V1(1:N_SINGLE), S_V2(1:N_SINGLE), S_V3(1:N_SINGLE), 
      &      S_POT(1:N_SINGLE), S_F1(1:N_SINGLE), S_F2(1:N_SINGLE),
-     &      S_POT(1:N_SINGLE), S_F1(1:N_SINGLE), S_F2(1:N_SINGLE),
      &      S_F3(1:N_SINGLE), S_FD1(1:N_SINGLE), S_FD2(1:N_SINGLE),
      &      S_FD3(1:N_SINGLE), S_STEP(1:N_SINGLE), S_STEPR(1:N_SINGLE),
      &      S_T0(1:N_SINGLE), S_T0R(1:N_SINGLE)
