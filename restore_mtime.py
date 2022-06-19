@@ -1,0 +1,623 @@
+#!/usr/bin/env python3
+
+# Kai Wu 20220618. Contact Kai (alonewk@gmail.com) if there is any questions or problems.
+
+import os.path
+from subprocess import run
+import sys
+
+
+def restore_from_timeList(cmdargs):
+    dirstack = []  # should  process directory modification time at last
+    dirname = os.getcwd()
+    ntouched = 0
+    with open("timeList", 'r') as f:
+        for line in f:
+            line = line[:-1]
+            if len(line) == 0:
+                continue
+            if not line[0].isdigit():
+                dirname = os.getcwd() + "/" + \
+                    "/".join(line.split("body")[-1].split("/")[1:]).strip()
+            else:
+                mtime = ' '.join(line.split()[:-1])
+                abspath = dirname + line.split()[-1]
+                # print(abspath)
+                if os.path.isdir(abspath):
+                    dirstack.append((abspath, mtime))
+                elif os.path.isfile(abspath):
+                    cmd = "touch " + abspath + ' -d "' + mtime + '"'
+                    run(cmd, shell=True)
+                    ntouched += 1
+                    if '--verbose' in cmdargs or '-v' in cmdargs:
+                        print(cmd)
+
+    dirstack.reverse()
+    if len(dirstack) != 0:
+        for abspath, mtime in dirstack:
+            cmd = "touch " + abspath + ' -d "' + mtime + '"'
+            run(cmd, shell=True)
+            ntouched += 1
+            if '--verbose' in cmdargs or '-v' in cmdargs:
+                print(cmd)
+
+    if not ('-q' in cmdargs or '--quiet' in cmdargs):
+        print("[OK] Restore "+str(ntouched)+" modification time from timeList")
+
+
+def restore_mtime_from_git_log(cmdargs):
+    # this code is downloaded from 
+    restore_code = '''
+#!/usr/bin/env python3
+#
+# git-restore-mtime - Change mtime of files based on commit date of last change
+#
+#    Copyright (C) 2012 Rodrigo Silva (MestreLion) <linux@rodrigosilva.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program. See <http://www.gnu.org/licenses/gpl.html>
+#
+"""
+Change the modification time (mtime) of all files in work tree, based on the
+date of the most recent commit that modified the file.
+
+Useful prior to generating release tarballs, so each file is archived with a
+date that is similar to the date when the file was actually last modified,
+assuming the actual modification date and its commit date are close.
+
+Ignores by default all ignored and untracked files, and also refuses to work
+on trees with uncommitted changes.
+"""
+
+# TODO:
+# - Add -z on git whatchanged/ls-files, so we don't deal with filename decoding
+#   or OS normalization. See issue #9 for a working proof-of-concept by @wafer-li
+# - When Python is bumped to 3.7, use text instead of universal_newlines on subprocess
+# - Update "Statistics for some large projects" with modern hardware and repositories.
+# - Create a README.md for git-restore-mtime alone. It deserves extensive documentation
+#   - Move Statistics there
+
+# FIXME:
+# - When current dir is outside the worktree, e.g. using --work-tree, `git ls-files`
+#   assume any relative pathspecs are to worktree root, not the current dir. As such,
+#   relative pathspecs may not work.
+# - Renames are tricky:
+#   - R100 should not change mtime, but original name is not on filelist. Should
+#     track renames until a valid (A, M) mtime found and then set on current name.
+#   - Should set mtime for both current and original directories.
+#   - Check mode changes with unchanged blobs?
+# - Check file (A, D) for the directory mtime is not sufficient:
+#   - Renames also change dir mtime, unless rename was on a parent dir
+#   - If most recent change of all files in a dir was a Modification (M),
+#     dir might not be touched at all.
+#   - Dirs containing only subdirectories but no direct files will also
+#     not be touched. They're files' [grand]parent dir, but never their dirname().
+#   - Some solutions:
+#     - After files done, perform some dir processing for missing dirs, finding latest
+#       file (A, D, R)
+#     - Simple approach: dir mtime is the most recent child (dir or file) mtime
+#     - Use a virtual concept of "created at most at" to fill missing info, bubble up
+#       to parents and grandparents
+#   - When handling [grand]parent dirs, stay inside <pathspec>
+# - Better handling of merge commits. `-m` is plain *wrong*. `-c/--cc` is perfect, but
+#   painfully slow. First pass without merge commits is not accurate. Maybe add a new
+#   `--accurate` mode for `--cc`?
+
+if __name__ != "__main__":
+    raise ImportError("{} should not be used as a module.".format(__name__))
+
+import argparse
+import datetime
+import logging
+import os.path
+import shlex
+import subprocess
+import sys
+import time
+
+nrestored = 0
+
+# Update symlinks only if the platform supports not following them
+UPDATE_SYMLINKS = bool(os.utime in getattr(os, 'supports_follow_symlinks', []))
+
+# How many files to process in each batch when re-trying merge commits
+STEPMISSING = 100
+
+# (Extra) keywords for the os.utime() call performed by touch()
+UTIME_KWS = {} if not UPDATE_SYMLINKS else {'follow_symlinks': False}
+
+
+# Command-line interface ######################################################
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="""Restore original modification time of files based on the date of the
+        most recent commit that modified them. Useful when generating release tarballs.""")
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--quiet', '-q', dest='loglevel',
+        action="store_const", const=logging.WARNING, default=logging.INFO,
+        help="Suppress informative messages and summary statistics.")
+    group.add_argument('--verbose', '-v', action="count",
+        help="Print additional information for each processed file.")
+
+    parser.add_argument('--git-dir', dest='gitdir', metavar="GITDIR",
+        help="""Path to the git repository, by default auto-discovered by git by searching
+                the current directory and its parents for a .git/ subfolder.""")
+
+    parser.add_argument('--work-tree', dest='workdir', metavar="WORKTREE",
+        help="""Path to the work tree root, by default the parent of GITDIR if it was
+                automatically discovered, or the current directory if GITDIR was set.""")
+
+    parser.add_argument('--force', '-f', action="store_true",
+        help="Force execution on trees with uncommitted changes.")
+
+    parser.add_argument('--merge', '-m', action="store_true",
+        help="""Include merge commits. Leads to more recent mtimes and more files per
+        commit, thus with the same mtime (which may or may not be what you want). Including
+        merge commits may lead to fewer commits being evaluated (all files are found sooner),
+        which improves performance, sometimes substantially. But, as merge commits are
+        usually huge, processing them may also take longer, sometimes substantially.
+        By default merge logs are only used for files missing from regular commit logs.""")
+
+    parser.add_argument('--first-parent', action="store_true",
+        help="""Consider only the first parent, the "main branch", when parsing merge
+        commit logs. Only effective when merge commits are included in the log, either
+        by --merge or to find missing files after first log parse. See --skip-missing.""")
+
+    parser.add_argument('--skip-missing', '-s',
+        action="store_false", default=True, dest="missing",
+        help="""Do not try to find missing files. If some files were not found in regular
+        commit logs, by default it re-tries using merge commit logs for these files (if
+        --merge was not already used). This option disables this behavior, which may slightly
+        improve performance, but files found only in merge commits will not be updated.""")
+
+    parser.add_argument('--no-directories', '-D',
+        action="store_false", default=True, dest='dirs',
+        help="""Do not update directory mtime for files created, renamed or deleted in it.
+        Note: just modifying a file will not update its directory mtime.""")
+
+    parser.add_argument('--test', '-t', action="store_true", default=False,
+        help="Test run: do not actually update any file")
+
+    parser.add_argument('--commit-time', '-c',
+        action='store_true', default=False, dest='commit_time',
+        help="Use commit time instead of author time")
+
+    parser.add_argument('--oldest-time', '-o',
+        action='store_true', default=False, dest='reverse_order',
+        help="""Set the mtime to the time of the first commit to mention a given file
+        instead of the most recent. This works by reversing the order in which the git
+        log is processed (i.e. from the oldest to the most recent commit on the current
+        branch, instead of from most recent to oldest). This may result in incorrect
+        behaviour if there are multiple files which have been renamed with the same name
+        in the current branch's history.""")
+
+    parser.add_argument('--skip-older-than', metavar='SECONDS', type=int,
+        help="""Do not modify files that are older than %(metavar)s.
+        It can significantly improve performance if fewer files are processed.
+        Useful on CI builds, which can eventually switch workspace to different branch,
+        but mostly performs builds on the same one (e.g. master).""")
+
+    parser.add_argument('--unique-times', action="store_true", default=False,
+        help="""Set the microseconds to a unique value per commit.
+        It allows telling apart changes that would otherwise have identical
+        timestamps, as git's time accuracy is in seconds.""")
+
+    parser.add_argument('pathspec', nargs='*', metavar='PATH',
+        help="""Only modify paths matching PATH, directories or files, relative to current
+        directory. Default is to modify all files handled by git, ignoring untracked files
+        and submodules.""")
+
+    return parser.parse_args()
+
+
+# Helper functions ############################################################
+
+def setup_logging(args_):
+    """Logging basic config, also adding TRACE level and its corresponding method"""
+    logging.TRACE = TRACE = logging.DEBUG // 2
+    logging.Logger.trace = lambda _, m, *a, **k: _.log(TRACE, m, *a, **k)
+    level = ((args_.verbose and max(TRACE, logging.DEBUG // args_.verbose))
+             or args_.loglevel)
+    logging.basicConfig(level=level, format='%(message)s')
+    return logging.getLogger()
+
+
+def normalize(path):
+    r"""Normalize paths from git, handling non-ASCII characters.
+
+    Git for Windows, as of v1.7.10, stores paths as UTF-8 normalization form C. If path
+    contains non-ASCII or non-printable chars it outputs the UTF-8 in octal-escaped
+    notation, double-quoting the whole path. Double-quotes and backslashes are also escaped.
+
+    https://git-scm.com/docs/git-config#Documentation/git-config.txt-corequotePath
+    https://github.com/msysgit/msysgit/wiki/Git-for-Windows-Unicode-Support
+    https://github.com/git/git/blob/master/Documentation/i18n.txt
+
+    Example on git output, this function reverts this:
+    r'back\slash_double"quote_açaí' -> r'"back\\slash_double\"quote_a\303\247a\303\255"'
+    """
+    if path and path[0] == '"':
+        # Python 2: path = path[1:-1].decode("string-escape")
+        # Python 3: https://stackoverflow.com/a/46650050/624066
+        path = (path[1:-1]                 # Remove enclosing double quotes
+                .encode('latin1')          # Convert to bytes, required by 'unicode-escape'
+                .decode('unicode-escape')  # Perform the actual octal-escaping decode
+                .encode('latin1')          # 1:1 mapping to bytes, forming UTF-8 encoding
+                .decode('utf8'))           # Decode from UTF-8
+    # Make sure the slash matches the OS; for Windows we need a backslash
+    return os.path.normpath(path)
+
+
+def dummy(*_args, **_kwargs):
+    """No-op function used in dry-run tests"""
+
+
+def touch(path, mtime):
+    global nrestored
+    """The actual mtime update"""
+    if(mtime > 1647532800): # added by Kai. To skip the commit before 2022 Mar 18 
+        os.utime(path, (mtime, mtime), **UTIME_KWS)
+        nrestored += 1
+
+
+def touch_ns(path, mtime_ns):
+    global nrestored
+    """The actual mtime update, using nanosseconds for unique timestamps"""
+    if(mtime_ns > 1647532800*1000000000): # added by Kai. To skip the commit before 2022 Mar 18 
+        os.utime(path, None, ns=(mtime_ns, mtime_ns), **UTIME_KWS)
+        nrestored += 1
+
+
+def isodate(secs:int):
+    # time.localtime() accepts floats, but discards fractional part
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(secs))
+
+
+def isodate_frac(secs:float):
+    # ~16% slower than isodate() for integers, but otherwise equivalent
+    return datetime.datetime.fromtimestamp(secs).isoformat(sep=' ')
+
+
+def get_times(secs:str, _idx=0):
+    mtime = int(secs)
+    return mtime, isodate(mtime)
+
+
+def get_times_ns(secs:str, idx:int):
+    # Time resolution for filesystems and functions:
+    # ext-4 and other POSIX filesystems: 1 nanosecond
+    # NTFS (Windows default): 100 nanoseconds
+    # datetime.datetime() (due to 64-bit float epoch): 1 microsecond
+    s = int(secs)
+    us = idx % 10**6
+    mtime = s + us / 10**6
+    mtime_ns = s * 10**9 + us * 1000
+    return mtime_ns, isodate_frac(mtime)
+
+
+# Git class and parselog(), the heart of the script ###########################
+
+class Git:
+    def __init__(self, workdir=None, gitdir=None):
+        self.gitcmd = ['git']
+        if workdir: self.gitcmd.extend(('--work-tree', workdir))
+        if gitdir:  self.gitcmd.extend(('--git-dir',   gitdir))
+        self.workdir, self.gitdir = self._repodirs()
+        self._proc = None
+
+    def ls_files(self, pathlist=None):
+        return (normalize(_) for _ in self._run('ls-files --full-name', pathlist))
+
+    def is_dirty(self):
+        return bool(self._run('diff --no-ext-diff --quiet', output=False))
+
+    def log(self, merge=False, first_parent=False, commit_time=False, reverse_order=False,
+            pathlist=None):
+        cmd = 'whatchanged --pretty={}'.format('%ct' if commit_time else '%at')
+        if merge:         cmd += ' -m'
+        if first_parent:  cmd += ' --first-parent'
+        if reverse_order: cmd += ' --reverse'
+        return self._run(cmd, pathlist)
+
+    def terminate(self):
+        if self._proc is None:
+            return
+        try:
+            self._proc.terminate()
+        except OSError:
+            # Avoid errors on OpenBSD
+            pass
+
+    def _repodirs(self):
+        return (os.path.normpath(_) for _ in
+                self._run('rev-parse --show-toplevel --absolute-git-dir', check=True))
+
+    def _run(self, cmdstr, pathlist=None, output=True, check=False):
+        cmdlist = self.gitcmd + shlex.split(cmdstr)
+        if pathlist:
+            cmdlist.append('--')
+            cmdlist.extend(pathlist)
+        log.trace("Executing: %s", ' '.join(cmdlist))
+        if not output:
+            return subprocess.call(cmdlist)
+        if check:
+            try:
+                stdout = subprocess.check_output(cmdlist, universal_newlines=True)
+                return stdout.splitlines()
+            except subprocess.CalledProcessError as e:
+                raise self.Error(e.returncode, e.cmd, e.output, e.stderr)
+        self._proc = subprocess.Popen(cmdlist, stdout=subprocess.PIPE, universal_newlines=True)
+        try:
+            return (_.strip() for _ in self._proc.stdout)
+        finally:
+            self._proc = None
+
+    class Error(subprocess.CalledProcessError): pass
+
+
+def parselog(filelist, dirlist, stats, git, merge=False, filterlist=None):
+    mtime = 0
+    strdate = isodate(0)
+    for line in git.log(
+            merge,
+            args.first_parent,
+            args.commit_time,
+            args.reverse_order,
+            filterlist
+    ):
+        stats['loglines'] += 1
+
+        # Blank line between Date and list of files
+        if not line:
+            continue
+
+        # Date line
+        if not line[0] == ':':  # Faster than line.startswith(':')
+            stats['commits'] += 1
+            mtime, strdate = get_times(line, stats['commits'])
+            continue
+
+        # File line
+        # If line describes a renaming, linetok has three tokens, otherwise two
+        linetok = line.split('\t')
+
+        # Possible statuses:
+        # M: Modified (content changed)
+        # A: Added (created)
+        # D: Deleted
+        # T: Type changed: to/from regular file, symlinks, submodules
+        # R099: Renamed (moved), with % of unchanged content. 100 = pure rename
+        # Not possible in log: C=Copied, U=Unmerged, X=Unknown, B=pairing Broken
+        status = linetok[0].split(' ')[-1]
+        file = linetok[-1]
+
+        # Handles non-ASCII chars and OS path separator
+        file = normalize(file)
+
+        if file in filelist:
+            stats['files'] -= 1
+            log.debug("%d\t%d\t%d\t%s\t%s",
+                      stats['loglines'], stats['commits'], stats['files'],
+                      strdate, file)
+            filelist.remove(file)
+            try:
+                touch(os.path.join(git.workdir, file), mtime)
+                stats['touches'] += 1
+            except Exception as e:
+                log.error("ERROR: %s", e)
+                stats['errors'] += 1
+
+        if args.dirs:
+            dirname = os.path.dirname(file)
+            if status in ('A', 'D') and dirname in dirlist:
+                log.debug("%d\t%d\t-\t%s\t%s",
+                          stats['loglines'], stats['commits'],
+                          strdate, "{}/".format(dirname or '.'))
+                dirlist.remove(dirname)
+                try:
+                    touch(os.path.join(git.workdir, dirname), mtime)
+                    stats['dirtouches'] += 1
+                except Exception as e:
+                    log.error("ERROR: %s", e)
+                    stats['direrrors'] += 1
+
+        # All files done?
+        if not stats['files']:
+            git.terminate()
+            return
+
+
+# Main Logic ##################################################################
+
+def main():
+    global nrestored
+    start = time.time()  # yes, Wall time. CPU time is not realistic for users.
+    stats = {_: 0 for _ in ('loglines', 'commits', 'touches', 'errors', 'dirtouches', 'direrrors')}
+
+    log.trace("Arguments: %s", args)
+
+    # First things first: Where and Who are we?
+    try:
+        git = Git(args.workdir, args.gitdir)
+    except Git.Error as e:
+        # Not in a git repository, and git already informed user on stderr. So we just...
+        return e.returncode
+
+    # Do not work on dirty repositories, unless --force
+    if not args.force and git.is_dirty():
+        log.critical(
+         "ERROR: There are local changes in the working directory.\\n"
+         "This could lead to undesirable results for modified files.\\n"
+         "Please, commit your changes (or use --force) and try again.\\n"
+         "Aborting")
+        return 1
+
+    # Get the files managed by git and build file and dir list to be processed
+    filelist = set()
+    dirlist  = set()
+    if UPDATE_SYMLINKS and not args.skip_older_than:
+        filelist = set(git.ls_files(args.pathspec))
+        dirlist  = set(os.path.dirname(_) for _ in filelist)
+    else:
+        for path in git.ls_files(args.pathspec):
+            fullpath = os.path.join(git.workdir, path)
+
+            # Symlink (to file, to dir or broken - git handles the same way)
+            if not UPDATE_SYMLINKS and os.path.islink(fullpath):
+                log.warning("WARNING: Skipping symlink, OS does not support update: %s", path)
+                continue
+
+            # skip files which are older than given threshold
+            if args.skip_older_than and start - os.path.getmtime(fullpath) > args.skip_older_than:
+                continue
+
+            # Always add them relative to worktree root
+            filelist.add(path)
+            dirlist.add(os.path.dirname(path))
+
+    stats['totalfiles'] = stats['files'] = len(filelist)
+    # log.info("{0:,} files to be processed in work dir".format(stats['totalfiles']))
+
+    if not filelist:
+        # Nothing to do. Exit silently and without errors, just like git does
+        return
+
+    # Process the log until all files are 'touched'
+    log.debug("Line #\tLog #\tF.Left\tModification Time\tFile Name")
+    parselog(filelist, dirlist, stats, git, args.merge, args.pathspec)
+
+    # Missing files
+    if filelist:
+        # Try to find them in merge logs, if not done already
+        # (usually HUGE, thus MUCH slower!)
+        if args.missing and not args.merge:
+            log.info("{0:,} files not found in log, trying merge commits".format(len(filelist)))
+            filterlist = list(filelist)
+            for i in range(0, len(filterlist), STEPMISSING):
+                parselog(filelist, dirlist, stats, git,
+                         merge=True, filterlist=filterlist[i:i+STEPMISSING])
+
+        # Still missing some?
+        for file in filelist:
+            log.warning("WARNING: not found in the log: %s", file)
+
+    # Final statistics
+    # Suggestion: use git-log --before=mtime to brag about skipped log entries
+    def loginfo(msg, *a, width=13):
+        ifmt = '{:%d,}'    % (width,)  # not using 'n' for consistency with ffmt
+        ffmt = '{:%d,.2f}' % (width,)
+        # %-formatting lacks a thousand separator, must pre-render with .format()
+        log.info(msg.replace('%d', ifmt).replace('%f', ffmt).format(*a))
+
+    #loginfo(
+    #    "Statistics:\\n"
+    #   "%f seconds\\n"
+    #    "%d log lines processed\\n"
+    #    "%d commits evaluated",
+    #    time.time()-start, stats['loglines'], stats['commits'])
+
+    # if args.dirs:
+    #     if stats['direrrors']: loginfo("%d directory update errors", stats['direrrors'])
+    #     loginfo("%d directories updated", stats['dirtouches'])
+
+    if stats['touches'] != stats['totalfiles']: loginfo("%d files", stats['totalfiles'])
+    if stats['files']:                          loginfo("%d files missing", stats['files'])
+    if stats['errors']:                         loginfo("%d file update errors", stats['errors'])
+
+    #loginfo("%d files updated", stats['touches'])
+
+    if args.test:
+        log.info("TEST RUN - No files modified!")
+
+
+
+# Keep only essential, global assignments here. Any other logic must be in main()
+args = parse_args()
+log = setup_logging(args)
+# Set the actual touch() and other functions based on command-line arguments
+if args.unique_times:
+    touch = touch_ns
+    get_times = get_times_ns
+# Make sure this is always set last to ensure --test behaves as intended
+if args.test:
+    touch = dummy
+
+try:
+    sys.exit(main())
+except Exception as e:
+    sys.exit(-1)
+finally:
+    if not ('-q' in sys.argv[1:] or '--quiet' in sys.argv[1:]):
+        print("[OK] Restore "+str(nrestored)+" modification time from git commit history")
+    '''
+    with open("git-restore-mtime.py", 'w') as f:
+        f.write(restore_code)
+    try:
+        run("cd " + os.getcwd() + " && python3 git-restore-mtime.py " + cmdargs , shell=True, check=True)
+    except Exception as e:
+        raise e
+    finally:
+        os.remove("git-restore-mtime.py")
+
+
+def save_mtime_to_timeList(cmdargs):
+    # This shell script is original by Shu Qi
+    shellcmd = """
+    #!/bin/bash
+    function getdir(){
+        for element in `ls $1`
+        do  
+            dir_or_file=$1"/"$element
+            if [ -d $dir_or_file ]
+            then 
+                echo -n ${dir_or_file#*archive/}"/" >> timeList
+                ls -lrth --time-style="+%Y-%m-%d %H:%M:%S" $dir_or_file | awk '{print($6, $7, $8)}' >> timeList
+                echo '' >> timeList
+                getdir $dir_or_file
+            fi  
+        done
+    }
+
+    dir=`pwd`
+    cd $dir
+    echo 'file modified time information recorded at' `date` > timeList
+    echo -n $dir"/" >> timeList
+    ls -lrth --time-style="+%Y-%m-%d %H:%M:%S" | awk '{print($6, $7, $8)}' >> timeList
+    echo '' >> timeList
+    getdir $dir
+    #cat timeList
+    """
+    with open("save_to_timeList.sh", 'w') as f:
+        f.write(shellcmd)
+    run("cd " + os.getcwd() + " && bash save_to_timeList.sh; rm save_to_timeList.sh", shell=True, check=True)
+    if not '-q' in cmdargs and not '--quiet' in cmdargs:
+        print("[OK] Save updated modification time to timeList")
+
+
+if __name__ == '__main__':
+    if not os.path.isfile("timeList"):
+        raise IOError(
+            "This file should be placed on the root dir of NBODY6++GPU, with timeList file on the same level")
+    if '--help' in sys.argv[1:] or '-h' in sys.argv[1:]:
+        print('''Options:
+        -v --verbose : print the process
+        -q --quiet   : suppress all message
+        --force      : keep processing while the git working directory is not clean (when there are uncommited changes). This may cause problem.''')
+        sys.exit(0)
+    if '--force' not in sys.argv[1:]:
+        restore_mtime_from_git_log(' '.join(sys.argv[1:]) + ' -q') # this is only to test if the working dir is clean
+    restore_from_timeList(sys.argv[1:])
+    restore_mtime_from_git_log(' '.join(sys.argv[1:]))
+    save_mtime_to_timeList(sys.argv[1:])
