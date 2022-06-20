@@ -1,5 +1,5 @@
-file modified time information recorded at Sun 19 Jun 2022 12:26:10 PM CEST
-/work/Tux1/spurzem/Nbody/git-clone/Nbody6PPGPU-beijing/  
+file modified time information in Berlin time recorded at Mon Jun 20 08:14:57 CEST 2022
+Nbody6PPGPU-beijing/  
 2020-06-29 23:35:57 extra_inc
 2020-07-09 23:24:04 src
 2020-09-25 22:53:55 Makefile.in
@@ -17,37 +17,36 @@ file modified time information recorded at Sun 19 Jun 2022 12:26:10 PM CEST
 2022-05-05 11:52:40 deleteList.txt
 2022-06-16 20:30:48 LIST
 2022-06-19 06:49:37 restore_mtime.py
-2022-06-19 12:26:10 save_to_timeList.sh
-2022-06-19 12:26:10 timeList
+2022-06-20 08:14:57 timeList
 
-/work/Tux1/spurzem/Nbody/git-clone/Nbody6PPGPU-beijing/build/  
+Nbody6PPGPU-beijing/build/  
 2020-09-25 22:53:55 Makefile.debug
 2022-04-17 09:24:05 nbody6++.sse.gpu.mpi.hdf5
 2022-04-17 09:24:05 Makefile.save.hdf5
 2022-04-17 09:24:05 Makefile.in
 2022-04-17 09:24:05 Makefile
 
-/work/Tux1/spurzem/Nbody/git-clone/Nbody6PPGPU-beijing/doc/  
+Nbody6PPGPU-beijing/doc/  
 2022-04-17 09:24:05 nbody6++_manual.txt
 
-/work/Tux1/spurzem/Nbody/git-clone/Nbody6PPGPU-beijing/extra_inc/  
+Nbody6PPGPU-beijing/extra_inc/  
 2020-06-29 23:35:57 noomp
 2020-06-29 23:35:57 nompi
 2020-06-29 23:35:57 cuda
 
-/work/Tux1/spurzem/Nbody/git-clone/Nbody6PPGPU-beijing/extra_inc/cuda/  
+Nbody6PPGPU-beijing/extra_inc/cuda/  
 2020-06-29 23:35:57 helper_string.h
 2020-06-29 23:35:57 helper_cuda.h
 2020-06-29 23:35:57 cutil.h
 
-/work/Tux1/spurzem/Nbody/git-clone/Nbody6PPGPU-beijing/extra_inc/nompi/  
+Nbody6PPGPU-beijing/extra_inc/nompi/  
 2020-06-29 23:35:57 mpif.h
 
-/work/Tux1/spurzem/Nbody/git-clone/Nbody6PPGPU-beijing/extra_inc/noomp/  
+Nbody6PPGPU-beijing/extra_inc/noomp/  
 2020-06-29 23:35:57 omp_lib.h
 2020-06-29 23:35:57 omp.h
 
-/work/Tux1/spurzem/Nbody/git-clone/Nbody6PPGPU-beijing/include/  
+Nbody6PPGPU-beijing/include/  
 1995-08-17 17:49:18 commonc.h
 1995-08-17 17:49:18 common2.h
 2002-05-17 05:29:42 zdata.h
@@ -75,16 +74,16 @@ file modified time information recorded at Sun 19 Jun 2022 12:26:10 PM CEST
 2022-04-17 09:24:05 params.h
 2022-04-17 09:24:05 common6.h
 
-/work/Tux1/spurzem/Nbody/git-clone/Nbody6PPGPU-beijing/sample/  
+Nbody6PPGPU-beijing/sample/  
 2022-04-17 09:24:05 N100k.inp.restart
 2022-04-17 09:24:05 N100k.inp.orig
 2022-04-17 09:24:05 N100k.inp
 2022-04-17 09:24:05 dat.10
 
-/work/Tux1/spurzem/Nbody/git-clone/Nbody6PPGPU-beijing/src/  
+Nbody6PPGPU-beijing/src/  
 2022-04-17 09:24:05 Main
 
-/work/Tux1/spurzem/Nbody/git-clone/Nbody6PPGPU-beijing/src/Main/  
+Nbody6PPGPU-beijing/src/Main/  
 1995-11-14 18:13:08 ksphys.f
 1995-11-14 18:13:09 qforce.f
 1995-11-14 18:13:09 physks.f
