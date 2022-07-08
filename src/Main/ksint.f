@@ -22,13 +22,6 @@
       REAL*8  UI(4),UIDOT(4),XI(6),VI(6),FP(6),FD(6),A_EIN,CL2
       INTEGER RES
       LOGICAL IQ,LBRAKE
-*     --01/02/14 20:43-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      COMMON/XPRED/ TPRED(NMAX),TRES(KMAX),ipredall
-c$$$      REAL*8 TPRED
-c$$$      LOGICAL ipredall
-*     --01/02/14 20:43-lwang-end----------------------------------------*
-*
 *
 *       Set second component, pair index & c.m. index.
       I2 = I1 + 1
@@ -43,7 +36,17 @@ c$$$      LOGICAL ipredall
       NNB0 = LIST(1,I1)
       BODYIN = 1.0/BODY(I)
 *
+      SEMI = -0.5*BODY(I)/H(IPAIR)
+      ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(SEMI*BODY(I))
+      ECC = SQRT(ECC2)
+      A_EIN = 0.D0
+        LBRAKE = KZ273.EQ.3.AND.
+     &    (KSTAR(I1).GE.10.AND.KSTAR(I1).LE.14).AND.
+     &    (KSTAR(I2).GE.10.AND.KSTAR(I2).LE.14).AND.
+     &    H(IPAIR).LT.0.D0.AND.ECC.GT.0.D0
+        IF (LBRAKE) A_EIN = 3.0*TWOPI*BODY(I)/(SEMI*CL2*(1-ECC2))
 *       Check for further unperturbed motion.
+*       Make sure relativistic binary is not unperturbed.
       IF (NNB0.EQ.0.AND.H(IPAIR).LT.0.0) THEN
          call cputim(tt1)
           CALL UNPERT(IPAIR)
@@ -216,7 +219,65 @@ c$$$      LOGICAL ipredall
           DTU = 0.5D0*DTU
           GO TO 30
       END IF
+*
       DTAU(IPAIR) = DTU
+*
+*       GR braking for compact object binaries RSp 2019/2022
+      SEMI = -0.5*BODY(I)/HI
+      ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(SEMI*BODY(I))
+      ECC = SQRT(ECC2)
+      QPERI = SEMI*(1.0D0 - ECC)
+        LBRAKE = KZ273.EQ.3.AND.
+     &    (KSTAR(I1).GE.10.AND.KSTAR(I1).LE.14).AND.
+     &    (KSTAR(I2).GE.10.AND.KSTAR(I2).LE.14).AND.
+     &    HI.LT.0.D0.AND.ECC.GT.0.D0
+        IF (LBRAKE) THEN
+*       GR breaking for compact obj. define new binary type March 2019
+           A_EIN = 3.0*TWOPI*BODY(I)/(SEMI*CL2*(1-ECC2))
+           TORB = TWOPI*SQRT(SEMI**3/BODY(I))
+           RSCHW = 2.0*BODY(I)/CL2
+           RES = 0
+*
+*          IF(rank.eq.0.AND.A_EIN.GT.GMIN)WRITE(6,666)
+*    &   RES,TTOT,STEP(I1),I,IPAIR,LIST(1,I1),
+*    &   NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
+*    &   BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,SEMI,QPERI,RSCHW,
+*    &   H(IPAIR),GAMMA(IPAIR),A_EIN,TORB
+*666  FORMAT(1X,' GR KSINT1 RES T STEP',I3,1P,2E13.5,' I IP NPERT',
+*    &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
+*    &   ' e,a,QP,RS[NB]=',4E13.5,' H, GAMMA=',2E13.5,
+*    &   ' A_EIN, TORB=',2E13.5)
+*
+*       Special binary type -25 for GR shrinking binary
+*
+           DTGW(IPAIR) = STEP(I1)
+           CALL GW_DECISION(SEMI,BODY(I1),BODY(I2),
+     &         CLIGHT,ECC,DTGW(IPAIR),RES,TGR,KMIN)
+*
+           IF(RES.EQ.1.AND.GAMMA(IPAIR).LT.1.D-1) THEN
+              KSTAR(I) = -25
+              CALL KSTIDE(IPAIR,QPERI)
+      if(rank.eq.0)WRITE(6,665)
+     &   RES,KMIN,TTOT,DTGW(IPAIR),STEP(I1),I,IPAIR,LIST(1,I1),
+     &   NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
+     &   BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,SEMI,QPERI,RSCHW,
+     &   H(IPAIR),GAMMA(IPAIR),A_EIN,TORB,TGR
+ 665  FORMAT(1X,' GR KSINT2 RES KMIN T DTGW STEP',2I3,1P,3E13.5,
+     &   ' I IP NPERT',
+     &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
+     &   ' e,a,QP,RS[NB]=',4E13.5,' H, GAMMA=',2E13.5,
+     &   ' A_EIN, TORB, TGR(PM)=',3E13.5)
+*       Prepare coal flag if PERI < 25 R_SCHW
+            SEPMRG = 2.5D1*RSCHW
+               IF(DABS(QPERI).LT.SEPMRG.OR.TGR.LT.TORB) THEN
+               if(rank.eq.0) PRINT *,' GR KSINT COLL: QP SEPMRG C ',
+     &         ' RSCH ECC SEMI ',QPERI,SEPMRG,CLIGHT,RSCHW,ECC,SEMI
+                  IPHASE = -1
+                  GO TO 100
+               END IF
+           END IF
+        END IF
+*       End 2nd GR treatment
 *
 *       See whether the KS slow-down procedure is activated.
       IMOD = KSLOW(IPAIR)
@@ -265,15 +326,6 @@ c$$$      LOGICAL ipredall
 *       Delay termination until end of block for large perturbations.
       IF (IQ) THEN
           DTR = TBLOCK - TIME
-*     --03/26/14 13:58-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$         if(rank.eq.0)
-c$$$     &    WRITE (6,45)  IPAIR, TTOT, GI, RI, DTR, STEP(I1),TPREV,TBLOCK
-c$$$     *         ,TIME,T0(I1)
-c$$$ 45      FORMAT (' TERM TEST    KS'I4,' T',F10.4,' G',F7.3,' R',E11.3,
-c$$$     &        ' DTR',E15.7,' DT',E15.7,' TP',E15.7,' TB',E15.7,
-c$$$     &        ' T',E15.7,' T0',E15.7)
-*     --03/26/14 13:58-lwang-end----------------------------------------*
           IF (DTR.LT.STEP(I1)) GO TO 90
       END IF
 *
@@ -282,12 +334,6 @@ c$$$     &        ' T',E15.7,' T0',E15.7)
       IF (RI.GT.R0(IPAIR).AND.RI.GT.2.0*RMIN.AND..NOT.IQ) THEN
 *       See whether termination can be delayed for sufficient perturbers.
           IF (NNB0.LT.0.80*LIST(1,I).AND.GI.LT.0.1) GO TO 60
-*     --11/20/13 16:26-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$         if(rank.eq.0.and.name(i1).eq.230) then
-c$$$            print*,'230 ',RI,R0(IPAIR),RMIN,IQ
-c$$$         end if
-*     --11/20/13 16:26-lwang-end----------------------------------------*
 *
 *       See whether termination can be delayed for intermediate energies.
 c$$$          IF (RI.GT.RMIN) THEN
@@ -528,49 +574,6 @@ c$$$                      CALL CMBODY(2)
           GO TO 100
       END IF
 *
-*       GR braking for compact object binaries RSp March 2019
-      SEMI = -0.5*BODY(I)/HI
-      ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(SEMI*BODY(I))
-      ECC = SQRT(ECC2)
-      QPERI = SEMI*(1.0D0 - ECC)
-        LBRAKE = KZ273.EQ.3.AND.
-     &    (KSTAR(I1).GE.10.AND.KSTAR(I1).LE.14).AND.
-     &    (KSTAR(I2).GE.10.AND.KSTAR(I2).LE.14).AND.
-     &    HI.LT.0.D0.AND.ECC.GT.0.D0
-        IF (LBRAKE) THEN
-*       GR breaking for compact obj. define new binary type March 2019
-           A_EIN = 3.0*TWOPI*BODY(I)/(SEMI*CL2*(1-ECC2)) 
-           TORB = TWOPI*SQRT(SEMI**3/BODY(I))
-           DTGW(IPAIR) = STEP(I1)  
-           RSCHW = 2.0*BODY(I)/CL2
-           RES = 0              
-*
-           CALL GW_DECISION(SEMI,BODY(I1),BODY(I2),
-     &         CLIGHT,ECC,DTGW(IPAIR),RES,TGR)
-*       Special binary type -25 for GR shrinking binary
-           IF(RES.EQ.1.AND.GAMMA(IPAIR).LT.1.D-1) THEN
-              KSTAR(I) = -25
-              CALL KSTIDE(IPAIR,QPERI)
-      if(rank.eq.0)WRITE(6,665)
-     &   RES,TTOT,DTGW(IPAIR),STEP(I1),I,IPAIR,LIST(1,I1),
-     &   NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
-     &   BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,SEMI,QPERI,RSCHW,
-     &   H(IPAIR),GAMMA(IPAIR),A_EIN,TORB,TGR
- 665  FORMAT(1X,' GR KSINT RES T DTGW STEP',I3,1P,3E13.5,' I IP NPERT',
-     &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
-     &   ' e,a,QP,RS[NB]=',4E13.5,' H, GAMMA=',2E13.5,
-     &   ' A_EIN, TORB, TGR(PM)=',3E13.5)
-*       Prepare coal flag if PERI < 25 R_SCHW
-            SEPMRG = 2.5D1*RSCHW
-               IF(DABS(QPERI).LT.SEPMRG.OR.TGR.LT.TORB) THEN
-               if(rank.eq.0) PRINT *,' GR KSINT COLL: QP SEPMRG C ',
-     &         ' RSCH ECC SEMI ',QPERI,SEPMRG,CLIGHT,RSCHW,ECC,SEMI
-                  IPHASE = -1
-                  GO TO 100 
-               END IF
-           END IF
-        END IF     
-*
 *       Save maximum separation of persistent binary.
       RMAX = MAX(RMAX,RI)
 *     ks MPI communicate rmax
@@ -712,11 +715,13 @@ c$$$      print*,rank,'rmax',rmax
  100  RETURN
 *
       END
-      SUBROUTINE GW_DECISION(SEMI,M1,M2,CLIGHT,ECC,DT,RES,TGR)              
+*
+      SUBROUTINE GW_DECISION(SEMI,M1,M2,CLIGHT,ECC,DT,RES,TGR,KMIN)
 *
 *     Decide if you want to integrate or not  
-      INTEGER RES
-      REAL*8 SEMI,M1,M2,CLIGHT,ECC,DT,DE(5),TGR
+      INTEGER RES,KMIN
+      REAL*8 SEMI,M1,M2,CLIGHT,ECC,DT,DE(5),TGR,DTX
+      REAL*8 ECCNEW,SEMNEW,ECCN,SEMN
       LOGICAL LSANE
       include 'timing.h'
 *
@@ -727,14 +732,40 @@ c$$$      print*,rank,'rmax',rmax
       if(rank.eq.0)itides3 = itides3 + 1
 *
       RES=0
+      KMIN=0
+      ECCN = ECC-DE(4)
+      SEMN = SEMI-DE(3)
+*      PRINT*,' 0 GW_DEC: M1/2 KMIN DT DE ',M1,M2,KMIN,DT,DE
+*      PRINT*,' 0 ECCN, SEMN,ECC,SEMI ',ECCN, SEMN,ECC,SEMI
+      DTX = DT
+      IF(ECCN.LT.0.D0.OR.ECCN.GT.1.D0.OR.SEMN.LT.0.D0)THEN
+         DE(1:5) = 0.D0
+         DO K = 1,64
+         DTX=DTX/2.D0
+         CALL TIDES3(SEMI,M1,M2,ECC,CLIGHT,DTX,DE)
+         ECCN = ECC-DE(4)
+         SEMN = SEMI-DE(3)
+            IF(ECCN.GT.0.D0.AND.ECCN.LT.1.D0.AND.SEMN.GT.0.D0)THEN
+               KMIN = K
+               GOTO 50
+            END IF
+         END DO
+      END IF
+*
+ 50   CONTINUE
+*
+      ECCNEW = ECCN
+      SEMNEW = SEMN
+      DTOLD = DT
+      DT = DTX
       TGR = DABS(DT*SEMI/DE(3))
-      ECCNEW = ECC-DE(4)
-      SEMNEW = SEMI-DE(3)
       LSANE = ECCNEW.GT.0.D0.AND.ECCNEW.LT.1.D0.AND.
      &     SEMNEW.GT.0.D0
       IF(LSANE.AND.(DE(4)/ECC).GT.1.0D-4.OR.(DE(3)/SEMI).GT.1.0D-4) THEN
 *        do not bypass the GW emission effect
         RES=1
+*      PRINT*,' GW_DEC: M1/2 KMIN DT/old DE ',M1,M2,KMIN,DT,DTOLD,DE
+*      PRINT*,' ECCNEW, SEMNEW,ECC,SEMI ',ECCNEW, SEMNEW,ECC,SEMI
       END IF
 *
       RETURN 

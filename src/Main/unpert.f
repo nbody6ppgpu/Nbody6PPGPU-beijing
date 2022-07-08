@@ -217,8 +217,11 @@
       END IF
 *
 *       Check for GR braking for compact object binaries RSp March 2019
+           HI = H(IPAIR)
            SEMI = -0.5*BODY(I)/HI
-           ECC2 = (1.0 - RI/SEMI)**2 + TDOT2(IPAIR)**2/(BODY(I)*SEMI)
+           ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(I)*SEMI)
+           ECC = SQRT(ECC2)
+           QPERI = SEMI*(1.0 - ECC)
         LBRAKE =KZ273.EQ.3.AND.
      &    KSTAR(I1).GE.10.AND.KSTAR(I1).LE.14.AND.
      &    KSTAR(I2).GE.10.AND.KSTAR(I2).LE.14.AND.
@@ -230,18 +233,22 @@
            DTGW(IPAIR) = STEP(I1)
            RSCHW = 2.0*BODY(I)/CLIGHT**2
            RES = 0
+           KMIN = 0
            CALL GW_DECISION(SEMI,BODY(I1),BODY(I2),
-     &                  CLIGHT,ECC,DTGW(IPAIR),RES,TGR)
+     &              CLIGHT,ECC,DTGW(IPAIR),RES,TGR,KMIN)
+           STEP(I1) = STEP(I1)/2**KMIN
+           DTGW(IPAIR) = STEP(I1)
 *       Special binary type -25 for GR shrinking binary
            IF(RES.EQ.1) THEN
               KSTAR(I) = -25
               CALL KSTIDE(IPAIR,QPERI)
       if(rank.eq.0)WRITE(6,665)
-     &   RES,TTOT,DTGW(IPAIR),STEP(I1),I,IPAIR,LIST(1,I1),
+     &   RES,KMIN,TTOT,DTGW(IPAIR),STEP(I1),I,IPAIR,LIST(1,I1),
      &   NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
      &   BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,SEMI,QPERI,RSCHW,
      &   H(IPAIR),GAMMA(IPAIR),A_EIN,TORB,TGR
- 665  FORMAT(1X,' GR TIDES RES T DTGW STEP',I3,1P,3E13.5,' I IP NPERT',
+ 665  FORMAT(1X,' GR TIDES RES KMIN T DTGW STEP',2I4,1P,3E13.5,
+     &   ' I IP NPERT',
      &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
      &   ' e,a,QP,RS[NB]=',4E13.5,' H, GAMMA=',2E13.5,
      &   ' A_EIN, TORB, TGR(PM)=',3E13.5)

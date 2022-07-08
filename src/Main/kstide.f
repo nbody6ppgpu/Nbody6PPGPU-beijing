@@ -40,7 +40,7 @@
 *
 *       Special Treatment of GR for compact binaries RSp March 2019
 *       Special binary type -25 for GR shrinking binary
-        IF(KSTAR(I).EQ.-25) GO TO 5
+      IF(KSTAR(I).EQ.-25) GO TO 5
 *
       R1 = MAX(RADIUS(I1),RADIUS(I2))
       IF (KZ(27).EQ.1) THEN
@@ -67,8 +67,6 @@
           END IF
 *       Skip on WIDE CHAOS or NEW SPIRAL.
           GO TO 45
-*     ELSE IF (KZ(27).EQ.3) THEN
-*         CALL TIDES3(QPERI,BODY(I1),BODY(I2),VSTAR,H(IPAIR),ECC,DE)
       END IF
 *
 *       Restore circularization index if needed (exit from CHAIN).
@@ -104,41 +102,48 @@
           DE(1) = -ZMU*DH
           DE(2) = 0.0
 *
-*       Special Treatment of GR for compact binaries RSp March 2019
-        END IF
+      END IF
 *
-* Dec 2021 Rainer Spurzem
-*
+*       Special Treatment of GR for compact binaries RSp March 2019/2022
  5    CONTINUE
 *       Special binary type -25 for GR shrinking binary
         IF (KSTAR(I).EQ.-25) THEN
            DTX = DTGW(IPAIR)
            call cputim(ttgr3)
-           CALL TIDES3(SEMI,BODY(I1),BODY(I2),ECC,VSTAR,DTX,DE)
+           CALL TIDES3(SEMI,BODY(I1),BODY(I2),ECC,CLIGHT,DTX,DE)
            call cputim(ttgr4)
+           DH = DE(1)/ZMU
+*
+*       TIDES3 returns DE=DE(1), DE(2)=0, DSEMI=DE(3), DECC=DE(4), DJ=DE(5)
+*
            if(rank.eq.0)tttides3 = tttides3 + (ttgr4-ttgr3)*60.
            if(rank.eq.0)itides3 = itides3 + 1
            CL2 = CLIGHT**2
            A_EIN = 3.0*TWOPI*BODY(I)/(SEMI*CL2*(1-ECC2))
-             TORB = TWOPI*SQRT(SEMI**3/BODY(I))
-             TGR = DABS(DTX*SEMI/DE(3))
-             RSCHW = 2.0*BODY(I)/CL2
-             SEMI1 = SEMI - DE(3)
-             ECC1 = ECC - DE(4)
-             DH = -DE(1)/ZMU
-      if(rank.eq.0)WRITE(6,665)
+           TORB = TWOPI*SQRT(SEMI**3/BODY(I))
+           TGR = DABS(DTX*SEMI/DE(3))
+           RSCHW = 2.0*BODY(I)/CL2
+           SEMI1 = SEMI - DE(3)
+           ECC1 = ECC - DE(4)
+           IF(ECC1.LT.0.0.OR.ECC1.GT.1.0.OR.SEMI1.LT.0.0)THEN
+               SEMI1 = SEMI
+               ECC1 = ECC
+               DE(1:5) = 0.D0
+               DH = 0.D0
+           END IF
+           if(rank.eq.0)WRITE(6,665)
      &   TTOT,DTGW(IPAIR),STEP(I1),I,IPAIR,LIST(1,I1),
      &   NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
      &   BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,SEMI,QPERI,RSCHW,
-     &   H(IPAIR),GAMMA(IPAIR),A_EIN,TORB,TGR,DE(1),DE(3),DE(4),DH,PERI
+     &   H(IPAIR),GAMMA(IPAIR),A_EIN,TORB,TGR,DE(3),DE(4),DE(1),DH,PERI
  665  FORMAT(1X,' GR KSTIDE T DTGW STEP',1P,3E13.5,' I IP NPERT',
      &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
      &   ' e,a,QP,RS[NB]=',4E13.5,' H, GAMMA=',2E13.5,
-     &   ' A_EIN, TORB, TGR(PM)=',3E13.5,' decc,dsemi=',2E13.5,
+     &   ' A_EIN, TORB, TGR(PM)=',3E13.5,' dsemi,decc=',2E13.5,
      &   ' de,dh,oldQP=',3E13.5)
-        END IF
 *       Return for merger
-      IF (TGR.LT.TORB) GO TO 50
+          IF (TGR.LT.TORB) GO TO 50
+        END IF
 *       Skip possible hyperbolic case.
       IF (H(IPAIR) + DH.GT.0.0) GO TO 50
 *
@@ -151,10 +156,16 @@
 *     call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DETMP)
 *     call ksparmpi(K_store,K_real8,K_EGRAV,0,0,DETMP)
 *     call ksparmpi(K_store,K_real8,K_E10,0,0,DETMP)
+*
+      IF(KSTAR(I).EQ.-25) THEN
+         H(IPAIR) = H(IPAIR) + DH
+         GOTO 10
+      ELSE
 *       Determine pericentre variables U & UDOT by backwards integration.
-      CALL KSPERI(IPAIR)
+         CALL KSPERI(IPAIR)
 
-      H(IPAIR) = H(IPAIR) + DH 
+         H(IPAIR) = H(IPAIR) + DH
+      END IF
 *
 *       Print first and last energy change and update indicator.
       IF (KZ(27).EQ.1.AND.(KSTAR(I).EQ.0.OR.KSTAR(I).EQ.9)) THEN
@@ -195,9 +206,11 @@
    10   CONTINUE
         PERI1 = SEMI1*(1.0D0 - ECC1)
         IF(KSTAR(I).EQ.-25.and.rank.eq.0)THEN
-        IF(ECC1 .LT. 0.0 .OR. ECC1.GT.1.0 .OR. SEMI1.LT.0.0)PRINT*,
-     &     ' KSTIDE: Warning! ECC1<0 or >1 or SEMI1 < 0.0 -->',
-     &     ' ecc/1,semi/1,peri/1 ',ECC,ECC1,SEMI,SEMI1,PERI,PERI1
+           IF(ECC1 .LT. 0.0 .OR. ECC1.GT.1.0 .OR. SEMI1.LT.0.0)THEN
+           PRINT*,
+     &     ' KSTIDE: T Warning! ECC1<0 or >1 or SEMI1 < 0.0 -->',
+     &     ' TTOT,ecc/1,semi/1,peri/1 ',ECC,ECC1,SEMI,SEMI1,PERI,PERI1
+           ENDIF
         ENDIF
 ********************************************************************+
 *
@@ -205,7 +218,7 @@
       C1 = SQRT(PERI1/PERI)
 *
 *       Specify KS velocity scaling (conserved J, chaos or GR treatment).
-      IF (KZ(27).EQ.1) THEN
+      IF (KZ(27).EQ.1.AND.KSTAR(I).GT.0) THEN
               C2 = 1.0/C1
       ELSE
 *       Note that PERI should not change in GR case (hence same C2).
@@ -273,6 +286,10 @@
       ECOLL = ECOLL + DP
 *     ks MPI communication ECOLL E(10) EGRAV
 *     call ksparmpi(K_store,K_real8,K_ECOLL,0,0,DP)
+*
+*       Special Treatment of GR for compact binaries RSp March 2019/2022
+*       Return for GR shrinking binary
+        IF(KSTAR(I).EQ.-25) GO TO 50
 *
 *       Produce diagnostic output for interesting new case (first time).
       IF (ECC.GT.0.99.AND.ABS(ECC - ECC1).GT.0.01.AND.IONE.EQ.0) THEN
@@ -343,10 +360,6 @@ c$$$                  JCOMP = J
    35     FORMAT (' NEW CAPTURE    T NM E EF QP/R* A1 ',
      &                             F9.2,2I6,2F9.4,1P,2E11.3)
       END IF
-*       Special Treatment of GR for compact binaries RSp March 2019
-*       Special binary type -25 for GR shrinking binary
-        IF(KSTAR(I).EQ.-25) GO TO 50
-*       Special Treatment: Skip sections specific for tides and roche.
 *       Record diagnostics for new synchronous orbit and activate indicator.
       IF (ECC.GT.ECCM.AND.ECC1.LT.ECCM.AND.KZ(27).LE.2) THEN
           NSYNC = NSYNC + 1
