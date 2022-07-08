@@ -116,13 +116,13 @@
               if(rank.eq.0)
      &        WRITE (18,40)  TTOT, NAME(J1), NAME(J2), LIST(2,J2), K,
      &                       BODY(J1), BODY(J2), EB, SEMI, SQRT(ECC2),
-     &                       GX, SQRT(RI2), VR
+     &                       GX, STEP(I), STEP(J1), SQRT(RI2), VR
  40           FORMAT ('Time[NB] ',1P,E16.7,0P,'  NAME(I1) ',I11,
      &             '  NAME(I2) ',I11,'  FLAG-PB ',I3,'  FLAG-H ',I3,
      &             '  M(I1)[NB] ',1P,E13.4,'  M(I2)[NB] ',E13.4,
      &             '  EB[NB] ',E16.7,'  SEMI[NB] ',E15.6,'  ECC ',
      &             E15.6,'  GX[NB] ',E13.4,'  RI[NB] ',E15.6,
-     &             '  VR[NB] ',E15.6,0P)
+     &             ' STEP cm/ks ',2E15.6,'  VR[NB] ',E15.6,0P)
               CALL FLUSH(18)
           END IF
 *       Reset c.m. Roche flag to standard type for non-zero eccentricity.

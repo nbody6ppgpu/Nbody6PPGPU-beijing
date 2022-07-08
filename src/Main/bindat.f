@@ -163,8 +163,9 @@ c$$$    9     CONTINUE
      &        'RI[PC]                    VI[km/s]                  ',
      &        'K*(I1)      K*(I2)      ',
      &        'ZN[NB]                    RP[NB]                    ',
-     &        'STEP(I1)[NB]              NAME(ICM)                 ',
-     &        'ECM[NB]                   K*(ICM)      '
+     &        'STEP(I1)[NB]              STEP(ICM)[NB]             ',
+     &        ' NAME(ICM)              ','ECM[NB]                  ',
+     &        ' K*(ICM)      '
       end if
 *
       DO 50 JPAIR = 1,NPAIRS
@@ -189,7 +190,7 @@ c$$$    9     CONTINUE
      &    WRITE (9,*)  NAME(J1), NAME(J2), BODY(J1)*ZMBAR,
      &         BODY(J2)*ZMBAR, EB(JPAIR), ECC(JPAIR), PB(JPAIR), 
      &         SEMI*RAU, RI*RBAR, VI*VSTAR, KSTAR(J1), KSTAR(J2),
-     &         ZN, RP, STEP(J1), NAME(N+JPAIR), ECM(JPAIR), KCM,
+     &         ZN, RP, STEP(J1), STEP(ICM), NAME(ICM), ECM(JPAIR), KCM,
      &         AGE1, AGE2, EPOCH(J1), EPOCH(J2)
 *   45     FORMAT (2I8,1P,8E13.5,0P,3I8,3I4,4E13.5)
    50 CONTINUE
@@ -210,6 +211,7 @@ c$$$    9     CONTINUE
      &        'M(I1)[M*]                 M(I2)[M*]                 ',
      &        'EB[NB]                    ECC                       ',
      &        'P[Days]                   SEMI[AU]                  ',
+     &        'STEP(JMIN)[NB]            STEP(ICM)[NB]             ',
      &        'RI[PC]                    VI[km/s]                  ',
      &        'K*(I1)      K*(I2)      '
       end if
@@ -275,7 +277,8 @@ c$$$    9     CONTINUE
 *     Print basic binary parameters (SEMI in AU, period in years).
             if(rank.eq.0) then
                WRITE (19,*)  NAME(I), NAME(JMIN), BODY(I)*ZMBAR,
-     &              BODY(JMIN)*ZMBAR, HB, ECC1, TK, SEMI*RAU, RI*RBAR,
+     &              BODY(JMIN)*ZMBAR, HB, ECC1, TK, SEMI*RAU, 
+     &              STEP(I), STEP(JMIN), RI*RBAR,
      &              VI*VSTAR, KSTAR(I), KSTAR(JMIN)
             end if
 * 75         FORMAT (F8.3,F9.1,1P,E9.1,0P,2F6.1,2I7,2I4)
