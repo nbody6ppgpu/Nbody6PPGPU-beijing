@@ -737,12 +737,24 @@ C     &         1P,E9.1)
       NPOP(8) = NPOP(8) + 1
       NCOLL = NCOLL + 1
 *
-      if(rank.eq.0)
-     &WRITE (6,90)  WHICH1, NSYS, NAME1, NAME2, ZM*SMU, RCOLL, EB,
-     &              VINF, ECC, DP
-   90 FORMAT (/,A8,'COLLISION    NSYS =',I3,'  NAME =',2I6,
-     &             '  M =',F6.2,'  RCOLL =',1P,E8.1,'  EB =',E9.1,
-     &             '  VINF =',0P,F5.1,'  ECC =',F9.5,'  DP =',1P,E9.1)
+          RI = SQRT((X(1,I) - RDENS(1))**2 +
+     &              (X(2,I) - RDENS(2))**2 +
+     &              (X(3,I) - RDENS(3))**2)
+          VII = SQRT(XDOT(1,I)**2+XDOT(2,I)**2+XDOT(3,I)**2)
+          PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(I))*TSTAR*365.24D6
+          if(rank.eq.0)
+     &    WRITE (6,90)WHICH1,NSYS,TIME+TOFF,NAME(I1),NAME(I2),
+     &         NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),IPAIR,
+     &         BODY(I1),BODY(I2),ECC,SEMI,EB,PD,STEP(I),
+     &         LIST(1,I1),LIST(1,I),ZM1,ZM2,ZM*SMU,RCOLL,DP,VINF,RI,VII
+  90      FORMAT (/,A8,' COLLISION    NSYS =',I3,' TIME[NB]',1P,E17.10,
+     &         ' NM1,2,S=',3I10,' KW1,2,S=',3I4,' IPAIR',I9,
+     &         ' M1,2[NB]',2E12.4,
+     &         ' e,a,eb[NB],P[d]=',4E12.4,' STEP(ICM)',E12.4,
+     &         ' NPERT,NB(ICM)=',2I6,' M1,2,3[*]',3E12.4,
+     &         ' RCOLL,DP,VINF=',3E12.4,' RI,VI[NB]=',2E12.4)
+          call flush(6)
+
 *
 *       Specify IPHASE < 0 for new sorting.
    95 IPHASE = -1
