@@ -29,7 +29,8 @@
       ECC = SQRT(ZETA**2 + PSI**2/SEMI)
 *
 *       Avoid nearly circular orbits (undefined pericentre).
-      IF (ECC.LT.0.0001) GO TO 30
+*       Changed to 0.01 to avoid difficult case R.Sp. June 2022
+      IF (ECC.LT.0.01) GO TO 30
 *
 *       Distinguish between near-collision, elliptic & hyperbolic case.
       Q = (PSI/ECC)**2
