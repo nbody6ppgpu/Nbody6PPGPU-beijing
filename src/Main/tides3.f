@@ -1,4 +1,4 @@
-      SUBROUTINE TIDES3(SEP,M1,M2,ECC,CLIGHT,DTIME,DE)
+      SUBROUTINE TIDES3(SEMI,M1,M2,ECC,CLIGHT,DTIME,DE)
 *
 *
 *       GR tidal energy loss for interacting stars.
@@ -24,15 +24,15 @@
       FE3 = (1 - ECC2)**(-2.0)*(1.0D+0 + 7.0D+0/8.0D+0*ECC2)
 
 *       DENERGY due to GW
-      DE(1) = 3.2D+1/5.0D+0*COST*M1*M2*SEP**(-5.0)*FE1*DTIME
+      DE(1) = 3.2D+1/5.0D+0*COST*M1*M2*SEMI**(-5.0)*FE1*DTIME
 *
       DE(2) = 0.0
-*       DSEP due to GW
-      DE(3) = 6.4D+1/5.0D+0*COST*SEP**(-3)*FE1*DTIME 
+*       DSEMI due to GW
+      DE(3) = 6.4D+1/5.0D+0*COST*SEMI**(-3)*FE1*DTIME 
 *       DECC due to GW
-      DE(4) = 3.04D+2/1.5D+1*COST*SEP**(-4)*FE2*DTIME
+      DE(4) = 3.04D+2/1.5D+1*COST*SEMI**(-4)*FE2*DTIME
 *       DJ due to GW
-      DE(5) = 3.2D+1/5.0D+0*COST*M1*M2*(M1 + M2)**(-0.5)*SEP**(-3.5)*FE3
+      DE(5) = 3.2D+1/5.0D+0*COST*M1*M2*(M1 + M2)**(-0.5)*SEMI**(-3.5)*FE3
       DE(5) = DE(5)*DTIME
 *
 
