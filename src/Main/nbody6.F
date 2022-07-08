@@ -69,11 +69,11 @@
 *     19:41-lwang-debug-10/03/14-----------------------------*
       IF(rank.eq.0)THEN
 #ifdef DEBUG
-      READ (5,*)  KSTART, TCOMP, TCRITP,
-     *    isernb,iserreg,iserks,adtime,dumptime,dprintt,dtprint,namep
+      READ (5,*)  KSTART, TCOMP, TCRTP0,
+     &    isernb,iserreg,iserks,adtime,dumptime,dprintt,dtprint,namep
 #else
-      READ (5,*)  KSTART, TCOMP, TCRITP,
-     *    isernb,iserreg,iserks
+      READ (5,*)  KSTART, TCOMP, TCRTP0,
+     &    isernb,iserreg,iserks
 #endif
       END IF
 *
@@ -83,7 +83,7 @@
       CALL MPI_BCAST(iserks,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(KSTART,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(TCOMP,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-      CALL MPI_BCAST(TCRITP,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(TCRP0,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 *
 #ifdef DEBUG
       CALL MPI_BCAST(adtime,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
@@ -98,8 +98,8 @@
 *      iserks = max(isize,iserks*icore)
 
       IF(rank.eq.0) THEN
-        PRINT*,' MPI: iserreg,isernb,iserks,ithread=',
-     &        iserreg,isernb,iserks,ithread
+        PRINT*,' MPI: iserreg,isernb,iserks,icore=',
+     &        iserreg,isernb,iserks,icore
 #ifdef DEBUG
         PRINT*,' DEBUG: adtime,dumptime,dprintt,dtprint,namep =',
      &      adtime,dumptime,dprintt,dtprint,namep
@@ -109,6 +109,9 @@
 *
       IF (KSTART.EQ.1) THEN
 *
+          TCRITP = TCRTP0
+          if(rank.eq.0)WRITE (6,*) ' KSTART, TCOMP, TCRITP =',
+     &                               KSTART, TCOMP, TCRITP
 *       Read input parameters, perform initial setup and obtain output.
           CPU = TCOMP
           CALL START
@@ -122,7 +125,10 @@
 *       Backup kstart value before call mydump
           KSTART0 = KSTART
           CALL MYDUMP(0,1)
-*
+*       Overwrite old TCRITP from input
+          IF(TCRTP0.GT.0.D0) TCRITP = TCRTP0
+          if(rank.eq.0)WRITE (6,*) ' KSTART, TCOMP, TCRITP =',
+     &                               KSTART, TCOMP, TCRITP
 *       Reset kstart to input value
           KSTART = KSTART0
 *       
