@@ -423,7 +423,7 @@
           WRITE (6,401)TIMENB,CHTIME,
      &            (K,NAMEC(K),M(K),SIZE(K),RI(K),VI(K),K=1,N-1),
      &            N,NAMEC(N),M(N),SIZE(N)
-  401     FORMAT (' CHAIN TNB,CHTIME N,M,R,RI,VI=',1P,2E13.5,
+  401     FORMAT (' CHAIN TNB,CHTIME N,M,R,RI,VI=',1P,2E13.5,/,
      &           (I4,I10,4E13.5))
           CALL FLUSH(6)
       END IF
