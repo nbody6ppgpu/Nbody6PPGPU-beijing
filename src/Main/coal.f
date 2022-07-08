@@ -9,7 +9,7 @@
       REAL*8  CM(6)
       REAL*8  MASS(2)
 *     Francesco Rizzuto
-      PARAMETER(FctorCl = 0.5D0) 
+      PARAMETER(FctorCl = 1.0D0) 
       LOGICAL  FIRST
       SAVE  FIRST
       DATA  FIRST /.TRUE./
@@ -220,7 +220,7 @@
 *     remove from NXTLST
       call delay_remove_tlist(I2,STEP,DTK)
 C      CALL DTCHCK(TIME,STEP(I2),DTK(40))
-      STEP(I2) = 2*DTK(1)
+      STEP(I2) = 2.D0*DTK(1)
 *     add into GHOST LIST
       call add_tlist(I2,STEP,DTK)
 *
@@ -355,7 +355,7 @@ C*       remove from NXTLST (In binary, not needed)
                       X0(K,J) = X(K,J)
    25             CONTINUE
 *       Create ghost for rare case of massless first component.
-                  IF (BODY(J).EQ.0.0D0) THEN
+                  IF (L.EQ.NNB2.AND.BODY(J).EQ.0.0D0) THEN
                       DO 26 K = 1,3
                          X0(K,I1) = MIN(1.0d+04 + (X(K,I1)-RDENS(K)),
      &                             1000.d0*RSCALE*(X(K,I1)-RDENS(K))/RI)
@@ -404,7 +404,7 @@ C                      call delay_remove_tlist(I1,STEP,DTK)
 *       Note that T0(I2) may not have a large value after #I2 is exchanged.
               T0(I2) = TADJ + DTADJ
               call delay_remove_tlist(I2,STEP,DTK)
-              STEP(I2) = 2*DTK(1)
+              STEP(I2) = 2.D0*DTK(1)
               call add_tlist(I2,STEP,DTK)
           ELSE
 *       remove from NXTLST
