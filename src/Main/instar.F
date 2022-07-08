@@ -101,6 +101,11 @@
              CALL MPI_BCAST(OSPIN,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 #endif
           ELSE
+*     Start with black holes only
+             IF(KZ(24).EQ.2)THEN
+                KSTAR(I) = 14
+                TEV(I) = 1.D10
+             END IF
              M1 = BODY(I)*ZMBAR
              M0 = M1
              IF(KSTAR(I).GT.1)THEN
