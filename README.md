@@ -4,6 +4,10 @@ The code is an offspring of Sverre Aarseth's direct N-body codes see www.sverre.
 
 This is the code suitable for parallel and GPU accelerated runs on supercomputers and workstations. 
 
+# About this repo
+**The `stable` branch include major versions, and the `dev` branch include the most recent updates and bugfix. Changes in `dev` branch are merged to `stable` regularly.**
+
+**If you want the most recent version, run `git switch dev` after you `git clone` the code**
 
 # Documentation
 Manual in `doc/nbody6++_manual.pdf`
@@ -27,7 +31,7 @@ apt-get install libhdf5-dev
 
  After make you find the executable and object files in build/  .
  
-## Tips
+# Tips
  The environment variable OMP_NUM_THREADS has to be set to the desired value of 
  OpenMP threads per MPI process. (Maybe your system has it predefined). I also recommend to set
  OMP_STACKSIZE=4096M the shell where you run the code.
