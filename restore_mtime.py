@@ -26,7 +26,7 @@ def restore_from_timeList(cmdargs):
                 if os.path.isdir(abspath):
                     dirstack.append((abspath, mtime))
                 elif os.path.isfile(abspath):
-                    cmd = "touch " + abspath + ' -d "' + mtime + '"'
+                    cmd = 'TZ="Europe/Berlin" touch ' + abspath + ' -d "' + mtime + '"'
                     run(cmd, shell=True)
                     ntouched += 1
                     if '--verbose' in cmdargs or '-v' in cmdargs:
@@ -35,7 +35,7 @@ def restore_from_timeList(cmdargs):
     dirstack.reverse()
     if len(dirstack) != 0:
         for abspath, mtime in dirstack:
-            cmd = "touch " + abspath + ' -d "' + mtime + '"'
+            cmd = 'TZ="Europe/Berlin" touch ' + abspath + ' -d "' + mtime + '"'
             run(cmd, shell=True)
             ntouched += 1
             if '--verbose' in cmdargs or '-v' in cmdargs:
@@ -582,26 +582,24 @@ def save_mtime_to_timeList(cmdargs):
             dir_or_file=$1"/"$element
             if [ -d $dir_or_file ]
             then 
-                echo -n ${dir_or_file#*archive/}"/" >> timeList
-                ls -lrth --time-style="+%Y-%m-%d %H:%M:%S" $dir_or_file | awk '{print($6, $7, $8)}' >> timeList
+                echo -n ${projectname}${dir_or_file:1}"/" >> timeList
+                TZ="Europe/Berlin" ls -lrth --time-style="+%Y-%m-%d %H:%M:%S" $dir_or_file | awk '{print($6, $7, $8)}' >> timeList
                 echo '' >> timeList
                 getdir $dir_or_file
             fi  
         done
     }
 
-    dir=`pwd`
-    cd $dir
-    echo 'file modified time information recorded at' `date` > timeList
-    echo -n $dir"/" >> timeList
-    ls -lrth --time-style="+%Y-%m-%d %H:%M:%S" | awk '{print($6, $7, $8)}' >> timeList
+    projectname='Nbody6PPGPU-beijing'
+    echo 'file modified time information in Berlin time recorded at' `TZ="Europe/Berlin" LC_TIME=en_US.utf8 date` > timeList
+    echo -n $projectname"/" >> timeList
+    TZ="Europe/Berlin" ls -lrth --time-style="+%Y-%m-%d %H:%M:%S" | awk '{print($6, $7, $8)}' | sed '/save_to_timelist.sh/d' >> timeList
     echo '' >> timeList
-    getdir $dir
-    #cat timeList
+    getdir .
     """
-    with open("save_to_timeList.sh", 'w') as f:
+    with open("save_to_timelist.sh", 'w') as f:
         f.write(shellcmd)
-    run("cd " + os.getcwd() + " && bash save_to_timeList.sh; rm save_to_timeList.sh", shell=True, check=True)
+    run("cd " + os.getcwd() + " && bash save_to_timelist.sh; rm save_to_timelist.sh", shell=True, check=True)
     if not '-q' in cmdargs and not '--quiet' in cmdargs:
         print("[OK] Save updated modification time to timeList")
 
