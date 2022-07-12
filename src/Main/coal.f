@@ -9,7 +9,7 @@
       REAL*8  CM(6)
       REAL*8  MASS(2)
 *     Francesco Rizzuto
-      PARAMETER(FctorCl = 1.0D0) 
+      PARAMETER(FctorCl = 0.5D0) 
       LOGICAL  FIRST
       SAVE  FIRST
       DATA  FIRST /.TRUE./
@@ -95,6 +95,17 @@
       if(KSTAR(I1).eq.14.or.KSTAR(I2).eq.14) then
           KW1 = 14
       end if
+
+
+***** GW KICK CALL -- introduced by Manuel Arca Sedda on July 2021 ****
+      IF (KSTAR(I1).GE.13 .AND. KSTAR(I2).GE.13)THEN
+         if(rank.eq.0)then
+            WRITE(6,*)"CALCULATING RELATIVISTIC KICKS IN COAL.F"
+         endif
+         CALL KICKGW(I1,I2)
+      ENDIF
+***********************
+
 
 *
 *       Define global c.m. coordinates & velocities from body #I1 & I2.

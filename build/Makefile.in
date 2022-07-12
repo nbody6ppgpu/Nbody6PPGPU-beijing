@@ -74,7 +74,7 @@ hiarch.f hicirc.f hidat.f higrow.f himax.f himod.f \
 hipop.f hirect.f histab.f hivel.f hmdot.f hmdot2.f hotsys.f \
 hrdiag.f hrplot.f hut.f hut2.f iblock.f imf.f imfbd.f imf2.f \
 impact.f induce.f input.f insert.f instar.f intgrt.f \
-jacobi.f kick.f kick2.f ksapo.f kscorr.f \
+jacobi.f kick.f kick2.f kickGW.f ksapo.f kscorr.f \
 ksin2.f ksinit.f ksint.f kslist.f ksmod.f ksperi.f kspert.f \
 kspoly.f kspred.f ksrect.f ksreg.f ksres.f ksres2.f ksterm.f \
 kstide.f lagr.f levels.f magbrk.f matrix.f mdot.f merge.f \

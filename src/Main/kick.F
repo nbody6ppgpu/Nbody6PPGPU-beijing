@@ -40,11 +40,24 @@
 *   WDSIG2 - ONeWDs 
 * as the dispersion in a Maxwellian for the different WD types. 
 * A limit of WDKMAX is set. 
-* See Fellhauer et al. 2003, ApJ, 595, L53 for more on WD kicks. 
-*
+*     See Fellhauer et al. 2003, ApJ, 595, L53 for more on WD kicks.
+
+*  M.A.S. MAS Manuel Arca Sedda 03 Nov 2021
+*  Added a BH spin flag (BHSPINFL) to select BH natal spins
+*     BHSPINFL = 0 - zero spins 
+*     BHSPINFL = 1 - uniform spin distribution *
+*     BHSPINFL = 2 - Gaussian spin distribution with mean = 0.5, dispersion = 0.2 *      
+*     BHSPINFL = 3 - Maxwellian spin distribution with sigma = 0.2 *
+*     BHSPINFL = 4 - Geneva models (implemented by Sambaran) *      
+*     BHSPINFL = 5 - Mesa models (implemented by Sambaran) *
+*  A new vector in common6.h has been defined, named
+*     ASPN(NMAX)
+      
+
+      
       Include 'kspars.h'
       INCLUDE 'common6.h'
-      INTEGER BHFLAG
+      INTEGER BHFLAG, BHSPINFL
       REAL*8  RAN2,VK(4)
 *     Unsafe for parallel
       SAVE  IPAIR, KC, VDIS, RI
@@ -58,8 +71,10 @@
       INTEGER KMECH
       real*8 FBFAC,FBTOT,MCO
       integer ECS
-      REAL*8 aspin, aconst, bconst, alow, mone, mtwo, JSPIN, MBH
-      REAL*8 aone, bone, atwo, btwo
+*     REAL*8 aspin, aconst, bconst, alow, mone, mtwo,
+      REAL*8 JSPIN, MBH
+*     REAL*8 aone, bone, atwo, btwo
+      REAL*8 NUMBER
       REAL*8 G, M_sun, R_sun, parsec, Km, Kmps, cspeed, year
 ************ c.g.s. **********************************
       parameter (G=6.6743D-08, M_sun=1.9884D+33)
@@ -111,6 +126,17 @@
       WDSIG2 = 2.D0
       WDKMAX = 6.D0
       BHFLAG = 2
+
+      BHSPINFL = 3
+
+******Manuel Arca Sedda May 2022
+
+      IF(DM .LT. 0.0)THEN
+         CALL KICKGW(I1,I2)
+         GO TO 358 
+      ENDIF
+
+      
 *******
 *     Chris L. Fryer. Oct 2018.
 *     Code added by Sambaran Banerjee and adopted in LONG GITHUB
@@ -163,7 +189,7 @@
 *         END IF
           KSTAR(IN) = IABS(KSTAR(IN))
 *     ks MPI communication KSTAR
-*         call ksparmpi(K_store,K_int,K_KSTAR,IN,0,KSTAR(IN))
+          call ksparmpi(K_store,K_int,K_KSTAR,IN,0,KSTAR(IN))
 *
 *     When call expel in cmbody and WD/NS binary form after Binary CE, 
 *     There is big energy error when DM is large. It seems here the DM 
@@ -189,8 +215,8 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
           EKICK = EKICK + EB
           EGRAV = EGRAV + EB
 *     ks MPI communicaton EKICK EGRAV
-*         call ksparmpi(K_store,K_real8,K_EGRAV,0,0,EB)
-*         call ksparmpi(K_store,K_real8,K_EKICK,0,0,EB)
+          call ksparmpi(K_store,K_real8,K_EGRAV,0,0,EB)
+          call ksparmpi(K_store,K_real8,K_EKICK,0,0,EB)
           I2 = I1 + 1
           if(rank.eq.0)
      &    WRITE (6,1)  TTOT*TSTAR, NAME(I1), NAME(I2), KSTAR(I1), 
@@ -206,8 +232,8 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
               CALL SPIRAL(II)
               KSTAR(N+IPAIR) = 0
 *     ks MPI communication KSTAR
-*             call ksparmpi(K_store,K_int,K_KSTAR,N+IPAIR,0,
-*    &             KSTAR(N+IPAIR))
+              call ksparmpi(K_store,K_int,K_KSTAR,N+IPAIR,0,
+     &             KSTAR(N+IPAIR))
           END IF
           GO TO 30
       END IF
@@ -331,7 +357,7 @@ c		Sambaran 2019.11.19.
 c            WRITE(6,*) "ECS-NS formation",
 c		Sambaran 2019.11.19.
 
-            if(rank.eq.0)WRITE(6,*) "ECS/AIC NS formation",
+            WRITE(6,*) "ECS/AIC NS formation",
      &           " M[M*] M0[M*] K*0 I NAME K* VDISP Time[Myr]: ",
      &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I), 
      &           KSTAR(I),DISP0, TTOT*TSTAR
@@ -396,107 +422,42 @@ c		Sambaran 2019.11.19.
 *     &              VKICK = VK(4)*(MIN(ZM,MNUEFF)/ZM)
 ***********************************************
             ENDIF
-       if(rank.eq.0)WRITE(6,*) "NS/BH formation (fallback/mechanism)",
+            IF(RANK.EQ.0)THEN
+            WRITE(6,*) "NS/BH formation (fallback/mechanism)",
      &           " M[M*] M0[M*] K*0 I NAME",
      &           " K* FB FBTOT Time[Myr] MCO[M*] VK[km/s] KMECH: ",
      &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I), 
      &           KSTAR(I), FBFAC, FBTOT, TTOT*TSTAR, MCO, VKICK, KMECH
+            ENDIF
          ENDIF
-******* BH Kerr Metric spin parameter *****
-        IF (KW.EQ.14) THEN
-        if (BHFLAG.EQ.3) then
-*** BH natal spin from Geneva models (experimental)
-        if (ZMET.lt.0.001D0) then
-           alow = 0.25D0
-           mtwo = 38.8D0
-           mone = 32.0D0
-           aconst = -0.088D0
-           bconst = 3.666D0
-        elseif (ZMET.ge.0.001D0.and.ZMET.lt.0.004D0) then
-           alow = 0.0D0
-           mtwo = 27.7D0
-           mone = 18.0D0
-           aconst = -0.088D0
-           bconst = 2.434D0
-        elseif (ZMET.ge.0.004D0.and.ZMET.lt.0.01D0) then
-           alow = 0.25D0
-           mtwo = 37.8D0
-           mone = 31.0D0
-           aconst = -0.088D0
-           bconst = 3.578D0
-        else
-           alow = 0.13D0
-           mtwo = 24.2D0
-           mone = 16.0D0
-           aconst = -0.088D0
-           bconst = 2.258D0
-        endif
-        if (MCO.le.mone) then
-           aspin = 0.85D0
-        elseif (MCO.gt.mone.and.MCO.lt.mtwo) then
-           aspin = (aconst*MCO) + bconst
-        else
-           aspin = alow
-        endif
-        if (aspin.lt.0.0D0) aspin = 0.0D0
-*********
-        elseif (BHFLAG.EQ.4) then
-*** BH natal spin from MESA models (experimental)
-        if (ZMET.lt.0.001D0) then
-           aone = -0.0010D0
-           bone = 0.125D0
-           atwo = 0.0D0
-           btwo = 0.0D0
-           mone = 1.0E+10
-        elseif (ZMET.ge.0.001D0.and.ZMET.lt.0.004D0) then
-           aone = 0.0076D0
-           bone = 0.050D0
-           atwo = -0.0019D0
-           btwo = 0.165D0
-           mone = 12.09D0
-        elseif (ZMET.ge.0.004D0.and.ZMET.lt.0.01D0) then
-           aone = -0.0006D0
-           bone = 0.105D0
-           atwo = 0.0D0
-           btwo = 0.0D0
-           mone = 1.0E+10
-        else
-           aone = -0.0016D0
-           bone = 0.115D0
-           atwo = 0.0D0
-           btwo = 0.0D0
-           mone = 1.0D+10
-        endif
-        if (MCO.le.mone) then
-           aspin = (aone*MCO) + bone
-        else
-           aspin = (atwo*MCO) + btwo
-        endif
-        if (aspin.lt.0.0D0) aspin = 0.0D0
-*********
-        else
-*** Zero BH spins
-        aspin = 0.0D0
-*********
-        endif
-********* gm ********
-        MBH = BODY(I)*ZMBAR*M_sun
-********* gm cm^2 / s ***************
-        JSPIN = (G*aspin*(MBH**2))/cspeed
-********* Msun Rsun^2 / year ********* 
-        JSPIN = JSPIN*(year/(M_sun*(R_sun**2)))
-********* Scaled *******************
-        SPIN(I) = JSPIN/SPNFAC
-*       NMI = NAME(I)
-*       SPN(NMI) = SPIN(I)
-*       ASPN(NMI) = aspin
+         
+*******BH Kerr Metric spin parameter *****
+         IF (KW.EQ.14) THEN
+
+           CALL SPIN_SELECT(BHSPINFL,ZMET,MCO,NUMBER)
+           aspin = NUMBER
+
+           MBH = BODY(I)*ZMBAR*M_sun
+*********gm cm^2 / s ***************
+           JSPIN = (G*aspin*(MBH**2))/cspeed
+*********Msun Rsun^2 / year ********* 
+           JSPIN = JSPIN*(year/(M_sun*(R_sun**2)))
+*********Scaled *******************
+           ASPN(I) = aspin
+           SPIN(I) = JSPIN/SPNFAC 
+*     NMI = NAME(I)
+*     SPN(NMI) = SPIN(I)
+*     ASPN(NMI) = aspin
 ***********************************
-        if(rank.eq.0)
-     &  write(6,*)"BH-spin I NAM M MCO a J[MsRs^2/yr] J: ",
-     &  I, NAME(I), BODY(I)*ZMBAR, MCO, aspin, JSPIN, SPIN(I)
+           IF(RANK.EQ.0)THEN
+              write(6,*)" -- BH-spin I NAM M MCO a J[MsRs^2/yr] J: ",
+     &             I, NAME(I), BODY(I)*ZMBAR, MCO, aspin, JSPIN,
+     &             SPIN(I),ASPN(I)
+           ENDIF
         ENDIF
 *******************************************
       ENDIF
+      
       IF (DM.LT.1.0D-10) VKICK = VK(4)   ! Retain VKICK for tiny DM.
 *       Limit kick velocity to VDIS+10*VSTAR/10*VST.
 *       (disabled)
@@ -549,7 +510,7 @@ c		Sambaran 2019.11.19.
       DETMP = - 0.5*BODY(I)*(VF2 - VI2)
       ECDOT = ECDOT + DETMP
 *     ks MPI communication
-*     call ksparmpi(K_store,K_real8,K_ECDOT,0,0,DETMP)
+      call ksparmpi(K_store,K_real8,K_ECDOT,0,0,DETMP)
       NKICK = NKICK + 1
 *
 *       Replace final velocity by relative velocity for binary kick.
@@ -573,8 +534,8 @@ c		Sambaran 2019.11.19.
               EKICK = EKICK - EB1
               EGRAV = EGRAV - EB1
 *     ks MPI communicaton EKICK EGRAV
-*             call ksparmpi(K_store,K_real8,K_EGRAV,0,0,-EB1)
-*             call ksparmpi(K_store,K_real8,K_EKICK,0,0,-EB1)
+              call ksparmpi(K_store,K_real8,K_EGRAV,0,0,-EB1)
+              call ksparmpi(K_store,K_real8,K_EKICK,0,0,-EB1)
           END IF
           IPAIR = 0
       END IF
@@ -583,13 +544,14 @@ c		Sambaran 2019.11.19.
 *    &    (KW.GE.13.AND.TTOT*TSTAR.GT.100.0)) THEN
           ZM = BODY(I)*ZMBAR
           if(rank.eq.0)
-     &    WRITE (6,20) TTOT,I,NAME(I),KSTAR(I),KW,KC,
+     &    WRITE (6,20)  I, NAME(I), (TIME+TOFF)*TSTAR, KSTAR(I), KW, KC,
      &         BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR, VKICK*VSTAR, 
      &         SQRT(VF2)*VSTAR, VK(4),FBFAC
-   20     FORMAT (' VELOCITY KICK: T I N KW0/KW/KC ',1P,E14.6,2I10,3I4,
-     &         ' M0[M*]',E11.3,' MN[M*]',E11.3,
-     &         ' VI[km/s]',E11.3,' VK[km/s]',E11.3,' VF[km/s]',E11.3,
-     &         ' VK0[km/s]',E11.3,' FB',E11.3)
+   20     FORMAT (' VELOCITY KICK: I',I10'  NAME',I10,
+     &         '  Time[Myr]',E12.5,'  K*0',I4,
+     &         '  K*',I4,'  K*(ICM)',I4'  M0[M*]',F9.4,'  MN[M*]',F9.4,
+     &         '  VI[km/s]',F9.4,'  VK[km/s]',F9.4'  VF[km/s]',F9.4,
+     &         '  VK0[km/s]',F9.4,'  FB',F9.4)
           KC = 0
 *     END IF
 *
@@ -609,3 +571,222 @@ c		Sambaran 2019.11.19.
    30 RETURN
 *
       END
+
+
+
+      
+********** SUBROUTINE FOR SPIN INITIALIZATION **************
+
+      SUBROUTINE SPIN_SELECT(SPINFLAG, METALLICITY, MCORE,NUMBER)
+
+      Include 'kspars.h'
+      INCLUDE 'common6.h'
+      REAL*8 NUMBER
+      REAL*8 METALLICITY, MCORE
+      INTEGER SPINFLAG
+            
+      CALL BSPIN(SPINFLAG,METALLICITY,MCORE,NUMBER)
+      WRITE(*,*) "BH SPIN", NUMBER
+         
+      END SUBROUTINE
+
+
+      
+****************SPIN SELECTION ******************
+
+      
+
+      SUBROUTINE BSPIN(SPINFLAG,METALLICITY,MCORE,SPINVALUE)
+
+      Include 'kspars.h'
+      INCLUDE 'common6.h'
+      REAL*8 aspin, aconst, bconst, alow, mone, mtwo, JSPIN, MBH
+      REAL*8 aone, bone, atwo, btwo
+      REAL*8 NUMBER
+      REAL*8 METALLICITY, MCORE
+      REAL*8 SPINVALUE
+      INTEGER SPINFLAG
+
+      
+      NUMBER = -1000.D0
+      
+      IF(SPINFLAG .EQ. 0)THEN
+         aspin = 0.0D0
+
+      ELSE IF(SPINFLAG.EQ.1)THEN
+***   BH natal spin uniform distribution
+         aspin = RAND()
+
+      ELSE IF(SPINFLAG.EQ.2)THEN
+***   BH natal spin Maxwellian distribution
+         CALL GAUSS(NUMBER)         
+         aspin = NUMBER
+      ELSE IF(SPINFLAG.EQ.3)THEN
+***   BH natal spin Gaussian distribution
+         CALL MAXW(NUMBER)
+         aspin = NUMBER
+      ELSE IF(SPINFLAG.EQ.4)THEN
+***   BH natal spin from Geneva models (experimental)
+        IF (METALLICITY .LT. 0.001D0) THEN
+           alow = 0.25D0
+           mtwo = 38.8D0
+           mone = 32.0D0
+           aconst = -0.088D0
+           bconst = 3.666D0
+        ELSEIF (METALLICITY.GE.0.001D0.AND.METALLICITY.LT.0.004D0) THEN
+           alow = 0.0D0
+           mtwo = 27.7D0
+           mone = 18.0D0
+           aconst = -0.088D0
+           bconst = 2.434D0
+        ELSEIF (METALLICITY.ge.0.004D0.and.METALLICITY.lt.0.01D0) THEN
+           alow = 0.25D0
+           mtwo = 37.8D0
+           mone = 31.0D0
+           aconst = -0.088D0
+           bconst = 3.578D0
+        ELSE
+           alow = 0.13D0
+           mtwo = 24.2D0
+           mone = 16.0D0
+           aconst = -0.088D0
+           bconst = 2.258D0
+        ENDIF
+        
+        IF (MCORE.LE.mone) THEN
+           aspin = 0.85D0
+        ELSEIF (MCORE.GT.mone.AND.MCORE.LT.mtwo) THEN
+           aspin = (aconst*MCORE) + bconst
+        ELSE
+           aspin = alow
+        ENDIF
+        IF (aspin.LT.0.0D0) THEN
+           aspin = 0.0D0
+        ENDIF
+
+        
+      ELSEIF(SPINFLAG.EQ.5)THEN
+
+********** BH natal spin from MESA models (experimental)
+        IF (METALLICITY.LT.0.001D0) THEN
+           aone = -0.0010D0
+           bone = 0.125D0
+           atwo = 0.0D0
+           btwo = 0.0D0
+           mone = 1.0E+10
+        ELSEIF (METALLICITY.GE.0.001D0.AND.METALLICITY.LT.0.004D0) THEN
+           aone = 0.0076D0
+           bone = 0.050D0
+           atwo = -0.0019D0
+           btwo = 0.165D0
+           mone = 12.09D0
+        ELSEIF (METALLICITY.GE.0.004D0.AND.METALLICITY.LT.0.01D0) THEN
+           aone = -0.0006D0
+           bone = 0.105D0
+           atwo = 0.0D0
+           btwo = 0.0D0
+           mone = 1.0E+10
+        ELSE
+           aone = -0.0016D0
+           bone = 0.115D0
+           atwo = 0.0D0
+           btwo = 0.0D0
+           mone = 1.0D+10
+        ENDIF
+        IF (MCORE.LE.mone) THEN
+           aspin = (aone*MCORE) + bone
+        ELSE
+           aspin = (atwo*MCORE) + btwo
+        ENDIF
+        IF (aspin.LT.0.0D0)THEN
+           aspin = 0.0D0
+        ENDIF
+
+
+
+
+              
+
+      ENDIF
+
+
+      SPINVALUE = aspin
+      
+
+      END SUBROUTINE
+
+
+
+
+************ ROUTINES NEEDED ******************+      
+      SUBROUTINE GAUSS(GSS)
+
+      REAL *8 PDF,MU,SIGMA,PDFMAX,PX,PRE
+      REAL *8 PDFX
+      REAL *8 RAN2
+      REAL *8 GSS
+      
+      MU = 0.5
+      SIGMA=0.2D0
+      PI = 3.14159265358979D0
+           
+      PDFMAX = 1./SQRT(2.D0*PI*SIGMA*SIGMA)
+
+      DO WHILE (1 .GT. 0)
+         PDFX = PDFMAX*RAND()
+         PX = RAND()
+         PRE =1./SQRT(2.D0*PI*SIGMA*SIGMA)
+         PDF = PRE * EXP(-0.5*((PX-MU)/SIGMA)**2.D0)
+         
+         IF(PDF .GT. PDFX)THEN
+            GSS = PX
+            GO TO 10 
+         ENDIF
+
+         !WRITE(*,*) PDFX,PX,PDF,PDFMAX
+         
+         
+      END DO
+
+ 10   CONTINUE
+      
+      
+      END SUBROUTINE
+
+
+      
+      SUBROUTINE MAXW(MXL)
+
+      REAL *8 PDF,MU,SIGMA,PDFMAX,PX,PRE
+      REAL *8 PDFX
+      REAL *8 RAN2
+      REAL *8 MXL
+      
+      SIGMA=0.2D0
+      PI = 3.14159265358979D0
+
+
+      PX  = 2.D0*SIGMA*SQRT(2.D0/PI)
+      PRE = SQRT(2.D0/PI)/SIGMA**3.D0 
+      PDF = PRE * PX**2.D0*EXP(-PX**2.D0/(2.*SIGMA**2.D0))
+      PDFMAX = PDF
+      
+      DO WHILE (1 .GT. 0)
+         PDFX = PDFMAX*RAND()
+         PX = RAND()
+         PRE = SQRT(2.D0/PI)/SIGMA**3.D0 
+         PDF = PRE * PX**2.D0*EXP(-PX**2.D0/(2.*SIGMA**2.D0))
+         IF(PDF .GT. PDFX)THEN
+            MXL = PX
+            GO TO 10 
+         ENDIF
+
+         !WRITE(*,*) PDFX,PX,PDF,PDFMAX
+         
+         
+      END DO
+
+ 10   CONTINUE
+      
+      
+      END SUBROUTINE
