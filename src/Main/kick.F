@@ -129,14 +129,15 @@
 
       BHSPINFL = 3
 
-******Manuel Arca Sedda May 2022
-
-      IF(DM .LT. 0.0)THEN
-         CALL KICKGW(I1,I2)
-         GO TO 358 
-      ENDIF
-
-      
+******
+*Manuel Arca Sedda May 2022
+*
+*      IF(DM .LT. 0.0)THEN
+*         CALL KICKGW(I1,I2)
+*         GO TO 30
+*      ENDIF
+*
+*     
 *******
 *     Chris L. Fryer. Oct 2018.
 *     Code added by Sambaran Banerjee and adopted in LONG GITHUB
