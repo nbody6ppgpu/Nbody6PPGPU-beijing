@@ -13,7 +13,7 @@
       REAL*8 M01,M02,M03,M1,M2,M3,AGE1,AGE2,AGE3,MC3,LUM,RM,RCC
       REAL*8 MENV,RENV,K2E
       REAL*8 MCH
-      PARAMETER(MCH=1.44D0,FctorCl = 1.0D0)
+      PARAMETER(MCH=1.44D0,FctorCl = 0.5D0)
       LOGICAL  FIRST
       SAVE  FIRST
       DATA  FIRST /.TRUE./
@@ -100,9 +100,9 @@
       ENDIF
 *
       if(rank.eq.0)WRITE(38,67)K1,M01,M1
- 67   FORMAT(' MIX OLD *1:',I4,2F10.6)
+ 67   FORMAT(' MIX OLD *1:',I4,1P,2F15.6)
       if(rank.eq.0)WRITE(38,68)K2,M02,M2
- 68   FORMAT(' MIX OLD *2:',I4,2F10.6)
+ 68   FORMAT(' MIX OLD *2:',I4,1P,2F15.6)
 *
 *       Specify total mass.
       M3 = M1 + M2
@@ -204,7 +204,7 @@
       ENDIF
 *
       if(rank.eq.0)WRITE(38,69)KW,M03,M3
- 69   FORMAT(' MIX NEW *3:',I4,2F10.6)
+ 69   FORMAT(' MIX NEW *3:',I4,1P,2F15.6)
 *
 *       Determine consistent stellar type and specify mass loss.
       IF(KW.LE.14)THEN
@@ -314,6 +314,22 @@ C   35     FORMAT (1X,F7.1,2I6,3I4,4F5.1,2F7.2,F6.2,F7.2,F9.5,1P,E9.1)
       J1 = I1
       J2 = I2
 *
+***** GW KICK CALL -- introduced by Manuel Arca Sedda on July 2021 ****
+      IF (KSTAR(I1).GE.13 .AND. KSTAR(I2).GE.13)THEN
+         if(rank.eq.0)then
+            WRITE(6,*)"CALCULATING RELATIVISTIC KICKS IN MIX.F"
+            WRITE(6,*)XDOT(1,I1),XDOT(2,I1),XDOT(3,I1)
+            WRITE(6,*)XDOT(1,I2),XDOT(2,I2),XDOT(3,I2)
+         endif
+         CALL KICKGW(I1,I2)
+         if(rank.eq.0)then
+             WRITE(6,*)XDOT(1,I1),XDOT(2,I1),XDOT(3,I1)
+            WRITE(6,*)XDOT(1,I2),XDOT(2,I2),XDOT(3,I2)
+         endif
+        
+      ENDIF
+***********************
+      
       IF(rank.eq.0.and.KSTAR(I1).GT.12)THEN
           WRITE (15,40)  K1, K2, KSTAR(I1), BODY(I1)*ZMBAR,
      &                   BODY(I2)*ZMBAR, M3
