@@ -51,12 +51,17 @@ apt-get install libhdf5-dev
 
 
 # Known Problems:
-   1. For systems with more than one GPU on one node the association of MPI rank id and GPU bus id is not 
+ 1. For systems with more than one GPU on one node the association of MPI rank id and GPU bus id is not 
       well defined, will be improved in next version.
-   2. Runs with a million or more bodies and huge numbers of binaries (5% or more) use extreme amounts of
+ 2. Runs with a million or more bodies and huge numbers of binaries (5% or more) use extreme amounts of
       computing time for the KS binaries (much much more than should be expected). We work on this. 
-   3. On some systems heap and stack management when using OpenMP and MPI together seem to produce very
+ 3. On some systems heap and stack management when using OpenMP and MPI together seem to produce very
       strange errors and segmentation faults. The exact reason is not known; we work on this.
+ 4. Currently using standard OpenMP WITHOUT sse or avx does not work. (it means for configure --disable-simd , but --enable-omp). It uses routines nbint.F instead of special sse or avx routines for neighbour force. We are working on that.
+ 
+ 5. Using much more than one million particles (up to ten million) is still not fully supported. configure already allows --with-par=4m  , 8m, 10m, b4m, b8m, b10m . Runs of that size may still fail, depending on your hardware and software environment; also the code may still have some glitches (wrong printout, insufficient vector space allocation);  test and work is ongoing.
+ 
+ 6. Many stellar evolution and other parameters are still compiled into the code (see Table A1 in Kamlah et al. 2022, and parameter FctorCl in Rizzuto et al. 2021), mxns0,1 masses of neutron stars; it is the responsibility of the user to keep them all consistent at compile time (for example  mxns and FctorCl are defined in two routines independently, see hrplot, coal, mix). We are working to prepare a nice Fortran NAMELIST style input for ALL parameters (the ones from the current input file, and the ones currently compiled in). That will work like in the style of an .ini file with "key=value" pairs and default values.
 
 
 # Disclaimer
