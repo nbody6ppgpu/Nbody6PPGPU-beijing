@@ -112,7 +112,7 @@
            call cputim(ttgr3)
            CALL TIDES3(SEMI,BODY(I1),BODY(I2),ECC,CLIGHT,DTX,DE)
            call cputim(ttgr4)
-           DH = DE(1)/ZMU
+           DH = -DE(1)/ZMU
 *
 *       TIDES3 returns DE=DE(1), DE(2)=0, DSEMI=DE(3), DECC=DE(4), DJ=DE(5)
 *
