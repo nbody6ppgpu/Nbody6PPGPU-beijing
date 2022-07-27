@@ -449,11 +449,10 @@ c		Sambaran 2019.11.19.
 *     SPN(NMI) = SPIN(I)
 *     ASPN(NMI) = aspin
 ***********************************
-        if(rank.eq.0)
+              if(rank.eq.0)
      &        write(6,*)" -- BH-spin I NAM M MCO a J[MsRs^2/yr] J: ",
      &             I, NAME(I), BODY(I)*ZMBAR, MCO, aspin, JSPIN,
      &             SPIN(I),ASPN(I)
-           ENDIF
         ENDIF
 *******************************************
       ENDIF
