@@ -65,7 +65,7 @@
 *     END IF
 *
       ITP = 0
-      IF(GAMMA(IPAIR).GT.1.0D-04) ITP = 1
+*     IF(GAMMA(IPAIR).GT.1.0D-04) ITP = 1
 *       Perform iteration with or without re-calculating perturbation.
       DO 40 ITER = 1,ITMAX
 *
