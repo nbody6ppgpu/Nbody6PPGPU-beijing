@@ -125,6 +125,8 @@
            RSCHW = 2.0*BODY(I)/CL2
            SEMI1 = SEMI - DE(3)
            ECC1 = ECC - DE(4)
+           PERI = SEMI*(1.D0 - ECC)
+           QPERI = SEMI1*(1.D0 - ECC1)
            IF(ECC1.LT.0.0.OR.ECC1.GT.1.0.OR.SEMI1.LT.0.0)THEN
                SEMI1 = SEMI
                ECC1 = ECC
@@ -134,8 +136,8 @@
            if(rank.eq.0)WRITE(6,665)
      &   TTOT,DTGW(IPAIR),STEP(I1),I,IPAIR,LIST(1,I1),
      &   NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
-     &   BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,SEMI,QPERI,RSCHW,
-     &   H(IPAIR),GAMMA(IPAIR),A_EIN,TORB,TGR,DE(3),DE(4),DE(1),DH,PERI
+     &   BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,ECC,SEMI,QPERI,RSCHW,H(IPAIR),
+     &   GAMMA(IPAIR),A_EIN,TORB,TGR,-DE(3),-DE(4),-DE(1),DH,PERI
  665  FORMAT(1X,' GR KSTIDE T DTGW STEP',1P,3E13.5,' I IP NPERT',
      &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
      &   ' e,a,QP,RS[NB]=',4E13.5,' H, GAMMA=',2E13.5,
