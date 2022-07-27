@@ -691,10 +691,10 @@ c$$$      print*,rank,'rmax',rmax
       ELSE
 * ADDED BY MAS - 08 NOV 2021 - M.A.S. Manuel Arca Sedda
          IF(ECC2 .LT. 0.0 .OR. ECC .GT. 1.0 .OR. SEMI.LT.0.0)THEN
-         IF(RANK.EQ.0) WRITE(*,*)
-     &     ' KSINT bef KSRECT IPAIR, I12, N12, M12, ECC2, ECC, SEMI ',
+         IF(RANK.EQ.0) WRITE(*,*)' t=',time,
+     &  ' KSINT bef KSRECT IPAIR, I12, N12, M12, ECC2, ECC, SEMI H R ',
      &     IPAIR,I1,I2,NAME(I1),NAME(I2),BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
-     &     ECC2,ECC,SEMI, ' watch e or semi ...'
+     &     ECC2,ECC,SEMI,H(IPAIR),R(IPAIR),' watch e or semi ...'
          ENDIF
          CALL KSRECT(IPAIR)
       END IF
