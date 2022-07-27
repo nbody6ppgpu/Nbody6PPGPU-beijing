@@ -454,6 +454,7 @@ c		Sambaran 2019.11.19.
      &             I, NAME(I), BODY(I)*ZMBAR, MCO, aspin, JSPIN,
      &             SPIN(I),ASPN(I)
 *******************************************
+         ENDIF
       ENDIF
       
       IF (DM.LT.1.0D-10) VKICK = VK(4)   ! Retain VKICK for tiny DM.
