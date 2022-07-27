@@ -428,6 +428,7 @@ c		Sambaran 2019.11.19.
      &           " K* FB FBTOT Time[Myr] MCO[M*] VK[km/s] KMECH: ",
      &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I), 
      &           KSTAR(I), FBFAC, FBTOT, TTOT*TSTAR, MCO, VKICK, KMECH
+            ENDIF
          ENDIF
          
 *******BH Kerr Metric spin parameter *****
@@ -452,7 +453,6 @@ c		Sambaran 2019.11.19.
      &        write(6,*)" -- BH-spin I NAM M MCO a J[MsRs^2/yr] J: ",
      &             I, NAME(I), BODY(I)*ZMBAR, MCO, aspin, JSPIN,
      &             SPIN(I),ASPN(I)
-        ENDIF
 *******************************************
       ENDIF
       
