@@ -221,7 +221,7 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
           I2 = I1 + 1
           if(rank.eq.0)
      &    WRITE (6,1)  TTOT*TSTAR, NAME(I1), NAME(I2), KSTAR(I1), 
-     &         KSTAR(I2),ZM1,ZM2,VESC, VDIS, R(IPAIR)/SEMI, EB, R(IPAIR)
+     &        KSTAR(I2),ZM1,ZM2,VESC, VDIS, R(IPAIR)/SEMI, EB, R(IPAIR)
     1     FORMAT (' BINARY KICK:  TIME[Myr] NAME(I1) NAME(I2) K*(I1) ',
      &         'K*(I2) M(I1)[M*] M(I2)[M*] VESC[km/s] VDIS[km/s] ',
      &         'R12/SEMI EB R12[NB] ',1P,E14.3,0P,2I10,2I4,2F9.3,
