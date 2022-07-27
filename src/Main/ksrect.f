@@ -23,9 +23,11 @@
           i1 = 2*ipair-1
           i2 = 2*ipair
       if(rank.eq.0)print*,' Warning KSRECT begin: ',
-     &    't,ipair,n12,m12,semi,ecc2,ecc,kw,r,h,gamma=',ttot,ipair,
-     &    name(i1),name(i2),body(i1)*zmbar,body(i2)*zmbar, 
-     &    semi,ecc2,ecc,kstar(n+ipair),r(ipair),h(ipair),gamma(ipair)
+     &    't,ipair,n12,m12,semi,ecc2,ecc,kw,r,h,gamma,tdot2=',ttot,
+     &    ipair,name(i1),name(i2),body(i1)*zmbar,body(i2)*zmbar, 
+     &    semi,ecc2,ecc,kstar(n+ipair),r(ipair),h(ipair),gamma(ipair),
+     &    tdot2(ipair)
+      STOP
       END IF
 *
       NKSCNT = NKSCNT + 1
