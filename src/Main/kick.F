@@ -190,7 +190,7 @@
 *         END IF
           KSTAR(IN) = IABS(KSTAR(IN))
 *     ks MPI communication KSTAR
-          call ksparmpi(K_store,K_int,K_KSTAR,IN,0,KSTAR(IN))
+*         call ksparmpi(K_store,K_int,K_KSTAR,IN,0,KSTAR(IN))
 *
 *     When call expel in cmbody and WD/NS binary form after Binary CE, 
 *     There is big energy error when DM is large. It seems here the DM 
@@ -216,8 +216,8 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
           EKICK = EKICK + EB
           EGRAV = EGRAV + EB
 *     ks MPI communicaton EKICK EGRAV
-          call ksparmpi(K_store,K_real8,K_EGRAV,0,0,EB)
-          call ksparmpi(K_store,K_real8,K_EKICK,0,0,EB)
+*         call ksparmpi(K_store,K_real8,K_EGRAV,0,0,EB)
+*         call ksparmpi(K_store,K_real8,K_EKICK,0,0,EB)
           I2 = I1 + 1
           if(rank.eq.0)
      &    WRITE (6,1)  TTOT*TSTAR, NAME(I1), NAME(I2), KSTAR(I1), 
@@ -233,8 +233,8 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
               CALL SPIRAL(II)
               KSTAR(N+IPAIR) = 0
 *     ks MPI communication KSTAR
-              call ksparmpi(K_store,K_int,K_KSTAR,N+IPAIR,0,
-     &             KSTAR(N+IPAIR))
+*             call ksparmpi(K_store,K_int,K_KSTAR,N+IPAIR,0,
+*    &             KSTAR(N+IPAIR))
           END IF
           GO TO 30
       END IF
@@ -358,7 +358,7 @@ c		Sambaran 2019.11.19.
 c            WRITE(6,*) "ECS-NS formation",
 c		Sambaran 2019.11.19.
 
-            WRITE(6,*) "ECS/AIC NS formation",
+            if(rank.eq.0)WRITE(6,*) "ECS/AIC NS formation",
      &           " M[M*] M0[M*] K*0 I NAME K* VDISP Time[Myr]: ",
      &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I), 
      &           KSTAR(I),DISP0, TTOT*TSTAR
@@ -423,8 +423,7 @@ c		Sambaran 2019.11.19.
 *     &              VKICK = VK(4)*(MIN(ZM,MNUEFF)/ZM)
 ***********************************************
             ENDIF
-            IF(RANK.EQ.0)THEN
-            WRITE(6,*) "NS/BH formation (fallback/mechanism)",
+       if(rank.eq.0)WRITE(6,*) "NS/BH formation (fallback/mechanism)",
      &           " M[M*] M0[M*] K*0 I NAME",
      &           " K* FB FBTOT Time[Myr] MCO[M*] VK[km/s] KMECH: ",
      &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I), 
@@ -450,8 +449,8 @@ c		Sambaran 2019.11.19.
 *     SPN(NMI) = SPIN(I)
 *     ASPN(NMI) = aspin
 ***********************************
-           IF(RANK.EQ.0)THEN
-              write(6,*)" -- BH-spin I NAM M MCO a J[MsRs^2/yr] J: ",
+        if(rank.eq.0)
+     &        write(6,*)" -- BH-spin I NAM M MCO a J[MsRs^2/yr] J: ",
      &             I, NAME(I), BODY(I)*ZMBAR, MCO, aspin, JSPIN,
      &             SPIN(I),ASPN(I)
            ENDIF
@@ -511,7 +510,7 @@ c		Sambaran 2019.11.19.
       DETMP = - 0.5*BODY(I)*(VF2 - VI2)
       ECDOT = ECDOT + DETMP
 *     ks MPI communication
-      call ksparmpi(K_store,K_real8,K_ECDOT,0,0,DETMP)
+*     call ksparmpi(K_store,K_real8,K_ECDOT,0,0,DETMP)
       NKICK = NKICK + 1
 *
 *       Replace final velocity by relative velocity for binary kick.
@@ -535,8 +534,8 @@ c		Sambaran 2019.11.19.
               EKICK = EKICK - EB1
               EGRAV = EGRAV - EB1
 *     ks MPI communicaton EKICK EGRAV
-              call ksparmpi(K_store,K_real8,K_EGRAV,0,0,-EB1)
-              call ksparmpi(K_store,K_real8,K_EKICK,0,0,-EB1)
+*             call ksparmpi(K_store,K_real8,K_EGRAV,0,0,-EB1)
+*             call ksparmpi(K_store,K_real8,K_EKICK,0,0,-EB1)
           END IF
           IPAIR = 0
       END IF
