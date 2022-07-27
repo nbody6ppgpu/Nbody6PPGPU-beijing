@@ -403,6 +403,10 @@
 *
       IF (STEP.GT.10.0*STEP0.AND.ICOLL.EQ.0) THEN
           STEP = 10.0*ABS(STEP0)
+      ELSE IF (STEP.LE.SMALL) THEN
+          if(rank.eq.0) WRITE(6,*) ' Stepsize, Small =',
+     &   STEP,SMALL,' ENFORCED CHTERM '
+          go to 70
       ELSE IF (STEP.EQ.0.0D0) THEN
           if(rank.eq.0) WRITE (6,*) ' Stepsize = 0!', char(7)
           STOP
