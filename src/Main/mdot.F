@@ -706,6 +706,7 @@ c$$$            end if
          TORB = TWOPI*SQRT(SEMI**3/BODY(J))
          TGR = JORB/DJGR
          RSCHW = 2.0*BODY(J)/CL2
+         QPERI = SEMI*(1.D0 - ECC)
 * RSp updated output Dec. 2021
       if(rank.eq.0.AND.DJGR.GT.1.E-06)WRITE(6,665)
      &   TTOT,DTGR,STEP(J1),I,IPAIR,LIST(1,J1),
