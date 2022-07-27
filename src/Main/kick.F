@@ -87,15 +87,15 @@
 *     --03/07/14 11:30-lwang-ks-parallel--------------------------------*
 ***** Note: Here when icase eq. -147 means for ks communication
 *****       I will be the processer id to share data
-      IF (ICASE.EQ.-147) THEN
-#ifdef PARALLEL         
-         CALL MPI_BCAST(IPAIR,1,MPI_INTEGER,I,MPI_COMM_WORLD,ierr)
-         CALL MPI_BCAST(KC,1,MPI_INTEGER,I,MPI_COMM_WORLD,ierr)
-         CALL MPI_BCAST(VDIS,1,MPI_REAL8,I,MPI_COMM_WORLD,ierr)
-         CALL MPI_BCAST(RI,1,MPI_REAL8,I,MPI_COMM_WORLD,ierr)
-#endif         
-         RETURN
-      END IF
+*      IF (ICASE.EQ.-147) THEN
+*#ifdef PARALLEL         
+*         CALL MPI_BCAST(IPAIR,1,MPI_INTEGER,I,MPI_COMM_WORLD,ierr)
+*         CALL MPI_BCAST(KC,1,MPI_INTEGER,I,MPI_COMM_WORLD,ierr)
+*         CALL MPI_BCAST(VDIS,1,MPI_REAL8,I,MPI_COMM_WORLD,ierr)
+*         CALL MPI_BCAST(RI,1,MPI_REAL8,I,MPI_COMM_WORLD,ierr)
+*#endif         
+*         RETURN
+*      END IF
 *     --03/07/14 11:30-lwang-end-ks-parallel----------------------------*
 *
 *     Choose the kick settings.
