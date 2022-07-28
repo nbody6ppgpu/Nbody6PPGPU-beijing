@@ -56,3 +56,7 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# example_1k output
+examples/example_1k/*
+examples/.ipynb_checkpoints
+!examples/example_1k/1k.inp
