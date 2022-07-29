@@ -1,44 +1,59 @@
-This is Nbody6++GPU - Beijing version, an N-body star cluster simulation code, maintained by Rainer Spurzem (spurzem/at/nao.cas.cn) and team. The starting commits of this repo put all old versions of Nbody6++GPU from Dec 2017 into Git system for version control.
+This is Nbody6++GPU - Beijing version, an N-body star cluster simulation code, maintained by Rainer Spurzem (spurzem/at/nao.cas.cn) and team. 
 
 The code is an offspring of Sverre Aarseth's direct N-body codes see www.sverre.com . 
 
 This is the code suitable for parallel and GPU accelerated runs on supercomputers and workstations. 
 
-# About this repo
-**The `stable` branch include major versions, and the `dev` branch include the most recent updates and bugfix. Changes in `dev` branch are merged to `stable` regularly.**
+# For contributors
+```git clone -b dev git@github.com:kaiwu-astro/Nbody6PPGPU-beijing```
+It would automatically switch to dev branch after downloading.
 
-**If you want the most recent version, run `git switch dev` after you `git clone` the code**
+Sources are in `src/Main/`. Due to urgent bug fixes few routines are later than Dec2020. 
 
-# Documentation
-Manual in `doc/nbody6++_manual.pdf`
+# For users
+## Installation
+```bash
+git clone git@github.com:kaiwu-astro/Nbody6PPGPU-beijing
+```
+This downloads the `stable` branch. The `stable` branch include major versions, and the `dev` branch include the most recent updates and bugfix. Changes in `dev` branch are merged to `stable` regularly.
 
+If you want the most recent version (may contain bugs), use `git clone -b dev git@github.com:kaiwu-astro/Nbody6PPGPU-beijing`, or run `git switch dev` after you `clone`. 
 
-# Recommended usage:
-## (optional) to enable HDF5
+```bash
+ ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large 
+ make clean ; make -j 
+```
+
+After make you find the executable and object files in `build/`, named `nbody6++.sse`. The suffix may change with different compilation options.
+
+Copy the executable to the simulation directory you want
+
+```bash
+cp `ls build/nbody6++*` [your_simulation_path]
+```
+
+It is for up to one million bodies with many initial binaries. The configure script written by Long Wang has a multitude of further options, check with `./configure --help` or ask in [our discussion](https://github.com/kaiwu-astro/Nbody6PPGPU-beijing/discussions).
+
+## Additional installation options
+
+HDF5 is recommended but not necessary. To use HDF5, make sure it is installed in your computer. For example, in Debian based Linux,
 ```bash
 apt-get install libhdf5-openmpi-dev
 apt-get install libhdf5-dev
 ```
-## build
-```bash
- ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large
- make clean ; make -j 
-```
- It is for up to one million bodies with many initial binaries. The configure script written by 
- Long Wang has a multitude of further options, check in it or ask.
 
- Sources are in src/Main/ . Due to urgent bugfixes few routines are later then Dec2020. 
+after that, append `--enable-hdf5` in configure command
 
- After make you find the executable and object files in build/  .
- 
+# Documentation
+Manual in `doc/nbody6++_manual.pdf`
+
 # Tips
- The environment variable OMP_NUM_THREADS has to be set to the desired value of 
- OpenMP threads per MPI process. (Maybe your system has it predefined). I also recommend to set
+ - The environment variable OMP_NUM_THREADS has to be set to the desired value of OpenMP threads per MPI process. (Maybe your system has it predefined). I also recommend to set
  OMP_STACKSIZE=4096M the shell where you run the code.
 
- It is inefficient (and even more error prone) for particle numbers below about 50k-100k particles (depending on hardware). For smaller N you are advised to use Nbody6 and Nbody6GPU for single node/process.
+ - It is inefficient (and even more error prone) for particle numbers below about 50k-100k particles (depending on hardware). For smaller N you are advised to use Nbody6 and Nbody6GPU for single node/process.
  
- It is recommended to provide a dat.10 file in N-body input format (see manual). Such file can be produced by other prograns, like mcluster.
+ - It is recommended to provide a dat.10 file in N-body input format (see manual). Such file can be produced by other programs, like mcluster.
 
 
 # Seleted References:
