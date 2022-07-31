@@ -34,7 +34,8 @@
          DSAVE(12) = TEV0(I)
          DSAVE(13) = EPOCH(I)
          DSAVE(14) = SPIN(I)
-         DSAVE(15) = ZLMSTY(I)
+         DSAVE(15) = ASPN(I)
+         DSAVE(16) = ZLMSTY(I)
          DSAVE(17) = STEP(I)
          NAMEI = NAME(I)
          KSI = KSTAR(I)
@@ -73,6 +74,7 @@
          BODY0(I) = BODY0(J)
          EPOCH(I) = EPOCH(J)
          SPIN(I) = SPIN(J)
+         ASPN(I) = ASPN(J)
          ZLMSTY(I) = ZLMSTY(J)
          NAME(I) = NAME(J)
          KSTAR(I) = KSTAR(J)
@@ -93,7 +95,8 @@
          TEV0(J) = DSAVE(12)
          EPOCH(J) = DSAVE(13)
          SPIN(J) = DSAVE(14)
-         ZLMSTY(J) = DSAVE(15)
+         ASPN(J) = DSAVE(15)
+         ZLMSTY(J) = DSAVE(16)
          NAME(J) = NAMEI
          KSTAR(J) = KSI
          STEP(J) = DSAVE(17)

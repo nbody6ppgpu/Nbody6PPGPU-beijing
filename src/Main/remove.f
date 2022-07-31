@@ -79,6 +79,7 @@
           BODY0(J) = BODY0(J1)
           EPOCH(J) = EPOCH(J1)
           SPIN(J) = SPIN(J1)
+          ASPN(J) = ASPN(J1)
           ZLMSTY(J) = ZLMSTY(J1)
           KSTAR(J) = KSTAR(J1)
           NAME(J) = NAME(J1)

@@ -9,7 +9,7 @@
       COMMON/BINARY/  CM(4,MMAX),XREL(3,MMAX),VREL(3,MMAX),
      &                HM(MMAX),UM(4,MMAX),UMDOT(4,MMAX),TMDIS(MMAX),
      &                NAMEM(MMAX),NAMEG(MMAX),KSTARM(MMAX),IFLAG(MMAX)
-      REAL*8  DSAVE(16)
+      REAL*8  DSAVE(17)
       COMMON/XPRED/ TPRED(NMAX),TRES(KMAX),ipredall
       LOGICAL ipredall
       REAL*8 TPRED
@@ -272,8 +272,9 @@ c$$$     &     'N',(NAME(LIST(2+K,I1)),K=1,5)
           DSAVE(12) = TEV0(I)
           DSAVE(13) = EPOCH(I)
           DSAVE(14) = SPIN(I)
-          DSAVE(15) = ZLMSTY(I)
-          DSAVE(16) = TPRED(I)
+          DSAVE(15) = ASPN(I)
+          DSAVE(16) = ZLMSTY(I)
+          DSAVE(17) = TPRED(I)
           NAMEI = NAME(I)
           KSI = KSTAR(I)
 *
@@ -292,6 +293,7 @@ c$$$     &     'N',(NAME(LIST(2+K,I1)),K=1,5)
           TEV0(I) = TEV0(J)
           EPOCH(I) = EPOCH(J)
           SPIN(I) = SPIN(J)
+          ASPN(I) = ASPN(J)
           ZLMSTY(I) = ZLMSTY(J)
           TPRED(I) = TPRED(J)
           NAME(I) = NAME(J)
@@ -315,8 +317,9 @@ c$$$     &     'N',(NAME(LIST(2+K,I1)),K=1,5)
           TEV0(J) = DSAVE(12)
           EPOCH(J) = DSAVE(13)
           SPIN(J) = DSAVE(14)
-          ZLMSTY(J) = DSAVE(15)
-          TPRED(J) = DSAVE(16)
+          ASPN(J) = DSAVE(15)
+          ZLMSTY(J) = DSAVE(16)
+          TPRED(J) = DSAVE(17)
           NAME(J) = NAMEI
           KSTAR(J) = KSI
 

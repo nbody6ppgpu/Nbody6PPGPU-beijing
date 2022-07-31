@@ -6,7 +6,7 @@
 *
       INCLUDE 'common6.h'
       COMMON/XPRED/ TPRED(NMAX),TRES(KMAX),ipredall
-      REAL*8 TPRED,TRES,DSAVE(17)
+      REAL*8 TPRED,TRES,DSAVE(18)
       LOGICAL ipredall
 *      EXTERNAL RENAME
 *
@@ -66,9 +66,10 @@ c$$$      call flush(6)
           DSAVE(12) = TEV0(I)
           DSAVE(13) = EPOCH(I)
           DSAVE(14) = SPIN(I)
-          DSAVE(15) = ZLMSTY(I)
-          DSAVE(16) = TPRED(I)
-          DSAVE(17) = STEP(I)
+          DSAVE(15) = ASPN(I)
+          DSAVE(16) = ZLMSTY(I)
+          DSAVE(17) = TPRED(I)
+          DSAVE(18) = STEP(I)
           NAMEI = NAME(I)
           KSI = KSTAR(I)
 *
@@ -105,6 +106,7 @@ c$$$      call flush(6)
           BODY0(I) = BODY0(J)
           EPOCH(I) = EPOCH(J)
           SPIN(I) = SPIN(J)
+          ASPN(I) = ASPN(I)
           ZLMSTY(I) = ZLMSTY(J)
           NAME(I) = NAME(J)
           KSTAR(I) = KSTAR(J)
@@ -125,11 +127,12 @@ c$$$      call flush(6)
           TEV0(J) = DSAVE(12)
           EPOCH(J) = DSAVE(13)
           SPIN(J) = DSAVE(14)
-          ZLMSTY(J) = DSAVE(15)
-          TPRED(J) = DSAVE(16)
+          ASPN(J) = DSAVE(15)
+          ZLMSTY(J) = DSAVE(16)
+          TPRED(J) = DSAVE(17)
           NAME(J) = NAMEI
           KSTAR(J) = KSI
-          STEP(J) = DSAVE(17)
+          STEP(J) = DSAVE(18)
 
 #ifdef SIMD
 *     Update Particle data in AVX/SSE library

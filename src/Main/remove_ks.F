@@ -58,6 +58,7 @@
       BODY0(ICM) = BODY0(J)
       EPOCH(ICM) = EPOCH(J)
       SPIN(ICM) = SPIN(J)
+      ASPN(ICM) = ASPN(J)
       ZLMSTY(ICM) = ZLMSTY(J)
       KSTAR(ICM) = KSTAR(J)
       NAME(ICM) = NAME(J)
