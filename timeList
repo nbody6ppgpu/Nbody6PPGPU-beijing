@@ -1,4 +1,4 @@
-file modified time information in Berlin time recorded at Mon Jun 20 08:14:57 CEST 2022
+file modified time information in Berlin time recorded at Thu 28 Jul 2022 06:19:13 PM CEST
 Nbody6PPGPU-beijing/  
 2020-06-29 23:35:57 extra_inc
 2020-07-09 23:24:04 src
@@ -13,18 +13,17 @@ Nbody6PPGPU-beijing/
 2022-04-17 09:24:05 config.status
 2022-04-17 09:24:05 config.examples
 2022-04-17 09:24:05 build
-2022-05-05 11:52:40 README.md
 2022-05-05 11:52:40 deleteList.txt
-2022-06-16 20:30:48 LIST
-2022-06-19 06:49:37 restore_mtime.py
-2022-06-20 08:14:57 timeList
+2022-07-08 16:57:38 restore_mtime.py
+2022-07-20 09:09:12 README.md
+2022-07-28 18:19:13 timeList
 
 Nbody6PPGPU-beijing/build/  
 2020-09-25 22:53:55 Makefile.debug
 2022-04-17 09:24:05 nbody6++.sse.gpu.mpi.hdf5
 2022-04-17 09:24:05 Makefile.save.hdf5
-2022-04-17 09:24:05 Makefile.in
 2022-04-17 09:24:05 Makefile
+2022-07-12 15:20:44 Makefile.in
 
 Nbody6PPGPU-beijing/doc/  
 2022-04-17 09:24:05 nbody6++_manual.txt
@@ -72,7 +71,7 @@ Nbody6PPGPU-beijing/include/
 2022-04-17 09:24:05 params.h.b4m
 2022-04-17 09:24:05 params.h.b10m
 2022-04-17 09:24:05 params.h
-2022-04-17 09:24:05 common6.h
+2022-07-12 15:20:44 common6.h
 
 Nbody6PPGPU-beijing/sample/  
 2022-04-17 09:24:05 N100k.inp.restart
@@ -81,7 +80,7 @@ Nbody6PPGPU-beijing/sample/
 2022-04-17 09:24:05 dat.10
 
 Nbody6PPGPU-beijing/src/  
-2022-04-17 09:24:05 Main
+2022-07-12 15:29:13 Main
 
 Nbody6PPGPU-beijing/src/Main/  
 1995-11-14 18:13:08 ksphys.f
@@ -312,7 +311,6 @@ Nbody6PPGPU-beijing/src/Main/
 2020-12-17 18:46:58 ficorr.F
 2020-12-27 22:47:06 mlwind.f
 2020-12-28 23:16:13 qpmod.f
-2021-01-14 18:53:10 mix.f
 2021-01-14 18:53:31 hrdiag.f
 2021-02-03 00:31:32 units.f
 2021-02-09 04:59:33 hrplot.F
@@ -324,7 +322,6 @@ Nbody6PPGPU-beijing/src/Main/
 2021-09-02 23:05:45 xtrnl0.F
 2021-09-02 23:14:11 degen.f
 2021-09-02 23:26:32 binpop.F
-2021-09-02 23:34:48 cmbody.f
 2021-09-03 15:18:57 global_output.F
 2021-09-05 21:52:48 absorb.f
 2021-09-05 21:53:32 add_tlist.f
@@ -367,10 +364,8 @@ Nbody6PPGPU-beijing/src/Main/
 2022-04-17 09:24:05 xbpredall.f.old
 2022-04-17 09:24:05 xbpredall.F.new
 2022-04-17 09:24:05 util_gpu.F
-2022-04-17 09:24:05 unpert.f
 2022-04-17 09:24:05 trflow.f
 2022-04-17 09:24:05 touch.f
-2022-04-17 09:24:05 tides3.f
 2022-04-17 09:24:05 tcirc.f
 2022-04-17 09:24:05 subint.F
 2022-04-17 09:24:05 steps.f
@@ -390,13 +385,11 @@ Nbody6PPGPU-beijing/src/Main/
 2022-04-17 09:24:05 pot.avx.cpp
 2022-04-17 09:24:05 permit.f
 2022-04-17 09:24:05 output.F
-2022-04-17 09:24:05 nbody6.F
 2022-04-17 09:24:05 nbint_cor.f
 2022-04-17 09:24:05 mydump.F
 2022-04-17 09:24:05 modify.F
 2022-04-17 09:24:05 levels.f
 2022-04-17 09:24:05 kstran.f
-2022-04-17 09:24:05 kstide.f
 2022-04-17 09:24:05 ksterm.F
 2022-04-17 09:24:05 ksreg.F.old
 2022-04-17 09:24:05 ksreg.F.diag
@@ -405,14 +398,11 @@ Nbody6PPGPU-beijing/src/Main/
 2022-04-17 09:24:05 kspreg.F
 2022-04-17 09:24:05 kspinit.f
 2022-04-17 09:24:05 kslist.f
-2022-04-17 09:24:05 kscorr.f
 2022-04-17 09:24:05 ksapo.f
-2022-04-17 09:24:05 kick.F
 2022-04-17 09:24:05 kick2.f
 2022-04-17 09:24:05 irr.sse.cpp
 2022-04-17 09:24:05 irr.avx.cpp
 2022-04-17 09:24:05 intgrt.F
-2022-04-17 09:24:05 instar.F
 2022-04-17 09:24:05 impact.f
 2022-04-17 09:24:05 higrow.f
 2022-04-17 09:24:05 gpunb.velocity.cu.single
@@ -429,24 +419,34 @@ Nbody6PPGPU-beijing/src/Main/
 2022-04-17 09:24:05 energy_mpi.F
 2022-04-17 09:24:05 encorr_mdot.F
 2022-04-17 09:24:05 data.F
-2022-04-17 09:24:05 coal.f
 2022-04-17 09:24:05 chrect.f
 2022-04-17 09:24:05 chaos.f
-2022-04-17 09:24:05 chain.f
 2022-04-17 09:24:05 brake.f
 2022-04-17 09:24:05 brake3.f
 2022-04-17 09:24:05 bodies.f
-2022-04-17 09:24:05 binout.f
-2022-04-17 09:24:05 bindat.f
 2022-04-17 09:24:05 adjust.F
 2022-05-05 06:01:37 xbpredall.F
 2022-05-05 06:01:37 mdot.F.standard
 2022-05-05 06:01:37 mdot.F.diag
-2022-05-05 06:01:37 mdot.F
-2022-05-05 06:01:37 ksrect.f
-2022-05-05 06:01:37 ksint.f
-2022-05-05 06:01:37 ksinit.F
 2022-05-05 06:01:37 expel.f
 2022-05-27 12:50:24 custom_output_facility.F
-2022-06-16 20:30:48 ksperi.f
+2022-07-08 16:57:38 binout.f
+2022-07-08 16:57:38 bindat.f
+2022-07-08 17:08:36 instar.F
+2022-07-08 17:12:42 ksinit.F
+2022-07-08 17:17:53 unpert.f
+2022-07-08 17:23:38 nbody6.F
+2022-07-08 17:25:21 tides3.f
+2022-07-08 17:27:36 ksperi.f
+2022-07-12 15:20:44 mix.f
+2022-07-12 15:20:44 coal.f
+2022-07-12 15:29:13 kickGW.f
+2022-07-27 18:06:45 chain.f
+2022-07-27 18:08:54 ksint.f
+2022-07-27 18:11:04 cmbody.f
+2022-07-27 18:12:20 mdot.F
+2022-07-27 18:13:28 ksrect.f
+2022-07-27 18:16:14 kscorr.f
+2022-07-27 18:24:10 kstide.f
+2022-07-27 20:21:15 kick.F
 

@@ -100,9 +100,9 @@
       ENDIF
 *
       if(rank.eq.0)WRITE(38,67)K1,M01,M1
- 67   FORMAT(' MIX OLD *1:',I4,1P,2F15.6)
+ 67   FORMAT(' MIX OLD *1:',I4,1P,2E15.6)
       if(rank.eq.0)WRITE(38,68)K2,M02,M2
- 68   FORMAT(' MIX OLD *2:',I4,1P,2F15.6)
+ 68   FORMAT(' MIX OLD *2:',I4,1P,2E15.6)
 *
 *       Specify total mass.
       M3 = M1 + M2
@@ -204,7 +204,7 @@
       ENDIF
 *
       if(rank.eq.0)WRITE(38,69)KW,M03,M3
- 69   FORMAT(' MIX NEW *3:',I4,1P,2F15.6)
+ 69   FORMAT(' MIX NEW *3:',I4,1P,2E15.6)
 *
 *       Determine consistent stellar type and specify mass loss.
       IF(KW.LE.14)THEN
@@ -257,12 +257,13 @@
       ENDIF
 *
       if(rank.eq.0)
-     &WRITE (6,10)  IQCOLL, K1, K2, KSTAR(I1), M1, M2, M3, RS1, RS2,
-     &              RADIUS(I1)*SU, DM*ZMBAR
-   10 FORMAT (' NEW STAR:    IQCOLL',I3,' K*(I1)',I3,' K*(I2)',I3,
-     &     ' K*(INEW)',I3,' M(I1)[M*]',F9.3,' M(I2)[M*]',F9.3,
-     &     ' M(INEW)[M*]',F9.3,' RS(I1)[R*]',F9.3,' RS(I2)[R*]',F9.3,
-     &     ' RS(INEW)[R*]',F9.3,' DM[M*]',F9.3)
+     &WRITE (6,10)  TTOT, NAME(J1), NAME(J2), IQCOLL, K1, K2,
+     &  KSTAR(I1), M1, M2, M3, RS1, RS2, RADIUS(I1)*SU, DM*ZMBAR
+   10 FORMAT (' NEW STAR TIME[NB]',1P,E17.10,' MIX OF NM1,2=',2I10,
+     &     ' IQCOLL',I3,' K*(I1)',I3,' K*(I2)',I3,
+     &     ' K*(INEW)',I3,' M(I1)[M*]',E12.4,' M(I2)[M*]',E12.4,
+     &     ' M(INEW)[M*]',E12.4,' RS(I1)[R*]',E12.4,' RS(I2)[R*]',E12.4,
+     &     ' RS(INEW)[R*]',E12.4,' DM[M*]',E12.4)
 *
 *       Open unit #13 the first time.
       IF(rank.eq.0.and.FIRST.AND.IQCOLL.NE.3.AND.KSTART.EQ.1)THEN

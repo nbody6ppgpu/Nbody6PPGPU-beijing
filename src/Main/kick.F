@@ -87,15 +87,15 @@
 *     --03/07/14 11:30-lwang-ks-parallel--------------------------------*
 ***** Note: Here when icase eq. -147 means for ks communication
 *****       I will be the processer id to share data
-*      IF (ICASE.EQ.-147) THEN
-*#ifdef PARALLEL         
-*         CALL MPI_BCAST(IPAIR,1,MPI_INTEGER,I,MPI_COMM_WORLD,ierr)
-*         CALL MPI_BCAST(KC,1,MPI_INTEGER,I,MPI_COMM_WORLD,ierr)
-*         CALL MPI_BCAST(VDIS,1,MPI_REAL8,I,MPI_COMM_WORLD,ierr)
-*         CALL MPI_BCAST(RI,1,MPI_REAL8,I,MPI_COMM_WORLD,ierr)
-*#endif         
-*         RETURN
-*      END IF
+*     IF (ICASE.EQ.-147) THEN
+*ifdef PARALLEL         
+*        CALL MPI_BCAST(IPAIR,1,MPI_INTEGER,I,MPI_COMM_WORLD,ierr)
+*        CALL MPI_BCAST(KC,1,MPI_INTEGER,I,MPI_COMM_WORLD,ierr)
+*        CALL MPI_BCAST(VDIS,1,MPI_REAL8,I,MPI_COMM_WORLD,ierr)
+*        CALL MPI_BCAST(RI,1,MPI_REAL8,I,MPI_COMM_WORLD,ierr)
+*endif         
+*        RETURN
+*     END IF
 *     --03/07/14 11:30-lwang-end-ks-parallel----------------------------*
 *
 *     Choose the kick settings.
@@ -166,6 +166,7 @@
       MNUEFF = 7.0D0
       MNSTYP = 1.4D0
       KMECH = 3
+
 *******
 
 *       Save orbital parameters in case of KS binary (called from KSAPO).
@@ -221,7 +222,7 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
           I2 = I1 + 1
           if(rank.eq.0)
      &    WRITE (6,1)  TTOT*TSTAR, NAME(I1), NAME(I2), KSTAR(I1), 
-     &        KSTAR(I2),ZM1,ZM2,VESC, VDIS, R(IPAIR)/SEMI, EB, R(IPAIR)
+     &         KSTAR(I2),ZM1,ZM2,VESC, VDIS, R(IPAIR)/SEMI, EB, R(IPAIR)
     1     FORMAT (' BINARY KICK:  TIME[Myr] NAME(I1) NAME(I2) K*(I1) ',
      &         'K*(I2) M(I1)[M*] M(I2)[M*] VESC[km/s] VDIS[km/s] ',
      &         'R12/SEMI EB R12[NB] ',1P,E14.3,0P,2I10,2I4,2F9.3,
@@ -423,13 +424,15 @@ c		Sambaran 2019.11.19.
 *     &              VKICK = VK(4)*(MIN(ZM,MNUEFF)/ZM)
 ***********************************************
             ENDIF
-       if(rank.eq.0)WRITE(6,*) "NS/BH formation (fallback/mechanism)",
-     &           " M[M*] M0[M*] K*0 I NAME",
-     &           " K* FB FBTOT Time[Myr] MCO[M*] VK[km/s] KMECH: ",
-     &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I), 
-     &           KSTAR(I), FBFAC, FBTOT, TTOT*TSTAR, MCO, VKICK, KMECH
-         ENDIF
-         
+      if(rank.eq.0)WRITE (6,190)TTOT,NAME(I),I,KW,KSTAR(I),
+     &      TTOT*TSTAR,BODY(I)*ZMBAR, BODY0(I)*ZMBAR,
+     &      FBFAC, FBTOT, VKICK, KMECH
+  190 FORMAT (' NS/BH FORMATION FALLBACK TIME[NB]',1P,E17.10,
+     &        ' NM=',I10,' I=',I10,' KW,KW0=',2I4,
+     &        ' TIME[Myr]=',E13.5,' M,M0[*]=',2E13.5,
+     &        ' FB FBTOT VK[km/s] KMECH: ',3E12.5,I4)
+            END IF
+*
 *******BH Kerr Metric spin parameter *****
          IF (KW.EQ.14) THEN
 
@@ -448,14 +451,16 @@ c		Sambaran 2019.11.19.
 *     SPN(NMI) = SPIN(I)
 *     ASPN(NMI) = aspin
 ***********************************
-              if(rank.eq.0)
-     &        write(6,*)" -- BH-spin I NAM M MCO a J[MsRs^2/yr] J: ",
-     &             I, NAME(I), BODY(I)*ZMBAR, MCO, aspin, JSPIN,
-     &             SPIN(I),ASPN(I)
+          if(rank.eq.0)
+     &    WRITE (6,22)  TTOT, I, NAME(I), KSTAR(I),TTOT*TSTAR,
+     &        BODY(I)*ZMBAR,SPIN(I),JSPIN,ASPN(I)
+   22     FORMAT (' BH-SPIN: TIME[NB]',1P,E17.10,' I',I10,
+     &       '  NAME',I10,' KW',I4,' Time[Myr]',E12.5,' M[M*]',E12.5,
+     &       '  J[NB] J[MsRs^2/yr] ASPIN ',3E12.5)
+        ENDIF
 *******************************************
-         ENDIF
       ENDIF
-      
+*      
       IF (DM.LT.1.0D-10) VKICK = VK(4)   ! Retain VKICK for tiny DM.
 *       Limit kick velocity to VDIS+10*VSTAR/10*VST.
 *       (disabled)
@@ -481,12 +486,15 @@ c		Sambaran 2019.11.19.
 
 *       Skip case of zero kick velocity.
       IF (VKICK.EQ.0.0D0.OR.DISP0.EQ.0.0D0) then
-         if(rank.eq.0) then
-            write(6,*) 'ZERO VELOCITY KICK: I',I,' NAME',NAME(I),
-     &           ' TIME[Myr]',(TIME+TOFF)*TSTAR,' K*0',KSTAR(I),
-     &           ' K*(new)',KW, ' K*(ICM)', KC, ' M0[M*]',
-     &           BODY0(I)*ZMBAR,' MN[M*]', BODY(I)*ZMBAR
-         end IF
+         if(rank.eq.0)
+     &    WRITE (6,18)  TTOT, I, NAME(I), KSTAR(I), KW, KC,
+     &         TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
+     &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC
+   18     FORMAT (' ZERO VELOCITY KICK: TIME[NB]',1P,E17.10,' I',I10,
+     &         '  NAME',I10,' K*0',I4,'  K*',I4,'  K*(ICM)',I4,
+     &         '  Time[Myr]',E12.5,' M0[M*]',E12.5,' MN[M*]',E12.5,
+     &         '  VI[km/s]',E12.5,' VK[km/s]',E12.5' VF[km/s]',E12.5,
+     &         '  VK0[km/s]',E12.5,' FB',E12.5)
          GO TO 30
       ENDIF
 
@@ -542,14 +550,14 @@ c		Sambaran 2019.11.19.
 *    &    (KW.GE.13.AND.TTOT*TSTAR.GT.100.0)) THEN
           ZM = BODY(I)*ZMBAR
           if(rank.eq.0)
-     &    WRITE (6,20)  I, NAME(I), (TIME+TOFF)*TSTAR, KSTAR(I), KW, KC,
-     &         BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR, VKICK*VSTAR, 
-     &         SQRT(VF2)*VSTAR, VK(4),FBFAC
-   20     FORMAT (' VELOCITY KICK: I',I10'  NAME',I10,
-     &         '  Time[Myr]',E12.5,'  K*0',I4,
-     &         '  K*',I4,'  K*(ICM)',I4'  M0[M*]',F9.4,'  MN[M*]',F9.4,
-     &         '  VI[km/s]',F9.4,'  VK[km/s]',F9.4'  VF[km/s]',F9.4,
-     &         '  VK0[km/s]',F9.4,'  FB',F9.4)
+     &    WRITE (6,20)  TTOT, I, NAME(I), KSTAR(I), KW, KC,
+     &         TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
+     &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC
+   20     FORMAT (' FULL VELOCITY KICK: TIME[NB]',1P,E17.10,' I',I10,
+     &         '  NAME',I10,' K*0',I4,'  K*',I4,'  K*(ICM)',I4,
+     &         '  Time[Myr]',E12.5,' M0[M*]',E12.5,' MN[M*]',E12.5,
+     &         '  VI[km/s]',E12.5,' VK[km/s]',E12.5' VF[km/s]',E12.5,
+     &         '  VK0[km/s]',E12.5,' FB',E12.5)
           KC = 0
 *     END IF
 *
@@ -584,7 +592,6 @@ c		Sambaran 2019.11.19.
       INTEGER SPINFLAG
             
       CALL BSPIN(SPINFLAG,METALLICITY,MCORE,NUMBER)
-      WRITE(*,*) "BH SPIN", NUMBER
          
       END SUBROUTINE
 
