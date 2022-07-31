@@ -105,6 +105,8 @@
              IF(KZ(24).EQ.2)THEN
                 KSTAR(I) = 14
                 TEV(I) = 1.D10
+*     For the time being here only option for random spin.
+                ASPN(I) = RAND()
              END IF
              M1 = BODY(I)*ZMBAR
              M0 = M1
@@ -143,6 +145,9 @@
           RADIUS(I) = RM/SU
           ZLMSTY(I) = LUM
           SPIN(I) = JSPIN/SPNFAC
+*       Relativistic dimensionless spin only used after remnant formation in kick/kickGW (MAS).
+*       Except: KZ(24) = 2, see below (RS).
+          ASPN(I) = 0.D0
 *
           IF (KZ(27).EQ.3.AND.KZ(28).EQ.4) THEN
               RADIUS(I) = 1.0D-12/(3.0*RBAR)
