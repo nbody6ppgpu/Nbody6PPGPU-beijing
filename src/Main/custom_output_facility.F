@@ -623,6 +623,10 @@ cc          WRITE (h5_step_name, *), h5_step
      &     '033 Type', NS_LAB, N_SINGLE, 1, h5_dset_ids(34),
      &     original_vec_len,finalize)
 *
+      CALL HDF5_write_real_vector_as_dset(h5_group_id,
+     &        '035 ASPN', S_ASPN, N_SINGLE, 1, h5_dset_ids(35),
+     &        original_vec_len,finalize)
+
       CALL h5fflush_f(h5_group_id, H5F_SCOPE_LOCAL_F, error)
       CALL h5gclose_f(h5_group_id, error) 
 #else
@@ -645,7 +649,7 @@ cc          WRITE (h5_step_name, *), h5_step
      &      S_POT(1:N_SINGLE), S_F1(1:N_SINGLE), S_F2(1:N_SINGLE),
      &      S_F3(1:N_SINGLE), S_FD1(1:N_SINGLE), S_FD2(1:N_SINGLE),
      &      S_FD3(1:N_SINGLE), S_STEP(1:N_SINGLE), S_STEPR(1:N_SINGLE),
-     &      S_T0(1:N_SINGLE), S_T0R(1:N_SINGLE)
+     &      S_T0(1:N_SINGLE), S_T0R(1:N_SINGLE), S_ASPN(1:N_SINGLE)
        IF(KRED.EQ.0) THEN
            WRITE (40)
      &     S_D21(1:N_SINGLE), S_D22(1:N_SINGLE), S_D23(1:N_SINGLE),
@@ -667,7 +671,7 @@ cc          WRITE (h5_step_name, *), h5_step
      &            S_V1(K), S_V2(K), S_V3(K), S_POT(K),
      &            S_F1(K), S_F2(K), S_F3(K), 
      &            S_FD1(K),S_FD2(K), S_FD3(K),
-     &            S_STEP(K), S_STEPR(K), S_T0(K), S_T0R(K),
+     &            S_STEP(K), S_STEPR(K), S_T0(K), S_T0R(K), S_ASPN(K),
      &            S_RS(K), S_L(K), S_TE(K),
      &            S_MC(K), S_RC(K), NS_KW(K)
             END DO
@@ -680,7 +684,7 @@ cc          WRITE (h5_step_name, *), h5_step
      &            S_FD1(K),S_FD2(K), S_FD3(K),
      &            S_D21(K), S_D22(K), S_D23(K),
      &            S_D31(K), S_D32(K), S_D33(K),
-     &            S_STEP(K), S_STEPR(K), S_T0(K), S_T0R(K),
+     &            S_STEP(K), S_STEPR(K), S_T0(K), S_T0R(K), S_ASPN(K),
      &            S_RS(K), S_L(K), S_TE(K),
      &            S_MC(K), S_RC(K), NS_KW(K)
             END DO
@@ -693,7 +697,7 @@ cc          WRITE (h5_step_name, *), h5_step
      &            S_V1(K), S_V2(K), S_V3(K), S_POT(K),
      &            S_F1(K), S_F2(K), S_F3(K),
      &            S_FD1(K),S_FD2(K), S_FD3(K),
-     &            S_STEP(K), S_STEPR(K), S_T0(K), S_T0R(K)
+     &            S_STEP(K), S_STEPR(K), S_T0(K), S_T0R(K), S_ASPN(K)
             END DO
           ELSE
             DO K=1,N_SINGLE
@@ -704,7 +708,7 @@ cc          WRITE (h5_step_name, *), h5_step
      &            S_FD1(K),S_FD2(K), S_FD3(K),
      &            S_D21(K), S_D22(K), S_D23(K),
      &            S_D31(K), S_D32(K), S_D33(K),
-     &            S_STEP(K), S_STEPR(K), S_T0(K), S_T0R(K)
+     &            S_STEP(K), S_STEPR(K), S_T0(K), S_T0R(K), S_ASPN(K)
             END DO
           END IF
        END IF
@@ -1022,6 +1026,13 @@ cc          WRITE (h5_step_name, *), h5_step
      &     '163 Bin cm Name', NB_NAMC, N_BINARY, 1, h5_dset_ids(126),
      &     original_vec_len,finalize)
 
+      CALL HDF5_write_real_vector_as_dset(h5_group_id,
+     &        '164 ASPN1', B_ASPN1, N_BINARY, 1, h5_dset_ids(127),
+     &        original_vec_len,finalize)
+      CALL HDF5_write_real_vector_as_dset(h5_group_id,
+     &        '165 ASPN2', B_ASPN2, N_BINARY, 1, h5_dset_ids(128),
+     &        original_vec_len,finalize)
+
       CALL h5fflush_f(h5_group_id, H5F_SCOPE_LOCAL_F, error)
       CALL h5gclose_f(h5_group_id, error) 
 #else
@@ -1048,7 +1059,7 @@ cc          WRITE (h5_step_name, *), h5_step
      &     B_FC1(1:N_BINARY), B_FC2(1:N_BINARY), B_FC3(1:N_BINARY),
      &     B_FDC1(1:N_BINARY), B_FDC2(1:N_BINARY), B_FDC3(1:N_BINARY),
      &     B_STEP(1:N_BINARY), B_STEPR(1:N_BINARY), B_T0(1:N_BINARY),
-     &     B_T0R(1:N_BINARY),
+     &     B_T0R(1:N_BINARY), B_ASPN1(1:N_BINARY), B_ASPN2(1:N_BINARY),
      &     B_XR1(1:N_BINARY), B_XR2(1:N_BINARY), B_XR3(1:N_BINARY), 
      &     B_VR1(1:N_BINARY), B_VR2(1:N_BINARY), B_VR3(1:N_BINARY), 
      &     B_FR1(1:N_BINARY), B_FR2(1:N_BINARY), B_FR3(1:N_BINARY),
@@ -1084,7 +1095,7 @@ cc          WRITE (h5_step_name, *), h5_step
      &         B_FC1(K), B_FC2(K), B_FC3(K),
      &         B_FDC1(K), B_FDC2(K), B_FDC3(K),
      &         B_STEP(K), B_STEPR(K), B_T0(K), B_T0R(K),
-     &         B_XR1(K), B_XR2(K), B_XR3(K), 
+     &         B_ASPN1(K), B_ASPN2(K), B_XR1(K), B_XR2(K), B_XR3(K), 
      &         B_VR1(K), B_VR2(K), B_VR3(K), B_POT(K),
      &         B_FR1(K), B_FR2(K), B_FR3(K),
      &         B_FDR1(K), B_FDR2(K), B_FDR3(K),
@@ -1105,7 +1116,7 @@ cc          WRITE (h5_step_name, *), h5_step
      &         B_FC1(K), B_FC2(K), B_FC3(K),
      &         B_FDC1(K), B_FDC2(K), B_FDC3(K),
      &         B_STEP(K), B_STEPR(K), B_T0(K), B_T0R(K),
-     &         B_XR1(K), B_XR2(K), B_XR3(K),
+     &         B_ASPN1(K), B_ASPN2(K), B_XR1(K), B_XR2(K), B_XR3(K),
      &         B_VR1(K), B_VR2(K), B_VR3(K), B_POT(K),
      &         B_FR1(K), B_FR2(K), B_FR3(K),
      &         B_FDR1(K), B_FDR2(K), B_FDR3(K),
@@ -1130,7 +1141,7 @@ cc          WRITE (h5_step_name, *), h5_step
      &          B_FC1(K), B_FC2(K), B_FC3(K),
      &          B_FDC1(K), B_FDC2(K), B_FDC3(K),
      &          B_STEP(K), B_STEPR(K), B_T0(K), B_T0R(K),
-     &          B_XR1(K), B_XR2(K), B_XR3(K), 
+     &          B_ASPN1(K), B_ASPN2(K), B_XR1(K), B_XR2(K), B_XR3(K), 
      &          B_VR1(K), B_VR2(K), B_VR3(K), B_POT(K),
      &          B_FR1(K), B_FR2(K), B_FR3(K),
      &          B_FDR1(K), B_FDR2(K), B_FDR3(K),
@@ -1145,7 +1156,7 @@ cc          WRITE (h5_step_name, *), h5_step
      &          B_FC1(K), B_FC2(K), B_FC3(K),
      &          B_FDC1(K), B_FDC2(K), B_FDC3(K),
      &          B_STEP(K), B_STEPR(K), B_T0(K), B_T0R(K),
-     &          B_XR1(K), B_XR2(K), B_XR3(K),
+     &          B_ASPN1(K), B_ASPN2(K), B_XR1(K), B_XR2(K), B_XR3(K),
      &          B_VR1(K), B_VR2(K), B_VR3(K), B_POT(K),
      &          B_FR1(K), B_FR2(K), B_FR3(K),
      &          B_FDR1(K), B_FDR2(K), B_FDR3(K),

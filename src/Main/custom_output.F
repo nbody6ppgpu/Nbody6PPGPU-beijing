@@ -135,7 +135,7 @@
 *     --K.S. binary case--
          IF(I.GT.N.AND.NAME(I).GT.0) THEN
                IPAIR = I - N
-*     Resolve unperturbed binary
+*     Resolve unperturbed binary ; J1, J2 returned from this routine.
             CALL KSRES_OP(IPAIR,J1,J2,XIREL,VIREL,
      &        FREL,FDREL,D2REL,D3REL,0)
 *     Name
@@ -196,6 +196,8 @@
                B_STEPR(IK) = REAL(STEPR(I)*TSCALE_OUT)
                B_T0(IK) = REAL(T0(I)*TSCALE_OUT)
                B_T0R(IK) = REAL(T0R(I)*TSCALE_OUT)
+               B_ASPN1(IK) = REAL(ASPN(J1))
+               B_ASPN2(IK) = REAL(ASPN(J2))
 *     Stellar evolution of two components
                IF (KZ(12).GT.0) THEN
                   call sev_one_star(J1,NB_KW1(IK),B_RS1(IK),B_L1(IK),
@@ -895,6 +897,7 @@ C*     single
       S_STEPR(IK) = REAL(STEPR(I))
       S_T0(IK) = REAL(T0(I))
       S_T0R(IK) = REAL(T0R(I))
+      S_ASPN(IK) = REAL(ASPN(I))
 
 *     if(rank.eq.0)print*,' css i,ik,d2,d3,d2sc,d3sc=',
 *    &  i,ik,s_d21(1),s_d31(1),d2scale_out,d3scale_out

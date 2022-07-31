@@ -35,7 +35,7 @@
       COMMON/MODES/  P(NP)
       COMMON/RCHE/   Q(NQ)
       COMMON/BINARY/ S(NS)
-
+*
       COMMON/NBODY/  X(3,NMAX),XDOT(3,NMAX),X0(3,NMAX),X0DOT(3,NMAX),
      &               F(3,NMAX),FDOT(3,NMAX),BODY(NMAX),RS(NMAX),
      &               FI(3,NMAX),D1(3,NMAX),D2(3,NMAX),D3(3,NMAX),
@@ -46,6 +46,8 @@
      &               ZLMSTY(NMAX),FIDOT(3,NMAX),D0(3,NMAX),
      &               FRDOT(3,NMAX),D0R(3,NMAX),KSTAR(NMAX),NAME(NMAX),
      &               IMINR(NMAX),LIST(LMAX,NMAX)
+*
+      COMMON/REL/    ASPN(NMAX)
 *
       COMMON/PAIRS/  U(4,KMAX),U0(4,KMAX),UDOT(4,KMAX),FU(4,KMAX),
      &               FUDOT(4,KMAX),FUDOT2(4,KMAX),FUDOT3(4,KMAX),
@@ -127,6 +129,8 @@
      *   ((fidot(k,i),k=1,3),i=1,ntot),((d0(k,i),k=1,3),i=1,ntot),
      *   ((frdot(k,i),k=1,3),i=1,ntot),((d0r(k,i),k=1,3),i=1,ntot),
      *   (kstar(i),i=1,ntot),(iminr(i),i=1,ntot),(name(i),i=1,ntot)
+*
+        write (J) (aspn(i),i=1,ntot)
 *
         write (J) ((u(k,i),k=1,4),i=1,npairs),((u0(k,i),k=1,4),i=1,
      *    npairs),((udot(k,i),k=1,4),i=1,npairs),((fu(k,i),k=1,4),i=1,
@@ -263,6 +267,8 @@
      *   ((frdot(k,i),k=1,3),i=1,ntot),((d0r(k,i),k=1,3),i=1,ntot),
      *   (kstar(i),i=1,ntot),(iminr(i),i=1,ntot),(name(i),i=1,ntot)
 *
+        read (J) (aspn(i),i=1,ntot)
+*
         read (J) ((u(k,i),k=1,4),i=1,npairs),((u0(k,i),k=1,4),i=1,
      *    npairs),((udot(k,i),k=1,4),i=1,npairs),((fu(k,i),k=1,4),i=1,
      *    npairs),((fudot(k,i),k=1,4),i=1,npairs),((fudot2(k,i),k=1,4),
@@ -362,6 +368,8 @@
        CALL MPI_BCAST(ZLMSTY(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(KSTAR(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(IMINR(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+*
+       CALL MPI_BCAST(ASPN(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 *
        CALL MPI_BCAST(SF(1,1),7*NPAIRS,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(U(1,1),4*NPAIRS,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
