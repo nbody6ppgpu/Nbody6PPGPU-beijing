@@ -272,15 +272,13 @@
 *       Include optional escape output on unit 11.
       IF (KZ(23).EQ.2.OR.KZ(23).EQ.4) THEN
           TESC = TSCALE*TTOT
-          EESC = EI/BODY(I)
-          VB2 = 2.0*ZKIN/ZMASS
+          EESC = EI
 *       Distinguish between tidal field and isolated system (ECRIT at RTIDE).
           IF (KZ(14).GT.0.AND.KZ(14).LE.2) THEN
               ECRIT = -1.5*(TIDAL(1)*ZMASS**2)**0.3333
-              EESC = 2.0*(EESC - ECRIT)/VB2
+              EESC = EESC - ECRIT*BODY(I)
               BESC = ZMBAR*BODY(I)
           ELSE
-              EESC = 2.0*EESC/VB2
               BESC = ZMBAR*BODY(I)
           END IF
           VKM = SQRT(VI2)*VSTAR
