@@ -280,6 +280,7 @@
               BESC = ZMBAR*BODY(I)
           ELSE
               BESC = ZMBAR*BODY(I)
+              ECRIT = 0.E0
           END IF
           VKM = SQRT(VI2)*VSTAR
 *
@@ -302,18 +303,18 @@
              if(kstart.eq.1.and.first) then
                 first = .false.
                 write (11,*) '        ',
-     &       'TTOT         ','BODY         ',
-     &       'RI           ','VI           ','STEP         ',
-     &       'T[Myr]       ','M[M*]        ','EESC         ',
-     &       'VI[km/s]     ','K*  ','NAME      ',
-     &       'ANGLE PHI    ',' ANGLE THETA ','M1[M*]       ',
-     &       'RADIUS[RSun] ',' LUM[LSun] ','TEFF         ',
-     &       'AGE[Myr]     ',' EPOCH     '
+     &       'TTOT         ','BODY         ','RI           ',
+     &       'VI           ','STEP         ','T[Myr]       ',
+     &       'M[M*]        ','EESC         ','EKIN         ',
+     &       'ECRIT        ','VI[km/s]     ','K*  ',
+     &       'NAME      ','ANGLE PHI    ',' ANGLE THETA ',
+     &       'M1[M*]       ','RADIUS[RSun] ',' LUM[LSun] ',
+     &       'TEFF         ','AGE[Myr]     ',' EPOCH     '
              end if
           WRITE (11,500) TTOT,BODY(I),SQRT(RI2),SQRT(VI2),STEP(I), 
-     &    TESC,BESC,EESC,VKM,KSTARI,NAMEI,(XLIST(2*NCORR+KK),KK=-1,0),
-     &    M1,RM,LUM,TEFF,AGE,EPOCH(I)
- 500  FORMAT(1X,1P,9E13.5,I4,I10,8E13.5)
+     &    TESC,BESC,EESC,ZK,ECRIT,VKM,KSTARI,NAMEI,(XLIST(2*NCORR+KK),
+     &    KK=-1,0),M1,RM,LUM,TEFF,AGE,EPOCH(I)
+ 500  FORMAT(1X,1P,11E13.5,I4,I10,8E13.5)
              call flush(11)
           end if
 *     More output of escaping binaries
