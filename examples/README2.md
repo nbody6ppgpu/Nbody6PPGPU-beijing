@@ -14,7 +14,10 @@
    Here is some explanation what they are good for:
 
 First) Reading data from the main stdout file, for example Lagrangian radii
-Second)
+
+Second) Reading data for a Hertzsprung-Russell-Diagram from sev.83... files
+
 Third) Reading several snapshots from the HDF5 Files, to make time dependent plots (here energy for example), as well as single and multiple HRD's.
+
 Fourth) Reading one snapshot as an example, and creating an N-body style enviroment with variables like ZMBAR, VSTAR, BODY, NAME, X1,... V1, ... ASPN, ... and so on, and three example plots (phase space, z-angular momentum, HRD).
  
