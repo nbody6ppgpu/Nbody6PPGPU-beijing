@@ -148,7 +148,7 @@
      &WRITE (6,18) N, NCORR, NSESC, NBESC, ZMASS, BE(3), CMR(4), RESC,
      &       STEPI, RSI, ZMASS/FLOAT(N), NCRIT1, (JLIST(J),J=1,NCORR)
    18 FORMAT (/,' ESCAPE   N =',I10,I8,I10,I6,F8.4,F12.6,2F7.2,F7.3,
-     &                      F7.2,F9.5,I10,' JLIST: ',(2X,20I6,/))
+     &                      F7.2,F9.5,I10,' JLIST: ',(2X,20I10,/))
 *
       IF (KZ(23).EQ.4)THEN
           JLAST = MIN(2*NCORR,NMAX)
@@ -273,14 +273,11 @@
       IF (KZ(23).EQ.2.OR.KZ(23).EQ.4) THEN
           TESC = TSCALE*TTOT
           EESC = EI/BODY(I)
-          VB2 = 2.0*ZKIN/ZMASS
 *       Distinguish between tidal field and isolated system (ECRIT at RTIDE).
           IF (KZ(14).GT.0.AND.KZ(14).LE.2) THEN
               ECRIT = -1.5*(TIDAL(1)*ZMASS**2)**0.3333
-              EESC = 2.0*(EESC - ECRIT)/VB2
               BESC = ZMBAR*BODY(I)
           ELSE
-              EESC = 2.0*EESC/VB2
               BESC = ZMBAR*BODY(I)
           END IF
           VKM = SQRT(VI2)*VSTAR
@@ -306,16 +303,19 @@
                 write (11,*) '        ',
      &       'TTOT         ','BODY         ',
      &       'RI           ','VI           ','STEP         ',
-     &       'T[Myr]       ','M[M*]        ','EESC         ',
+     &       'T[Myr]       ','M[M*]      ','EESC      ',
      &       'VI[km/s]     ','K*  ','NAME      ',
      &       'ANGLE PHI    ',' ANGLE THETA ','M1[M*]       ',
-     &       'RADIUS[RSun] ',' LUM[LSun] ','TEFF         ',
-     &       'AGE[Myr]     ',' EPOCH     '
+     &       'RADIUS[RSun] ',' LUM[LSun]   ',' TEFF        ',
+     &       'AGE[Myr]     ',' EPOCH       ',' ZKIN        ',
+     &       ' POT         ',' ECRIT       ',' ZMASS       ',
+     &       ' TIDAL(1-4)'
              end if
           WRITE (11,500) TTOT,BODY(I),SQRT(RI2),SQRT(VI2),STEP(I), 
      &    TESC,BESC,EESC,VKM,KSTARI,NAMEI,(XLIST(2*NCORR+KK),KK=-1,0),
-     &    M1,RM,LUM,TEFF,AGE,EPOCH(I)
- 500  FORMAT(1X,1P,9E13.5,I4,I10,8E13.5)
+     &    M1,RM,LUM,TEFF,AGE,EPOCH(I),ZKIN,POT,ECRIT,ZMASS,
+     &    (TIDAL(K),K=1,4)
+ 500  FORMAT(1X,1P,9E13.5,I4,I10,16E13.5)
              call flush(11)
           end if
 *     More output of escaping binaries
