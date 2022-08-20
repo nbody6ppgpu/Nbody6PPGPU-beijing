@@ -1581,10 +1581,14 @@
          IF (IWARN.LT.100.AND.RAD(1).GT.2.0*ROL(1)) THEN
             IWARN = IWARN + 1
             if(rank.eq.0)
-     &      WRITE (6,73)  KSTAR(J1), KSTAR(J2), MASS(1), MASS(2),
+     &      WRITE (6,73)  NAME(J1), NAME(J2), KSTAR(J1), KSTAR(J2), 
+     &                    MASS(1), MASS(2), TPHYS, SEMI*SU, PD,
+     &                    DM1/DTM/1.0E+06, DM2/DTM/1.0E+06,
      &                    RAD(1), ROL(1), DM1, DM2, DTM
-   73       FORMAT (' BIG ROCHE    K12 M12 R1 RL1 DM12 DT ',
-     &                             2I3,2F7.3,2F8.3,1P,3E11.3)
+   73       FORMAT (' BIG ROCHE N12 KW12 M12 ',2I8,2I4,1P,
+     &      ' M(I1)[M*] M(I2)[M*] Time[Myr] SEMI[R*] ',4E13.5,
+     &      ' P[days] MD(I1)[M*/Myr] MD(I2)[M*/Myr] ',3E13.5,
+     &      ' R1 RL1 DM12 DT ',5E13.5)
           END IF
 *
 *       Produce diagnostics for cases involving degenerate objects.
@@ -1596,10 +1600,10 @@
      &                           KSTAR(J1), KSTAR(J2),
      &                           MASS(1), MASS(2), TPHYS, SEMI*SU, PD,
      &                           DM1/DTM/1.0E+06, DM2/DTM/1.0E+06
-   58             FORMAT (' DEGEN ROCHE   NAME(I1) NAME(I2) K*(I1) ',
-     &                 'K*(I2) M(I1)[M*] M(I2)[M*] Time[Myr] SEMI[R*] ',
-     &                 'P[days] MD(I1)[M*/Myr] MD(I2)[M*/Myr] ',
-     &                 2I6,2I4,2F6.2,F8.1,2F7.1,1P,2E9.1)
+   58         FORMAT (' DEGEN ROCHE   NAME(I1) NAME(I2) K*(I1) K*(I2) ',
+     &        2I8,2I4,' M(I1)[M*] M(I2)[M*] Time[Myr] SEMI[R*] ',1P,
+     &         4E13.5,' P[days] MD(I1)[M*/Myr] MD(I2)[M*/Myr] ',
+     &                 3E13.5)
                   CALL flush(22)
               END IF
           END IF
