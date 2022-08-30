@@ -10,6 +10,8 @@ It would automatically switch to dev branch after downloading.
 
 Sources are in `src/Main/`. Due to urgent bug fixes few routines are later than Dec2020. 
 
+Git system does not preserve the modification time of files, but the modification time of some ancient files (created before this project was brought to Git) may be valuable information for developers. If you need this info, run `python3 restore_mtime.py` after `git clone` and each `git pull`. It will `touch` each file with their real last modification time.
+
 # For users
 ## Installation
 ```bash
@@ -17,7 +19,7 @@ git clone git@github.com:kaiwu-astro/Nbody6PPGPU-beijing
 ```
 This downloads the `stable` branch. The `stable` branch include major versions, and the `dev` branch include the most recent updates and bugfix. Changes in `dev` branch are merged to `stable` regularly.
 
-If you want the most recent version (may contain bugs), use `git clone -b dev git@github.com:kaiwu-astro/Nbody6PPGPU-beijing`, or run `git switch dev` after you `clone`. 
+If you want the most recent version (may contain bugs), use `git clone -b dev git@github.com:kaiwu-astro/Nbody6PPGPU-beijing`, or run `git switch dev` after you `clone` without `-b dev` param. 
 
 ```bash
  ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large 
