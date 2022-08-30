@@ -80,7 +80,9 @@ Manual in `doc/nbody6++_manual.pdf`
  
  6. Many stellar evolution and other parameters are still compiled into the code (see Table A1 in Kamlah et al. 2022, and parameter FctorCl in Rizzuto et al. 2021), mxns0,1 masses of neutron stars; it is the responsibility of the user to keep them all consistent at compile time (for example  mxns and FctorCl are defined in two routines independently, see hrplot, coal, mix). We are working to prepare a nice Fortran NAMELIST style input for ALL parameters (the ones from the current input file, and the ones currently compiled in). That will work like in the style of an .ini file with "key=value" pairs and default values.
 
- 7. Currently the use of KZ(7) ge 4 is not working; it produces wrong SIGR2, SIGT2, VROT both in output file and lagr.7. KZ(7) le 3 is ok. 
+ 7. Currently the use of KZ(7) ge 4 is not working; it produces wrong SIGR2, SIGT2, VROT both in output file and lagr.7. KZ(7) le 3 is ok.
+    
+ 8. For the latest Aug2022 stable version, there may be problems when using some extreme initial conditions (e.g. multiple massive black holes). We work on this.
 
 # Disclaimer
  This code and the documentation is given without warranty, hopefully it is helpful. All may contain errors.
