@@ -19,7 +19,7 @@ NVCC = @NVCC@
 RESULT = nbody6++@RESULT@
 #FFLAGS = -O3 -fbounds-check -fbacktrace -fno-automatic -fmax-stack-var-size=0 -fPIC -mcmodel=large -Wall
 OMP_FLAGS= -D OMP
-MPI_FLAGS = -D PARALLEL -D PUREMPI
+MPI_FLAGS = -fallow-argument-mismatch -D PARALLEL -D PUREMPI
 GPU_FLAGS = -D GPU
 SIMD_FLAGS = -D SIMD
 HDF5_FLAGS = -D H5OUTPUT
