@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Kai Wu 20220618. Contact Kai (alonewk@gmail.com) if there is any questions or problems.
+# Kai Wu 20220618. Contact Kai (kaiwu.astro@gmail.com) if there is any questions or problems.
 
 import os.path
 from subprocess import run
