@@ -132,6 +132,7 @@ AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
    [AC_MSG_FAILURE(
        [$FC compiler option -mcmodel=$enable_mcmodel is not avaiable])])
 
+
 AC_OPENMP
 FCFLAGS=$FCFLAGS' '$OPENMP_FCFLAGS
 
@@ -329,6 +330,9 @@ AS_IF([test "x$enable_gpu" != xno],
 # MPI FLAGS
 AS_IF([test "x$enable_mpi" != xno],
       FCFLAGS=$FCFLAGS' $(MPI_FLAGS)'
+      # GCC >= 10 requires -fallow-argument-mismatch flag in MPI
+      # https://gcc.gnu.org/gcc-10/changes.html#fortran
+      AX_CHECK_COMPILE_FLAG([-fallow-argument-mismatch], [MPI_FLAGS=$MPI_FLAGS" -fallow-argument-mismatch"])
       EXTRASRC=$EXTRASRC' $(MPI_FSOURCES)'
       RESULT=$RESULT'.mpi')
 
@@ -393,7 +397,7 @@ AS_IF([test "x$par_size" == x1m],
        LMAX=600
        MMAX=1024],
       [test "x$par_size" == xb1m],
-      [NMAX=1510720
+      [NMAX=65536
        KMAX=512000
        LMAX=600
        MMAX=2048],
@@ -516,6 +520,7 @@ AC_SUBST([RESULT])
 AC_SUBST([EXTRASRC])
 AC_SUBST([EXTRAOBJ])
 AC_SUBST([EXTRARESULT])
+AC_SUBST([MPI_FLAGS])
 
 AC_SUBST([NMAX])
 AC_SUBST([KMAX])
