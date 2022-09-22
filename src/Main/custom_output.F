@@ -304,7 +304,7 @@
            CALL KSRES_OP(IPAIR,J1,J2,XIREL,VIREL,
      &        FREL,FDREL,D2REL,D3REL,0)
                   call custom_store_binary(N_BINARY,J2,NAME(IG),
-     &                JP1,JP2,CM(3,IM),CM(4,IM),H(JPAIR),R(JPAIR),
+     &                J1,J2,CM(3,IM),CM(4,IM),H(JPAIR),R(JPAIR),
      &                TDOT2(JPAIR),XIREL,VIREL,FREL,FDREL,D2REL,D3REL,
      &                KSTAR(IG),GAMMA(JPAIR))
                ELSE
