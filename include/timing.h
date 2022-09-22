@@ -19,5 +19,5 @@
      *  ttup,ttmdot,ttout,ttpreall,ttfic,ttfc,ttpotg,ttpot,ttecor,
      *  ttksblist,ttksints,ttksintp,ttkssub,ttksbar,
      *  ttkscp,ttkscmb,ttksins,ttksinit,ttksterm,tttq,ttksintgrt,
-     *  ttsimdsend,ttsimdcalc,ttshk,tttp,tttgrav,ttgrrad,
+     *  ttsimdsend,ttsimdcalc,ttshk,tttp,tttides3,ttgrrad,
      *  xtsub1,xtsub2,xnpred,xnirrf,ibarcount,itides3,igrrad
