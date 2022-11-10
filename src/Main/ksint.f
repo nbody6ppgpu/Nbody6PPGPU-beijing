@@ -230,7 +230,10 @@
         LBRAKE = KZ273.EQ.3.AND.
      &    (KSTAR(I1).GE.10.AND.KSTAR(I1).LE.14).AND.
      &    (KSTAR(I2).GE.10.AND.KSTAR(I2).LE.14).AND.
-     &    HI.LT.0.D0.AND.ECC.GT.0.D0
+     &    (KSTAR(I2).GE.10.AND.KSTAR(I2).LE.14).AND.ECC.GT.0.D0
+* JFNS Adding Hyperbolic-friendly checks
+*     &    HI.LT.0.D0.AND.ECC.GT.0.D0
+
         IF (LBRAKE) THEN
 *       GR breaking for compact obj. define new binary type March 2019
            A_EIN = 3.0*TWOPI*BODY(I)/(SEMI*CL2*(1-ECC2))
@@ -722,8 +725,7 @@ c$$$      print*,rank,'rmax',rmax
       INTEGER RES,KMIN
       REAL*8 SEMI,M1,M2,CLIGHT,ECC,DT,DE(5),TGR,DTX
       REAL*8 ECCNEW,SEMNEW,ECCN,SEMN
-      REAL*8 ttgr1,ttgr2
-      LOGICAL LSANE
+      LOGICAL LSANE,COMP
       include 'timing.h'
 *
       call cputim(ttgr1)
@@ -733,25 +735,44 @@ c$$$      print*,rank,'rmax',rmax
       if(rank.eq.0)itides3 = itides3 + 1
 *
       RES=0
-      KMIN=0
+	  KMIN=0
       ECCN = ECC-DE(4)
       SEMN = SEMI-DE(3)
+	  
+* JFNS Added differentiation between hyperbolic & elliptical 
+	  IF (ECC.GT.0.D0.AND.ECC.LT.1.D0.AND.SEMI.GT.0.D0) THEN
+*	  
 *      PRINT*,' 0 GW_DEC: M1/2 KMIN DT DE ',M1,M2,KMIN,DT,DE
 *      PRINT*,' 0 ECCN, SEMN,ECC,SEMI ',ECCN, SEMN,ECC,SEMI
-      DTX = DT
-      IF(ECCN.LT.0.D0.OR.ECCN.GT.1.D0.OR.SEMN.LT.0.D0)THEN
-         DE(1:5) = 0.D0
-         DO K = 1,64
-         DTX=DTX/2.D0
-         CALL TIDES3(SEMI,M1,M2,ECC,CLIGHT,DTX,DE)
-         ECCN = ECC-DE(4)
-         SEMN = SEMI-DE(3)
-            IF(ECCN.GT.0.D0.AND.ECCN.LT.1.D0.AND.SEMN.GT.0.D0)THEN
-               KMIN = K
-               GOTO 50
-            END IF
-         END DO
-      END IF
+		DTX = DT
+		  IF(ECCN.LT.0.D0.OR.ECCN.GT.1.D0.OR.SEMN.LT.0.D0)THEN
+			 DE(1:5) = 0.D0
+			 DO K = 1,64
+			 DTX=DTX/2.D0
+			 CALL TIDES3(SEMI,M1,M2,ECC,CLIGHT,DTX,DE)
+			 ECCN = ECC-DE(4)
+			 SEMN = SEMI-DE(3)
+				IF(ECCN.GT.0.D0.AND.ECCN.LT.1.D0.AND.SEMN.GT.0.D0)THEN
+				   KMIN = K
+				   GOTO 50
+				END IF
+			 END DO
+		  END IF	  
+	  ELSE IF (ECC.GT.1.D0.AND.SEMI.LT.0.D0) THEN
+		  IF(ECCN.LT.1.D0)THEN
+			 DE(1:5) = 0.D0
+			 DO K = 1,64
+			 DTX=DTX/2.D0
+			 CALL TIDES3(SEMI,M1,M2,ECC,CLIGHT,DTX,DE)
+			 ECCN = ECC-DE(4)
+			 SEMN = SEMI-DE(3)
+				IF(ECCN.GT.1.D0.AND.SEMN.LT.0.D0)THEN
+				   KMIN = K
+				   GOTO 50
+				END IF
+			 END DO
+		  END IF	  
+	  END IF
 *
  50   CONTINUE
 *
@@ -760,14 +781,30 @@ c$$$      print*,rank,'rmax',rmax
       DTOLD = DT
       DT = DTX
       TGR = DABS(DT*SEMI/DE(3))
-      LSANE = ECCNEW.GT.0.D0.AND.ECCNEW.LT.1.D0.AND.
-     &     SEMNEW.GT.0.D0
-      IF(LSANE.AND.(DE(4)/ECC).GT.1.0D-4.OR.(DE(3)/SEMI).GT.1.0D-4) THEN
+	  
+* JFNS Added hyperbolic case
+*      LSANE = ECCNEW.GT.0.D0.AND.ECCNEW.LT.1.D0.AND.
+*          SEMNEW.GT.0.D0
+	  LSANE = ECCNEW.GT.0.D0
+*
+	  IF (ECC.GT.1.0D0) THEN
+	  COMP = DABS(DE(3)/SEMI).GT.1.0D-4.OR.(DE(4)/ECC).GT.1.0D-4
+	  ELSE
+	  LSANE = LSANE.AND.SEMNEW.GT.0.D0
+	  COMP = DABS(DE(3)/SEMI).GT.1.0D-4.OR.(DE(4)/ECC).GT.1.0D-4
+	  END IF
+	  LSANE = LSANE.AND.COMP
+*	  
+*    IF(LSANE.AND.(DE(4)/ECC).GT.1.0D-4.OR.(DE(3)/SEMI).GT.1.0D-4) THEN
 *        do not bypass the GW emission effect
-        RES=1
+*
+	  IF(LSANE) RES=1 
+	  	  
+*
+********************************************************	  
 *      PRINT*,' GW_DEC: M1/2 KMIN DT/old DE ',M1,M2,KMIN,DT,DTOLD,DE
 *      PRINT*,' ECCNEW, SEMNEW,ECC,SEMI ',ECCNEW, SEMNEW,ECC,SEMI
-      END IF
+
 *
       RETURN 
    
