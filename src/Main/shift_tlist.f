@@ -34,7 +34,8 @@
                IF (J.LE.NLSTDELAY(1)+1) GO TO 2
             END IF
             if(rank.eq.0)
-     & write(6,*) 'Error: Index ',I,' not found in step level ',L,'!'
+     & write(6,*) 'shi Error: Index ',I,' not found in step level ',
+     &   L,'! STEP ',DT
             call flush(6)
             call abort()
          END IF
