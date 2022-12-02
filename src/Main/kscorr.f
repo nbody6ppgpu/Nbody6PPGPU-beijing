@@ -9,9 +9,7 @@
       COMMON/SLOW0/  RANGE,ISLOW(10)
       REAL*8  UI(4),UIDOT(4),FP(6),FD(6),FREG(4),FRD(4),A1(3,4),A(8),
      &        PR(4),PRD(4),U2(4),U3(4),U4(4),U5(4),FD1(3)
-      REAL*8  XI(6),VI(6)
       PARAMETER  (ITLOW=2)
-*
 *
 *       Convert from physical to regularized derivative using T' = R.
       RI = R(IPAIR)
