@@ -31,7 +31,7 @@
 *       Adopt twice the tidal radius as escape condition.
       RESC2 = 4.0*RTIDE**2
 *       For tidal cutoff check only energy
-      IF(KZ(23).GE.3)THEN
+      IF(KZ(23).EQ.3)THEN
           RESC2 = 0.D0
           ETID = ZMASS/RTIDE
           ZMOLD = ZMASS
@@ -104,28 +104,30 @@
          END IF
 *
       ELSE
+          IF(RI2.LT.1.0D+10) THEN
 *       Check tidal cutoff criterion - use last computed phi-value
 *       Find distance to the nearest neighbour
-          POTI = 0.0D0
-          NNB = LIST(1,I)
-          RJMIN2 = 1.0D+10
-          DO 9 L = 1,NNB
-              J = LIST(L+1,I)
-              RIJ2 = (X(1,I) - X(1,J))**2 + (X(2,I) - X(2,J))**2 +
-     &                                      (X(3,I) - X(3,J))**2
-              IF (RIJ2.LT.RJMIN2) THEN
-                  RJMIN2 = RIJ2
-                  JMIN = J
-              END IF
-    9     CONTINUE
-          VI2 = XDOT(1,I)**2 + XDOT(2,I)**2 + XDOT(3,I)**2
-          POTI = -PHIDBL(I)
+              POTI = 0.0D0
+              NNB = LIST(1,I)
+              RJMIN2 = 1.0D+10
+              DO 9 L = 1,NNB
+                  J = LIST(L+1,I)
+                  RIJ2 = (X(1,I) - X(1,J))**2 + (X(2,I) - X(2,J))**2 +
+     &                                          (X(3,I) - X(3,J))**2
+                  IF (RIJ2.LT.RJMIN2) THEN
+                      RJMIN2 = RIJ2
+                      JMIN = J
+                  END IF
+    9         CONTINUE
+              VI2 = XDOT(1,I)**2 + XDOT(2,I)**2 + XDOT(3,I)**2
+              POTI = -PHIDBL(I)
 *       Check escape criterion for tidal case or isolated system.
-          EI = 0.5*VI2 - POTI + ETID
+              EI = 0.5*VI2 - POTI + ETID
 *
-          IF (EI.GT.0.0.AND.RI2.GT.RTIDE2) THEN
-          NCRIT2 = NCRIT2 + 1
-          GO TO 30
+              IF (EI.GT.0.0.AND.RI2.GT.RTIDE2) THEN
+              NCRIT2 = NCRIT2 + 1
+              GO TO 30
+              END IF
           END IF
       END IF
 *
@@ -145,17 +147,19 @@
       CMR(4) = SQRT(CMR(1)**2 + CMR(2)**2 + CMR(3)**2)
 *
       if(rank.eq.0)
-     &WRITE (6,18) N, NCORR, NSESC, NBESC, ZMASS, BE(3), CMR(4), RESC,
-     &       STEPI, RSI, ZMASS/FLOAT(N), NCRIT1, (JLIST(J),J=1,NCORR)
-   18 FORMAT (/,' ESCAPE   N =',I10,I8,I10,I6,F8.4,F12.6,2F7.2,F7.3,
-     &                      F7.2,F9.5,I10,' JLIST: ',(2X,20I10,/))
+     &WRITE (6,18) TTOT, NCORR, N, NSESC, NBESC, ZMASS*ZMBAR, BE(3),
+     &       CMR(4),DSQRT(RESC2), ZMASS/FLOAT(N)*ZMBAR, NCRIT1, 
+     &       (JLIST(J),J=1,NCORR)
+   18 FORMAT (/,' ESCAPE T,NESC =',1P,E13.5,I6,' total N,NSESC,NBESC =',
+     & I10,I8,I6,' M* ',1P,E13.5,' total E, RCM, RESC, <m*>, NCRIT1 =',
+     &    4E13.5,I10,' JLIST: ',1000I10)
 *
       IF (KZ(23).EQ.4)THEN
           JLAST = MIN(2*NCORR,NMAX)
-          if(rank.eq.0) WRITE (6,20)  (XLIST(J),J=1,JLAST)
-   20     FORMAT (/,' ESCAPE ANGLES ',11(2I4,2X),9(/,15X,11(2I4,2X)))
+          if(rank.eq.0) WRITE (6,20)
+     &        (JLIST(J),(XLIST(2*J+KK),KK=-1,0),J=1,NCORR)
+   20 FORMAT(' ESCAPE ANGLES ',1P,1000('| ',I10,2E13.5))
       END IF
-*
 *       Check updating of global index for chain c.m.
       IF (NCH.GT.0) THEN
           CALL CHFIND
@@ -173,7 +177,7 @@
       IF (A2.GT.RESC2.AND.KZ(14).GT.0) GO TO 40
       IF (RJMIN2.GT.100.0*RMIN2) GO TO 40
 *
-      IF(KZ(23).GE.3)THEN
+      IF(KZ(23).EQ.3)THEN
           VI2 = XDOT(1,JMIN)**2 + XDOT(2,JMIN)**2 + XDOT(3,JMIN)**2
           EI = 0.5*VI2 - PHIDBL(JMIN) + ETID
           IF(EI.GT.0.D0) GO TO 40
@@ -208,8 +212,8 @@
       RSI = RS(I)
 *
 *       Accumulate escaper names and save current name in case I > N.
-*     PRINT*,' ESC-Chk I,N,M,R,ncorr,angles=',I,NAME(I),BODY(I),
-*    &      SQRT(RI2),NCORR,(XLIST(2*NCORR+KK),KK=1,2)
+*     PRINT*,' ESC-Chk I,NM,M,R,n,ncorr,angles=',I,NAME(I),BODY(I),
+*    &      SQRT(RI2),N,NCORR
       NCORR = NCORR + 1
       JLIST(NCORR) = NAME(I)
       NAMEI = NAME(I)
@@ -252,7 +256,7 @@
       EI = ZK - BODY(I)*POTI
 *
 *       Update tidal radius in case of tidal cutoff (R.Sp.)
-      IF(KZ(23).GE.3)THEN
+      IF(KZ(23).EQ.3)THEN
           RTOLD = RTIDE
           RTIDE = RTIDE*(ZMASS/ZMOLD)**0.3333
       END IF
@@ -270,7 +274,7 @@
       END IF
 *
 *       Include optional escape output on unit 11.
-      IF (KZ(23).EQ.2.OR.KZ(23).EQ.4) THEN
+      IF (KZ(23).EQ.2.OR.KZ(23).EQ.4.OR.KZ(23).EQ.3) THEN
           TESC = TSCALE*TTOT
           EESC = EI/BODY(I)
 *       Distinguish between tidal field and isolated system (ECRIT at RTIDE).
@@ -543,16 +547,20 @@
           END IF
 *
           if(rank.eq.0)then
-          VI = SQRT(0.5*VI2*ZMASS/ZKIN)
-          WRITE (6,200)  IPAIR,NAME1,NAME2,KSTAR(I1),KSTAR(I2),KSTARI,
-     &                   LIST(2,I2), BODY(2*IPAIR-1)*ZMBAR,
-     &                   BODY(2*IPAIR)*ZMBAR,EB,RATIO,VI,ECC,EI,PB,
-     &              RADIUS(I1)*SU,RADIUS(I2)*SU
-  200     FORMAT (/,' BINARY ESCAPE    KS =',I5,'  NM1,2=',2I10,
-     &           '  KW1,2,S,LS=',4I4,'  M =',1P,2E9.1,'  EB =',0P,F8.4,
-     &                '  R*/PM =',F5.2,'  V/<V> =',F5.2,'  E =',F5.2,
-     &                '  EI =',F8.5,'  P =',1P,E8.1,
-     &                '  RAD1,2[*]',1P,2E9.1)
+          VI = DSQRT(VI2)
+          RI = DSQRT(RI2)
+          NICM = JLIST(NCORR)
+          WRITE (6,200)  IPAIR,N,NCORR,NAME1,NAME2,NICM,
+     &          KSTAR(I1),KSTAR(I2),KSTARI,LIST(2,I2),
+     &          BODY(2*IPAIR-1)*ZMBAR,BODY(2*IPAIR)*ZMBAR,
+     &          SEMI,ECC,EB,PB,RATIO,VI,RI,
+     &          EI,RADIUS(I1)*SU,RADIUS(I2)*SU
+  200     FORMAT (/,' BINARY ESCAPE  IP,N,NCORR =',I5,I10,I5,
+     &                '  NM1,2,S=',3I10,'  KW1,2,S,LS=',4I4,
+     &                '  M1,2* =',1P,2E13.5,
+     &                '  a,e,eb,pb =',4E13.5,' R*/PM =',E13.5,
+     &                '  RI,VI =',2E13.5,'  EI =',E13.5,
+     &                '  RAD1,2[*]',2E13.5)
           end if
       ELSE
           if(rank.eq.0)
