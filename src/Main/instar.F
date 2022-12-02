@@ -88,11 +88,16 @@
       EPOCH1 = EPOCH0
       ILOWM = 0
       XMMIN = 1.D+30
+*
       DO 10 I = 1,N
 *
+*       Relativistic dimensionless spin only used after remnant formation in kick/kickGW (MAS).
+*       Except: KZ(24) = 2, see below (RS).
+          ASPN(I) = 0.D0
 *       Obtain stellar parameters at current epoch.
           IF(KZ(19).EQ.2.OR.KZ(19).EQ.4)THEN
-             READ(21,*)M1,KW,M0,EPOCH1,OSPIN
+*
+             READ(21,*)M1,KW,M0,EPOCH1,OSPIN,MC
 #ifdef PARALLEL
              CALL MPI_BCAST(M1,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
              CALL MPI_BCAST(KW,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -126,8 +131,15 @@
              ENDIF
           ENDIF
 *
-          MC = 0.D0
-          AGE = TIME*TSTAR - EPOCH1
+          IF(KZ(19).EQ.2.OR.KZ(19).EQ.4)THEN
+              AGE = - EPOCH1
+              EPOCH(I) = EPOCH1
+          ELSE
+              AGE = TIME*TSTAR - EPOCH1
+              EPOCH(I) = TIME*TSTAR - AGE
+              MC = 0.D0
+          END IF
+*
           CALL star(KW,M0,M1,TM,TN,TSCLS,LUMS,GB,ZPARS)
           CALL hrdiag(M0,AGE,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
      &                RM,LUM,KW,MC,RCC,MENV,RENV,K2)
@@ -145,9 +157,6 @@
           RADIUS(I) = RM/SU
           ZLMSTY(I) = LUM
           SPIN(I) = JSPIN/SPNFAC
-*       Relativistic dimensionless spin only used after remnant formation in kick/kickGW (MAS).
-*       Except: KZ(24) = 2, see below (RS).
-          ASPN(I) = 0.D0
 *
           IF (KZ(27).EQ.3.AND.KZ(28).EQ.4) THEN
               RADIUS(I) = 1.0D-12/(3.0*RBAR)
@@ -167,8 +176,8 @@
           BODY0(I) = M0/ZMBAR
 *
 *       Set initial look-up time.
-          EPOCH(I) = TIME*TSTAR - AGE
           TEV0(I) = TIME
+*
           CALL TRDOT(I,DTM,M1)
           TEV(I) = DTM
           IF (KW.GE.13) TEV(I) = 0.0
