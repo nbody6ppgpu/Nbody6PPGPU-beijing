@@ -889,6 +889,7 @@
             TORB = TWOPI*SQRT(SEMI**3/BODY(I))
             TGR = JORB/DJGR
             RSCHW = 2.0*BODY(I)/CL2
+            QPERI = SEMI*(1.D0-ECC)
 * RSp updated output Dec. 2021
       if(rank.eq.0)WRITE(6,665)
      &   TTOT,DTGW(IPAIR),STEP(J1),I,IPAIR,LIST(1,J1),
@@ -897,7 +898,7 @@
      &   H(IPAIR),GAMMA(IPAIR),A_EIN,TORB,TGR,JORB,DJGR,DTM0,DELET1
  665  FORMAT(1X,' GR BRAKE T DTGW STEP',1P,3E13.5,' I IP NPERT',
      &   I10,2I6,' NM1,2,S=',3I10,' KW1,2,S=',3I4,' M1,2[M*]',2E13.5,
-     &   ' e,a,QP,RS[NB]=',4E13.5,' H, GAMMA=',2E13.5,
+     &   ' e,a,QP,RSCH[NB]=',4E13.5,' H, GAMMA=',2E13.5,
      &   ' A_EIN, TORB, TGR(PM)=',3E13.5,' j,dj=',2E13.5,
      &   ' DTM0,de=',2E13.5)
 	 END IF
@@ -1613,10 +1614,21 @@
           IF (ITER.EQ.1.AND.GAMMA(IPAIR).LT.GMIN) GO TO 10
       ELSE
           if(rank.eq.0)
-     &    WRITE (6,76)  KSTAR(J1), KSTAR(J2), MASS(1),
-     &                  MASS(2),RAD(1), ROL(1), DM1, DM2, DTM
-   76     FORMAT(' END ROCHE    K12 M12 R1 RL1 DM DT ',
-     &                          2I3,2F7.3,2F8.2,2F8.3,1P,E11.3)
+     &    WRITE (6,76)  TTOT,NAME(J1),NAME(J2),
+     &         NAME(I),KW1,KW2,KSTAR(I),
+     &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(I),LIST(1,J1),LIST(1,I),
+     &         MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
+     &         RAD(1),RAD(2),ROL(1),ROL(2),DM1,DM2,DTM
+  76     FORMAT (/,' END ROCHE   TIME[NB]',1P,E15.7,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
+     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
+     &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
+     &         ' SEP[*]',2E13.5,
+     &         ' RAD1,2 ROL1,2[*]=',4E13.5,' DM1/2,DT=',3E13.5)
 *       Check optional diagnostics for degenerate objects.
           IF(MAX(KSTAR(J1),KSTAR(J2)).GE.10)THEN
              IF(KZ(9).GE.3)THEN
