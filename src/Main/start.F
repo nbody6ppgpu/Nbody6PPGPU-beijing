@@ -35,10 +35,17 @@
 *       Define mean mass in scaled units and solar mass conversion factor.
       BODYM = ZMASS/FLOAT(N)
 *     Notice from now ZMBAR is mass scale factor instead of average mass of input data
-      IF (KZ(22).NE.10) THEN
-         ZMBAR = ZMBAR/BODYM
-      ELSE
+      IF (KZ(22).EQ.10) THEN
          ZMBAR = ZMBAR*FLOAT(N)
+      ELSE IF(KZ(19).EQ.4) THEN
+*       In case of reading from unit 21 information for scaling should be in first line.
+*       Assume TTOT in Myrs for instar.F
+         READ(21,*)TMOC,NZERO,RBAR,ZMBAR,TSTAR
+         WRITE(6,*)' SEV input from file unit 21, reading: TMOC =',TMOC,
+     *   ' Myrs NZERO = ',NZERO,' RBAR, ZMBAR, TSTAR =',RBAR,ZMBAR,TSTAR
+         ZMBAR = ZMBAR*FLOAT(NZERO)
+      ELSE
+         ZMBAR = ZMBAR/BODYM
       END IF
 *
 *       Introduce scaling factors DAYS, YRS, SU, RAU, SMU, TSTAR & VSTAR.
