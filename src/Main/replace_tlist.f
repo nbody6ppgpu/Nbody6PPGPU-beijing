@@ -51,8 +51,8 @@ c$$$      call flush(6)
                      END IF
                   END DO
                END IF
-         if(rank.eq.0)
-     &  write(6,*) 'Error: Index ',I,' not found in step level ',LI,'!'
+         if(rank.eq.0)write(6,*)'rep Error: Index ',I,
+     &   ' not found in step level ',LI,'! STEP ',STEP(I)
                call flush(6)
                call abort()
             END IF
