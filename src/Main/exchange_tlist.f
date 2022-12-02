@@ -52,8 +52,8 @@
             ELSE
                IF(NLSTDELAY(1).GT.0) GO TO 12
            if(rank.eq.0)
-     &         write(6,*) 'Error: Index ',I,' not found in step level ',
-     &              LI,'!'
+     &     write(6,*) 'exc Error: Index ',I,' not found in step level ',
+     &              LI,'! STEP ',STEP(I)
                call flush(6)
                call abort()
             END IF
@@ -101,8 +101,8 @@
             ELSE
                IF(NLSTDELAY(1).GT.0) GO TO 22
                if(rank.eq.0)
-     &         write(6,*) 'Error: Index ',J,' not found in step level ',
-     &              LJ,'!'
+     &    write(6,*) 'exc2 Error: Index ',J,' not found in step level ',
+     &              LJ,'! STEP ',STEP(J)
                call flush(6)
                call abort()
             END IF
