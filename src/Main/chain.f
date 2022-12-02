@@ -423,7 +423,7 @@
   402     KK = KK + 3
           WRITE (6,400) STEP,TMAX-CHTIME,GPERT,
      &       (NAMEC(K),1.0/RINV(K),K=1,N-1),NAMEC(N)
-  400 FORMAT (' CHAIN: STEP TM-CHT G R NAMEC',1P,3E13.5,6(I10,E13.5))
+  400 FORMAT (' CHAIN: STEP TM-CHT G NAMEC R',1P,3E13.5,6(I10,E13.5))
           WRITE (6,401)TIMENB,CHTIME,
      &            (K,NAMEC(K),M(K),SIZE(K),RI(K),VI(K),K=1,N-1),
      &            N,NAMEC(N),M(N),SIZE(N)
@@ -834,8 +834,8 @@
       ITERM = -1
 *
       IF (rank.eq.0.and.KZ30.GT.1.AND.QPERI.LT.1.0) THEN
-          WRITE (6,80)  RIJ(1,2), RIJ(1,3), RIJ(2,3), RCOLL, QPERI
-   80     FORMAT (' END CHAIN:   RIJ RCOLL QPERI ',1P,5E10.1)
+          WRITE (6,80) RIJ(1,2), RIJ(1,3), RIJ(2,3), RCOLL, QPERI, GPERT
+   80     FORMAT (' END CHAIN:   RIJ RCOLL QPERI GPERT ',1P,6E15.7)
           KK = 0
           DO 304 K = 1,N
           RI(K) = SQRT(X(KK+1)**2 + X(KK+2)**2 + X(KK+3)**2)
