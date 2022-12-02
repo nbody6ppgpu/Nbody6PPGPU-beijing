@@ -77,10 +77,12 @@
       IF (I6.EQ.0) I6 = I4
 *
       IF (rank.eq.0.and.KZ(30).GT.1) THEN
-          WRITE(6,4)(NAMEC(K),K=1,4),SQRT(R2(I1,I2)), SQRT(R2(I1,I3)),
-     &    SQRT(R2(I2,I3)), SQRT(R2(I2,I4)), SQRT(R2(I3,I4))
-    4     FORMAT (' CHTERM: NAMEC ',4I10,
-     &    '  RIJ[NB] (1-2 1-3 2-3 2-4 3-4) ',1P,5E10.3)
+          WRITE(6,4)(NAMEC(K),K=1,4),(M(K),K=1,4),
+     &    SQRT(R2(I1,I2)), SQRT(R2(I1,I3)), SQRT(R2(I2,I3)),
+     &    SQRT(R2(I2,I4)), SQRT(R2(I3,I4)), (M(K)*ZMBAR,K=1,4)
+    4     FORMAT (' CHTERM: NAMEC ',4I10,' M1-4 ',1P,4E15.7,
+     &    '  RIJ[NB] (1-2 1-3 2-3 2-4 3-4) ',5E15.7,
+     &    ' M[*] ',4E15.7)
           call flush(6)
       END IF
 *
