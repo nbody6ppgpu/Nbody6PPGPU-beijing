@@ -196,15 +196,30 @@ C   10     FORMAT (I2,F8.1,F8.2,F7.3,F6.1,F9.1,F6.2,2F5.1,3I4,2I6)
 *       Include counter for doubly degenerate binary.
       IF (ICASE.EQ.3.OR.ICASE.EQ.4) THEN
           IPAIR = I1
+          NPAIR = N + IPAIR
           J1 = 2*IPAIR - 1
           J2 = J1 + 1
           IF (KSTAR(J1).GE.10.AND.KSTAR(J2).GE.10) THEN
-              NDD = NDD + 1
-              A = -0.5d0*SU*BODY(N+IPAIR)/H(IPAIR)
+          RII=DSQRT((X(1,NPAIR) - RDENS(1))**2 +
+     &              (X(2,NPAIR) - RDENS(2))**2 +
+     &              (X(3,NPAIR) - RDENS(3))**2)
+          VII=DSQRT(XDOT(1,NPAIR)**2+XDOT(2,NPAIR)**2+XDOT(3,NPAIR)**2)
               if(rank.eq.0)then
-              WRITE (6,48)  IPAIR, NAME(J1), NAME(J2), KSTAR(J1),
-     &                      KSTAR(J2), KSTAR(N+IPAIR), R(IPAIR), A, TK
-   48         FORMAT (' NEW DD    KS NM K* R A P ',I4,2I6,3I4,1P,3E10.2)
+              WRITE (6,48) TTOT,NAME(J1),NAME(J2),NAME(NPAIR),KSTAR(J1),
+     &                     KSTAR(J2),KSTAR(NPAIR),IPAIR,DTAU(IPAIR),
+     &                     BODY(J1),BODY(J2),R(IPAIR),ECC(IPAIR),
+     &                  SEMI(IPAIR),EB(IPAIR),TK,H(IPAIR),GAMMA(IPAIR),
+     &                     STEP(NPAIR),LIST(1,J1),LIST(1,NPAIR),
+     &                     BODY(J1)*ZMBAR,BODY(J2)*ZMBAR,
+     &                     RADIUS(J1)*SU,RADIUS(J2)*SU,R(IPAIR)*SU,
+     &                     RII,VII
+  48      FORMAT (/,' NEW DOUBLE DEGEN TIME[NB]',1P,E15.7,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
+     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
+     &         ' GAMMA',E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RAD1,2,S[*]',3E13.5,
+     &         ' RI,VI[NB]=',2E13.5)
               end if
           END IF
       END IF
