@@ -529,7 +529,7 @@ c$$$     &           nmerge,name(j1),name(j2),name(icm)
          CLOSE(3)
 
 *     Tidal tail data
-         IF(KZ(23).GE.3) THEN
+         IF(KZ(23).GE.5) THEN
             write(OUTTAIL,119) TCHAR
  119        format('tail.50_',A20)
             OPEN (UNIT=50,STATUS='UNKNOWN',FILE=OUTTAIL)
