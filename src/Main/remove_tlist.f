@@ -60,8 +60,8 @@ c$$$     &              NGHOSTS,'LIST',NXTLST(NXTLIMIT+1:NXTLIMIT+NGHOSTS)
             GO TO 1
          ELSE
             if(rank.eq.0)
-     &      write(6,*) 'Error: Index ',J,' not found in step level ',
-     &           K,'!'
+     &     write(6,*) 'rem Error: Index ',J,' not found in step level ',
+     &           K,'! STEP ',STEP(J)
             call flush(6)
             call abort()
          END IF
