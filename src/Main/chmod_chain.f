@@ -445,11 +445,13 @@ c$$$          END IF
               END IF
               IF (KZ(30).GT.1.OR.VINF.GT.1.0) THEN
                   if(rank.eq.0)
-     &            WRITE (6,28)  IESC, JESC, NAMEC(IESC), NAMEC(JESC),
-     &                          RI, RDOT**2, 2.0*BODY(ICH)/RI, RB, VINF
-   28             FORMAT (' CHAIN ESCAPE:    IESC JESC NM RI RDOT2 ',
-     &                                      '2*M/R RB VINF ',
-     &                                       2I3,2I6,1P,4E9.1,0P,F6.1)
+     &            WRITE (6,28)  TTOT, TIME, TIMEC, IESC, JESC, 
+     &            NAMEC(IESC), NAMEC(JESC), BODYC(IESC), BODYC(JESC),
+     &            RI, RDOT, GPERT,
+     &            2.0*BODY(ICH)/RI, RB, VINF
+   28             FORMAT (' CHAIN ESCAPE: TT T TC =',1P,3E15.7,
+     &            ' IESC JESC NM1/2 M1/2 RI VI =',2I4,2I8,2E15.7,
+     &            ' GPERT 2*M/R RB VF =',4E15.7)
                   call flush(6)
               END IF
 *       Enforce termination (KCASE < 0) if NCH <= 4 (final membership <= 2).
@@ -611,10 +613,11 @@ C*     &            (NN.EQ.3.AND.GI.GT.0.1)) THEN
           END IF
           IF (KZ(30).GT.1.OR.VINF.GT.2.0) THEN
               if(rank.eq.0)
-     &        WRITE (6,35)  IESC, NAMEC(IESC), RI, RDOT**2,
-     &                      2.0*BODY(ICH)/RI, VINF
-   35         FORMAT (' CHAIN ESCAPE:    IESC NM RI RDOT2 2*M/R VF ',
-     &                                   I3,I6,1P,3E9.1,0P,F6.1)
+     &        WRITE (6,35)  TTOT, TIME, TIMEC, IESC, NAMEC(IESC),
+     &                      RI, RDOT, GPERT, 2.0*BODY(ICH)/RI, VINF
+   35         FORMAT (' CHAIN ESCAPE: TT T TC =',1P,3E15.7,
+     &        ' IESC NM RI VI =',I4,I8,2E15.7,
+     &        ' GPERT 2*M/R VF ',3E15.7)
           END IF
 *       Ensure single body is removed in case of wide binary.
           JESC = 0
