@@ -251,11 +251,14 @@
           TC = TIMEC/TCR
           EC = ENERGY/CM(8)
           if(rank.eq.0)
-     &    WRITE (6,30)  I1, I2, I3, I4, RB, R13, R24, DE, TC, NSTEP1,
-     &                  NREG, NPERT, DB, EC
-   30     FORMAT (/,' END CHAIN  ',4I3,'  RB =',1PE8.1,'  R13 =',E8.1,
-     &              '  R24 =',E8.1,'  DE =',E8.1,'  TC =',0P,F5.1,'  #',
-     &                 I5,I4,I3,'  DB =',F5.2,'  EC =',F6.3)
+     &    WRITE (6,30)  N, I1, I2, I3, I4, NAMEC(I1), NAMEC(I2),
+     &                  NAMEC(I3), NAMEC(I4), M(I1), M(I2), M(I3),
+     &                  M(I4), RB, R13, R24, DE, TC, NSTEP1,
+     &                  NREG, NPERT, GPERT, DB, EC
+   30     FORMAT (/,' END CHAIN NCH I1-4 ',5I3,' N1-4 =',4I10,' M1-4 =',
+     &           1P,4E13.5,' RB =',E13.5,' R13 =',E13.5,
+     &           ' R24 =',E13.5,' DE =',E13.5,' TC =',E13.5,' #',
+     &           I6,I5,I4,' GPERT =',E13.5,' DB =',E13.5,' EC =',E13.5)
       END IF
 *
    50 RETURN
