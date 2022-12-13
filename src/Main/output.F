@@ -66,7 +66,7 @@
           CALL LAGR(RDENS)
       END IF
 *     Call Computation of Moments of Inertia (with Chr. Theis)
-      IF(KZ(49).GT.0) CALL ELLAN
+      IF(KZ(45).GT.0) CALL ELLAN
 *
 *       Initialize diagnostic variables.
       NP = 0
