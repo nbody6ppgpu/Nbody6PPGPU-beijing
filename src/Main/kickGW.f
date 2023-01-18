@@ -71,9 +71,11 @@
     
          IF(ASPN(I1).LE.0.0.OR.ASPN(I1).GT.1.0)THEN     
            ASPN(I1) = 0.5
+           SPIN(I1) = 0.5
          ENDIF
          IF(ASPN(I2).LE.0.0.OR.ASPN(I2).GT.1.0)THEN
            ASPN(I2) = 0.5
+           SPIN(I2) = 0.5
          ENDIF   
 
          abh1 = ASPN(I1)
@@ -84,6 +86,8 @@
          
          ASPN(I1) = sfinal
          ASPN(I2) = sfinal
+         SPIN(I1) = sfinal
+         SPIN(I2) = sfinal
 
       ENDIF
       
