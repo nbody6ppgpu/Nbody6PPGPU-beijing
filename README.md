@@ -5,7 +5,7 @@ The code is an offspring of Sverre Aarseth's direct N-body codes see www.sverre.
 This is the code suitable for parallel and GPU accelerated runs on supercomputers and workstations. 
 
 # For contributors
-```git clone -b dev git@github.com:kaiwu-astro/Nbody6PPGPU-beijing```
+```git clone -b dev git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing```
 It would automatically switch to dev branch after downloading.
 
 Sources are in `src/Main/`. Due to urgent bug fixes few routines are later than Dec2020. 
@@ -15,11 +15,11 @@ Git system does not preserve the modification time of files, but the modificatio
 # For users
 ## Installation
 ```bash
-git clone git@github.com:kaiwu-astro/Nbody6PPGPU-beijing
+git clone git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing
 ```
 This downloads the `stable` branch. The `stable` branch include major versions, and the `dev` branch include the most recent updates and bugfix. Changes in `dev` branch are merged to `stable` regularly.
 
-If you want the most recent version (may contain bugs), use `git clone -b dev git@github.com:kaiwu-astro/Nbody6PPGPU-beijing`, or run `git switch dev` after you `clone` without `-b dev` param. 
+If you want the most recent version (may contain bugs), use `git clone -b dev git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing`, or run `git switch dev` after you `clone` without `-b dev` param. 
 
 ```bash
  ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large 
@@ -34,7 +34,7 @@ Copy the executable to the simulation directory you want
 cp `ls build/nbody6++*` [your_simulation_path]
 ```
 
-It is for up to one million bodies with many initial binaries. The configure script written by Long Wang has a multitude of further options, check with `./configure --help` or ask in [our discussion](https://github.com/kaiwu-astro/Nbody6PPGPU-beijing/discussions).
+It is for up to one million bodies with many initial binaries. The configure script written by Long Wang has a multitude of further options, check with `./configure --help` or feel free to ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions).
 
 ## Additional installation options
 
