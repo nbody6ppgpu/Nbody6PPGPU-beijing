@@ -127,12 +127,26 @@
            ECC1 = ECC - DE(4)
            PERI = SEMI*(1.D0 - ECC)
            QPERI = SEMI1*(1.D0 - ECC1)
-           IF(ECC1.LT.0.0.OR.ECC1.GT.1.0.OR.SEMI1.LT.0.0)THEN
-               SEMI1 = SEMI
-               ECC1 = ECC
-               DE(1:5) = 0.D0
-               DH = 0.D0
-           END IF
+		   
+* JFNS Change checks - Hyperbolic friendly subcase
+
+		   IF(ECC.LT.1.0D+0.AND.SEMI.GT.0.0D0) THEN
+			   IF(ECC1.LT.0.0.OR.ECC1.GT.1.0.OR.SEMI1.LT.0.0)THEN
+				   SEMI1 = SEMI
+				   ECC1 = ECC
+				   DE(1:5) = 0.D0
+				   DH = 0.D0
+			   END IF
+			   
+		   ELSE    
+		   		IF(ECC1.LT.0.0D+0)THEN
+				   SEMI1 = SEMI
+				   ECC1 = ECC
+				   DE(1:5) = 0.D0
+				   DH = 0.D0
+			   END IF
+		   END IF 
+		   
            if(rank.eq.0)WRITE(6,665)
      &   TTOT,DTGW(IPAIR),STEP(I1),I,IPAIR,LIST(1,I1),
      &   NAME(I1),NAME(I2),NAME(I),KSTAR(I1),KSTAR(I2),KSTAR(I),
