@@ -61,36 +61,36 @@
  3001 FORMAT (' STEP U ',64I8)
       end if
 *       Loop over single stars
-      DO 225 I = IFIRST,NTOT
-          J = MAX(1,1 - INT(LOG(STEP(I))*FAC))
-          IF((J.EQ.JMAXI.OR.J.EQ.JMAXI-1).and.rank.eq.0)THEN
-          WRITE(88,*)' STEP I: T,J,JMAX=',TTOT,J,JMAXI,
-     &  ' I,N,KW,M*,DT=',I,NAME(I),KSTAR(I),BODY(I)*ZMBAR,STEP(I)
-          END IF
-  225 CONTINUE
+*     DO 225 I = IFIRST,NTOT
+*         J = MAX(1,1 - INT(LOG(STEP(I))*FAC))
+*         IF((J.EQ.JMAXI.OR.J.EQ.JMAXI-1).and.rank.eq.0)THEN
+*         WRITE(88,*)' STEP I: T,J,JMAX=',TTOT,J,JMAXI,
+*    &  ' I,N,KW,M*,DT=',I,NAME(I),KSTAR(I),BODY(I)*ZMBAR,STEP(I)
+*         END IF
+* 225 CONTINUE
 *
-      DO 226 I = IFIRST,NTOT
-          J = MAX(1,1 - INT(LOG(STEPR(I))*FAC))
-          IF((J.EQ.JMAXR.OR.J.EQ.JMAXR-1).and.rank.eq.0)THEN
-          WRITE(88,*)' STEP R: T,J,JMAX=',TTOT,J,JMAXR,
-     &  ' I,N,KW,M*,DTR=',I,NAME(I),KSTAR(I),BODY(I)*ZMBAR,STEPR(I)
-          END IF
-  226 CONTINUE
+*     DO 226 I = IFIRST,NTOT
+*         J = MAX(1,1 - INT(LOG(STEPR(I))*FAC))
+*         IF((J.EQ.JMAXR.OR.J.EQ.JMAXR-1).and.rank.eq.0)THEN
+*         WRITE(88,*)' STEP R: T,J,JMAX=',TTOT,J,JMAXR,
+*    &  ' I,N,KW,M*,DTR=',I,NAME(I),KSTAR(I),BODY(I)*ZMBAR,STEPR(I)
+*         END IF
+* 226 CONTINUE
 *       Loop over KS binaries
-      IF(NPAIRS.GT.0)THEN
-      DO 227 IPAIR = 1,NPAIRS
-          I = N + IPAIR
-          I1 = 2*IPAIR - 1
-          I2 = 2*IPAIR
-          J = MAX(1,1 - INT(LOG(STEP(I1))*FAC))
-          IF((J.EQ.JMAXU.OR.J.EQ.JMAXU-1).and.rank.eq.0)THEN
-          WRITE(88,*)' STEP U: T,J,JMAX=',TTOT,J,JMAXU,
-     &  ' IPAIR,I12,NIP,N12,KWIP,KW12,M*1/2,DTIP,DTI1=',IPAIR,I1,I2,
-     &  NAME(I),NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),BODY(I1)*ZMBAR,
-     &  BODY(I2)*ZMBAR,STEP(I),STEP(I1)
-          END IF
-  227 CONTINUE
-      END IF
+*     IF(NPAIRS.GT.0)THEN
+*     DO 227 IPAIR = 1,NPAIRS
+*         I = N + IPAIR
+*         I1 = 2*IPAIR - 1
+*         I2 = 2*IPAIR
+*         J = MAX(1,1 - INT(LOG(STEP(I1))*FAC))
+*         IF((J.EQ.JMAXU.OR.J.EQ.JMAXU-1).and.rank.eq.0)THEN
+*         WRITE(88,*)' STEP U: T,J,JMAX=',TTOT,J,JMAXU,
+*    &  ' IPAIR,I12,NIP,N12,KWIP,KW12,M*1/2,DTIP,DTI1=',IPAIR,I1,I2,
+*    &  NAME(I),NAME(I1),NAME(I2),KSTAR(I1),KSTAR(I2),BODY(I1)*ZMBAR,
+*    &  BODY(I2)*ZMBAR,STEP(I),STEP(I1)
+*         END IF
+* 227 CONTINUE
+*     END IF
 *
 *
 *       IPROC contains a list of possible processor numbers,
