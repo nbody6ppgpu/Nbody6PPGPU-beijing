@@ -31,7 +31,8 @@
       inum(ix)=inl
       if(ix.le.idiff)inum(ix) = inum(ix) + 1
       ista(ix) = irun+1
- 1003 irun = irun + inum(ix)
+      irun = irun + inum(ix)
+ 1003 continue
 *
       istart = ista(rank+1) + IFIRST - 1
       iend = ista(rank+1) + inum(rank+1) - 2 + IFIRST
