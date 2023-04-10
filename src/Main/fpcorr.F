@@ -56,9 +56,9 @@ C          FDMPI(K) = ONE6*(FDR(K) + FD(K))
               A(K+9) = 6.0*(FDOT(K,JCM) - FDOT(K,I))
    82     CONTINUE
 *
-!$omp critical 
+!$omp atomic 
           NCMDER = NCMDER + 1
-!$omp end critical 
+!$omp end atomic 
       ELSE
 *         STEPJ = STEP(J)
           S = TIME - T0(J)
@@ -128,9 +128,9 @@ C          FDMPI(K) = ONE6*(FDR(K) + FD(K))
       L = L + 1
       IF (L.LE.NBSUM) GO TO 80
 *
-!$omp critical       
+!$omp atomic       
       NBCORR = NBCORR + 1
-!$omp end critical 
+!$omp end atomic 
 *
 *       Perform corrections to irregular and regular force derivatives.
       DO 95 K = 1,3

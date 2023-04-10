@@ -22,10 +22,12 @@
       XIDOT(1:3) = XDOT(1:3,I)
 *          PHII(I) = 0.D0
       NNB0 = LIST(1,I)
-!$omp critical      
+!$omp atomic      
       xnirrf = xnirrf + dble(nnb0)
+!$omp end atomic 
+!$omp atomic
       NBPRED = NBPRED + 1
-!$omp end critical      
+!$omp end atomic      
 *
 *       Assume small mass at centre for special case of no neighbours.
       IF (NNB0.EQ.0) THEN

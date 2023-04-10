@@ -1,32 +1,58 @@
-file modified time information in Berlin time recorded at Thu 28 Jul 2022 06:19:13 PM CEST
+file modified time information in Berlin time recorded at Sat 08 Apr 2023 04:28:05 PM CEST
 Nbody6PPGPU-beijing/  
 2020-06-29 23:35:57 extra_inc
 2020-07-09 23:24:04 src
 2020-09-25 22:53:55 Makefile.in
-2020-09-25 22:53:55 configure.ac
 2022-02-19 06:39:21 Makefile
 2022-04-17 09:24:05 timeList.all.txt
-2022-04-17 09:24:05 sample
 2022-04-17 09:24:05 include
 2022-04-17 09:24:05 doc
-2022-04-17 09:24:05 configure
 2022-04-17 09:24:05 config.status
 2022-04-17 09:24:05 config.examples
-2022-04-17 09:24:05 build
 2022-05-05 11:52:40 deleteList.txt
-2022-07-08 16:57:38 restore_mtime.py
-2022-07-20 09:09:12 README.md
-2022-07-28 18:19:13 timeList
+2022-08-06 13:46:30 examples
+2022-08-30 10:26:01 restore_mtime.py
+2022-09-19 16:23:36 configure
+2022-09-19 16:35:52 macro
+2022-09-19 16:35:52 configure.ac
+2023-03-30 06:24:26 README.md
+2023-03-30 11:19:19 build
+2023-04-08 16:28:05 timeList
 
 Nbody6PPGPU-beijing/build/  
 2020-09-25 22:53:55 Makefile.debug
-2022-04-17 09:24:05 nbody6++.sse.gpu.mpi.hdf5
-2022-04-17 09:24:05 Makefile.save.hdf5
 2022-04-17 09:24:05 Makefile
-2022-07-12 15:20:44 Makefile.in
+2022-09-12 17:30:50 Makefile.save.hdf5
+2022-09-19 16:23:36 Makefile.in
+2023-03-30 11:19:19 Makefile.MPCDF
 
 Nbody6PPGPU-beijing/doc/  
 2022-04-17 09:24:05 nbody6++_manual.txt
+
+Nbody6PPGPU-beijing/examples/  
+2022-07-28 15:41:28 example_1k
+2022-07-28 15:41:28 03_HDF5_Basics.ipynb
+2022-07-28 15:41:28 01_Basics.ipynb
+2022-08-06 18:08:09 README.md
+2022-08-06 18:08:09 readhdf5.ipynb
+2022-08-06 18:12:20 jupyter_html
+2022-08-06 18:12:20 02_Hertzsprung–Russell_diagram.ipynb
+2023-03-21 09:37:34 input_files
+
+Nbody6PPGPU-beijing/examples/example_1k/  
+2022-07-28 15:41:28 1k.inp
+
+Nbody6PPGPU-beijing/examples/input_files/  
+2022-07-28 15:41:28 N100k.inp.restart
+2022-07-28 15:41:28 N100k.inp.orig
+2022-07-28 15:41:28 N100k.inp
+2022-07-28 15:41:28 dat.10
+
+Nbody6PPGPU-beijing/examples/jupyter_html/  
+2022-07-28 15:41:28 03_HDF5_Basics.html
+2022-07-28 15:41:28 01_Basics.html
+2022-08-06 18:12:20 readhdf5.html
+2022-08-06 18:12:20 02_Hertzsprung–Russell_diagram.html
 
 Nbody6PPGPU-beijing/extra_inc/  
 2020-06-29 23:35:57 noomp
@@ -64,20 +90,18 @@ Nbody6PPGPU-beijing/include/
 2016-11-18 13:45:35 output.h
 2020-12-17 00:21:31 tlist.h
 2021-08-22 23:37:10 scale_out.h
-2021-09-13 23:14:42 output_single.h
-2021-10-28 18:55:08 output_binary.h
-2022-04-17 09:24:05 timing.h
 2022-04-17 09:24:05 params.h.in
 2022-04-17 09:24:05 params.h.b4m
 2022-04-17 09:24:05 params.h.b10m
 2022-04-17 09:24:05 params.h
 2022-07-12 15:20:44 common6.h
+2022-07-31 16:45:06 output_single.h
+2022-07-31 16:45:06 output_binary.h
+2022-09-22 14:54:30 timing.h
 
-Nbody6PPGPU-beijing/sample/  
-2022-04-17 09:24:05 N100k.inp.restart
-2022-04-17 09:24:05 N100k.inp.orig
-2022-04-17 09:24:05 N100k.inp
-2022-04-17 09:24:05 dat.10
+Nbody6PPGPU-beijing/macro/  
+2022-09-19 16:35:52 ax_fc_check_bounds.m4
+2022-09-19 16:35:52 ax_check_compile_flag.m4
 
 Nbody6PPGPU-beijing/src/  
 2022-07-12 15:29:13 Main
@@ -217,7 +241,6 @@ Nbody6PPGPU-beijing/src/Main/
 2016-01-06 10:58:57 resolv.f
 2016-01-06 10:58:57 reset2.f
 2016-01-06 10:58:57 rename_ks.F
-2016-01-06 10:58:57 remove.f
 2016-01-06 10:58:57 reinit.f
 2016-01-06 10:58:57 reduce.f
 2016-01-06 10:58:57 qpmod4.f
@@ -274,7 +297,6 @@ Nbody6PPGPU-beijing/src/Main/
 2016-01-06 10:58:57 core.f
 2016-01-06 10:58:57 cmcorr.f
 2016-01-06 10:58:57 chstab.f
-2016-01-06 10:58:57 chmod_chain.f
 2016-01-06 10:58:57 chlist.f
 2016-01-06 10:58:57 chinit.f
 2016-01-06 10:58:57 checkl.F
@@ -312,15 +334,11 @@ Nbody6PPGPU-beijing/src/Main/
 2020-12-27 22:47:06 mlwind.f
 2020-12-28 23:16:13 qpmod.f
 2021-01-14 18:53:31 hrdiag.f
-2021-02-03 00:31:32 units.f
-2021-02-09 04:59:33 hrplot.F
 2021-06-12 19:22:06 update.F
 2021-08-25 21:05:02 setup.F
 2021-08-25 21:05:48 scale.F
 2021-08-25 21:25:33 cputim.F
 2021-08-26 19:08:40 synch.f
-2021-09-02 23:05:45 xtrnl0.F
-2021-09-02 23:14:11 degen.f
 2021-09-02 23:26:32 binpop.F
 2021-09-03 15:18:57 global_output.F
 2021-09-05 21:52:48 absorb.f
@@ -330,7 +348,6 @@ Nbody6PPGPU-beijing/src/Main/
 2021-09-05 22:06:10 decide.f
 2021-09-05 22:07:26 delay_store_tlist.f
 2021-09-05 22:08:47 eccmod.f
-2021-09-05 22:11:47 exchange_tlist.f
 2021-09-05 23:07:20 hipop.F
 2021-09-05 23:08:06 hirect.f
 2021-09-05 23:08:55 hotsys.f
@@ -341,10 +358,7 @@ Nbody6PPGPU-beijing/src/Main/
 2021-09-05 23:26:17 next_tlist.f
 2021-09-05 23:26:34 ntint.f
 2021-09-05 23:27:58 qtides.f
-2021-09-05 23:30:33 remove_tlist.f
 2021-09-05 23:31:46 repair_tlist.f
-2021-09-05 23:32:56 replace_tlist.f
-2021-09-05 23:37:24 shift_tlist.f
 2021-09-05 23:39:20 stablc.f
 2021-09-05 23:40:38 tail0.f
 2021-09-05 23:42:47 ttcal.f
@@ -352,14 +366,10 @@ Nbody6PPGPU-beijing/src/Main/
 2021-09-08 15:23:41 rkint.f
 2021-09-08 15:32:40 himod.f
 2021-10-24 20:20:34 input.F
-2021-11-10 00:23:49 chterm.f
-2021-11-25 01:07:53 custom_output.F
 2021-11-25 01:12:30 ksres_op.f
 2021-12-07 02:26:16 rmesc_tlist.f
 2021-12-07 20:47:49 ellan.f
 2021-12-07 22:43:56 lagr.f
-2021-12-12 23:17:34 remove_ks.F
-2021-12-12 23:17:34 ksreg.F
 2022-04-17 09:24:05 xx
 2022-04-17 09:24:05 xbpredall.f.old
 2022-04-17 09:24:05 xbpredall.F.new
@@ -370,39 +380,29 @@ Nbody6PPGPU-beijing/src/Main/
 2022-04-17 09:24:05 subint.F
 2022-04-17 09:24:05 steps.f
 2022-04-17 09:24:05 stepk.f
-2022-04-17 09:24:05 start.F
 2022-04-17 09:24:05 spiral.f
 2022-04-17 09:24:05 sort_tlist.f
-2022-04-17 09:24:05 roche.f
-2022-04-17 09:24:05 reset.f
 2022-04-17 09:24:05 remove_ks.F.old
 2022-04-17 09:24:05 remove_ks.F.diag
 2022-04-17 09:24:05 reg.sse.cpp
 2022-04-17 09:24:05 regcor_gpu.F
 2022-04-17 09:24:05 reg.avx.cpp
-2022-04-17 09:24:05 recoil.f
 2022-04-17 09:24:05 pot.sse.cpp
 2022-04-17 09:24:05 pot.avx.cpp
 2022-04-17 09:24:05 permit.f
-2022-04-17 09:24:05 output.F
 2022-04-17 09:24:05 nbint_cor.f
-2022-04-17 09:24:05 mydump.F
 2022-04-17 09:24:05 modify.F
-2022-04-17 09:24:05 levels.f
 2022-04-17 09:24:05 kstran.f
-2022-04-17 09:24:05 ksterm.F
 2022-04-17 09:24:05 ksreg.F.old
 2022-04-17 09:24:05 ksreg.F.diag
 2022-04-17 09:24:05 ksrect.f.old
 2022-04-17 09:24:05 ksrect.f.diag
-2022-04-17 09:24:05 kspreg.F
 2022-04-17 09:24:05 kspinit.f
 2022-04-17 09:24:05 kslist.f
 2022-04-17 09:24:05 ksapo.f
 2022-04-17 09:24:05 kick2.f
 2022-04-17 09:24:05 irr.sse.cpp
 2022-04-17 09:24:05 irr.avx.cpp
-2022-04-17 09:24:05 intgrt.F
 2022-04-17 09:24:05 impact.f
 2022-04-17 09:24:05 higrow.f
 2022-04-17 09:24:05 gpunb.velocity.cu.single
@@ -412,11 +412,7 @@ Nbody6PPGPU-beijing/src/Main/
 2022-04-17 09:24:05 gpunb.velocity.cu
 2022-04-17 09:24:05 giant.f
 2022-04-17 09:24:05 fpoly2_mpi.f
-2022-04-17 09:24:05 fpoly1_mpi.f
 2022-04-17 09:24:05 fpoly0.F
-2022-04-17 09:24:05 file_init.F
-2022-04-17 09:24:05 escape.F
-2022-04-17 09:24:05 energy_mpi.F
 2022-04-17 09:24:05 encorr_mdot.F
 2022-04-17 09:24:05 data.F
 2022-04-17 09:24:05 chrect.f
@@ -429,24 +425,52 @@ Nbody6PPGPU-beijing/src/Main/
 2022-05-05 06:01:37 mdot.F.standard
 2022-05-05 06:01:37 mdot.F.diag
 2022-05-05 06:01:37 expel.f
-2022-05-27 12:50:24 custom_output_facility.F
-2022-07-08 16:57:38 binout.f
 2022-07-08 16:57:38 bindat.f
-2022-07-08 17:08:36 instar.F
 2022-07-08 17:12:42 ksinit.F
 2022-07-08 17:17:53 unpert.f
-2022-07-08 17:23:38 nbody6.F
-2022-07-08 17:25:21 tides3.f
 2022-07-08 17:27:36 ksperi.f
-2022-07-12 15:20:44 mix.f
 2022-07-12 15:20:44 coal.f
-2022-07-12 15:29:13 kickGW.f
-2022-07-27 18:06:45 chain.f
-2022-07-27 18:08:54 ksint.f
 2022-07-27 18:11:04 cmbody.f
 2022-07-27 18:12:20 mdot.F
 2022-07-27 18:13:28 ksrect.f
-2022-07-27 18:16:14 kscorr.f
-2022-07-27 18:24:10 kstide.f
-2022-07-27 20:21:15 kick.F
+2022-07-31 16:33:12 mix.f
+2022-07-31 16:33:12 kick.F
+2022-07-31 16:37:19 remove_ks.F
+2022-07-31 16:37:19 remove.f
+2022-07-31 16:37:19 ksterm.F
+2022-07-31 16:37:19 kspreg.F
+2022-07-31 16:40:50 custom_output_facility.F
+2022-08-20 14:12:49 hrplot.F
+2022-09-21 15:16:25 intgrt.F
+2022-09-22 15:12:30 custom_output.F
+2022-11-10 10:16:08 tides3.f
+2022-11-10 10:18:04 kstide.f
+2022-11-10 10:19:01 ksint.f
+2022-11-16 08:27:44 nbody6.F
+2022-12-02 10:54:48 binout.f
+2022-12-02 11:04:03 chain.f
+2022-12-02 11:05:56 chmod_chain.f
+2022-12-02 11:07:55 chterm.f
+2022-12-02 11:09:56 degen.f
+2022-12-02 11:16:53 escape.F
+2022-12-02 11:18:34 exchange_tlist.f
+2022-12-02 11:20:25 file_init.F
+2022-12-02 11:24:51 instar.F
+2022-12-02 11:31:22 kscorr.f
+2022-12-02 11:36:59 recoil.f
+2022-12-02 11:38:30 remove_tlist.f
+2022-12-02 11:39:23 replace_tlist.f
+2022-12-02 11:41:17 reset.f
+2022-12-02 11:42:51 roche.f
+2022-12-02 11:44:01 shift_tlist.f
+2022-12-02 11:46:32 start.F
+2022-12-02 11:50:15 units.f
+2022-12-13 13:49:31 mydump.F
+2022-12-13 13:51:21 output.F
+2023-01-18 12:55:27 kickGW.f
+2023-01-23 10:53:59 ksreg.F
+2023-04-01 15:44:13 xtrnl0.F
+2023-04-01 15:44:13 levels.f
+2023-04-02 14:56:31 fpoly1_mpi.f
+2023-04-02 14:56:31 energy_mpi.F
 

@@ -118,9 +118,9 @@ C$$$      END IF
           ELSE
               RS(I) = 1.1*RS(I)
           END IF
-!$omp critical           
+!$omp atomic           
           NBVOID = NBVOID + 1
-!$omp end critical           
+!$omp end atomic           
           IRSKIP = 1
 *       Skip another full N loop (necessary for GPU/OpenMP case).
           GO TO 50
@@ -345,9 +345,9 @@ C$$$          FDR2 = FDR2 + FDR(K)**2
       NBLOSS = NBLOSS - 1
 *       Restore last old neighbour in case NBLOSS = 0 at end of search.
       LIST(NNB0+1,I) = NLIST(1)
-!$omp critical       
+!$omp atomic       
       NBSMIN = NBSMIN + 1
-!$omp end critical 
+!$omp end atomic 
 *
 *       Perform correction to irregular and regular force components.
       A1 = X(1,J) - XI(1)
@@ -554,14 +554,14 @@ c$$$          end if
 *     W3DOT = W3DOT + 2.0*(FREG(K) + FIRR(K))*DPX +
 *     &                            (FDR(K) + FD(K))*PX
  24      CONTINUE
-!$omp critical              
+!$omp atomic              
 *       Note: second-order term derived by Douglas Heggie (Aug/03).
 *       Accumulate tidal energy change for general galactic potential.
 *       Note: Taylor series at end of interval with negative argument.
 *         ETIDE = ETIDE - BODY(I)*((ONE6*W3DOT*DTR - 0.5*W2DOT)*DTR +
 *    &                                                   WDOT)*DTR
          ETIDE = ETIDE + BODY(I)*(0.5*W2DOT*DTR - WDOT)*DTR
-!$omp end critical          
+!$omp end atomic          
 *       Note: integral of Taylor series for V*P using final values.
       END IF
 
@@ -767,9 +767,9 @@ c$$$      end if
   110 IF (TTMP.LT.STEP(I)) THEN
           STEP(I) = 0.5D0*STEP(I)
           TIMENW(I) = T0(I) + STEP(I)
-!$omp critical 
+!$omp atomic 
           NICONV = NICONV + 1
-!$omp end critical 
+!$omp end atomic 
           GO TO 110
       END IF
 *

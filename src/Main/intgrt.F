@@ -20,7 +20,7 @@
       COMMON/XPRED/ TPRED(NMAX),TRES(KMAX),ipredall
       COMMON/NEWXV/ XN(3,NMAX),XNDOT(3,NMAX)
       INTEGER JHIST,JHISTR,LSHORT(NMAX)
-      INTEGER IREG(NMAX),IMINR_TMP(NMAX)
+      INTEGER NREG,IREG(NMAX),IMINR_TMP(NMAX)
       REAL*8 FIRR_SIMD(3,NMAX),FD_SIMD(3,NMAX)
       INTEGER STI(NMAX)
       LOGICAL FLAG
@@ -467,7 +467,7 @@ c$$$  END IF
 *     Initialize counters for irregular & regular integrations.
 *      NREG = 0
 *
-*     if(time.lt.0.01)write(6,*)rank,' irr ',time,nxtlen,
+*     write(6,*)rank,' irr ',time,nxtlen,
 *    &(nxtlst(k),name(nxtlst(k)),step(nxtlst(k)),k=1,min(5,nxtlen))
 *     call flush(6)
 *       Advance the irregular step for all particles in the current block.
@@ -542,17 +542,12 @@ C        if (TCCT.gt.2.0) stop
 *         print*,' x0(1,lst)=',(x0(1,nxtlst(k)),k=1,nxtlen)
 *         print*,' xdot(1,lst)=',(xdot(1,nxtlst(k)),k=1,nxtlen)
 *         print*,' x0dot(1,lst)=',(x0dot(1,nxtlst(k)),k=1,nxtlen)
-
-*         print*,' before nbint 108 ',(x(k,108),k=1,3)
 *     OpenMP version of irregular force and fdot
 *           print*,' intgrt i,n,npairs=',i,n,npairs
-*        CALL NBINT(FIRR_SIMD,FD_SIMD)
-         CALL NBINT(TIME,NXTLEN,NXTLST,X,XDOT,BODY,FIRR_SIMD,FD_SIMD,
-     &        LIST,IMINR_TMP)
+         CALL NBINT(NXTLEN,NXTLST,FIRR_SIMD,FD_SIMD,IMINR_TMP)
 *         print*,' after nbint =',time
 *         print*,' firr,fd_simd=',
 *    &   ((firr_simd(k,l),fd_simd(k,l),k=1,3),l=1,nxtlen)
-
 #endif
 !$omp parallel do if(NXTLEN.GE.ITHREAD) private(L,I)
          DO L = 1,NXTLEN
@@ -560,7 +555,6 @@ C        if (TCCT.gt.2.0) stop
             CALL NBINT_COR(I,FIRR_SIMD(1,L),FD_SIMD(1,L))
          END DO
 !$omp end parallel do
-
 !$omp parallel do if(NXTLEN.GE.ITHREAD) private(L,I,DTR)
          DO L = 1,NXTLEN
             I = NXTLST(L)
@@ -648,7 +642,6 @@ c$$$      if(rank.eq.0)ttbarnb = ttbarnb + (tt999-tt998)*60.
 *#endif
 *           call cputim(ttnb2)
 *           if(rank.eq.0)ttpre = ttpre + (ttnb2-ttnb1)*60.
-
            NPART_LEN = iend_lst - istart_lst + 1
 #ifdef SIMD
 *     Use AVX/SSE to calculate irregular force and fdot
@@ -657,9 +650,8 @@ c$$$      if(rank.eq.0)ttbarnb = ttbarnb + (tt999-tt998)*60.
            call cputim(ttsimdc)
 #else
 *     OpenMP version of irregular force and fdot
-           CALL NBINT(TIME,NPART_LEN,NXTLST_MPI(istart_lst),
-     &          X,XDOT,BODY,FIRR_SIMD,FD_SIMD,
-     &          LIST,IMINR_TMP)
+         CALL NBINT(NPART_LEN,NXTLST_MPI(istart_lst),
+     &        FIRR_SIMD,FD_SIMD,IMINR_TMP)
 #endif           
            LL = istart
            I_STEP_LEN = ithread*icore
@@ -867,12 +859,14 @@ c$$$              end if
         END IF
 *
       NSTEPI = NSTEPI + NXTLEN
-
 *
 c$$$      call cputim(ttt33)
 c$$$      if(rank.eq.0)ttnewt = ttnewt + (ttt33 - ttt32)*60.
 ***** --Regular force calculation--------------------------------------**
       IF(NREG.GT.0)THEN
+*     write(6,*)rank,' reg ',time,nreg,
+*    &(ireg(k),name(ireg(k)),step(ireg(k)),k=1,min(5,nreg))
+*     call flush(6)
 *    Do full prediction when regular block step come
       ipredall = .false.
          call cputim(tttpre1)
@@ -929,9 +923,9 @@ c$$$      end if
 *               NNB = IMPI(1,L) + 1 
 *               LIST(1:NNB,I) = IMPI(1:NNB,L)
                IF(LIST(1,I).GT.0) then
-!$omp critical                   
+!$omp atomic                   
                   RSMIN = MIN(RSMIN,RS(I))
-!$omp end critical
+!$omp end atomic
                end if
 #ifdef SIMD
 *     Update neighbor list for AVX/SSE library
@@ -1151,9 +1145,9 @@ c          print*,' x0dot(1,1-10)=',(x0dot(1,nxtlst(k)),k=1,nxtlen)
                NNB = IMPI(1,L) + 1 
                LIST(1:NNB,I) = IMPI(1:NNB,L)
                IF(LIST(1,I).GT.0) THEN
-!$omp critical                  
+!$omp atomic                  
                   RSMIN = MIN(RSMIN,RS(I))
-!$omp end critical
+!$omp end atomic
                END IF
 #ifdef SIMD               
                CALL IRR_SIMD_SET_LIST(I,LIST(1,I))

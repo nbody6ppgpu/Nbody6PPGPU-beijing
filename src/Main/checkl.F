@@ -64,9 +64,9 @@
   314 KLIST(L+1) = J
       NNB = NNB + 1
 *       Only one close encounter neighbour is allowed without test of NNB.
-!$omp critical 
+!$omp atomic 
       NLSMIN = NLSMIN + 1
-!$omp end critical 
+!$omp end atomic 
 *
 *       Finally correct irregular and regular force components.
       DR2 = 0.0
@@ -154,9 +154,9 @@
 *
   328 KLIST(LJ+1) = J
       NNB = NNB + 1
-!$omp critical 
+!$omp atomic 
       NBDIS = NBDIS + 1
-!$omp end critical 
+!$omp end atomic 
 *       Note that next list index is increased by two after including #J.
       IF (NNB.LT.NNBMAX) GO TO 321
 *
@@ -236,9 +236,9 @@
 *
   348 KLIST(K+1) = J
       NNB = NNB + 1
-!$omp critical 
+!$omp atomic 
       NBDIS2 = NBDIS2 + 1
-!$omp end critical 
+!$omp end atomic 
 *
 *       Check list of high velocity intruders for early retention.
   350 IF (LISTV(1).EQ.0.OR.ICM.EQ.-1) GO TO 355
@@ -266,10 +266,10 @@
   353 CONTINUE
       ICM = -1
 *       Redundant indicator (normally > 0) used for joint procedure.
-!$omp critical 
-      NBDIS2 = NBDIS2 - 1
+!$omp atomic 
+*     NBDIS2 = NBDIS2 - 1
       NBFAST = NBFAST + 1
-!$omp end critical 
+!$omp end atomic 
 *
 *       Distinguish betweeen single particle treatment and perturbed case.
       IF (NNB.LE.NNBMAX) THEN
