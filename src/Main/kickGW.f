@@ -12,18 +12,11 @@
 
       REAL*8 RAN2
       REAL*8 VK(4)
-      REAL*8 G, M_sun, R_sun, parsec, Km, Kmps, cspeed, year
-
       REAL*8 mbh1,mbh2,abh1,abh2
       
       REAL*8 mas1,mas2,mas3,Qr, acosa, acosb, acosg
       REAL*8 mfinal, sfinal
 
-******c.g.s. **********************************
-      parameter (G=6.6743D-08, M_sun=1.9884D+33)
-      parameter (R_sun=6.955D+10, parsec=3.0856776D+18)
-      parameter (Km=1.0D+05, Kmps=1.0D+05)
-      parameter (cspeed=3.0D+10, year=3.154D+07)
 ******************************************************
       parameter (kicktype = 1)
 ******************************************************

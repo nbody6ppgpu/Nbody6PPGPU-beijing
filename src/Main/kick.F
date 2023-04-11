@@ -72,16 +72,7 @@
       real*8 FBFAC,FBTOT,MCO
       integer ECS
 *     REAL*8 aspin, aconst, bconst, alow, mone, mtwo,
-      REAL*8 JSPIN, MBH
-*     REAL*8 aone, bone, atwo, btwo
-      REAL*8 NUMBER
-      REAL*8 G, M_sun, R_sun, parsec, Km, Kmps, cspeed, year
-************ c.g.s. **********************************
-      parameter (G=6.6743D-08, M_sun=1.9884D+33)
-      parameter (R_sun=6.955D+10, parsec=3.0856776D+18)
-      parameter (Km=1.0D+05, Kmps=1.0D+05)
-      parameter (cspeed=3.0D+10, year=3.154D+07)
-******************************************************
+      REAL*8 JSPIN, NUMBER
       COMMON /FBACK/ FBFAC,FBTOT,MCO,ECS
 *
 *     --03/07/14 11:30-lwang-ks-parallel--------------------------------*
@@ -438,25 +429,18 @@ c		Sambaran 2019.11.19.
 
            CALL SPIN_SELECT(BHSPINFL,ZMET,MCO,NUMBER)
            aspin = NUMBER
-
-           MBH = BODY(I)*ZMBAR*M_sun
-*********gm cm^2 / s ***************
-           JSPIN = (G*aspin*(MBH**2))/cspeed
-*********Msun Rsun^2 / year ********* 
-           JSPIN = JSPIN*(year/(M_sun*(R_sun**2)))
-*********Scaled *******************
            ASPN(I) = aspin
-           SPIN(I) = JSPIN/SPNFAC 
-*     NMI = NAME(I)
-*     SPN(NMI) = SPIN(I)
-*     ASPN(NMI) = aspin
+* JSPIN in N-Body units
+           JSPIN = aspin*BODY(I)**2/CLIGHT
+* JSPIN in Msun*Rsun**2/Myr
+           JSPIN = JSPIN*SPNFAC
 ***********************************
           if(rank.eq.0)
      &    WRITE (6,22)  TTOT, I, NAME(I), KSTAR(I),TTOT*TSTAR,
      &        BODY(I)*ZMBAR,SPIN(I),JSPIN,ASPN(I)
    22     FORMAT (' BH-SPIN: TIME[NB]',1P,E17.10,' I',I10,
      &       '  NAME',I10,' KW',I4,' Time[Myr]',E12.5,' M[M*]',E12.5,
-     &       '  J[NB] J[MsRs^2/yr] ASPIN ',3E12.5)
+     &       '  J[NB] J[MsRs^2/Myr] ASPIN ',3E12.5)
         ENDIF
 *******************************************
       ENDIF
@@ -605,7 +589,7 @@ c		Sambaran 2019.11.19.
 
       Include 'kspars.h'
       INCLUDE 'common6.h'
-      REAL*8 aspin, aconst, bconst, alow, mone, mtwo, JSPIN, MBH
+      REAL*8 aspin, aconst, bconst, alow, mone, mtwo, JSPIN
       REAL*8 aone, bone, atwo, btwo
       REAL*8 NUMBER
       REAL*8 METALLICITY, MCORE
