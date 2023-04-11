@@ -1,4 +1,3 @@
-***
       SUBROUTINE ROCHE(IPAIR)
 *
 *
@@ -20,11 +19,17 @@
       REAL*8 DMS(2),DMA(2),DMR(2),IVSQM,VWIND2,VORB2
       REAL*8 DM1,DM2,DM22,DSPIN,DSPIN0,DELET,DELET1,EQSPIN,MEW,MT2
       REAL*8 TC,TSYN,TTID,FAC,FAC0,ECC0,DTMMIN,DJTK(2),DSPINK(2)
-      REAL*8 MCH,EPSNOV,EDDFAC,GAMM1
-      PARAMETER(MCH=1.44D0,EPSNOV=0.D0,EDDFAC=100.D0,GAMM1=-1.D0)
-      REAL*8 K2,K3,ACC1,ACC2,BETA,XI,AURSUN
-      PARAMETER(K3=0.21D0,ACC1=3.920659D+08,ACC2=1.5D0)
-      PARAMETER(BETA=0.125D0,XI=1.D0,AURSUN=214.95D0)
+*       Common Blocks read in READSE (RSp Mar 23)
+      integer bhspinfl,kicktype
+      real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
+     *      epsnov,eddfac,gamm1
+      common/bse/lambd1,alphac,bhspinfl,kicktype,xk2,xk3,
+     *      acc1,acc2,xbeta,xxi,epsnov,eddfac,gamm1
+*
+      REAL*8 MCH
+      PARAMETER(MCH=1.44D0)
+      REAL*8 K2,K3,BETA,XI,AURSUN
+      PARAMETER(AURSUN=214.95D0)
       REAL*8 MLWIND,RL
       EXTERNAL MLWIND,RL
       LOGICAL COALS,DISK,NOVAE,SUPEDD,ISAVE
@@ -36,6 +41,10 @@
       DATA FIRST /.TRUE./
       INTEGER IGR
 *
+*       Set variables with different names in common (RSp Mar23).
+      K3 = XK3
+      BETA = XBETA
+      XI = XXI
 *
 *       Set components & c.m. index and initialize counters & interval.
       I1 = 2*IPAIR - 1

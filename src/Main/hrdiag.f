@@ -1,4 +1,3 @@
-***
       SUBROUTINE hrdiag(mass,aj,mt,tm,tn,tscls,lums,GB,zpars,
      &                  r,lum,kw,mc,rc,menv,renv,k2)
 *
@@ -34,19 +33,29 @@
       implicit none
 *
       integer kw,kwp
-      integer wdflag,nsflag
-      parameter(wdflag=1,nsflag=4)
-      integer ecflag
-      parameter (ecflag=1)
-      integer psflag
-      parameter (psflag=1)
+*
+*       Common Blocks read in READSE (RSp Mar 23)
+      integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
+      real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
+     *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      integer bhspinfl,kicktype
+      real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
+     *      epsnov,eddfac,gamm1
+      common/bse/lambd1,alphac,bhspinfl,kicktype,xk2,xk3,
+     *      acc1,acc2,xbeta,xxi,epsnov,eddfac,gamm1
 *
       real*8 mass,aj,mt,tm,tn,tscls(20),lums(10),GB(10),zpars(20)
       real*8 r,lum,mc,rc,menv,renv,k2
-      real*8 mch,mlp,tiny
-      parameter(mch=1.44d0,mlp=12.d0,tiny=1.0d-14)
-      real*8 mxns,mxns0,mxns1
-      parameter(mxns0=1.8d0,mxns1=2.5d0)
+*     real*8 mch,mlp,tiny
+*     parameter(mch=1.44d0,mlp=12.d0,tiny=1.0d-14)
+      real*8 mlp,tiny
+      parameter(mlp=12.d0,tiny=1.0d-14)
+      real*8 mxns
+*     real*8 mxns,mxns0,mxns1
+*     parameter(mxns0=1.8d0,mxns1=2.5d0)
       real*8 mass0,mt0,mtc
 * 
       real*8 thook,thg,tbagb,tau,tloop,taul,tauh,tau1,tau2,dtau,texp
@@ -158,7 +167,6 @@
          rzams = rzamsf(mass)
          r = rzams*10.d0**((pre1*tprems**3 + pre2*tprems**4 +
      &     pre3*tprems**5)/(1.05d0-tprems))
-*
          pre1 = -2.63181d0 + 3.16607d0*mass - 3.30223d0*mass**2 +
      &     0.83556d0*mass**3 - 0.06356d0*mass**4
          pre2 = -11.70230d0 + 16.60510d0*mass - 9.69755d0*mass**2 +
@@ -1108,7 +1116,9 @@
          rc = r
          menv = 1.0d-10
          renv = 1.0d-10
-         k2 = 0.21d0
+* Take k2 from input common block bse (RSp Mar23).
+         k2 = xk2
+*         k2 = 0.21d0
       endif
 *
 * Perturb the luminosity and radius due to small envelope mass.

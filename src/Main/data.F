@@ -10,6 +10,8 @@
 *      REAL*8  A(8)
       CHARACTER*1 CHAR(80)
       LOGICAL LREADN,LREADP,LREADF
+      NAMELIST /INDATA/ ALPHAS, BODY1, BODYN, NBIN0, NHI0, ZMET,
+     &     EPOCH0,DTPLOT
 *
 #ifdef PARALLEL
 #define MPIINIT 1
@@ -110,8 +112,10 @@
 *       Read mass function parameters, # primordials, Z-abundance & epoch.
 *       And plot interval for HR diagram.
       if(rank.eq.0)then
-         READ (5,*) ALPHAS, BODY1, BODYN, NBIN0, NHI0, ZMET, EPOCH0, 
-     &        DTPLOT
+      READ (NML=INDATA, IOSTAT=IIC, UNIT=5)
+      IF (IIC.NE.0) WRITE (6, '("DATA: invalid Namelist format")')
+*        READ (5,*) ALPHAS, BODY1, BODYN, NBIN0, NHI0, ZMET, EPOCH0, 
+*    &        DTPLOT
 
 *     Check whether number of N + NBIN0 are larger than NMAX-2
          if (N+NBIN0.GE.NMAX-2) THEN
@@ -199,10 +203,11 @@
 *
       if(rank.eq.0)then
       WRITE (6,15) ALPHAS, BODY1, BODYN, ZMASS, NBIN0, NHI0,
-     &     ZMET, EPOCH0
+     &     ZMET, EPOCH0, DTPLOT
    15 FORMAT (/,12X,' ALPHAS =',1P,E13.5,
      &    '  BODY1 =',E13.5,'  BODYN =',E13.5,' ZMASS =',E13.5,
-     &    ' NBIN0 =',I8,' NHI0 =',I5,' ZMET =',E13.5,' EPOCH0 =',E13.5)
+     &    ' NBIN0 =',I8,' NHI0 =',I5,' ZMET =',E13.5,' EPOCH0 =',E13.5,
+     &    ' DTPLOT =',E13.5)
       end if
       call flush(6)
 *

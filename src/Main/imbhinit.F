@@ -7,6 +7,8 @@
       REAL*8 XIMBH(3),VIMBH(3)
       
 *     Read massive black hole mass and output time interval
+      WRITE(6,53)
+   53 FORMAT(//,'**** imbhinit KZ(24).EQ.1: rewrite input!! ****',//)
       if(rank.eq.0) READ (5,*) BIMBH, XIMBH(1:3),VIMBH(1:3), DTBH
 
 #ifdef PARALLEL

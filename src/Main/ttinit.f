@@ -124,6 +124,8 @@
           STOP
         END IF
 *     Read which component to use also (L. Wang)
+      WRITE(6,53)
+   53 FORMAT(//,'**** ttinit read: rewrite input!! ****',//)
       if(rank.eq.0)
      &  READ (5,*) IKEYPOT(1:11), (RG(K),K=1,3), (VG(K),K=1,3)
         DO I=1,3

@@ -17,8 +17,10 @@
       PCL2 = 0.0
 *
 *       Read the cloud parameters (pc, km/sec, Msun & pc).
-      READ (5,*)  NCL, RB2, VCL, SIGMA, (CLM(J),J=1,NCL),
-     &            (RCL2(J),J=1,NCL)
+          WRITE (6,53)
+   53 FORMAT(//,'**** cloud0 KZ(13)>0: rewrite input!! ****',//)
+*     READ (5,*)  NCL, RB2, VCL, SIGMA, (CLM(J),J=1,NCL),
+*    &            (RCL2(J),J=1,NCL)
       if(rank.eq.0)then
       WRITE (6,1)  NCL, RB2, VCL, SIGMA
     1 FORMAT (/,12X,'CLOUDS:    NCL =',I4,'  RB =',F5.1,

@@ -1,4 +1,3 @@
-***
       SUBROUTINE COMENV(M01,M1,MC1,AJ1,JSPIN1,KW1,
      &                  M02,M2,MC2,AJ2,JSPIN2,KW2,ECC,SEP,COEL)
 *
@@ -7,7 +6,6 @@
       INCLUDE 'common6.h'
 *
       INTEGER KW1,KW2,KW
-*     INTEGER IDUM
 *
       REAL*8 M01,M1,MC1,AJ1,JSPIN1,R1,L1
       REAL*8 M02,M2,MC2,AJ2,JSPIN2,R2,L2,MC22
@@ -20,15 +18,29 @@
       REAL*8 RC1,RCC2,Q1,Q2,RL1,RL2
       REAL*8 MENV,RENV,MENVD,RZAMS
       REAL*8 LAMB1,LAMB2,K21,K22
-      REAL*8 AURSUN,K3,LAMBDA,ALPHA1,MCH
-      PARAMETER (AURSUN = 214.95D0,K3 = 0.21D0)
-ccc      PARAMETER (LAMBDA = 0.0D0,ALPHA1 = 3.0D0)		// changing for Abbas... 
-      PARAMETER (LAMBDA = 0.5D0,ALPHA1 = 3.0D0)
-      PARAMETER (MCH = 1.44D0)
+*       Common Blocks read in READSE (RSp Mar 23)
+      integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
+      real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
+     *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      integer bhspinfl,kicktype
+      real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
+     *      epsnov,eddfac,gamm1
+      common/bse/lambd1,alphac,bhspinfl,kicktype,xk2,xk3,
+     *      acc1,acc2,xbeta,xxi,epsnov,eddfac,gamm1
+*
+      REAL*8 AURSUN,K3
+      PARAMETER (AURSUN = 214.95D0)
       LOGICAL COEL,ECCFLG
       REAL*8 CELAMF,RL,RZAMSF
       EXTERNAL CELAMF,RL,RZAMSF
 *
+*       Set variables with different names in common (RSp Mar23).
+      K3 = XK3
+      LAMBDA = LAMBD1
+      ALPHA1 = ALPHAC
 * Common envelope evolution - entered only when KW1 = 2, 3, 4, 5, 6, 8 or 9.
 *
 * For simplicity energies are divided by -G.

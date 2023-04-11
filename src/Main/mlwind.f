@@ -1,32 +1,38 @@
-***
       real*8 FUNCTION mlwind(kw,lum,r,mt,mc,rl,z)
       implicit none
-      integer kw,mdflag
+      integer kw
       real*8 lum,r,mt,mc,rl,z
       real*8 teff,teff1,dml,dms,dmt,p0,x,mew,vw,t40
-      real*8 lum0,kap,flbv
+      real*8 lum0,kap
       parameter(lum0=7.0d+04,kap=-0.5d0)
-      parameter(flbv=1.5d0)
-      real*8 neta,bwind
-      parameter(neta=0.477d0)
-      parameter(bwind=0.d0)
+      real*8 neta
 *
-* Calculate stellar wind mass loss.
+*       Common Blocks read in READSE (RSp Mar 23)
+      integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
+      real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
+     *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+*
+*       Set variables with different names in common (RSp Mar23).
+      neta = nwind
+*
+* Calculate stellar wind mass loss. mdflag read from input or default
+* set according to stellar evolution level (Kamlah et al. 2022).
 *
 * Set mdflag to determine the mass-loss you want: 
 *  = 1 - Hurley, Pols & Tout (2000) SSE basic rates; 
 *  = 2 - SSE + LBV added; 
 *  = 3 - Belczynski et al. (2010, ApJ, 714, 1217) updates. 
 *  = 4 - Belczynski without bi-stability jump. 
-* [Currently mdflag = 3 is recommended]
+* [Currently Level C mdflag = 4 is used]
 * The prescription for the original mlwind is described in the SSE paper
 * by Hurley, Pols & Tout (2000).
 * New prescriptions were added in 2015.
 * Further updates and corrections made in 2019 as suggested by Sambaran Banerjee
 * in consultation with Chris Belczynski
 *See arXiv: 1902.07718
-
-      mdflag = 3
 *
       teff = 3.762d0 + 0.25d0*log10(lum) - 0.5d0*log10(r)
       teff = 10.d0**teff

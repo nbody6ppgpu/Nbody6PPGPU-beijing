@@ -8,12 +8,18 @@
       CHARACTER*8  WHICH1
       REAL*8  CM(6)
       REAL*8  MASS(2)
-*     Francesco Rizzuto
-      PARAMETER(FctorCl = 0.5D0) 
+*       Common Blocks read in READSE (RSp Mar 23)
+      integer bhspinfl,kicktype
+      real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
+     *      epsnov,eddfac,gamm1
+      common/bse/lambd1,alphac,bhspinfl,kicktype,xk2,xk3,
+     *      acc1,acc2,xbeta,xxi,epsnov,eddfac,gamm1
+      real*8 fctorcl
+      common/coll/fctorcl
+*       fctorcl first used in Rizzuto et al. 2020.
       LOGICAL  FIRST
       SAVE  FIRST
       DATA  FIRST /.TRUE./
-
 *
 *
       call xbpredall
@@ -102,7 +108,7 @@
          if(rank.eq.0)then
             WRITE(6,*)"CALCULATING RELATIVISTIC KICKS IN COAL.F"
          endif
-         CALL KICKGW(I1,I2)
+         CALL KICKGW(I1,I2,kicktype)
       ENDIF
 ***********************
 

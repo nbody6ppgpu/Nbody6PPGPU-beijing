@@ -6,6 +6,8 @@
 *
       INCLUDE 'common6.h'
       INCLUDE 'galaxy.h'
+      NAMELIST /INXTRNL0/ GMG, RG0, DISK, A, B, VCIRC, RCIRC, GMB, AR,
+     &        GAM,RG,VG,MP,AP2,MPDOT,TDELAY
 *
 *
 #ifdef PARALLEL
@@ -64,7 +66,11 @@
       IF (KZ(14).EQ.2) THEN
 *
 *       Read galaxy mass and central distance (solar units and kpc).
-         if(rank.eq.0) READ (5,*)  GMG, RG0
+         if(rank.eq.0) then
+      READ (NML=INXTRNL0, IOSTAT=IIC, UNIT=5)
+      IF (IIC.NE.0) WRITE (6, '("XTRNL0A: invalid Namelist format")')
+*        READ (5,*)  GMG, RG0
+         end if
 #if MPIINIT
       CALL MPI_BCAST(GMG,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(RG0,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
@@ -105,9 +111,18 @@
       ELSE IF (KZ(14).EQ.3) THEN
 *
 *       Read all parameters (NB! Do not confuse with Oort's constants A, B).
-         if(rank.eq.0) 
-     &        READ (5,*)  GMG, DISK, A, B, VCIRC, RCIRC, GMB, AR, GAM,
-     &        (RG(K),K=1,3),(VG(K),K=1,3)
+         if(rank.eq.0)then 
+      READ (NML=INXTRNL0, IOSTAT=IIC, UNIT=5)
+      IF (IIC.NE.0) WRITE (6, '("XTRNL0B: invalid Namelist format")')
+      RG2 = RG(1)**2 + RG(2)**2 + RG(3)**2
+      VG2 = VG(1)**2 + VG(2)**2 + VG(3)**2
+      IF(RG2.EQ.0.D0.OR.VG2.EQ.0.D0.OR.VCIRC.EQ.0.D0)THEN
+         PRINT*,' Wrong initialization of Tidal Field for KZ(14)=3'
+         STOP
+      END IF
+*             READ (5,*)  GMG, DISK, A, B, VCIRC, RCIRC, GMB, AR, GAM,
+*    &        (RG(K),K=1,3),(VG(K),K=1,3)
+         end if
 #if MPIINIT
       CALL MPI_BCAST(GMG,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(DISK,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
@@ -240,7 +255,12 @@ C          IF (RTIDE.EQ.0.0D0) RTIDE = 10.0
 *       Include Plummer potential for 2D and 3D (set MP = 0 if not needed).
       IF (KZ(14).EQ.3.OR.KZ(14).EQ.4) THEN
 *       Check input for Plummer potential.
-         if(rank.eq.0) READ (5,*)  MP, AP2, MPDOT, TDELAY
+      IF(MP.EQ.0.D0)THEN
+         PRINT*,' Wrong initialization of Plummer Pot. KZ(14)=',KZ(14)
+         STOP 
+      END IF 
+*       The following values read by NAMELIST before
+*        if(rank.eq.0) READ (5,*)  MP, AP2, MPDOT, TDELAY
 #if MPIINIT
       CALL MPI_BCAST(MP,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(AP2,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)

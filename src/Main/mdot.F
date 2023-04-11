@@ -18,8 +18,7 @@
       REAL*8 MASS(2),MASSC(2),RAD(2),RADC(2),LUMIN(2)
       REAL*8 AGE0(2),TM0(2),TBGB(2),MENV(2),RENV(2),K2STR(2)
       REAL*8 TSCLS(20),LUMS(10),GB(10),TM,TN
-      REAL*8 M0,M1,RM,AGE,LUM,MC,RCC,ME,RE,RNEW,LNEW,MCH
-      PARAMETER (MCH=1.44d0)
+      REAL*8 M0,M1,RM,AGE,LUM,MC,RCC,ME,RE,RNEW,LNEW
       REAL*8 M10,RXL1,RXL2,Q,ROL(2),RLPERI,RM0
       REAL*8 EPS,ALPHA2,TOL
       PARAMETER(EPS=1.0d-06,ALPHA2=0.09d0,TOL=1.0d-10)
@@ -28,19 +27,31 @@
       REAL*8 RJ,HJ,TJ2,VORB2,VWIND2,IVSQM,OMV2,DTXMIN,DMXMAX,DELET
       REAL*8 JSPIN(2),OSPIN(2),DJSPIN(2),JORB,OORB,AURSUN
       PARAMETER(AURSUN=214.95d0)
-      REAL*8 K2,K3,ACC1,ACC2,BETA,XI,DMMIN
-      PARAMETER(K3=0.21d0,ACC1=3.920659d+08,ACC2=1.5d0)
-      PARAMETER(BETA=0.125d0,XI=1.d0,MAXBLK=40,DMMIN=1.E-08)
+*       Common Blocks read in READSE (RSp Mar 23)
+      integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
+      real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
+     *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      integer bhspinfl,kicktype
+      real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
+     *      epsnov,eddfac,gamm1
+      common/bse/lambd1,alphac,bhspinfl,kicktype,xk2,xk3,
+     *      acc1,acc2,xbeta,xxi,epsnov,eddfac,gamm1
+*
+      REAL*8 K2,K3,BETA,XI,DMMIN
+      PARAMETER(MAXBLK=40,DMMIN=1.E-08)
       REAL*8 MLWIND,RL
       EXTERNAL MLWIND,RL
       CHARACTER*8  WHICH1
       LOGICAL ICORR,IKICK
       SAVE IWARN
       DATA IWARN /0/
-*      INTEGER NDMLIST(NMAX),NPNUM
-*      REAL*8 DMLIST(NMAX)
-*      LOGICAL IGPUDM,IGPUSWITCH
-*
+*       Set variables with different names in common (RSp Mar23).
+      K3 = XK3
+      BETA = XBETA
+      XI = XXI
 *       Define current time (unit of million years) and update counter.
       TTOT = TIME + TOFF
       TPHYS = TTOT*TSTAR

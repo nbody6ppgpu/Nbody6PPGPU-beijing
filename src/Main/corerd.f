@@ -11,8 +11,14 @@
 *     Updated 6/1/98 by J. Hurley
 *
       INTEGER KW
-      REAL*8 MC,MCH,M0,MFLASH
-      PARAMETER (MCH = 1.44d0)
+*       Common Blocks read in READSE (RSp Mar 23)
+      integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
+      real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
+     *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      REAL*8 MC,M0,MFLASH
 *
 * First do the black holes and neutron stars.
 *

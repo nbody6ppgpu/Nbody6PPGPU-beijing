@@ -1,4 +1,4 @@
-      SUBROUTINE KICKGW(I1,I2)
+      SUBROUTINE KICKGW(I1,I2,kicktype)
 *
 *     Written on July 2021 by Manuel Arca Sedda 
 *     (the kick.F routine has been used as a basis for this)
@@ -17,11 +17,6 @@
       REAL*8 mas1,mas2,mas3,Qr, acosa, acosb, acosg
       REAL*8 mfinal, sfinal
 
-******************************************************
-      parameter (kicktype = 1)
-******************************************************
-
-      
 *      SPIN(I1) = 0.7
 *      SPIN(I2) = 0.7
 

@@ -8,6 +8,7 @@
       REAL*8  XORB(2),VORB(2),XREL(3),VREL(3),PX(3),QX(3),
      &        BS(MMAX),XS(3,MMAX),VS(3,MMAX)
       REAL*8  RAN2
+      NAMELIST /INHIPOP/ SEMI0, ECC0, RATIO,RANGE
 *
 #ifdef PARALLEL
 #define MPIINIT 1
@@ -18,7 +19,11 @@
       KDUM = IDUM1
 *
 *       Read input parameters (same usage as routine BINPOP).
-      if(rank.eq.0)READ (5,*)  SEMI0, ECC0, RATIO, RANGE
+      if(rank.eq.0)then
+      READ (NML=INHIPOP, IOSTAT=IIC, UNIT=5)
+      IF (IIC.NE.0) WRITE (6, '("HIPOP: invalid Namelist format")')
+*       READ (5,*)  SEMI0, ECC0, RATIO, RANGE
+      end if
 #if MPIINIT
       CALL MPI_BCAST(SEMI0,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(ECC0,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)

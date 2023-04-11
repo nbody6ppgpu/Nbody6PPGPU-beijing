@@ -29,6 +29,8 @@
       VSTAR = VSTAR*SQRT(ZMASS*ZMBAR/RBAR)
 *
 *       Read central velocity dispersion and form scaling factor.
+          WRITE (6,53)
+   53 FORMAT(//,'**** hotsys KZ(29)>0: rewrite input!! ****',//)
       READ (5,*)  SIGMA0
       VSCALE = SIGMA0/(VSTAR*VRMS)
 *

@@ -57,23 +57,36 @@
       
       Include 'kspars.h'
       INCLUDE 'common6.h'
-      INTEGER BHFLAG, BHSPINFL
       REAL*8  RAN2,VK(4)
 *     Unsafe for parallel
       SAVE  IPAIR, KC, VDIS, RI
       DATA  IPAIR,KC /0,0/
-      REAL*8 DISP, VFAC, ECSIG, WDSIG1, WDSIG2, WDKMAX
+*       Common Blocks read in READSE (RSp Mar 23)
+      integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
+      real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
+     *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      integer bhspinfl,kicktype
+      real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
+     *      epsnov,eddfac,gamm1
+      common/bse/lambd1,alphac,bhspinfl,kicktype,xk2,xk3,
+     *      acc1,acc2,xbeta,xxi,epsnov,eddfac,gamm1
+*
+      REAL*8 VFAC
       REAL*8 DISP0, VK2
       LOGICAL IFLAT      
 *     Get fallback from hrdiag.f
 *     Safe for parallel
       REAL*8 CONVF,MNUEFF,MNSTYP
-      INTEGER KMECH
       real*8 FBFAC,FBTOT,MCO
       integer ECS
-*     REAL*8 aspin, aconst, bconst, alow, mone, mtwo,
-      REAL*8 JSPIN, NUMBER
+      REAL*8 JSPIN,NUMBER
       COMMON /FBACK/ FBFAC,FBTOT,MCO,ECS
+*
+*       Set variables with different names in common (RSp Mar23).
+      VFAC = VVFAC
 *
 *     --03/07/14 11:30-lwang-ks-parallel--------------------------------*
 ***** Note: Here when icase eq. -147 means for ks communication
@@ -109,22 +122,21 @@
 *     BHFLAG = 2
 *      
 *     Current setting:
-      VFAC = 0.D0        ! Use DISP 
-      DISP = 265.D0      ! Adopt the Maxwellian of Hobbs (MNRAS 360, 974, 2005)
-      ECSIG = 3.0D0
+*     VFAC = 0.D0        ! Use DISP 
+*     DISP = 265.D0      ! Adopt the Maxwellian of Hobbs (MNRAS 360, 974, 2005)
+*     ECSIG = 3.0D0
 *     WD kicks depend on #25. 
-      WDSIG1 = 2.D0      
-      WDSIG2 = 2.D0
-      WDKMAX = 6.D0
-      BHFLAG = 2
-
-      BHSPINFL = 3
+*     WDSIG1 = 2.D0      
+*     WDSIG2 = 2.D0
+*     WDKMAX = 6.D0
+*     BHFLAG = 2
+*     BHSPINFL = 3
 
 ******
 *Manuel Arca Sedda May 2022
 *
 *      IF(DM .LT. 0.0)THEN
-*         CALL KICKGW(I1,I2)
+*         CALL KICKGW(I1,I2,kicktype)
 *         GO TO 30
 *      ENDIF
 *
@@ -173,13 +185,6 @@
           ELSE IF (KSTAR(I2).LT.0) THEN
               IN = I2
           END IF
-*RSp Printout July2020
-*         IF(KSTAR(I1).GE.0.OR.KSTAR(I2).GE.0)THEN
-*         WRITE(6,555)TTOT,ICASE,IN,I1,I2,IPAIR,NAME(I1),NAME(I2),
-*    *      NAME(N+IPAIR),KSTAR(I1),KSTAR(I1+1),KSTAR(N+IPAIR)
-*555      FORMAT(' T,ICASE,IN=',1P,D13.5,I2,I10,
-*    *    ' I1/2/IP,N1/2/IP,KST1/2/IP=',9I10)
-*         END IF
           KSTAR(IN) = IABS(KSTAR(IN))
 *     ks MPI communication KSTAR
 *         call ksparmpi(K_store,K_int,K_KSTAR,IN,0,KSTAR(IN))
@@ -433,7 +438,7 @@ c		Sambaran 2019.11.19.
 * JSPIN in N-Body units
            JSPIN = aspin*BODY(I)**2/CLIGHT
 * JSPIN in Msun*Rsun**2/Myr
-           JSPIN = JSPIN*SPNFAC
+           JSPIN = JSPIN*SPNFAC 
 ***********************************
           if(rank.eq.0)
      &    WRITE (6,22)  TTOT, I, NAME(I), KSTAR(I),TTOT*TSTAR,

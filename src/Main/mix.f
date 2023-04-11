@@ -1,4 +1,3 @@
-***
       SUBROUTINE MIX(J1,J2,DM)
 *
 *     Author : J. R. Hurley
@@ -12,15 +11,26 @@
       REAL*8 TSCLS(20),LUMS(10),GB(10),TMS1,TMS2,TMS3,TN
       REAL*8 M01,M02,M03,M1,M2,M3,AGE1,AGE2,AGE3,MC3,LUM,RM,RCC
       REAL*8 MENV,RENV,K2E
-      REAL*8 MCH
-      PARAMETER(MCH=1.44D0,FctorCl = 0.5D0)
+*       Common Blocks read in READSE (RSp Mar 23)
+      integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
+      real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
+     *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac
+      integer bhspinfl,kicktype
+      real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
+     *      epsnov,eddfac,gamm1
+      common/bse/lambd1,alphac,bhspinfl,kicktype,xk2,xk3,
+     *      acc1,acc2,xbeta,xxi,epsnov,eddfac,gamm1
+      real*8 fctorcl
+      common/coll/fctorcl
+*
       LOGICAL  FIRST
       SAVE  FIRST
       DATA  FIRST /.TRUE./
       DATA  rg2 /0.1d0/
-* This one taken from hrdiag, must be consistent (R.Sp. Dec 20)
-      real*8 mxns,mxns0,mxns1
-      parameter(mxns0=1.8d0,mxns1=2.5d0)
+      real*8 mxns
 *
 * Set maximum NS mass depending on which NS mass prescription is used. 
       mxns = mxns0
@@ -322,7 +332,7 @@ C   35     FORMAT (1X,F7.1,2I6,3I4,4F5.1,2F7.2,F6.2,F7.2,F9.5,1P,E9.1)
             WRITE(6,*)XDOT(1,I1),XDOT(2,I1),XDOT(3,I1)
             WRITE(6,*)XDOT(1,I2),XDOT(2,I2),XDOT(3,I2)
          endif
-         CALL KICKGW(I1,I2)
+         CALL KICKGW(I1,I2,kicktype)
          if(rank.eq.0)then
              WRITE(6,*)XDOT(1,I1),XDOT(2,I1),XDOT(3,I1)
             WRITE(6,*)XDOT(1,I2),XDOT(2,I2),XDOT(3,I2)

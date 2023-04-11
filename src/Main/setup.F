@@ -106,6 +106,8 @@
    52 N1 = N
 *       Check optional generation of two orbiting Plummer models.
       IF (KZ(5).EQ.2) THEN
+          WRITE (6,53)
+   53 FORMAT(//,'**** setup KZ(5).EQ.2,3,4: rewrite input!! ****',//)
           READ (5,*)  APO, ECC, N2, SCALE
 #if MPIINIT
           CALL MPI_BCAST(APO,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
@@ -150,6 +152,7 @@
    55     CONTINUE
       ELSE IF (KZ(5).EQ.3) THEN
 *       Prepare case of accretion disk with massive perturber.
+          WRITE (6,53)
           READ (5,*)  APO, ECC, SCALE
 #if MPIINIT
           CALL MPI_BCAST(APO,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
@@ -222,6 +225,7 @@
       ELSE IF (KZ(5).EQ.4) THEN
 *       Include two massive bodies (ECC > 1: NAME = 1 & 2 free floating).
           N2 = 0
+          WRITE (6,53)
           READ (5,*)  SEMI, ECC, ZM1, ZM2
 #if MPIINIT
           CALL MPI_BCAST(APO,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
@@ -290,6 +294,8 @@
 *       Include possibility of using actual mass (read by SCALE).
           RCUT = 0.0
           IF (KZ(24).LT.0) THEN
+          WRITE (6,57)
+   57 FORMAT(//,'**** setup KZ(24).LT.0: rewrite input!! ****',//)
               READ (5,*) ZMH, RCUT
 #if MPIINIT
               CALL MPI_BCAST(ZMH,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
