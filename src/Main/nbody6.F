@@ -28,6 +28,8 @@
 *     --10/03/14 19:41-lwang-end----------------------------------------*
 #endif
       EXTERNAL MERGE
+      NAMELIST /INNBODY6/ KSTART, TCOMP, TCRTP0,
+     &    isernb,iserreg,iserks,adtime,dumptime,dprintt,dtprint,namep
 *
 #ifdef PARALLEL
 #define MPIINIT 1
@@ -69,14 +71,17 @@
 *     19:41-lwang-debug-10/03/14-----------------------------*
       IF(rank.eq.0)THEN
 #ifdef DEBUG
-      READ (5,*)  KSTART, TCOMP, TCRTP0,
-     &    isernb,iserreg,iserks,adtime,dumptime,dprintt,dtprint,namep
+      READ (NML=INNBODY6, IOSTAT=IIC, UNIT=5)
+      IF (IIC.NE.0) WRITE (6, '("NBODY6D: invalid Namelist format")')
+*     READ (5,*)  KSTART, TCOMP, TCRTP0,
+*    &    isernb,iserreg,iserks,adtime,dumptime,dprintt,dtprint,namep
 #else
-      READ (5,*)  KSTART, TCOMP, TCRTP0,
-     &    isernb,iserreg,iserks
+      READ (NML=INNBODY6, IOSTAT=IIC, UNIT=5)
+      IF (IIC.NE.0) WRITE (6, '("NBODY6: invalid Namelist format")')
+*     READ (5,*)  KSTART, TCOMP, TCRTP0,
+*    &    isernb,iserreg,iserks
 #endif
       END IF
-*
 #if MPIINIT
       CALL MPI_BCAST(isernb,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(iserreg,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)

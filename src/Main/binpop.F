@@ -27,6 +27,7 @@ C
       real*8  bodymergepk(nmax),xmergepk(3,nmax),xdotmergepk(3,nmax)
 * Additional vars for initially single stars:
       real*8  s_body(nmax),s_x(3,nmax),s_xdot(3,nmax)
+      NAMELIST /INBINPOP/ SEMI0, ECC0, RATIO,RANGE, NSKIP, IDORM
 *
 #ifdef PARALLEL
 #define MPIINIT 1
@@ -40,8 +41,11 @@ C
       pkmerge = 0
 *
 *
-      if(rank.eq.0)
-     & READ (5,*)  SEMI0, ECC0, RATIO,RANGE, NSKIP, IDORM
+      if(rank.eq.0)then
+      READ (NML=INBINPOP, IOSTAT=IIC, UNIT=5)
+      IF (IIC.NE.0) WRITE (6, '("BINPOP: invalid Namelist format")')
+*       READ (5,*)  SEMI0, ECC0, RATIO,RANGE, NSKIP, IDORM
+      end if
 *
 #if MPIINIT
       CALL MPI_BCAST(SEMI0,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)

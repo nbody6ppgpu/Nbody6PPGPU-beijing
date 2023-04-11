@@ -5,6 +5,7 @@
 *       ---------------------
 *
       INCLUDE 'common6.h'
+      NAMELIST /INSCALE/ Q,VXROT,VZROT,RTIDE
       LOGICAL LSCALE
 *      Scaling if initial model is constructed or King model is read
       LSCALE = KZ(22).LT.2.OR.KZ(22).GE.6
@@ -17,7 +18,9 @@
 *
 *       Read virial ratio, rotation scaling factors, boundary radius & tidal radius.
       if(rank.eq.0)then
-      READ (5,*)  Q, VXROT, VZROT, RTIDE
+      READ (NML=INSCALE, IOSTAT=IIC, UNIT=5)
+      IF (IIC.NE.0) WRITE (6, '("SCALE: invalid Namelist format")')
+*     READ (5,*)  Q, VXROT, VZROT, RTIDE
 
       end if
 *      SMAX = 0.5
@@ -225,7 +228,6 @@
          IF (KZ(29).GT.0.AND.Q.GT.1.0) THEN
             E0 = ETOT
          END IF
-
 *     Define scaling factor (set E0 = ETOT if energy scaling not desired).
          SX = E0/ETOT
 
