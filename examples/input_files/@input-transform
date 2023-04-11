@@ -1,0 +1,118 @@
+#!/bin/bash
+#
+# Shell Script to transform old  style Nbody input file into new style
+# Usage: @input-transform name ; it transforms name.inp.old into name.inp.new
+# (RSp April 2023)
+# (This is only line 1, more will follow).
+#
+x=0
+cat $1.inp.old | while read line ; do
+let x=x+1
+if [ $x -eq 1 ] 
+then
+echo $line | awk '{print "&INNBODY6\nKSTART="$1",TCOMP="$2",TCRTP0="$3",isernb="$4",iserreg="$5",iserreg="$6" /\n"}' > $1.inp.new
+fi
+#
+if [ $x -eq 2 ]
+then
+echo $line | awk '{print "&ININPUT\nN="$1",NFIX="$2",NCRIT="$3",NRAND="$4",NNBOPT="$5",NRUN="$6",NCOMM="$7","}' >>  $1.inp.new
+fi
+#
+if [ $x -eq 3 ]
+then
+echo $line | awk '{print "ETAI="$1",ETAR="$2",RS0="$3",DTADJ="$4",DELTAT="$5",TCRIT="$6",QE="$7",RBAR="$8",ZMBAR="$9","}' >> $1.inp.new
+fi
+#
+if [ $x -eq 4 ]
+then
+echo $line | awk '{print "KZ(1:10)= "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10}' >> $1.inp.new
+KZ8=`echo $line | awk '{print $8}'` ; echo "KZ8="$KZ8
+fi
+#
+if [ $x -eq 5 ]
+then
+echo $line | awk '{print "KZ(11:20)="$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10}' >> $1.inp.new
+KZ14=`echo $line | awk '{print $4}'` ; echo "KZ14="$KZ14
+KZ18=`echo $line | awk '{print $8}'` ; echo "KZ18="$KZ18
+fi
+#
+if [ $x -eq 6 ]
+then
+echo $line | awk '{print "KZ(21:30)="$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10}' >> $1.inp.new
+fi
+#
+if [ $x -eq 7 ]
+then
+echo $line | awk '{print "KZ(31:40)="$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10}' >> $1.inp.new
+fi
+#
+if [ $x -eq 8 ]
+then
+echo $line | awk '{print "KZ(41:50)="$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10" ,"}' >> $1.inp.new
+fi
+#
+if [ $x -eq 9 ]
+then
+echo $line | awk '{print "DTMIN="$1",RMIN="$2",ETAU="$3",ECLOSE="$4",GMIN="$5",GMAX="$6",SMAX="$7","}' >> $1.inp.new
+#
+line9="Level='C' /" ; 
+echo "Level='C' /" >> $1.inp.new
+echo "" >> $1.inp.new
+echo "&INSSE /" >> $1.inp.new
+echo "" >> $1.inp.new
+echo "&INBSE /" >> $1.inp.new
+echo "" >> $1.inp.new
+echo "&INCOLL /" >> $1.inp.new
+echo "" >> $1.inp.new
+echo " Warning: Default Stellar Evolution C assumed "
+fi
+#
+if [ $x -eq 10 ]
+then
+echo $line | awk '{print "&INDATA \nALPHAS="$1",BODY1="$2",BODYN="$3",NBIN0="$4",NHI0="$5",ZMET="$6",EPOCH0="$7",DTPLOT="$8" /\n"}' >> $1.inp.new
+fi
+#
+if [ $x -eq 11 ]
+then
+echo $line | awk '{print "&INSCALE \nQ="$1",VXROT="$2",VZROT="$3",RTIDE="$4" /\n"}' >> $1.inp.new
+fi
+#
+if [ $x -eq 12 ]
+then
+   if [ $KZ14 -eq 2 ] || [ $KZ14 -eq 4 ]
+   then
+      if [ $KZ14 -eq 2 ] 
+      then
+          echo $line | awk '{print "&INXTRNL0 \nGMG="$1",RG0="$2",DISK=,A=,B=,VCIRC=,RCIRC=,GMB=,AR=,GAM=,RG=,,,VG=,,,MP=,AP2=,MPDOT=,TDELAY= /\n"}' >> $1.inp.new
+      fi
+      if [ $KZ14 -eq 4 ]
+      then
+      echo $line | awk '{print "&INXTRNL0 \nGMG="$1",DISK="$2",A="$3",B="$4",VCIRC="$5",RCIRC="$6",GMB="$7",AR="$8",GAM="$9",RG="$10","$11","$12",VG="$13","$14","$15",MP="$16",AP2="$17",MPDOT="$18",TDELAY="$19",RG0= /\n"}' >> $1.inp.new
+      fi
+   else
+   echo "Empty INXTRNL0 used - watch out! Do you want this?"
+   echo "&INXTRNL0 /" >> $1.inp.new
+   fi
+fi
+#
+if [ $x -eq 13 ]
+then
+   if [ $KZ8 -eq 1 ] || [ $KZ8 -eq 3 ]
+   then
+   echo $line | awk '{print "&INBINPOP \nSEMI0="$1",ECC0="$2",RATIO="$3",RANGE="$4",NSKIP="$5",IDORM="$6" /\n"}' >> $1.inp.new
+   fi
+fi
+#
+if [ $x -eq 14 ]
+then
+   if [ $KZ8 -gt 0 ] && [ $KZ18 -gt 1 ]
+   then
+   echo $line | awk '{print "&INHIPOP \nSEMI0="$1",ECC0="$2",RATIO="$3",RANGE="$4" /\n"}' >> $1.inp.new
+   else
+   echo "Empty INHIPOP used - watch out! Do you want this?"
+   echo "&INHIPOP /" >> $1.inp.new
+   fi
+fi
+done
+exit
+

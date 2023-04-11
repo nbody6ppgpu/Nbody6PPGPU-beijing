@@ -1,0 +1,7 @@
+
+
+ Usage of @input-transform  script (RSp. April 2023):
+
+ ./@input-transform   abcd 
+
+ It transforms abcd.inp.old (old input style) into abcd.inp.new
