@@ -41,6 +41,7 @@ jobs:
         export execname=`ls nbody6++*`; 
         ./$execname < N10k_1nbtime.inp
 
+
   old_input_transform_1k:
     runs-on: ubuntu-latest
 
@@ -52,6 +53,45 @@ jobs:
 
     - name: configure
       run: >
+        ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large --disable-mpi --disable-gpu
+
+    - name: make
+      run: make clean; make
+
+    - name: prepare simulation
+      run: >
+        mkdir autotest;
+        cp -p ./build/nbody6++.sse ./autotest/;
+        cp -p ./examples/input_files/@input-transform ./autotest/;
+        cd autotest;
+        wget https://github.com/wukai-meow/garage/raw/main/Nbody6ppGPU-inputfile/kai_1k_no_dat-10/1k.inp;
+        mv 1k.inp 1k.inp.old
+        bash @input-transform 1k
+        pwd; ls -alh
+
+    - name: simulation
+      run: >
+        ulimit -s unlimited; 
+        cd autotest; 
+        export OMP_NUM_THREADS=$((`grep -c processor /proc/cpuinfo` < 32 ? `grep -c processor /proc/cpuinfo` : 32)); 
+        export execname=`ls nbody6++*`; 
+        ./$execname < 1k.inp.new
+
+
+  gcc9_old_1k:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: install dependencies
+      run: sudo apt-get install -y wget gcc-9 g++-9 gfortran-9
+
+    - name: configure
+      run: >
+        export CC=gcc-9; 
+        export CXX=g++-9; 
+        export FC=gfortran-9; 
         ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large --disable-mpi --disable-gpu
 
     - name: make
