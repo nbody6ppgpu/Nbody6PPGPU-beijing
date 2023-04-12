@@ -725,6 +725,7 @@ c$$$      print*,rank,'rmax',rmax
       INTEGER RES,KMIN
       REAL*8 SEMI,M1,M2,CLIGHT,ECC,DT,DE(5),TGR,DTX
       REAL*8 ECCNEW,SEMNEW,ECCN,SEMN
+      REAL*8 ttgr1, ttgr2
       LOGICAL LSANE,COMP
       include 'timing.h'
 *
