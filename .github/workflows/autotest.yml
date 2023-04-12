@@ -1,4 +1,4 @@
-name: ubuntu18 and latest
+name: autotest namelist and old
 
 on:
   push:
@@ -7,46 +7,11 @@ on:
     branches: [ stable , dev ]
 
 jobs:
-  _1k-ubuntu18-GCC5:
-    runs-on: ubuntu-18.04
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: install dependencies
-      run: sudo apt-get install -y wget gfortran-5 gcc-5 g++-5
-
-    - name: configure
-      run: >
-        export CC=gcc-5; 
-        export CXX=g++-5; 
-        export FC=gfortran-5; 
-        ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large --disable-mpi --disable-gpu
-
-    - name: make
-      run: make clean; make
-
-    - name: prepare simulation
-      run: >
-        mkdir autotest;
-        cp -p ./build/nbody6++.sse ./autotest/;
-        cd autotest;
-        wget https://github.com/kaiwu-astro/garage/raw/main/Nbody6ppGPU-inputfile/kai_1k_no_dat-10/1k.inp;
-        pwd; ls -alh
-
-    - name: simulation
-      run: >
-        ulimit -s unlimited; 
-        cd autotest; 
-        export OMP_NUM_THREADS=$((`grep -c processor /proc/cpuinfo` < 32 ? `grep -c processor /proc/cpuinfo` : 32)); 
-        export execname=`ls nbody6++*`; 
-        ./$execname < 1k.inp
-
-  _1k-ubuntu-latest-GCC9:
+  new_namelist_input_10k:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: install dependencies
       run: sudo apt-get install -y wget gfortran gcc g++
@@ -62,8 +27,10 @@ jobs:
       run: >
         mkdir autotest;
         cp -p ./build/nbody6++.sse ./autotest/;
+        cp -p ./examples/input_files/N100k.inp ./autotest/;
+        cp -p ./examples/input_files/dat.10 ./autotest/;
         cd autotest;
-        wget https://github.com/kaiwu-astro/garage/raw/main/Nbody6ppGPU-inputfile/kai_1k_no_dat-10/1k.inp;
+        sed -r 's/\bN=[0-9]*/N=10000/g' N100k.inp | sed -r 's/\bTCRIT=[0-9]*/TCRIT=1/g' > N10k_1nbtime.inp ;
         pwd; ls -alh
 
     - name: simulation
@@ -72,4 +39,40 @@ jobs:
         cd autotest; 
         export OMP_NUM_THREADS=$((`grep -c processor /proc/cpuinfo` < 32 ? `grep -c processor /proc/cpuinfo` : 32)); 
         export execname=`ls nbody6++*`; 
-        ./$execname < 1k.inp
+        ./$execname < N10k_1nbtime.inp
+
+  old_input_transform_1k:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: install dependencies
+      run: sudo apt-get install -y wget gfortran gcc g++
+
+    - name: configure
+      run: >
+        ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large --disable-mpi --disable-gpu
+
+    - name: make
+      run: make clean; make
+
+    - name: prepare simulation
+      run: >
+        mkdir autotest;
+        cp -p ./build/nbody6++.sse ./autotest/;
+        cp -p ./examples/input_files/@input-transform ./autotest/;
+        cd autotest;
+        wget https://github.com/wukai-meow/garage/raw/main/Nbody6ppGPU-inputfile/kai_1k_no_dat-10/1k.inp;
+        mv 1k.inp 1k.inp.old
+        bash @input-transform 1k
+        pwd; ls -alh
+
+    - name: simulation
+      run: >
+        ulimit -s unlimited; 
+        cd autotest; 
+        export OMP_NUM_THREADS=$((`grep -c processor /proc/cpuinfo` < 32 ? `grep -c processor /proc/cpuinfo` : 32)); 
+        export execname=`ls nbody6++*`; 
+        ./$execname < 1k.inp.new
+

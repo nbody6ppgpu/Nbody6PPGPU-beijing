@@ -47,7 +47,7 @@ apt-get install libhdf5-dev
 after that, append `--enable-hdf5` in configure command
 
 # Documentation
-Manual in `doc/nbody6++_manual.pdf`
+https://www.overleaf.com/read/hcmxcyffjkzq
 
 # Tips
  - The environment variable OMP_NUM_THREADS has to be set to the desired value of OpenMP threads per MPI process. (Maybe your system has it predefined). I also recommend to set
