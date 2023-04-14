@@ -97,22 +97,12 @@ fi
 #
 if [ $x -eq 13 ]
 then
-   if [ $KZ8 -eq 1 ] || [ $KZ8 -eq 3 ]
-   then
-   echo $line | awk '{print "&INBINPOP \nSEMI0="$1",ECC0="$2",RATIO="$3",RANGE="$4",NSKIP="$5",IDORM="$6" /\n"}' >> $1.inp.new
-   fi
+echo $line | awk '{print "&INBINPOP \nSEMI0="$1",ECC0="$2",RATIO="$3",RANGE="$4",NSKIP="$5",IDORM="$6" /\n"}' >> $1.inp.new
 fi
 #
 if [ $x -eq 14 ]
 then
-   if [ $KZ8 -gt 0 ] && [ $KZ18 -gt 1 ]
-   then
-   echo $line | awk '{print "&INHIPOP \nSEMI0="$1",ECC0="$2",RATIO="$3",RANGE="$4" /\n"}' >> $1.inp.new
-   else
-   echo "Empty INHIPOP used - watch out! Do you want this?"
-   echo "&INHIPOP /" >> $1.inp.new
-   fi
+echo $line | awk '{print "&INHIPOP \nSEMI0="$1",ECC0="$2",RATIO="$3",RANGE="$4" /\n"}' >> $1.inp.new
 fi
 done
 exit
-
