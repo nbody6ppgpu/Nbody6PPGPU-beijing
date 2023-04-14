@@ -70,6 +70,8 @@ fi
 if [ $x -eq 10 ]
 then
 echo $line | awk '{print "&INDATA \nALPHAS="$1",BODY1="$2",BODYN="$3",NBIN0="$4",NHI0="$5",ZMET="$6",EPOCH0="$7",DTPLOT="$8" /\n"}' >> $1.inp.new
+echo "&INSETUP SEMI=,ECC=,APO=,N2=,SCALE=,ZM1=,ZM2,ZMH,RCUT= /" >> $1.inp.new
+echo "" >> $1.inp.new
 fi
 #
 if [ $x -eq 11 ]
