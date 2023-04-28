@@ -10,7 +10,7 @@ cat $1.inp.old | while read line ; do
 let x=x+1
 if [ $x -eq 1 ] 
 then
-echo $line | awk '{print "&INNBODY6\nKSTART="$1",TCOMP="$2",TCRTP0="$3",isernb="$4",iserreg="$5",iserreg="$6" /\n"}' > $1.inp.new
+echo $line | awk '{print "&INNBODY6\nKSTART="$1",TCOMP="$2",TCRTP0="$3",isernb="$4",iserreg="$5",iserks="$6" /\n"}' > $1.inp.new
 fi
 #
 if [ $x -eq 2 ]
