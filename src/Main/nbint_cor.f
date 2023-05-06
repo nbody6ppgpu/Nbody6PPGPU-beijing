@@ -10,6 +10,8 @@
      &                LISTC(LMAX)
       COMMON/NEWXV/ XN(3,NMAX),XNDOT(3,NMAX)
       REAL*8  XI(3),XIDOT(3),FIRR(3),FREG(3),FD(3),FDUM(3)
+      DATA iwarn/0/
+      LOGICAL lnan
 *      LOGICAL RPRED(NMAX)
 *
 *       Obtain irregular force & first derivative.
@@ -159,13 +161,15 @@ c$$$      end if
      &        FI(1,i),FIDOT(1,i),D2(1,i),D3(1,i),time,t0(i),t0r(i),
      &        LIST(1,I),LIST(2,I),NAME(LIST(2,I))
          call flush(6)
- 81      format(' Warning!: Irregular step jumping! T I',1P,E13.5,I8,
-     &        ' N',I8,
-     &        ' ratio',E11.3,' dt0',F21.17,' step',F21.17,
-     &        ' stepr',F21.17,' FI',E13.5,
-     &        ' FD',E13.5,' D2',E13.5,' D3',E13.5,' t',F23.17,
-     &        ' t0',F23.17,' t0r',F23.17,
+ 81      format(' Warning!: Irregular step jumping! T I',1P,E15.6,I8,
+     &        ' N',I8,' ratio',E15.6,' dt0',E15.6,' step',E15.6,
+     &        ' stepr',E15.6,' FI',E15.6,
+     &        ' FD',E15.6,' D2',E15.6,' D3',E15.6,' t',E15.6,
+     &        ' t0',E15.6,' t0r',E15.6,
      &        ' NB',I4,' LIST1',I8,' N1',I8)
+      lnan = isnan(dt0).or.isnan(FI(1,i)).or.isnan(FIDOT(1,i))
+      if(lnan)iwarn = iwarn + 1
+      if(iwarn.gt.10000)stop ' too many NaNs in this Warning STOP '
       end if
 *
 *       Suggestion due to Winston Sweatman
