@@ -4,6 +4,75 @@ The code is an offspring of Sverre Aarseth's direct N-body codes see www.sverre.
 
 This is the code suitable for parallel and GPU accelerated runs on supercomputers and workstations. 
 
+# For users
+## Installation
+### Get the code
+```bash
+git clone git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing
+```
+1. This downloads the `stable` branch. The `stable` branch include major versions, and the `dev` branch include the most recent updates and bugfix. Changes in `dev` branch are merged to `stable` regularly.
+2. If you want the most recent version (may contain bugs), use `git clone -b dev git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing`, or run `git switch dev` after you `clone` without `-b dev` param. 
+
+### Configure for compile
+
+```bash
+./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large 
+```
+1. If you run NBODY6++GPU on your personal computer or workstation rather than computer clusters, MPI can be disabled by append `--disable-mpi` to the command above.
+2. In the following cases, you may need to append `--disable-gpu` 
+- The computer has no NVIDIA GPU
+- The computer has NVIDIA GPU but did not install CUDA compiler (Test: type `nvcc --version` in your terminal. If you see information about NVIDIA compiler, then it is installed. If you see errors like "nvcc: command not found" then it is not installed)
+- Your simulation has relatively small particle number (< 50000). The code is for up to one million bodies with many initial binaries. In the case of small particle number, GPU can hardly boost the simulation and can sometimes slow it down.
+
+The configure script written by Long Wang has a multitude of further options, check with `./configure --help` or feel free to ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions).
+
+### Additional installation options
+
+HDF5 is an efficient storage scheme, which is useful during long-time simulations to boost the simulation and save disk spaces. Nevertheless, it is recommended but not necessary. To use HDF5, make sure it is installed in your computer. For example, in Debian based Linux,
+```bash
+apt-get install libhdf5-openmpi-dev
+apt-get install libhdf5-dev
+```
+after that, append `--enable-hdf5` in configure command
+
+### Compile the code
+
+```bash
+make clean ; make -j 
+```
+
+After make you find the executable and object files in `build/`, named `nbody6++.sse.mpi.gpu`. The suffix may change with different compilation options. For example, if you have `--disable-mpi --disable-gpu` during configure, the executable may be named `nbody6++.sse`
+
+## Ready for your simulation
+
+1. Copy the executable to the simulation directory you want
+
+```bash
+cp `ls build/nbody6++*` [your_simulation_path]
+```
+
+2. Prepare an initial condition file. For a test run, you can find example initial conditions in `examples/input_files`. Copy `N100k.inp` and `dat.10` to your simulation path
+
+```bash
+cp examples/input_files/N100k.inp [your_simulation_path]
+cp examples/input_files/dat.10 [your_simulation_path]
+```
+
+> 💡 Starting from the stable version [May2023](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/releases/tag/May2023), NBODY6++GPU changes to a fundamentally new and more flexible method of reading input data (control data, not particle data). It uses Fortran NAMELIST input, which has a key=value format. All input data can be given in any order. If you are using a old-format input file, you can use the bash script which transform the old input file into the new one ([examples/input_files/@input-transform](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/blob/stable/examples/input_files/%40input-transform)) to transform it to the new NAMELIST format. See usage inside the script.
+
+3. Finally, run it
+
+```bash
+cd [your_simulation_path]
+nbody6++.sse < N100k.inp
+```
+Don't forget to replace `nbody6++.sse` with the name of your executable
+
+# Documentation
+For any further questions, read the documentations at
+https://www.overleaf.com/read/hcmxcyffjkzq
+or ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions)
+
 # For contributors
 ```git clone -b dev git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing```
 It would automatically switch to dev branch after downloading.
@@ -12,48 +81,11 @@ Sources are in `src/Main/`. Due to urgent bug fixes few routines are later than 
 
 Git system does not preserve the modification time of files, but the modification time of some ancient files (created before this project was brought to Git) may be valuable information for developers. If you need this info, run `python3 restore_mtime.py` after `git clone` and each `git pull`. It will `touch` each file with their real last modification time.
 
-# For users
-## Installation
-```bash
-git clone git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing
-```
-This downloads the `stable` branch. The `stable` branch include major versions, and the `dev` branch include the most recent updates and bugfix. Changes in `dev` branch are merged to `stable` regularly.
-
-If you want the most recent version (may contain bugs), use `git clone -b dev git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing`, or run `git switch dev` after you `clone` without `-b dev` param. 
-
-```bash
- ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large 
- make clean ; make -j 
-```
-
-After make you find the executable and object files in `build/`, named `nbody6++.sse`. The suffix may change with different compilation options.
-
-Copy the executable to the simulation directory you want
-
-```bash
-cp `ls build/nbody6++*` [your_simulation_path]
-```
-
-It is for up to one million bodies with many initial binaries. The configure script written by Long Wang has a multitude of further options, check with `./configure --help` or feel free to ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions).
-
-## Additional installation options
-
-HDF5 is recommended but not necessary. To use HDF5, make sure it is installed in your computer. For example, in Debian based Linux,
-```bash
-apt-get install libhdf5-openmpi-dev
-apt-get install libhdf5-dev
-```
-
-after that, append `--enable-hdf5` in configure command
-
-# Documentation
-https://www.overleaf.com/read/hcmxcyffjkzq
-
 # Tips
  - The environment variable OMP_NUM_THREADS has to be set to the desired value of OpenMP threads per MPI process. (Maybe your system has it predefined). I also recommend to set
  OMP_STACKSIZE=4096M the shell where you run the code.
 
- - It is inefficient (and even more error prone) for particle numbers below about 50k-100k particles (depending on hardware). For smaller N you are advised to use Nbody6 and Nbody6GPU for single node/process.
+ - It is inefficient (and even more error prone) for particle numbers below about 50k-100k particles (depending on hardware). For smaller N you are advised to disable GPU, or use Nbody6 and Nbody6GPU for single node/process.
  
  - It is recommended to provide a dat.10 file in N-body input format (see manual). Such file can be produced by other programs, like mcluster.
 
