@@ -2,7 +2,28 @@ This is Nbody6++GPU - Beijing version, an N-body star cluster simulation code, m
 
 The code is an offspring of Sverre Aarseth's direct N-body codes see www.sverre.com . 
 
-This is the code suitable for parallel and GPU accelerated runs on supercomputers and workstations. 
+This is the code suitable for parallel and GPU accelerated runs on supercomputers and workstations. Before we give some more practical help, please read the following disambiguation; there is another github of Nbody6++GPU:
+
+LW: https://github.com/nbodyx/  - if interested please contact and collaborate
+with Long Wang longwang.astro@live.com
+RS: https://github.com/nbody6ppgpu - if interested please contact and
+collaborate with Rainer Spurzem spurzem@ari.uni-heidelberg.de spurzem@nao.cas.cn
+
+Here is an example of current differences between the code version (May 2023), more changes and differences may occur in the future, if in doubt, ask the authors.
+
+1. LW: implementation of Milky Way potential following the MWPotential2014 in
+Galpy (Bovy 2015).
+2. RS: implementation of spin and mass dependent recoil kicks after GW merger
+(Arca Sedda et al. 2023 subm. MNRAS)
+3. LW:  implementation of python data reading interface for PeTar analysis tool.
+4. RS: use of HDF5 output files with python data reading interfaces
+5. RS: Namelist based input format, allowing also to read all stellar evolution
+and binary / collision parameters.
+6. LW and RS: Some bug fixes related to Roche and GR radiation, in both versions
+slightly different ways.
+7. LW and RS: implementation of BSE from Banerjee et al. 2019
+
+-------------------
 
 # For users
 ## Installation
