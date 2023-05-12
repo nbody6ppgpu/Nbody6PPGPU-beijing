@@ -19,9 +19,9 @@ Galpy (Bovy 2015).
 4. RS: use of HDF5 output files with python data reading interfaces
 5. RS: Namelist based input format, allowing also to read all stellar evolution
 and binary / collision parameters.
-5. LW and RS: Some bug fixes related to Roche and GR radiation, in both versions
+6. LW and RS: Some bug fixes related to Roche and GR radiation, in both versions
 slightly different ways.
-6. LW and RS: implementation of BSE from Banerjee et al. 2019
+7. LW and RS: implementation of BSE from Banerjee et al. 2019
 
 -------------------
 
