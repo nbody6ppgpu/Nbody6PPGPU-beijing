@@ -236,7 +236,7 @@ C      end if
           wdkmax = 6.d0
           vvfac = 0.d0     ! vvfac = vfac for kick
 *
-          lambdac = 0.5d0  ! lambdac = lambda for comenv
+          lambd1 = 0.5d0  ! lambd1 = lambda for comenv
           alphac = 3.d0    ! alphac = alpha1  for comenv
           bhspinfl = 0
           kicktype = -2
@@ -266,7 +266,7 @@ C      end if
           wdkmax = 6.d0
           vvfac = 0.d0     ! vvfac = vfac for kick
 *
-          lambdac = 0.5d0  ! lambdac = lambda for comenv
+          lambd1 = 0.5d0  ! lambdac = lambda for comenv
           alphac = 3.d0    ! alphac = alpha1  for comenv
           bhspinfl = 0
           kicktype = -2
@@ -296,7 +296,7 @@ C      end if
           wdkmax = 6.d0
           vvfac = 0.d0     ! vvfac = vfac for kick
 *
-          lambdac = 0.0d0  ! lambdac = lambda for comenv
+          lambd1 = 0.0d0  ! lambd1 = lambda for comenv
           alphac = 1.d0    ! alphac = alpha1  for comenv
           bhspinfl = 0
           kicktype = -2
