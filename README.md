@@ -24,17 +24,15 @@ slightly different ways.
 7. LW and RS: implementation of BSE from Banerjee et al. 2019
 
 -------------------
-
-# For users
-## Installation
-### Get the code
+# Installation
+## Get the code
 ```bash
 git clone git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing
 ```
 1. This downloads the `stable` branch. The `stable` branch include major versions, and the `dev` branch include the most recent updates and bugfix. Changes in `dev` branch are merged to `stable` regularly.
 2. If you want the most recent version (may contain bugs), use `git clone -b dev git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing`, or run `git switch dev` after you `clone` without `-b dev` param. 
 
-### Configure for compile
+## Configure for compile
 
 ```bash
 ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large 
@@ -47,7 +45,7 @@ git clone git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing
 
 The configure script written by Long Wang has a multitude of further options, check with `./configure --help` or feel free to ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions).
 
-### Additional installation options
+## Additional installation options
 
 HDF5 is an efficient storage scheme, which is useful during long-time simulations to boost the simulation and save disk spaces. Nevertheless, it is recommended but not necessary. To use HDF5, make sure it is installed in your computer. For example, in Debian based Linux,
 ```bash
@@ -56,7 +54,7 @@ apt-get install libhdf5-dev
 ```
 after that, append `--enable-hdf5` in configure command
 
-### Compile the code
+## Compile the code
 
 ```bash
 make clean ; make -j 
@@ -64,7 +62,7 @@ make clean ; make -j
 
 After make you find the executable and object files in `build/`, named `nbody6++.sse.mpi.gpu`. The suffix may change with different compilation options. For example, if you have `--disable-mpi --disable-gpu` during configure, the executable may be named `nbody6++.sse`
 
-## Ready for your simulation
+# Ready for your simulation
 
 1. Copy the executable to the simulation directory you want
 
@@ -89,18 +87,13 @@ nbody6++.sse < N100k.inp
 ```
 Don't forget to replace `nbody6++.sse` with the name of your executable
 
+# Data analysis
+Some Jupyter notebooks for simple data analysis are provided in [examples/](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/tree/stable/examples). You can check [the readme file there](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/tree/stable/examples) to get started.
+
 # Documentation
 For any further questions, read the documentations at
 https://www.overleaf.com/read/hcmxcyffjkzq
 or ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions)
-
-# For contributors
-```git clone -b dev git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing```
-It would automatically switch to dev branch after downloading.
-
-Sources are in `src/Main/`. Due to urgent bug fixes few routines are later than Dec2020. 
-
-Git system does not preserve the modification time of files, but the modification time of some ancient files (created before this project was brought to Git) may be valuable information for developers. If you need this info, run `python3 restore_mtime.py` after `git clone` and each `git pull`. It will `touch` each file with their real last modification time.
 
 # Tips
  - The environment variable OMP_NUM_THREADS has to be set to the desired value of OpenMP threads per MPI process. (Maybe your system has it predefined). I also recommend to set
@@ -110,7 +103,6 @@ Git system does not preserve the modification time of files, but the modificatio
  
  - It is recommended to provide a dat.10 file in N-body input format (see manual). Such file can be produced by other programs, like mcluster.
 
-
 # Seleted References:
  - https://ui.adsabs.harvard.edu/abs/1999PASP..111.1333A/abstract (Aarseth: NBODY1 to NBODY6)
  - https://ui.adsabs.harvard.edu/abs/1999JCoAM.109..407S/abstract (Spurzem on NBODY6++)
@@ -119,6 +111,13 @@ Git system does not preserve the modification time of files, but the modificatio
  - https://ui.adsabs.harvard.edu/abs/2015MNRAS.450.4070W/abstract (Wang+: NBODY6++GPU)
  - https://ui.adsabs.harvard.edu/abs/2021arXiv210508067K/abstract (Kamlah+: More on current stellar evol.)
 
+# For contributors
+```git clone -b dev git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing```
+It would automatically switch to dev branch after downloading.
+
+Sources are in `src/Main/`. Due to urgent bug fixes few routines are later than Dec2020. 
+
+Git system does not preserve the modification time of files, but the modification time of some ancient files (created before this project was brought to Git) may be valuable information for developers. If you need this info, run `python3 restore_mtime.py` after `git clone` and each `git pull`. It will `touch` each file with their real last modification time.
 
 # Known Problems:
  1. For systems with more than one GPU on one node the association of MPI rank id and GPU bus id is not 
