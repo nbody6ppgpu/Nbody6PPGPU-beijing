@@ -5,11 +5,12 @@
 *       ------------------------------------
 *
       INCLUDE 'common6.h'
-      REAL*8  FP(3)
+      REAL*8  FP(3),FD(3),XI(3),VI(3)
 *
 *
       DO 1 K = 1,3
           FP(K) = 0.0D0
+          FD(K) = 0.0E0
     1 CONTINUE
       CALL JPRED(I,TIME,TIME)
       CALL JPRED(J,TIME,TIME)
@@ -36,6 +37,14 @@ c$$$          end if
     5     A1 = X(1,K) - X(1,L)
           A2 = X(2,K) - X(2,L)
           A3 = X(3,K) - X(3,L)
+          XI(1:3) = X(1:3,K)
+          VI(1:3) = 0.E0
+*
+      if (cmbh.gt.0.0) then
+        CALL DRAGBLCKHL(FP(1),FD(1),XI(1),VI(1))
+        if (qzero.gt.0.0)call dragforce(k, FP(1),FD(1),XI(1),VI(1))
+      end if
+*
           RIJ2 = A1**2 + A2**2 + A3**2
 *       Restrict evaluation to 100*RMIN (neighbour list may be used).
           IF (L.EQ.I.AND.RIJ2.GT.1.0D+04*RMIN2) GO TO 10

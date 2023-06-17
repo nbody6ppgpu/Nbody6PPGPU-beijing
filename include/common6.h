@@ -4,6 +4,7 @@
       INCLUDE 'params.h'
       IMPLICIT REAL*8  (A-H,O-Z)
       REAL*8  MP,MP0,MPDOT
+      REAL*8  Mdisc, M_BULGE, M_DISK, M_HALO
 *
       INCLUDE 'mpi_base.h'
 *
@@ -14,6 +15,14 @@
      &               ITAIL0,NTAIL, !Tidal tail position indicators
      &               NEW2(5)
 
+      COMMON/DRAG/   CMBH,EPS_bh,raccr,qzero,r_crit,Mdisc,hz,EBLCKHL,
+     &               E_CORR,a_drag(3,nmax),ediss1,iaccr,idragf,e_ext,
+     &               XMR(nmax),RMR(nmax),XINTERMASS(nmax),
+     &               XSLOPE(nmax),NParticles,irot_opt,t_diss_on
+
+      COMMON/EXTGAL/ A_BULGE,B_BULGE,M_BULGE,A_DISK,B_DISK,M_DISK,
+     &               A_HALO,B_HALO,M_HALO,R_SCALE,Q_SCALE,V_NOD
+     
       COMMON/PARAMS/ ETAI,ETAR,DTADJ,DELTAT,TCRIT,QE,RBAR,ZMBAR,
      &               DTMIN,RMIN,ETAU,CMSEP2,ECLOSE,GMIN,GMAX,ETA0,
      &               TWOPI,ONE3,ONE6,ONE9,ONE12,TCR0,TRH,BODYM,BODY1,

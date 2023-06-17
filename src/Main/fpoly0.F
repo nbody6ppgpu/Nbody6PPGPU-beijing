@@ -261,6 +261,17 @@ c$$$     &            'IREG',IREG(IOFF:2+IOFF)
              FI(1:3,I) = 0
              D1(1:3,I) = 0
              NNB = LIST(1,I) + 1
+*
+*         Initialization of bh force
+      if (cmbh.gt.0.0)   call dragblckhl1(i)
+*         External potential
+*         bulge/disk/halo
+      if (m_bulge.gt.0.0) call potgal_init(i,a_bulge,b_bulge,m_bulge)
+      if (m_disk.gt.0.0) call potgal_init(i,a_disk,b_disk,m_disk)
+      if (m_halo.gt.0.0) call potgal_init(i,a_halo,b_halo,m_halo)
+*         logarithmic DM halo
+      if (r_scale.gt.0.0) call loghalo_init(i,r_scale,q_scale,v_nod)            
+*
              DO L = 2,NNB
                 K = LIST(L,I)
                 A1 = X(1,K) - X(1,I)

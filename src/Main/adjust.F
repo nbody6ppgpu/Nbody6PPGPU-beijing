@@ -87,7 +87,7 @@ c$$$      end if
 *       Include non-zero virial energy for Plummer potential and/or 3D case.
       VIR = POT - VIR
 *       Note angular momentum term is contained in virial energy (#14=1/2).
-      Q = ZKIN/VIR
+      Q = ZKIN/(VIR-EBLCKHL)
       E(3) = ZKIN - POT + EPL
 
 *       Modify single particle energy by tidal energy (except pure 3D).
@@ -107,10 +107,12 @@ c$$$      end if
          TCR = TCR*SQRT(2.0*Q)
       END IF
 *     Form provisional total energy.
-      ETOT = ZKIN - POT + ETIDE + EPL
+      ETOT = ZKIN - POT + ETIDE + EPL + EBLCKHL + E_EXT
 *     
 *     Include KS pairs, triple, quad, mergers, collisions & chain.
       ETOT = ETOT + EBIN + ESUB + EMERGE + ECOLL + EMDOT + ECDOT
+     & + E_CORR - ediss1
+
       IF (NCH.GT.0) THEN
          ETOT = ETOT + ECH
       END IF
@@ -160,6 +162,13 @@ c$$$      end if
          RC = RSCALE
          RC2 = RC**2
          RC2IN = 1.0/RC2
+      END IF
+*     
+*     Check optional sorting of Lagrangian radii & half-mass radius.
+      IF (KZ(7).GT.0) THEN
+         CALL LAGR(RDENS)
+*     Count total particle number in RMR
+	 NParticles = count(RMR/=0.)
       END IF
 *     
 *     Scale average & maximum core density by the mean value.
@@ -262,18 +271,24 @@ c$$$      END IF
 *     
       if(rank.eq.0)then
 *     
+*	TEST bisection
+*	write(*,*)"RMR = ",RMR(1:100)
+*    	write(*,*)"XMR = ",XMR(1:100)
+*	write(*,*)"XINTER = ",XINTERMASS(50:150)
 *     Print energy diagnostics & KS parameters.
          ICR = INT(TTOT/TCR0)
 C     New (Aug.1998) by P.Kroupa: (time also in Myr)
          WRITE(6,50) TTOT, ttot*tscale, Q, DE, DELTA1,DETOT, E(3),
      &        ZKIN, POT, ETIDE,
-     &        BE(3),EBIN,EMERGE,ESUB,ECOLL,EMDOT,ECDOT
- 50      FORMAT (/,' ADJUST:  TIME',1P,E15.5,0P,'  T[Myr]',
+     &        BE(3),EBIN,EMERGE,ESUB,ECOLL,EMDOT,ECDOT,EBLCKHL,
+     &        E_CORR, ediss1
+ 50      FORMAT (/,' ADJUST:  TIME',1P,D15.5,0P,'  T[Myr]',
      &        F8.2,'  Q',F5.2,'  DE',1P,E12.3,' DELTA',E12.3,
      &        ' DETOT',E12.3,' E',E12.3,' EKIN',E12.3,' POT',E12.3,
      &        ' ETIDE',E12.3,' ETOT', E12.3,
      &        ' EBIN',E12.3,' EMERGE',E12.3,' ESUB',E12.3, 
-     &        ' ECOLL',E12.3,' EMDOT',E12.3,' ECDOT',E12.3)
+     &        ' ECOLL',E12.3,' EMDOT',E12.3,' ECDOT',E12.3
+     &        ' EBLCKHL',E12.3, ' E_CORR',E12.3, ' Ediss', E12.3)
 *     
          write(6,51) RMIN, DTMIN, RHOM, RSCALE, RSMIN, ECLOSE, ICR
  51      FORMAT (/, '  RMIN =',1PE8.1,'  DTMIN =',E8.1,' RHOM =',E8.1,

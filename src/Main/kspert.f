@@ -63,6 +63,33 @@
 *       Perturbation on second component.
    25 CONTINUE
 *
+      if (cmbh.gt.0.0) then
+        CALL DRAGBLCKHL(FP(1),FD(1),XI(1),VI(1))
+        CALL DRAGBLCKHL(FP(4),FD(4),XI(4),VI(4))
+*        if (qzero.gt.0.0) then
+*            call dragforce(k, FP(1),FD(1),XI(1),VI(1))
+*            call dragforce(k, FP(4),FD(4),XI(4),VI(4))
+*        endif
+      endif
+*
+*
+      if (m_bulge.gt.0.0) then
+        CALL potgal(FP(1),FD(1),XI(1),VI(1),a_bulge,b_bulge,m_bulge)
+        CALL potgal(FP(4),FD(4),XI(4),VI(4),a_bulge,b_bulge,m_bulge)
+       if (m_disk.gt.0.0) then
+        CALL potgal(FP(1),FD(1),XI(1),VI(1),a_disk,b_disk,m_disk)
+        CALL potgal(FP(4),FD(4),XI(4),VI(4),a_disk,b_disk,m_disk)
+       endif
+       if (m_halo.gt.0.0) then
+        CALL potgal(FP(1),FD(1),XI(1),VI(1),a_halo,b_halo,m_halo)
+        CALL potgal(FP(4),FD(4),XI(4),VI(4),a_halo,b_halo,m_halo)
+       endif
+       if (r_scale.gt.0.0) then
+        call loghalo(FP(1),FD(1),XI(1),VI(1),r_scale,q_scale,v_nod)
+        call loghalo(FP(4),FD(4),XI(4),VI(4),r_scale,q_scale,v_nod)
+       endif
+      endif
+*      
 *       See whether to include any remaining c.m. perturbers.
       IF (NNB2.GT.NNB0) GO TO 40
 *

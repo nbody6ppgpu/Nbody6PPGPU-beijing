@@ -61,6 +61,13 @@
           CALL XTRNL0
       END IF
 *
+
+*     Check presence of central MBH:
+*      IF (CMBH.GT.0.0) CALL DRAGMBHINIT(IFIRST,NTOT)
+*
+*      Check presence of accretion disk:
+       if (qzero.gt.0.0) call init_drag(ifirst,ntot)
+*
 *       Check optional scaling to hot system.
       IF (KZ(29).GT.0) THEN
           CALL HOTSYS

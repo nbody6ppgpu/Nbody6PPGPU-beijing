@@ -1389,6 +1389,22 @@ c$$$          IF (TIME.GT.TMDOT.AND.DMOD(TIME,STEPX).EQ.0.0D0) THEN
           END IF
       END IF
 *
+*   !!! Call accretion
+      IF (CMBH.GT.0) THEN
+         DO L = 1,NXTLEN
+            I = NXTLST(L)
+*        do i=ifirst,ntot
+        call cputim(tt2809)
+        CALL ACCRETION(I)
+        call cputim(tt2810)
+        ttaccr = ttaccr + (tt2810-tt2809)*60.0
+*
+            IF (IPHASE.eq.2) GOTO 100
+            if (iaccr.gt.0) goto 999
+         END DO
+*
+      END IF
+*
 *       Advance counters and check timer & optional COMMON save (NSUB = 0).
       NTIMER = NTIMER + NXTLEN
       IF (NTIMER.LT.NMAX) GO TO 1

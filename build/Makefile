@@ -109,7 +109,10 @@ delay_add_tlist.f delay_remove_tlist.f rmesc_tlist.f shift_tlist.f k_step.f \
 imbhinit.f bhplot.f energy.f kspinit.f kspreg.f counter_reset.f util_gpu.f \
 regcor_gpu.f fpoly0.f tail0.f ntint.f xtrnlt.f fbulge.f steps2.f tstep2.f \
 custom_output.f custom_output_facility.f ksres_op.f kstran.f \
-global_output.f global_params_gether.f
+global_output.f global_params_gether.f \
+accretion.f dragblckhl1.f dragblckhl.f bh_out.f bh_energy.f \
+dragforce.f reduce_tstep_drag.f init_drag.f\
+potgal.f loghalo.f ext_energy.f bisection.f
 
 .SUFFIXES : .o .F
 

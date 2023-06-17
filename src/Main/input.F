@@ -56,6 +56,27 @@ C Termination time in physical units, TCRITP, read in nbody6.F
             SMAX = DTNSMAX
          END IF
       END IF
+
+*
+      if (rank.eq.0) then  
+*     Read parameters for Supermassive Black hole and accretion disk
+      OPEN(15,FILE='cmbh.inp',STATUS='OLD',ERR=60)
+       READ (15,*)  CMBH, EPS_bh, raccr, qzero,idragf, r_crit, Mdisc, HZ
+*     External potential: (bulge, disk, stellar halo, dark matter halo
+*     (logarithmic)        
+       READ (15,*)  m_bulge, a_bulge, b_bulge, m_disk, a_disk, b_disk
+       READ (15,*)  m_halo, a_halo, b_halo, r_scale, q_scale, v_nod
+       READ (15,*)  irot_opt, t_diss_on
+*      WRITE (6,31)
+*   31 FORMAT(//,10X,'Q_DRAG,C3,HZ,CMBLHOLE,EPS1')
+*      WRITE (6,32) Q_DRAG,C3,HZ,CMBLHOLE,EPS1
+*   32 FORMAT(/,1P,5E12.5)
+*     PRINT*, Q_DRAG, C3, HZ, CMBLHOLE, EPS1
+      GO TO 70
+   60 PRINT*,'ERROR NO CMBH.INP FILE!!!'
+   70 CONTINUE
+      end if
+
 *
 #if MPIINIT
       CALL MPI_BCAST(N,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -87,6 +108,27 @@ C Termination time in physical units, TCRITP, read in nbody6.F
       CALL MPI_BCAST(GMAX,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(SMAX,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(LEVEL,1,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
+*
+      CALL MPI_BCAST(CMBH,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(EPS_bh,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(RACCR,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(Qzero,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(R_CRIT,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(Mdisc,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(HZ,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+*
+      CALL MPI_BCAST(a_bulge,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(a_disk,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(a_halo,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(b_bulge,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(b_disk,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(b_halo,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(m_bulge,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(m_disk,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(m_halo,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(r_scale,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(q_scale,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(v_nod,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 #endif
 *
       if(rank.eq.0)then
@@ -117,6 +159,44 @@ C New: (Aug.1998, P.Kroupa)
      &        '      GMAX     SMAX')
          WRITE (6,30)  DTMIN, RMIN, ETAU, ECLOSE, GMIN, GMAX, SMAX
    30    FORMAT (/,9X,1P7E10.1,/)
+*
+      if (CMBH.gt.0.0) then
+        WRITE (6,31)
+   31   FORMAT(//,10X,'Central massive black hole: CMBH, EPS_bh, raccr')
+        WRITE (6,32) CMBH,EPS_bh,raccr
+   32   FORMAT(/,28X,1P3E10.1)
+        if (qzero.gt.0.0) then
+          WRITE (6,33)
+   33     FORMAT(//,10X,'Accretion disk: qzero, r_crit, mdisc, HZ')
+          WRITE (6,34) qzero,r_crit,mdisc,HZ
+   34     FORMAT(/,17X,1P4E10.1) 
+        else
+          write (6,341)
+  341     format (//,10X,'Accretion disk: OFF')  
+        endif
+*
+        if (m_bulge.gt.0.0) then
+          WRITE (6,35)
+   35     format(//,10X,'External potential')
+          WRITE (6,36)
+   36     format(//,10X,'m_bulge, a_bulge, b_bulge')
+          WRITE (6,37) m_bulge,a_bulge,b_bulge  
+          WRITE (6,38)
+   38     format(//,10X, 'm_disk, a_disk, b_disk')
+          WRITE (6,37) m_disk,a_disk,b_disk
+          WRITE (6,39) 
+   39     format(//,10X, 'm_halo, a_halo, b_halo')
+          WRITE (6,40) 
+   40     format(//,10X, 'r_scale, q_scale, v_nod')
+          WRITE (6,37) r_scale,q_scale,v_nod     
+   37     format(/,10X,1P3E10.1)
+        else
+          write (6,371)
+  371     format(//,10X, 'External potential: OFF')   
+        endif
+ 
+      end if
+
       end if
       call flush(6)
 *        Read stellar evolution and collision parameters.
