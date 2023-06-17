@@ -1,82 +1,168 @@
 #!/bin/bash
 #
-# Shell Script to transform old  style Nbody input file into new style
+# Shell Script to transform old style Nbody input file into new style
 # Usage: @input-transform name ; it transforms name.inp.old into name.inp.new
 # (RSp April 2023)
 # (This is only line 1, more will follow).
 #
+
+# Introduce arguments
+# Usage: @input-transform -i INFILE [-o OUTFILE] [-l LEVEL]
+# this usage is *additional* to the usage above
+# (Uli Roth June 2023)
+
+_usage=" 
+ Shell Script to transform old style Nbody input file into new style
+
+ Usage: $(basename $0) NAME
+    or: $(basename $0) -i INFILE [-o OUTFILE] [-l LEVEL]
+
+ $(basename $0) NAME
+                transforms name.inp.old into name.inp.new
+ 
+ $(basename $0) -i INFILE [-o OUTFILE] [-l LEVEL] [-h]
+ Options:
+   -h           show this help
+   -i           Input file
+   -o           Output file (default: INFILE.new)
+   -l           Stellar evolution parameter
+                A, B, C, or D (default: C)
+                see  10.48550/arXiv.2105.08067 
+"
+
+if [ "$#" -lt 1 ]; then
+    echo " Error: no arguments specified"
+    echo "$_usage"
+    exit 1
+fi
+
+IFILE="" # Input file
+OFILE="" # Output file
+SE_LEVEL="" # Stellar evolution level
+while getopts 'hi:o:l:' OPTION; do
+  case "$OPTION" in 
+    i)
+      IFILE=$OPTARG
+      ;; 
+    o)
+      OFILE=$OPTARG
+      ;;
+    l)
+      SE_LEVEL=$OPTARG
+      ;;
+    h)
+      echo "$_usage"
+      exit
+      ;;
+    ?)
+      echo "$_usage"
+      exit 1
+      ;;
+  esac
+done
+
+# if no arguments where specified, transform name.inp.old to name.inp.new
+if [[ "$IFILE" == "" ]] && [[ "$OFILE" == "" ]]; then
+    IFILE="$1.inp.old"
+    OFILE="$1.inp.new"
+elif [[ "$IFILE" != "" ]] && [[ "$OFILE" == "" ]]; then
+    OFILE="$IFILE.new"
+fi
+
+if [[ "$IFILE" == "$OFILE" ]]; then
+    echo "Error: Input file can not be output file (input: \"$IFILE\", output: \"$OFILE\")"
+    exit 1
+fi
+
+if [ ! -e "$IFILE" ]; then
+    echo " Error: Input file \"$IFILE\" not found"
+    exit 1
+fi
+
+if [[ "$SE_LEVEL" == "" ]]; then
+    SE_LEVEL="C"
+    echo " Warning: Default Stellar Evolution C assumed "
+fi
+
+if [[ ! "ABCD" =~ "$SE_LEVEL" ]]; then
+    echo " Error: Invalid stellar evolution level \"$SE_LEVEL\"."
+    echo "        Available levels are: A, B, C and D"
+    exit 1
+fi
+
+echo " Using input file \"$IFILE\", output file \"$OFILE\", level \"$SE_LEVEL\""
+
 x=0
-cat $1.inp.old | while read line ; do
+cat $IFILE | while read line ; do
 let x=x+1
 if [ $x -eq 1 ] 
 then
-echo $line | awk '{print "&INNBODY6\nKSTART="$1",TCOMP="$2",TCRTP0="$3",isernb="$4",iserreg="$5",iserks="$6" /\n"}' > $1.inp.new
+echo $line | awk '{print "&INNBODY6\nKSTART="$1",TCOMP="$2",TCRTP0="$3",isernb="$4",iserreg="$5",iserks="$6" /\n"}' > $OFILE
 fi
 #
 if [ $x -eq 2 ]
 then
-echo $line | awk '{print "&ININPUT\nN="$1",NFIX="$2",NCRIT="$3",NRAND="$4",NNBOPT="$5",NRUN="$6",NCOMM="$7","}' >>  $1.inp.new
+echo $line | awk '{print "&ININPUT\nN="$1",NFIX="$2",NCRIT="$3",NRAND="$4",NNBOPT="$5",NRUN="$6",NCOMM="$7","}' >>  $OFILE
 fi
 #
 if [ $x -eq 3 ]
 then
-echo $line | awk '{print "ETAI="$1",ETAR="$2",RS0="$3",DTADJ="$4",DELTAT="$5",TCRIT="$6",QE="$7",RBAR="$8",ZMBAR="$9","}' >> $1.inp.new
+echo $line | awk '{print "ETAI="$1",ETAR="$2",RS0="$3",DTADJ="$4",DELTAT="$5",TCRIT="$6",QE="$7",RBAR="$8",ZMBAR="$9","}' >> $OFILE
 fi
 #
 if [ $x -eq 4 ]
 then
-echo $line | awk '{print "KZ(1:10)= "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10}' >> $1.inp.new
+echo $line | awk '{print "KZ(1:10)= "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10}' >> $OFILE
 KZ8=`echo $line | awk '{print $8}'` ; echo "KZ8="$KZ8
 fi
 #
 if [ $x -eq 5 ]
 then
-echo $line | awk '{print "KZ(11:20)="$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10}' >> $1.inp.new
+echo $line | awk '{print "KZ(11:20)="$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10}' >> $OFILE
 KZ14=`echo $line | awk '{print $4}'` ; echo "KZ14="$KZ14
 KZ18=`echo $line | awk '{print $8}'` ; echo "KZ18="$KZ18
 fi
 #
 if [ $x -eq 6 ]
 then
-echo $line | awk '{print "KZ(21:30)="$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10}' >> $1.inp.new
+echo $line | awk '{print "KZ(21:30)="$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10}' >> $OFILE
 fi
 #
 if [ $x -eq 7 ]
 then
-echo $line | awk '{print "KZ(31:40)="$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10}' >> $1.inp.new
+echo $line | awk '{print "KZ(31:40)="$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10}' >> $OFILE
 fi
 #
 if [ $x -eq 8 ]
 then
-echo $line | awk '{print "KZ(41:50)="$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10" ,"}' >> $1.inp.new
+echo $line | awk '{print "KZ(41:50)="$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10" ,"}' >> $OFILE
 fi
 #
 if [ $x -eq 9 ]
 then
-echo $line | awk '{print "DTMIN="$1",RMIN="$2",ETAU="$3",ECLOSE="$4",GMIN="$5",GMAX="$6",SMAX="$7","}' >> $1.inp.new
+echo $line | awk '{print "DTMIN="$1",RMIN="$2",ETAU="$3",ECLOSE="$4",GMIN="$5",GMAX="$6",SMAX="$7","}' >> $OFILE
 #
 line9="Level='C' /" ; 
-echo "Level='C' /" >> $1.inp.new
-echo "" >> $1.inp.new
-echo "&INSSE /" >> $1.inp.new
-echo "" >> $1.inp.new
-echo "&INBSE /" >> $1.inp.new
-echo "" >> $1.inp.new
-echo "&INCOLL /" >> $1.inp.new
-echo "" >> $1.inp.new
-echo " Warning: Default Stellar Evolution C assumed "
+echo "Level='$SE_LEVEL' /" >> $OFILE
+echo "" >> $OFILE
+echo "&INSSE /" >> $OFILE
+echo "" >> $OFILE
+echo "&INBSE /" >> $OFILE
+echo "" >> $OFILE
+echo "&INCOLL /" >> $OFILE
+echo "" >> $OFILE
 fi
 #
 if [ $x -eq 10 ]
 then
-echo $line | awk '{print "&INDATA \nALPHAS="$1",BODY1="$2",BODYN="$3",NBIN0="$4",NHI0="$5",ZMET="$6",EPOCH0="$7",DTPLOT="$8" /\n"}' >> $1.inp.new
-echo "&INSETUP SEMI=,ECC=,APO=,N2=,SCALE=,ZM1=,ZM2,ZMH,RCUT= /" >> $1.inp.new
-echo "" >> $1.inp.new
+echo $line | awk '{print "&INDATA \nALPHAS="$1",BODY1="$2",BODYN="$3",NBIN0="$4",NHI0="$5",ZMET="$6",EPOCH0="$7",DTPLOT="$8" /\n"}' >> $OFILE
+echo "&INSETUP SEMI=,ECC=,APO=,N2=,SCALE=,ZM1=,ZM2,ZMH,RCUT= /" >> $OFILE
+echo "" >> $OFILE
 fi
 #
 if [ $x -eq 11 ]
 then
-echo $line | awk '{print "&INSCALE \nQ="$1",VXROT="$2",VZROT="$3",RTIDE="$4" /\n"}' >> $1.inp.new
+echo $line | awk '{print "&INSCALE \nQ="$1",VXROT="$2",VZROT="$3",RTIDE="$4" /\n"}' >> $OFILE
 fi
 #
 if [ $x -eq 12 ]
@@ -85,26 +171,28 @@ then
    then
       if [ $KZ14 -eq 2 ] 
       then
-          echo $line | awk '{print "&INXTRNL0 \nGMG="$1",RG0="$2",DISK=,A=,B=,VCIRC=,RCIRC=,GMB=,AR=,GAM=,RG=,,,VG=,,,MP=,AP2=,MPDOT=,TDELAY= /\n"}' >> $1.inp.new
+          echo $line | awk '{print "&INXTRNL0 \nGMG="$1",RG0="$2",DISK=,A=,B=,VCIRC=,RCIRC=,GMB=,AR=,GAM=,RG=,,,VG=,,,MP=,AP2=,MPDOT=,TDELAY= /\n"}' >> $OFILE
       fi
       if [ $KZ14 -eq 4 ]
       then
-      echo $line | awk '{print "&INXTRNL0 \nGMG="$1",DISK="$2",A="$3",B="$4",VCIRC="$5",RCIRC="$6",GMB="$7",AR="$8",GAM="$9",RG="$10","$11","$12",VG="$13","$14","$15",MP="$16",AP2="$17",MPDOT="$18",TDELAY="$19",RG0= /\n"}' >> $1.inp.new
+      echo $line | awk '{print "&INXTRNL0 \nGMG="$1",DISK="$2",A="$3",B="$4",VCIRC="$5",RCIRC="$6",GMB="$7",AR="$8",GAM="$9",RG="$10","$11","$12",VG="$13","$14","$15",MP="$16",AP2="$17",MPDOT="$18",TDELAY="$19",RG0= /\n"}' >> $OFILE
       fi
    else
    echo "Empty INXTRNL0 used - watch out! Do you want this?"
-   echo "&INXTRNL0 /" >> $1.inp.new
+   echo "&INXTRNL0 /" >> $OFILE
    fi
 fi
 #
 if [ $x -eq 13 ]
 then
-echo $line | awk '{print "&INBINPOP \nSEMI0="$1",ECC0="$2",RATIO="$3",RANGE="$4",NSKIP="$5",IDORM="$6" /\n"}' >> $1.inp.new
+echo $line | awk '{print "&INBINPOP \nSEMI0="$1",ECC0="$2",RATIO="$3",RANGE="$4",NSKIP="$5",IDORM="$6" /\n"}' >> $OFILE
 fi
 #
 if [ $x -eq 14 ]
 then
-echo $line | awk '{print "&INHIPOP \nSEMI0="$1",ECC0="$2",RATIO="$3",RANGE="$4" /\n"}' >> $1.inp.new
+echo $line | awk '{print "&INHIPOP \nSEMI0="$1",ECC0="$2",RATIO="$3",RANGE="$4" /\n"}' >> $OFILE
 fi
 done
+
+echo " Written $OFILE"
 exit
