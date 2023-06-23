@@ -244,8 +244,8 @@ c$$$          IF (LIST(2,J).GT.ILAST.OR.BODY(J).EQ.0.0D0) GO TO 50
 *     Case ipair c.m. and ilast member is in the list
             ELSE
 *     Shift index from ID_IPAIRCM+2 to NNB to right by 1
-               IF(rank.eq.0.and.LIST(1,J).GE.NNBMAX) THEN
-      write(6,*) 'Warning! J N=',J,NAME(J),'LIST',LIST(1,J),
+               IF(LIST(1,J).GE.NNBMAX) THEN
+      if(rank.eq.0)write(6,*)'Warning! J N=',J,NAME(J),'LIST',LIST(1,J),
      &            ' NNBMAX=',NNBMAX,'T',TIME,' ID_IPAIRCM=',ID_IPAIRCM
           RI = SQRT((X(1,J) - RDENS(1))**2 +
      &              (X(2,J) - RDENS(2))**2 +
