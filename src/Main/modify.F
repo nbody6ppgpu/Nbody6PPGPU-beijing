@@ -18,8 +18,17 @@
 #define MPIINIT 0
 #endif
 *
-      RBAR0 = RBAR
-      ZMBAR0 = ZMBAR
+*     Backup values from comm.1 before reading namelist
+      RBARCURR0 = RBAR
+      ZMBARCURR0 = ZMBAR
+      NCURR0 = N
+      RMINCURR0 = RMIN
+      DTMINCURR0 = DTMIN
+      ECLOSECURR0 = ECLOSE
+      ETAICURR0 = ETAI
+      ETARCURR0 = ETAR
+      ETAUCURR0 = ETAU
+
 *
       if(rank.eq.0)then
           READ (NML=ININPUT, IOSTAT=IIC, UNIT=5)
@@ -62,6 +71,25 @@
       TCRIT = TTOT + TCRIT
 *
       if(rank.eq.0)then
+*        Restore values from comm.1
+         RBAR = RBARCURR0
+         ZMBAR = ZMBARCURR0
+         N = NCURR0
+*
+*        Restore values from comm.1 if auto-adjustment is enabled
+         IF(KZ(16).GT.0) THEN
+             RMIN = RMINCURR0
+             DTMIN = DTMINCURR0
+             ECLOSE = ECLOSECURR0
+         END IF
+         IF(KZ(17).GT.0) THEN
+             ETAI = ETAICURR0
+             ETAR = ETARCURR0
+         END IF
+         IF (KZ(17).GT.1) THEN
+             ETAU = ETAUCURR0
+         END IF
+*
          WRITE (6,10)
  10      FORMAT(//,30X,'RESTART PARAMETERS:',/,30X,'==================')
          WRITE (6,11) TTOT/TCR0, TIME/TCR0, TCRIT/TCR0, TTOT, TIME,
@@ -79,7 +107,7 @@
      &                  '     TCRITP    TCRIT     QE',
      &                  '        RBAR0      ZMBAR0')
          WRITE (6,20)  ETAI, ETAR, RS0, DTADJ, DELTAT, TCRITP, TCRIT,
-     &              QE, RBAR0, ZMBAR0
+     &              QE, RBAR, ZMBAR
    20    FORMAT (/,10X,1P10E10.1)
 *
          WRITE (6,22)
@@ -96,8 +124,6 @@
          WRITE (6,31)
    31    FORMAT(/,30X,'=====================================',/)
 *
-         RBAR = RBAR0
-         ZMBAR = ZMBAR0
       end if
 *
 #if MPIINIT
