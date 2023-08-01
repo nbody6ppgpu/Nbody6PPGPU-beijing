@@ -14,6 +14,7 @@ C     &                LISTC(LMAX)
       REAL*8  FRX(3),FDX(3)
       INTEGER NLIST(LMAX),JJLIST(2*LMAX)
 *     REAL*8  DFI(3),DFRG(3)
+      LOGICAL lnan
 *      LOGICAL LCHECK
 *
 *     Mass weighted neighbor list criterion flag
@@ -720,10 +721,13 @@ c$$$      END IF
      &        STEP(I),BODY(I)*ZMBAR,RI,VI,FIT,FDIT,FRT,FDRT,
      &        NNB,NB1,NAME(NB1),KSTAR(NB1),BODY(NB1)*ZMBAR
          call flush(6)
- 81      format(' Warning!: Regular step jump! I N K* ',1P,E15.7,2I8,I4,
-     &       ' ratio',1P,E11.3,' dt0',E15.7,' stepr,step=',2E15.7,
-     &       ' M*,RI,VI',E12.4,2E15.7,' FI,FDI',2E15.7,' FR,FDR',2E15.7,
-     &       ' NNB',I4,' NB1: N, K*,M*',2I8,I4,E12.4)
+ 81      format(' Warning!: Regular step jump! I N K* ',1P,E15.6,2I8,I4,
+     &       ' ratio',1P,E15.6,' dt0',E15.6,' stepr,step=',2E15.6,
+     &       ' M*,RI,VI',E15.6,2E15.6,' FI,FDI',2E15.6,' FR,FDR',2E15.6,
+     &       ' NNB',I4,' NB1: N, K*,M*',2I8,I4,E15.6)
+      lnan = isnan(dt0).or.isnan(FREG(1)).or.isnan(FDR(1))
+      if(lnan)iwarn = iwarn + 1
+      if(iwarn.gt.1000000)stop ' too many NaNs in this Warning STOP '
          end if
 *     --11/04/13 23:10-lwang-end----------------------------------------*
 *      

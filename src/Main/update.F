@@ -236,8 +236,8 @@ c$$$          IF (LIST(2,J).GT.ILAST.OR.BODY(J).EQ.0.0D0) GO TO 50
 *     Increase neighbor list by 1
                LIST(1,J) = LIST(1,J) + 1
                IF(LIST(1,J).GE.NNBMAX) THEN
-                  write(6,*) 'Warning! J',J,'LIST',LIST(1,J),
-     &                 ' GE NNBMAX',NNBMAX,'T',TIME
+      if(rank.eq.0)write(6,*)'Warning! J N=',J,NAME(J),'LIST',LIST(1,J),
+     &          ' 1 GE NNBMAX=',NNBMAX,'T',TIME,' ID_LASTCM=',ID_LASTCM
                   call flush(6)
                END IF
                FUPDATE = .true.               
@@ -246,7 +246,7 @@ c$$$          IF (LIST(2,J).GT.ILAST.OR.BODY(J).EQ.0.0D0) GO TO 50
 *     Shift index from ID_IPAIRCM+2 to NNB to right by 1
                IF(LIST(1,J).GE.NNBMAX) THEN
       if(rank.eq.0)write(6,*)'Warning! J N=',J,NAME(J),'LIST',LIST(1,J),
-     &            ' NNBMAX=',NNBMAX,'T',TIME,' ID_IPAIRCM=',ID_IPAIRCM
+     &         ' 2 GE NNBMAX=',NNBMAX,'T',TIME,' ID_IPAIRCM=',ID_IPAIRCM
           RI = SQRT((X(1,J) - RDENS(1))**2 +
      &              (X(2,J) - RDENS(2))**2 +
      &              (X(3,J) - RDENS(3))**2)
@@ -267,7 +267,7 @@ c$$$          IF (LIST(2,J).GT.ILAST.OR.BODY(J).EQ.0.0D0) GO TO 50
                LIST(1,J) = LIST(1,J) + 1
                IF(rank.eq.0.and.LIST(1,J).GE.NNBMAX) THEN
        write(6,*) 'Warning! J N=',J,NAME(J),'LIST',LIST(1,J),
-     &            ' GE NNBMAX',NNBMAX,'T',TIME,' ID_IPAICM=',ID_IPAIRCM
+     &          ' 3 GE NNBMAX',NNBMAX,'T',TIME,' ID_IPAIRCM=',ID_IPAIRCM
        write(6,*) ' ILASTLIMIT,I12ILAST=',ILASTLIMIT,I1_ILAST,I2_ILAST
        write(6,*) ' Body(J)=',BODY(J)
                   call flush(6)
