@@ -222,7 +222,7 @@
          DRAG=Q_DRAG*DDENS*(TWOPI/2.D0*(Rzero**2)/ZMASS)*RADIUS(I)**2
      &   /(Rstar2_avg)*M_avg/BODY(I)
 
-         CONST=VESC4*(1.D0 + LOG(Lambda))/Qd
+*         CONST=VESC4*(1.D0 + LOG(Lambda))/Qd
 
            IF (KSTAR(I).lt.14) THEN !Condition to set c as vesc with sBH
                   VESC4= (2.D0*BODY(I)/RADIUS(I))**2
@@ -230,6 +230,9 @@
                 VESC4=c4
            ENDIF
 
+* LS 2023 - calculation with vesc4 moved after definition of vesc4
+         CONST=VESC4*(1.D0 + LOG(Lambda))/Qd
+         
          BHLDYN= CONST*VINV4
          FOLD= DRAG*VRE
          CKFDRAG=FOLD*(1.D0+BHLDYN)
