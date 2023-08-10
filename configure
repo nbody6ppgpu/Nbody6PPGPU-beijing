@@ -702,7 +702,6 @@ enable_gpu
 enable_simd
 enable_hdf5
 enable_tt
-enable_tools
 enable_openmp
 with_cuda
 with_cuda_sdk
@@ -1352,8 +1351,6 @@ Optional Features:
                           extension imported from NBODY6TT. (Ref: Renaud, F.,
                           et al., 2011, MNRAS, 418, 759; Renaud, F. & Gieles,
                           M., 2015, MNRAS, 448, 3416)
-  --enable-tools          Compile extral tools for data analysis, see
-                          User_manual.pdf for detail
   --disable-openmp        do not use OpenMP
 
 Optional Packages:
@@ -2505,14 +2502,6 @@ if test "${enable_tt+set}" = set; then :
   enableval=$enable_tt;
 else
   enable_tt=no
-fi
-
-
-# Check whether --enable-tools was given.
-if test "${enable_tools+set}" = set; then :
-  enableval=$enable_tools; enable_tools=yes
-else
-  enable_tools=no
 fi
 
 
@@ -6205,15 +6194,6 @@ fi
 fi
 
 
-# Extral tools
-if test "x$enable_tools" != xno; then :
-  EXTRARESULT=' $(EXTRATOOLS)'
-else
-  EXTRARESULT=''
-fi
-
-
-
 
 
 
@@ -6272,8 +6252,6 @@ $as_echo "$as_me:      CUDA compiler:     $NVCC" >&6;}
 $as_echo "$as_me: --Targets:" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}:      Program name:   nbody6++$RESULT" >&5
 $as_echo "$as_me:      Program name:   nbody6++$RESULT" >&6;}
-{ $as_echo "$as_me:${as_lineno-$LINENO}:      Extra tools:    $enable_tools" >&5
-$as_echo "$as_me:      Extra tools:    $enable_tools" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}:      Install path:   $prefix" >&5
 $as_echo "$as_me:      Install path:   $prefix" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}: --Parameters:" >&5
@@ -6288,16 +6266,6 @@ $as_echo "$as_me:      LMAX:           $LMAX" >&6;}
 $as_echo "$as_me:      MMAX:           $MMAX" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}: -----------------------------------------------------------" >&5
 $as_echo "$as_me: -----------------------------------------------------------" >&6;}
-if test "x$enable_tools" != xno; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}:   Please add $prefix/lib into your runtime load library path:" >&5
-$as_echo "$as_me:   Please add $prefix/lib into your runtime load library path:" >&6;}
-    { $as_echo "$as_me:${as_lineno-$LINENO}:      LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$prefix/lib" >&5
-$as_echo "$as_me:      LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$prefix/lib" >&6;}
-    { $as_echo "$as_me:${as_lineno-$LINENO}:   in your pre-configure script of shell (such as ~/.bashrc if you use bash)" >&5
-$as_echo "$as_me:   in your pre-configure script of shell (such as ~/.bashrc if you use bash)" >&6;}
-    { $as_echo "$as_me:${as_lineno-$LINENO}: -----------------------------------------------------------" >&5
-$as_echo "$as_me: -----------------------------------------------------------" >&6;}
-fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: Reference paper: Wang, L., et al., 2015, MNRAS, 450, 4070 (http://arxiv.org/abs/1504.03687)" >&5
 $as_echo "$as_me: Reference paper: Wang, L., et al., 2015, MNRAS, 450, 4070 (http://arxiv.org/abs/1504.03687)" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}: Email: Rainer Spurzem <spurzem@ari.uni-heidelberg.de>" >&5
