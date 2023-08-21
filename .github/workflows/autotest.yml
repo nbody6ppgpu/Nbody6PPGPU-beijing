@@ -1,4 +1,4 @@
-name: autotest namelist and old
+name: Demo simulation test
 
 on:
   push:
