@@ -150,6 +150,25 @@
       	VYDISC=SQRT_MTOT*XI(1)/RDISC_3over
         VDISC2=TOTALMASS/RDISC
 *
+*     Only with pressure gradient
+      ELSE IF (irot_opt.eq.3) THEN
+*
+ 	TOTALMASS=CMBH
+        HDISC = HZ*RZero*RRCRIT_ZETA
+        HDISC2 = HDISC*HDISC
+        DSIGMA = -1/RDISC*alphax
+* 	Ignore cut-off - with cut-off see below:
+*        DSIGMA = -1/RDISC*(alphax+BETA_S*S*RRzero**S)
+	GRAD_P = (1+ HDISC2/RDISC*(
+     &         XSLOPE(I)/TOTALMASS
+     &         +DSIGMA
+     &         -PREFACTOR/RDISC))
+        VDISC2=TOTALMASS*GRAD_P/RDISC
+        SQRT_VD=DSQRT(ABS(VDISC2/R2DISC))
+*   New Velocity of the disc
+        VXDISC=-XI(2)*SQRT_VD
+        VYDISC=XI(1)*SQRT_VD
+*
       ELSE IF (irot_opt.eq.9) THEN
 *   	Calculate enclosed mass LS
       	call bisection(RDISC,I)
@@ -301,6 +320,26 @@
      &	    +0.5*RDOT*XSLOPE(I)/SQRT_MTOT*VYDISC
      &      -F(2,I)
 *
+*      ELSE IF (irot_opt.eq.3) THEN
+*
+        DVREL(1)= VXDISC/XI(2)*VI(2)
+     &      -1.5*VXDISC*RDOT/RDISC
+     &      +0.5*RDOT*VXDISC/GRAD_P*(2/R2DISC
+     &	    -1/R2DISC)*(GRAD_P-1)*RDISC
+     &      +0.5*RDOT*VXDISC/GRAD_P*HDISC2/RDISC*(
+     &	    -DSIGMA/RDISC
+     &	    -PREFACTOR/R2DISC)
+     &	    -F(1,I)
+        DVREL(2)= VYDISC/XI(1)*VI(1)
+     &      -1.5*VYDISC*RDOT/RDISC
+     &      +0.5*RDOT*VYDISC/GRAD_P*(2/R2DISC*ZETA
+     &	    -1/R2DISC)*(GRAD_P-1)*RDISC
+     &      +0.5*RDOT*VYDISC/GRAD_P*HDISC2/RDISC*(
+     &	    -DSIGMA/RDISC
+     &	    -PREFACTOR/R2DISC)
+     &      -F(2,I)
+*	WRITE(*,*)"DVREL",DVREL(1),DVREL(2)
+* 
       ELSE IF (irot_opt.eq.9) THEN
 *
         DVREL(1)= VXDISC/XI(2)*VI(2)
