@@ -61,11 +61,6 @@
           CALL XTRNL0
       END IF
 *
-*       Check optional scaling to hot system.
-      IF (KZ(29).GT.0) THEN
-          CALL HOTSYS
-      END IF
-*
 *       Check option for initial binaries.
       IF (KZ(8).EQ.1.OR.KZ(8).GE.3) THEN
           CALL BINPOP
