@@ -71,7 +71,7 @@ fcloud.f fcorr.f fdisk.f fhalo.f ficorr.f findj.f findm.f \
 flyby.f fnuc.f fpcorr.f fpert.f fpoly1.f fpoly2.f  \
 gcinit.f gcint.f giant.f giant3.f gntage.f grrad.f hcorr.f \
 hiarch.f hicirc.f hidat.f higrow.f himax.f himod.f \
-hipop.f hirect.f histab.f hivel.f hmdot.f hmdot2.f hotsys.f \
+hipop.f hirect.f histab.f hivel.f hmdot.f hmdot2.f \
 hrdiag.f hrplot.f hut.f hut2.f iblock.f imf.f imfbd.f imf2.f \
 impact.f induce.f input.f insert.f instar.f intgrt.f \
 jacobi.f kick.f kick2.f kickGW.f ksapo.f kscorr.f \
