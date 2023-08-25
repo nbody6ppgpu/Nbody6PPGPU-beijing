@@ -39,78 +39,112 @@ slightly different ways.
 git clone git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing
 ```
 1. This downloads the `stable` branch. The `stable` branch include major versions, and the `dev` branch include the most recent updates and bugfix. Changes in `dev` branch are merged to `stable` regularly.
-2. If you want the most recent version (may contain bugs), use `git clone -b dev git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing`, or run `git switch dev` after you `clone` without `-b dev` param. 
+2. If you want the most recent version, use 
+``` bash
+git clone -b dev git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing
+```
+or run `git switch dev` after you `clone` without `-b dev` param. 
 
 ## Configure for compile
 
 ```bash
-./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large 
+./configure [options]
 ```
-1. If you run NBODY6++GPU on your personal computer or workstation rather than computer clusters, MPI can be disabled by append `--disable-mpi` to the command above.
-2. In the following cases, you may need to append `--disable-gpu` 
+0. TL;DR: to quickly start on your personal computer, you may use `./configure --enable-mcmodel=large --with-par=b1m --disable-gpu --disable-mpi`, and jump to the next section [Compile the code](#Compile-the-code)
+1. We recommend using `--enable-mcmodel=large` to allows the program to use much resources. 
+2. `--with-par=b1m` allows up to 1 million particle simulation. In case that your computer has very small memory (<4GB) and your star cluster has a small particle number, you may use smaller value (check ./configure --help for possible value for `--with-par`)
+3. If you run NBODY6++GPU on your personal computer or workstation rather than computer clusters, MPI can be disabled by append `--disable-mpi` to the command above.
+4. In the following cases, you may need to append `--disable-gpu` 
 - The computer has no NVIDIA GPU
 - The computer has NVIDIA GPU but did not install CUDA compiler (Test: type `nvcc --version` in your terminal. If you see information about NVIDIA compiler, then it is installed. If you see errors like "nvcc: command not found" then it is not installed)
-- Your simulation has relatively small particle number (< 50000). The code is for up to one million bodies with many initial binaries. In the case of small particle number, GPU can hardly boost the simulation and can sometimes slow it down.
-
-The configure script written by Long Wang has a multitude of further options, check with `./configure --help` or feel free to ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions).
-
-## Additional installation options
-
-HDF5 is an efficient storage scheme, which is useful during long-time simulations to boost the simulation and save disk spaces. Nevertheless, it is recommended but not necessary. To use HDF5, make sure it is installed in your computer. For example, in Debian based Linux,
-```bash
-apt-get install libhdf5-openmpi-dev
-apt-get install libhdf5-dev
-```
-after that, append `--enable-hdf5` in configure command
+- Your simulation has relatively small particle number (<50000). The code is for up to one million bodies with many initial binaries. In the case of small particle number, GPU can hardly boost the simulation and can sometimes slow it down.
+5. You may set `--prefix=[install path]` to specify the location to install the executable.
+6. HDF5 is an efficient storage scheme, which is useful during large-scale or long-time simulations to boost the simulation and save disk spaces. Once enabled, the basic particle data (mass, position, velocity) and stellar evolution data will be stored in `.h5part` files, which may need extra tools to read. HDF5 is recommended but not necessary. You need to install additional libraries to use HDF5. For example, in Debian based Linux `sudo apt-get install libhdf5-openmpi-dev libhdf5-dev`. After that, append `--enable-hdf5` in configure command.
+7. The configure script written by Long Wang has a multitude of further options, check with `./configure --help` or feel free to ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions).
 
 ## Compile the code
 
 ```bash
-make clean ; make -j 
+make clean
+make -j 
 ```
 
-After make you find the executable and object files in `build/`, named `nbody6++.sse.mpi.gpu`. The suffix may change with different compilation options. For example, if you have `--disable-mpi --disable-gpu` during configure, the executable may be named `nbody6++.sse`
+After `make` you can find the executable in `build/`, named `nbody6++.[configure-options]`, where the suffix depends on your configure option (MPI, GPU, HDF5, SIMD, etc), for example `nbody6++.avx.mpi.gpu`
+
+If you have specified `--prefix=[install path]` during configure, you may want
+
+```bash
+make install
+```
+and add the installation path to your `$PATH` environment variable.
 
 # Ready for your simulation
 
-1. Copy the executable to the simulation directory you want
+1. (If you have done `make install` you can skip this step) Copy the executable to the simulation directory you want
 
-```bash
-cp `ls build/nbody6++*` [your_simulation_path]
-```
+    ```bash
+    cp `ls build/nbody6++*` [your_simulation_dir]
+    ```
 
-2. Prepare an initial condition file. For a test run, you can find example initial conditions in `examples/input_files`. Copy `N100k.inp` and `dat.10` to your simulation path
+2. Prepare an initial condition file. For a test run, you can find example initial conditions in `examples/input_files`. 
 
-```bash
-cp examples/input_files/N100k.inp [your_simulation_path]
-cp examples/input_files/dat.10 [your_simulation_path]
-```
+    ```bash
+    cp examples/input_files/N10k_noDat10.inp [your_simulation_dir]
+    ```
 
-> 💡 Starting from the stable version [May2023](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/releases/tag/May2023), NBODY6++GPU changes to a fundamentally new and more flexible method of reading input data (control data, not particle data). It uses Fortran NAMELIST input, which has a key=value format. All input data can be given in any order. If you are using a old-format input file, you can use the bash script which transform the old input file into the new one ([examples/input_files/@input-transform](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/blob/stable/examples/input_files/%40input-transform)) to transform it to the new NAMELIST format. See usage inside the script.
+    This input file let NBODY6++GPU generate a star cluster with 10000 stars with Plummer model, and simulate for only 2 Myr. You can also find `N100k.inp` and its pre-generated initial particle data `dat.10` in `examples/input_files` for a 100,000 stars, 1 Gyr simulation.
 
-3. Finally, run it
+    > 💡 Starting from the stable version [May2023](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/releases/tag/May2023), NBODY6++GPU changes to a fundamentally new and more flexible method of reading input data (control data, not particle data). It uses Fortran NAMELIST input, which has a key=value format. All input data can be given in any order. If you are using a old-format input file, you can use the bash script which transform the old input file into the new one ([examples/input_files/@input-transform](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/blob/stable/examples/input_files/%40input-transform)) to transform it to the new NAMELIST format. See usage inside the script.
 
-```bash
-cd [your_simulation_path]
-nbody6++.sse < N100k.inp
-```
-Don't forget to replace `nbody6++.sse` with the name of your executable
+3. CPU and memory
+
+    In simulations with large particle number, segmentation fault may happen. To avoid this, we recommend setting a large `OMP_STACKSIZE` and disable the memory limitation. 
+    ```bash
+    export OMP_STACKSIZE=4096M
+    ulimit -s unlimited
+    ```
+
+    By default, the program uses all CPU threads (which is usually 2 × number of CPU cores). For better performance, `OMP_NUM_THREADS` should not be too large, and cannot go beyond 32. In case you want to use fewer threads, especially when your computer has more than 32 cores (per node), you need to restrict `OMP_NUM_THREADS` 
+    ```bash
+    export OMP_NUM_THREADS=[N_threads]
+    ```
+
+    After running them, you may want to add the these 3 commands to your shell initial file like `~/.bashrc`.
+
+4. Finally, run it
+
+    ```bash
+    cd [your_simulation_path]
+    ```
+
+    If you have done `make install` and add the installation path to `$PATH`, run
+    ```bash
+    nbody6++ < N100k.inp
+    ```
+
+    otherwise you may have copied the executable to the simulation path, run
+    ```bash
+    ./[your executable filename] < N100k.inp
+    ```
+
+# Documentation
+To understand the diagnostic information and columns of each output file, please read the documentations at
+https://www.overleaf.com/read/hcmxcyffjkzq
+
+You are also welcomed to ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions)
 
 # Data analysis
 Some Jupyter notebooks for simple data analysis are provided in [examples/](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/tree/stable/examples). You can check [the readme file there](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/tree/stable/examples) to get started.
 
-# Documentation
-For any further questions, read the documentations at
-https://www.overleaf.com/read/hcmxcyffjkzq
-or ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions)
-
 # Tips
+ - Before a simulation, it is always recommended to set `ulimit -s unlimited` before the simulation to avoid segmentation fault. 
+
  - The environment variable OMP_NUM_THREADS has to be set to the desired value of OpenMP threads per MPI process. (Maybe your system has it predefined). I also recommend to set
  OMP_STACKSIZE=4096M the shell where you run the code.
 
  - It is inefficient (and even more error prone) for particle numbers below about 50k-100k particles (depending on hardware). For smaller N you are advised to disable GPU, or use Nbody6 and Nbody6GPU for single node/process.
  
- - It is recommended to provide a dat.10 file in N-body input format (see manual). Such file can be produced by other programs, like mcluster.
+ - It is recommended to provide a dat.10 file in N-body input format (see manual). Such file can be produced by other programs, like McLuster.
 
 # Seleted References:
  - https://ui.adsabs.harvard.edu/abs/1999PASP..111.1333A/abstract (Aarseth: NBODY1 to NBODY6)
