@@ -61,7 +61,6 @@
           CALL XTRNL0
       END IF
 *
-
 *     Check presence of central MBH:
 *      IF (CMBH.GT.0.0) CALL DRAGMBHINIT(IFIRST,NTOT)
 *
