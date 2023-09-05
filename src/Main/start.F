@@ -67,11 +67,6 @@
 *      Check presence of accretion disk:
        if (qzero.gt.0.0) call init_drag(ifirst,ntot)
 *
-*       Check optional scaling to hot system.
-      IF (KZ(29).GT.0) THEN
-          CALL HOTSYS
-      END IF
-*
 *       Check option for initial binaries.
       IF (KZ(8).EQ.1.OR.KZ(8).GE.3) THEN
           CALL BINPOP
