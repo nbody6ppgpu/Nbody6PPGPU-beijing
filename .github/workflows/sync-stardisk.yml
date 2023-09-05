@@ -1,0 +1,50 @@
+# Automatically synchronises the stardisk branch with the stable branch
+# 
+# In case of failure (merge conflict) the conflict needs to be resolved by
+# hand. For a detailed description see the git book:
+#  git book: https://git-scm.com/book/en/v2
+#  merge conflicts basics: https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
+#  advanced merging: https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging
+#
+# The general outline goes as follows:
+# 1. Make sure the stable and stardisk branches are up to date, respectively
+#    git checkout stable
+#    git pull
+#    git checkout stardisk
+#    git pull
+# 2. Merge stable into stardisk (make sure you are on the stardisk branch first)
+#    git checkout stardisk
+#    git merge stable
+# 3. Merge conflicts should appear. Fix conflict in a way of your choice, e.g.,
+#    git mergetool --tool=vimdiff
+# 4. commit and push your changes to the upstream stardisk branch
+#    git push origin stardisk
+
+name: Synchronise stardisk with stable branch
+
+on:
+  push:
+    branches: [stable]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+        
+      - name: Setup GitHub Action User
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "<EMAIL>"
+      
+
+      - name: Update Stardisk Branch
+        run: |
+          git fetch origin
+          git checkout stardisk
+          git pull
+          git merge origin/stable
+          git push origin stardisk
