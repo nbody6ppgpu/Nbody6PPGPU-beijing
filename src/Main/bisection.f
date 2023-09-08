@@ -9,6 +9,9 @@
 	integer:: a,b,c,I
 *	real*8:: radii(NMAX), massArray(NMAX)
 *
+*	L. Starbaty 2022 - this routine uses a bisection method to find 
+*	values in the sorted mass array
+*
 	error= 1.0
 	a=1
 *	b=count(RMR/=0.)
@@ -115,4 +118,5 @@
 *
 	delta = log(XMR(100))/log(RMR(100))
 	XINTERMASS(I)=interRadius**delta
+	XSLOPE(I) = delta*interRadius**(delta-1)
 	end subroutine interpolate_powerlaw
