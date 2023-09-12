@@ -31,7 +31,7 @@
       common/bse/lambd1,alphac,bhspinfl,kicktype,xk2,xk3,
      *      acc1,acc2,xbeta,xxi,epsnov,eddfac,gamm1
 *
-      REAL*8 AURSUN,K3
+      REAL*8 AURSUN,K3,LAMBDA,ALPHA1
       PARAMETER (AURSUN = 214.95D0)
       LOGICAL COEL,ECCFLG
       REAL*8 CELAMF,RL,RZAMSF

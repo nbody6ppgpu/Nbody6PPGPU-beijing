@@ -57,7 +57,7 @@
   10  CONTINUE
 *
 *       Find density centre & core radius (Casertano & Hut, Ap.J. 298, 80).
-      IF (N.GE.20.AND.KZ(29).EQ.0) THEN
+      IF (N.GE.20) THEN
           CALL CORE
       END IF
 *

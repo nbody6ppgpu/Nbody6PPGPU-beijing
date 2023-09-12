@@ -203,7 +203,7 @@ c$$$      end if
      &        ' NB',I4,' LIST1',I8,' N1',I8)
       lnan = isnan(dt0).or.isnan(FI(1,i)).or.isnan(FIDOT(1,i))
       if(lnan)iwarn = iwarn + 1
-      if(iwarn.gt.10000)stop ' too many NaNs in this Warning STOP '
+      if(iwarn.gt.1000000)stop ' too many NaNs in this Warning STOP '
       end if
 *
 *       Suggestion due to Winston Sweatman

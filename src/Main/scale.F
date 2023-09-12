@@ -225,7 +225,7 @@
          E0 = -0.25
          ETOT = (Q - 1.0)*POT
 *     Include case of hot system inside reflecting boundary.
-         IF (KZ(29).GT.0.AND.Q.GT.1.0) THEN
+         IF (Q.GT.1.0) THEN
             E0 = ETOT
          END IF
 *     Define scaling factor (set E0 = ETOT if energy scaling not desired).
