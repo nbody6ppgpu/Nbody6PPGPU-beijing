@@ -320,7 +320,7 @@
      &	    +0.5*RDOT*XSLOPE(I)/SQRT_MTOT*VYDISC
      &      -F(2,I)
 *
-*      ELSE IF (irot_opt.eq.3) THEN
+      ELSE IF (irot_opt.eq.3) THEN
 *
         DVREL(1)= VXDISC/XI(2)*VI(2)
      &      -1.5*VXDISC*RDOT/RDISC
@@ -429,7 +429,7 @@
 *
 ** LS,2023: Save rot. velocity and rel. vel. in vrot.97
 *
-      IF (mod(TIME,2.).eq.0) THEN
+      IF (mod(TIME,2.).eq.0.and.RDISC.lt.RZERO) THEN
         WRITE (97, 101) ttot,RR,VDISC2,XINTERMASS(I),VRE,RDISC,I,
      &          VREL(1),VREL(2),VREL(3), a_drag(1, I),
      &          a_drag(2, I), a_drag(3, I)
