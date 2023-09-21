@@ -39,7 +39,7 @@
       COMMON/DRAG/   CMBH,EPS_bh,raccr,qzero,r_crit,Mdisc,hz,EBLCKHL,
      &               E_CORR,a_drag(3,nmax),ediss1,iaccr,idragf,e_ext,
      &               XMR(nmax),RMR(nmax),XINTERMASS(nmax),
-     &               XSLOPE(nmax),NParticles,irot_opt,t_diss_on
+     &               XSLOPE(nmax),NParticles,irot_opt,t_diss_on,ROTOUT
 *
       COMMON/NBODY/  X(3,NMAX),XDOT(3,NMAX),X0(3,NMAX),X0DOT(3,NMAX),
      &               F(3,NMAX),FDOT(3,NMAX),BODY(NMAX),RS(NMAX),
@@ -135,7 +135,7 @@
      *   cmbh,EPS_bh,raccr,qzero,r_crit,Mdisc,hz,eblckhl,e_corr,
      *   ((a_drag(k,i),k=1,3),i=1,ntot),ediss1,iaccr,idragf,e_ext,
      *	 (XMR(i),i=1,ntot),(RMR(i),i=1,ntot),(XINTERMASS(i),i=1,ntot),
-     *   (XSLOPE(i),i=1,ntot),NParticles,irot_opt,t_diss_on
+     *   (XSLOPE(i),i=1,ntot),NParticles,irot_opt,t_diss_on,ROTOUT
 *
         write (J) (aspn(i),i=1,ntot)
 *
@@ -276,7 +276,7 @@
      *   cmbh,EPS_bh,raccr,qzero,r_crit,Mdisc,hz,eblckhl,e_corr,
      *   ((a_drag(k,i),k=1,3),i=1,ntot),ediss1,iaccr,idragf,e_ext,
      *	 (XMR(i),i=1,ntot),(RMR(i),i=1,ntot),(XINTERMASS(i),i=1,ntot),
-     *   (XSLOPE(i),i=1,ntot),NParticles,irot_opt,t_diss_on 
+     *   (XSLOPE(i),i=1,ntot),NParticles,irot_opt,t_diss_on,ROTOUT 
 *
         read (J) (aspn(i),i=1,ntot)
 *
@@ -402,6 +402,7 @@
        CALL MPI_BCAST(NParticles,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)                             
        CALL MPI_BCAST(irot_opt,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(t_diss_on,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(ROTOUT,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 *
        CALL MPI_BCAST(ASPN(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 *

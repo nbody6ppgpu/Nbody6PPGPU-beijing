@@ -18,7 +18,7 @@
       COMMON/DRAG/   CMBH,EPS_bh,raccr,qzero,r_crit,Mdisc,hz,EBLCKHL,
      &               E_CORR,a_drag(3,nmax),ediss1,iaccr,idragf,e_ext,
      &               XMR(nmax),RMR(nmax),XINTERMASS(nmax),
-     &               XSLOPE(nmax),NParticles,irot_opt,t_diss_on
+     &               XSLOPE(nmax),NParticles,irot_opt,t_diss_on,ROTOUT
 
       COMMON/EXTGAL/ A_BULGE,B_BULGE,M_BULGE,A_DISK,B_DISK,M_DISK,
      &               A_HALO,B_HALO,M_HALO,R_SCALE,Q_SCALE,V_NOD

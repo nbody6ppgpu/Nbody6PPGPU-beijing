@@ -429,7 +429,8 @@
 *
 ** LS,2023: Save rot. velocity and rel. vel. in vrot.97
 *
-      IF (mod(TIME,2.).eq.0.and.RDISC.lt.RZERO) THEN
+*      IF (mod(TIME,ROTOUT).eq.0.and.RDISC.lt.RZERO) THEN
+      If (mod(TIME,2.0).eq.0.and.RDISC.lt.RZERO) THEN
         WRITE (97, 101) ttot,RR,VDISC2,XINTERMASS(I),VRE,RDISC,I,
      &          VREL(1),VREL(2),VREL(3), a_drag(1, I),
      &          a_drag(2, I), a_drag(3, I)
