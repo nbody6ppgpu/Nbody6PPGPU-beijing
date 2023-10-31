@@ -269,6 +269,14 @@
      &   /(Rstar2_avg)*M_avg/BODY(I)
          CKFDRAG=DRAG*VRE
 
+      ELSE IF (idragf.eq.0) THEN
+
+         VXRE=VXDISC-VI(1)
+         VYRE=VYDISC-VI(2)
+         VZRE=-VI(3)
+         CKFDRAG=Q_DRAG*DDENS*VRE
+*
+
 
       ENDIF
 
@@ -414,6 +422,20 @@
 
               FDDRAG(1:3)=DRAG*VRE*(RHODOT*VREL(1:3) !Fgeo deriv.
      &        +DVRE/VRE*VREL(1:3)+DVREL(1:3))
+     
+             ELSE IF (idragf.eq.0) THEN
+*
+              KFDOT=Q_DRAG*DDENS
+*   
+*              Mean of Drag Force Derivative
+      	      FDDRAG(1)=KFDOT*
+     & 	       (RHODOT*VREL(1)*VRE+DVRE*VREL(1)+DVREL(1)*VRE)
+              FDDRAG(2)=KFDOT*
+     &         (RHODOT*VREL(2)*VRE+DVRE*VREL(2)+DVREL(2)*VRE)
+              FDDRAG(3)=KFDOT*
+     &         (RHODOT*VREL(3)*VRE+DVRE*VREL(3)+DVREL(3)*VRE)
+              FDDRAG(1:3)=DRAG*VRE*(RHODOT*VREL(1:3) !Fgeo deriv.
+     &         +DVRE/VRE*VREL(1:3)+DVREL(1:3))
                  
             ENDIF              
 *
@@ -429,13 +451,13 @@
 *
 ** LS,2023: Save rot. velocity and rel. vel. in vrot.97
 *
-*      IF (mod(TIME,ROTOUT).eq.0.and.RDISC.lt.RZERO) THEN
-      If (mod(TIME,2.0).eq.0.and.RDISC.lt.RZERO) THEN
+      IF (mod(TIME,ROTOUT).eq.0.and.RDISC.lt.RZERO) THEN
+*      If (mod(TIME,2.0).eq.0.and.RDISC.lt.RZERO) THEN
         WRITE (97, 101) ttot,RR,VDISC2,XINTERMASS(I),VRE,RDISC,I,
      &          VREL(1),VREL(2),VREL(3), a_drag(1, I),
      &          a_drag(2, I), a_drag(3, I)
  101    FORMAT (e15.6, e15.6, e15.6, e15.6, e15.6, e15.6, I15.0,
-     &          e15.6, e15.6, e15.6,e18.8, e20.8, e18.11)
+     &          e15.6, e15.6, e15.6,e20.8, e20.8, e20.8)
         CALL FLUSH(27)
       ENDIF
 *
