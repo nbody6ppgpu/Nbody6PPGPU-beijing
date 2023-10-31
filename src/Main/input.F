@@ -428,7 +428,7 @@ C      end if
       namelist/DRAGINPUT/CMBH,EPS_bh,raccr,qzero,idragf,r_crit, 
      *       Mdisc,HZ,m_bulge,a_bulge,b_bulge,m_disk,a_disk,b_disk,
      *       m_halo,a_halo,b_halo,r_scale,q_scale,v_nod,
-     *	     irot_opt,t_diss_on
+     *	     irot_opt,t_diss_on,ROTOUT
 
 * End Input for drag/stardisk=====================
 
