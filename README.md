@@ -119,12 +119,12 @@ and add the installation path to your `$PATH` environment variable.
 
     If you have done `make install` and add the installation path to `$PATH`, run
     ```bash
-    nbody6++ < N100k.inp
+    nbody6++ < N10k_noDat10.inp
     ```
 
     otherwise you may have copied the executable to the simulation path, run
     ```bash
-    ./[your executable filename] < N100k.inp
+    ./[your executable filename] < N10k_noDat10.inp
     ```
 
 # Documentation

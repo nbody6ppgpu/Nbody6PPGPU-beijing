@@ -3,7 +3,7 @@ name: release_on_tag
 on:
   push:
     tags:
-      - "*"
+      - "[A-Za-z]+[0-9]+"
   workflow_dispatch:
 
 jobs:
@@ -16,4 +16,4 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-          #automatic_release_tag: "latest-stable"
+          automatic_release_tag: "latest" 
