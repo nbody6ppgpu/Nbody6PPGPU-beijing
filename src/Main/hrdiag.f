@@ -1,3 +1,4 @@
+***
       SUBROUTINE hrdiag(mass,aj,mt,tm,tn,tscls,lums,GB,zpars,
      &                  r,lum,kw,mc,rc,menv,renv,k2)
 *
@@ -32,15 +33,21 @@
 
       implicit none
 *
-      integer kw,kwp
+      integer kw,kwp,kwold
+*     integer wdflag,nsflag
+*     parameter(wdflag=1,nsflag=4)
+*     integer ecflag
+*     parameter (ecflag=1)
+*     integer psflag
+*     parameter (psflag=1)
 *
 *       Common Blocks read in READSE (RSp Mar 23)
       integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
       real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal,zmetx
       common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
      *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
       integer bhspinfl,kicktype
       real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
      *      epsnov,eddfac,gamm1
@@ -123,8 +130,20 @@
       tbagb = tscls(2) + tscls(3)
       thg = tscls(1) - tm
 *
-      rzams = rzamsf(mass)
-      rtms = rtmsf(mass)
+        rzams = rzamsf(mass)
+        kwold = kw
+      if(kw.le.1.and.rzams.ge.50.d0.and.zmetal.lt.1.e-03)then
+        kwold = kw
+        zmetx = zmetal
+        zmetal = 1.e-03
+        call zcnsts(zmetal,ZPARS)
+        rtms = 0.821d0*rtmsf(mass)
+      else
+        rtms = rtmsf(mass)
+      end if
+*
+*        write(199,197)kw,mass,rzams,rtms,tn,zmetal
+*197     format(1X,I4,1P,6e15.6)
 *
       if(aj.ge.0.d0.and.kw.eq.-1)then
          if(mass.le.0.7d0)then
@@ -227,6 +246,10 @@
                xx = alpha*tau + (rx - alpha)*tau**3 - delr*dtau
             endif
             r = rzams*10.d0**xx
+*
+*           write(179,178)kw,mass,r,xx,rx,rtms,rzams,tau,taumin,
+*    &   alpha,beta,gamma,delr
+*178        format(1x,i4,12e15.6)
 *
             if(mass.lt.(zpars(1)-0.3d0))then
                kw = 0
@@ -1153,6 +1176,14 @@
 *     if(mt.gt.99.99d0)then
 *        mt = mt0
 *     endif
+*
+*        write(189,187)kw,mass,r,mt,lum,tn
+*187     format(1X,I4,1P,5E15.6)
+*
+      if(kwold.le.1.and.rzams.ge.50.d0.and.zmetx.lt.1.e-03)then
+        zmetal = zmetx
+        call zcnsts(zmetal,ZPARS)
+      end if
 *
       return
       end

@@ -30,10 +30,10 @@
 *       Common Blocks read in READSE (RSp Mar 23)
       integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
       real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
       common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
      *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
       integer bhspinfl,kicktype
       real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
      *      epsnov,eddfac,gamm1
@@ -1414,9 +1414,9 @@ C            END IF
 *       Include stellar radius check in case of NaN.
          IF (RADIUS(I).GE.0.0.AND.RADIUS(I).LT.1.0) GO TO 105
          if(rank.eq.0)
-     &   WRITE(6,936) I, KSTAR(I), M1, RADIUS(I)
- 936     FORMAT(' DANGER!    MDOT    I K* M1 R* ',I5,I4,F7.2,1P,E10.1)
-         STOP
+     &   WRITE(6,936) I, NAME(I),KSTAR(I), M1, RADIUS(I)
+ 936     FORMAT(' DANGER!    MDOT I N K* M1 R* ',2I10,I4,F7.2,1P,E10.1)
+*        STOP
  105     CONTINUE
 *
 *       Check for chaotic binary.
