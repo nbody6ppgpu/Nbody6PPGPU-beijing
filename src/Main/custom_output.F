@@ -198,6 +198,17 @@
                B_T0R(IK) = REAL(T0R(I)*TSCALE_OUT)
                B_ASPN1(IK) = REAL(ASPN(J1))
                B_ASPN2(IK) = REAL(ASPN(J2))
+               B_TEV1(IK) = REAL(TEV(J1))
+               B_TEV2(IK) = REAL(TEV(J2))
+               B_TEV01(IK) = REAL(TEV0(J1))
+               B_TEV02(IK) = REAL(TEV0(J2))
+               B_EPOCH1(IK) = REAL(EPOCH(J1))
+               B_EPOCH2(IK) = REAL(EPOCH(J2))
+*              B_ZMETA1(IK) = REAL(ZMETA(J1))
+*              B_ZMETA2(IK) = REAL(ZMETA(J2))
+*              NB_NPOPU1(IK) = NPOPU(J1)
+*              NB_NPOPU2(IK) = NPOPU(J2)
+*
 *     Stellar evolution of two components
                IF (KZ(12).GT.0) THEN
                   call sev_one_star(J1,NB_KW1(IK),B_RS1(IK),B_L1(IK),
@@ -898,6 +909,12 @@ C*     single
       S_T0(IK) = REAL(T0(I))
       S_T0R(IK) = REAL(T0R(I))
       S_ASPN(IK) = REAL(ASPN(I))
+      S_TEV(IK) = REAL(TEV(I))
+      S_TEV0(IK) = REAL(TEV0(I))
+      S_EPOCH(IK) = REAL(EPOCH(I))
+*     S_ZMETA(IK) = REAL(ZMETA(I))
+*     NS_NPOPU(IK) = NPOPU(I)
+
 
 *     if(rank.eq.0)print*,' css i,ik,d2,d3,d2sc,d3sc=',
 *    &  i,ik,s_d21(1),s_d31(1),d2scale_out,d3scale_out

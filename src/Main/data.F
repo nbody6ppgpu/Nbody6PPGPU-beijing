@@ -12,6 +12,13 @@
       LOGICAL LREADN,LREADP,LREADF
       NAMELIST /INDATA/ ALPHAS, BODY1, BODYN, NBIN0, NHI0, ZMET,
      &     EPOCH0,DTPLOT
+* sse parameters for hrdiag, mlwind
+      integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
+      real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
+      common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
+     *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
 *
 #ifdef PARALLEL
 #define MPIINIT 1
@@ -116,7 +123,7 @@
       IF (IIC.NE.0) WRITE (6, '("DATA: invalid Namelist format")')
 *        READ (5,*) ALPHAS, BODY1, BODYN, NBIN0, NHI0, ZMET, EPOCH0, 
 *    &        DTPLOT
-
+      zmetal = ZMET
 *     Check whether number of N + NBIN0 are larger than NMAX-2
          if (N+NBIN0.GE.NMAX-2) THEN
             print*,'FATAL ERROR: N+NBIN0 ',N+NBIN0,' > NMAX-2',NMAX-2

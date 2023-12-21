@@ -21,8 +21,13 @@
 *      Define Default Values
 *
       IF(rank.eq.0)THEN
+*      Make sure the value for N read from data is used (Uli/Rainer June 2023)
+      NCURR = N
+*
       READ (NML=ININPUT, IOSTAT=IIC, UNIT=5)
       IF (IIC.NE.0) WRITE (6, '("INPUT: invalid Namelist format")')
+*
+      IF(KSTART.GT.1) N = NCURR
 *
 *       Read & print the main input parameters.
 *        READ (5,*)  N, NFIX, NCRIT, NRAND, NNBOPT, NRUN, NCOMM
@@ -241,10 +246,10 @@ C      end if
 * sse parameters for hrdiag, mlwind
       integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
       real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
       common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
      *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
       namelist/insse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
      *       kmech,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
      *       wdsig1,wdsig2,wdkmax,vvfac
