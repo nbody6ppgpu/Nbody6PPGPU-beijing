@@ -20,11 +20,11 @@
 # 4. commit and push your changes to the upstream stardisk branch
 #    git push origin stardisk
 
-name: Synchronise stardisk with stable branch
+name: Synchronise stardisk-dev with dev branch
 
 on:
   push:
-    branches: [stable]
+    branches: [dev]
 
 jobs:
   sync:
@@ -44,7 +44,7 @@ jobs:
       - name: Update Stardisk Branch
         run: |
           git fetch origin
-          git checkout stardisk
+          git checkout stardisk-dev
           git pull
-          git merge origin/stable
-          git push origin stardisk
+          git merge origin/dev
+          git push origin stardisk-dev
