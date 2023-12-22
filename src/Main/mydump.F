@@ -17,6 +17,7 @@
      &    NS=44*MMAX)
       REAL*4  B,C,D,E,G,L,M,O,P,Q,S
       INTEGER K,I,NPARTMP(10),KSTAR,NCOMM,IA
+      REAL*8 Mdisc
 *
 #ifdef PARALLEL
       integer iinl,iisize,inl,istart,iend,ilen,irun,idiff,jsize
@@ -35,6 +36,10 @@
       COMMON/MODES/  P(NP)
       COMMON/RCHE/   Q(NQ)
       COMMON/BINARY/ S(NS)
+      COMMON/DRAG/   CMBH,EPS_bh,raccr,qzero,r_crit,Mdisc,hz,EBLCKHL,
+     &               E_CORR,a_drag(3,nmax),ediss1,iaccr,idragf,e_ext,
+     &               XMR(nmax),RMR(nmax),XINTERMASS(nmax),
+     &               XSLOPE(nmax),NParticles,irot_opt,t_diss_on,ROTOUT
 *
       COMMON/NBODY/  X(3,NMAX),XDOT(3,NMAX),X0(3,NMAX),X0DOT(3,NMAX),
      &               F(3,NMAX),FDOT(3,NMAX),BODY(NMAX),RS(NMAX),
@@ -126,7 +131,11 @@
      *   (spin(i),i=1,ntot),(xstar(i),i=1,ntot),(zlmsty(i),i=1,ntot),
      *   ((fidot(k,i),k=1,3),i=1,ntot),((d0(k,i),k=1,3),i=1,ntot),
      *   ((frdot(k,i),k=1,3),i=1,ntot),((d0r(k,i),k=1,3),i=1,ntot),
-     *   (kstar(i),i=1,ntot),(iminr(i),i=1,ntot),(name(i),i=1,ntot)
+     *   (kstar(i),i=1,ntot),(iminr(i),i=1,ntot),(name(i),i=1,ntot),
+     *   cmbh,EPS_bh,raccr,qzero,r_crit,Mdisc,hz,eblckhl,e_corr,
+     *   ((a_drag(k,i),k=1,3),i=1,ntot),ediss1,iaccr,idragf,e_ext,
+     *	 (XMR(i),i=1,ntot),(RMR(i),i=1,ntot),(XINTERMASS(i),i=1,ntot),
+     *   (XSLOPE(i),i=1,ntot),NParticles,irot_opt,t_diss_on,ROTOUT
 *
         write (J) (aspn(i),i=1,ntot)
 *
@@ -263,7 +272,11 @@
      *   (spin(i),i=1,ntot),(xstar(i),i=1,ntot),(zlmsty(i),i=1,ntot),
      *   ((fidot(k,i),k=1,3),i=1,ntot),((d0(k,i),k=1,3),i=1,ntot),
      *   ((frdot(k,i),k=1,3),i=1,ntot),((d0r(k,i),k=1,3),i=1,ntot),
-     *   (kstar(i),i=1,ntot),(iminr(i),i=1,ntot),(name(i),i=1,ntot)
+     *   (kstar(i),i=1,ntot),(iminr(i),i=1,ntot),(name(i),i=1,ntot),
+     *   cmbh,EPS_bh,raccr,qzero,r_crit,Mdisc,hz,eblckhl,e_corr,
+     *   ((a_drag(k,i),k=1,3),i=1,ntot),ediss1,iaccr,idragf,e_ext,
+     *	 (XMR(i),i=1,ntot),(RMR(i),i=1,ntot),(XINTERMASS(i),i=1,ntot),
+     *   (XSLOPE(i),i=1,ntot),NParticles,irot_opt,t_diss_on,ROTOUT 
 *
         read (J) (aspn(i),i=1,ntot)
 *
@@ -366,6 +379,30 @@
        CALL MPI_BCAST(ZLMSTY(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(KSTAR(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(IMINR(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(cmbh,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(eps_bh,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(raccr,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(qzero,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(r_crit,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(Mdisc,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(hz,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(eblckhl,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(e_corr,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(a_drag(1,1),3*NTOT,MPI_REAL8,0,
+     &                                   MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(ediss1,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(iaccr,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(idragf,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(e_ext,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(XMR(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(RMR(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr) 
+       CALL MPI_BCAST(XINTERMASS(1),NTOT,MPI_REAL8,0,
+     &                                   MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(XSLOPE(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(NParticles,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)                             
+       CALL MPI_BCAST(irot_opt,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(t_diss_on,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(ROTOUT,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 *
        CALL MPI_BCAST(ASPN(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 *

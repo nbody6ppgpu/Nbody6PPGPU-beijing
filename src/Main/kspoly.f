@@ -9,6 +9,7 @@
       COMMON/SLOW0/  RANGE,ISLOW(10)
       REAL*8  A1(3,4),A(8),FP(4),FPDOT(3),UI(4),UIDOT(4)
       REAL*8  B2(3,4),U2(4),Q2(4)
+      REAL*8  XI(3),VI(3),FPP(3),FDD(3)
 *
 *
 *       Specify indices of c.m. & components and perturber membership (+ 1).
@@ -58,6 +59,17 @@
                   A(K) = X(K,J) - X(K,II)
                   A(K+3) = XDOT(K,J) - XDOT(K,II)
    25         CONTINUE
+          XI(1:3) = X(1:3,J)
+          VI(1:3) = XDOT(1:3,J)
+          FPP(1:3) = 0.E0
+          FDD(1:3) = 0.E0
+      if (cmbh.gt.0.0) then
+        CALL DRAGBLCKHL(FPP(1),FDD(1),XI(1),VI(1))
+        if (qzero.gt.0.0)call dragforce(j,FPP(1),FDD(1),XI(1),VI(1))
+          FP(1:3) = FPP(1:3)
+          FPDOT(1:3) = FDD(1:3)
+      end if
+*
 *       Current velocities are predicted in routines INTGRT, KSMOD, etc.
               RIJ2 = A(1)*A(1) + A(2)*A(2) + A(3)*A(3)
               A8 = BODY(J)/(RIJ2*SQRT(RIJ2))

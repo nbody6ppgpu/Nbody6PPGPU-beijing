@@ -40,7 +40,14 @@
       EBIN0 = 0.0D0
       ESUB = 0.0D0
       EMERGE = 0.0D0
+*    Parameters related to BH/DRAG
       EDISS = 0.0D0
+      ediss1 = 0.0D0
+      EBLCKHL = 0.0D0
+      E_CORR = 0.0d0
+      e_ext = 0.0D0
+      IACCR = 0
+*   End of parameters for BH/DRAG
       ECOLL = 0.0D0
       ECDOT = 0.0D0
       EMDOT = 0.0D0

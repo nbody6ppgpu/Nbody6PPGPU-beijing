@@ -238,6 +238,8 @@
          END IF
 *     Cumulated mass
          ZM = ZM + BODY(IM)
+         RMR(IM) = R2(IM)
+         XMR(I) = ZM
 *     Cumulated average velocity in shell, mass weighted
          DO K = 1,3
             VAVE(K,J) = VAVE(K,J) + BODY(IM)*XDOT(K,IM)

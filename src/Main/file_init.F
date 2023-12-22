@@ -56,6 +56,8 @@
       FILE(24) = 'coal.24   '
       FILE(25) = 'sediag.25 '
       FILE(26) = 'cmbody.26 '
+      FILE(27) = 'mass_bh.27'
+      FILE(28) = 'accr_bh.28'
       FILE(29) = 'highv.29  '
       FILE(30) = 'global.30 '
       FILE(31) = 'escbin.31 '
@@ -85,6 +87,7 @@
       FILE(91) = 'bs.91     '
       FILE(95) = 'wdcirc.95 '
       FILE(96) = 'cirdiag.96'
+      FILE(97) = 'vrot.97'
 #ifdef PARALLEL
       if(rank.eq.0) then
 #endif
@@ -157,6 +160,12 @@
 
       OPEN (UNIT=26,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(26),
      &             ACCESS='APPEND')
+      IF (CMBH.GT.0) THEN
+      OPEN (UNIT=27,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(27),
+     &             ACCESS='APPEND')
+      OPEN (UNIT=28,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(28),
+     &             ACCESS='APPEND')
+      END IF
 
       OPEN (UNIT=29,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(29),
      &             ACCESS='APPEND')
@@ -249,6 +258,11 @@
       IF (KZ(27).GT.0) 
      &OPEN (UNIT=96,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(96),
      &             ACCESS='APPEND')
+      IF (ROTOUT.GT.0)
+     &OPEN (UNIT=97,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(97),
+     &             ACCESS='APPEND')
+
+
 #ifdef PARALLEL
       end if
 #endif

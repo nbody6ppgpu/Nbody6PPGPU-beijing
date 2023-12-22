@@ -40,7 +40,7 @@
 *
 *       Include KS pairs, triple, quad, mergers, collisions & chain.
       ETOT = ZKIN - POT + ETIDE + EBIN + ESUB + EMERGE + ECOLL + EMDOT
-     &                                                         + ECDOT
+     &                          + ECDOT + EBLCKHL + E_CORR - ediss1
       IF (NCH.GT.0) THEN
           ETOT = ETOT + ECH
       END IF
@@ -562,7 +562,15 @@ c$$$     &           nmerge,name(j1),name(j2),name(icm)
             END IF
             CLOSE(50)
          END IF
-
+*
+*       Additional black hole output:
+         if (cmbh.gt.0.0) then 
+         call bh_out(xs,vs,bodys)
+*
+         WRITE (27, 505) ttot, cmbh
+ 505  FORMAT (e15.6, e15.6)      
+         CALL FLUSH(27)
+         end if        
       end if
 *
 *       Update next output interval and initialize the corresponding error.

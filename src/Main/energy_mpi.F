@@ -261,6 +261,10 @@ c$$$         print*, 'phi: ',phidbl(ifirst:ifirst+5)
 *
       ZKIN = 0.5D0*ZKIN
 *
+*
+*       Accumulation of Black Hole (and/or external potential) Energy
+       if (cmbh.gt.0.0) call ext_energy
+*
 *       Obtain the tidal potential energy for linearized external field. 
       IF (KZ(14).EQ.0) THEN
 *       Note: EPL holds accumulated tidal energy if KZ(14) = 3.

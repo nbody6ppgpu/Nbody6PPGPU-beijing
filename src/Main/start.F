@@ -61,6 +61,12 @@
           CALL XTRNL0
       END IF
 *
+*     Check presence of central MBH:
+*      IF (CMBH.GT.0.0) CALL DRAGMBHINIT(IFIRST,NTOT)
+*
+*      Check presence of accretion disk:
+       if (qzero.gt.0.0) call init_drag(ifirst,ntot)
+*
 *       Check option for initial binaries.
       IF (KZ(8).EQ.1.OR.KZ(8).GE.3) THEN
           CALL BINPOP
