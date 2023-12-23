@@ -64,10 +64,10 @@
 *       Common Blocks read in READSE (RSp Mar 23)
       integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
       real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
       common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
      *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
       integer bhspinfl,kicktype
       real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
      *      epsnov,eddfac,gamm1

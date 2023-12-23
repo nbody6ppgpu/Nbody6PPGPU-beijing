@@ -411,7 +411,7 @@ c$$$          END IF
                       RI2 = 0.0
                       VI2 = 0.0
                       DO 61 K = 1,3
-                          RI2 = RI2 + (X(K,I) - CMR(K))**2
+                          RI2 = RI2 + (X(K,I) - RDENS(K))**2
                           VI2 = VI2 + XDOT(K,I)**2
    61                 CONTINUE
                       if(rank.eq.0)then

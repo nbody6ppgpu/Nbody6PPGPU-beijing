@@ -298,11 +298,11 @@
  60   continue
 *
       if(rank.eq.0)then
-      WRITE (6,76)  (K,K=1,14)
-   76 FORMAT (/,11X,' KTYPE: ',14I4)
-      do 80 I=1,14
-      WRITE (6,75)  I,(KTYPE(I,K),K=1,14)
-   75 FORMAT (/,11X,I5,': |',15I4)
+      WRITE (6,76)  (K,K=0,15)
+   76 FORMAT (/,11X,' KTYPE: ',16I4)
+      do 80 I=0,15
+      WRITE (6,75)  I,(KTYPE(I,K),K=0,15)
+   75 FORMAT (/,11X,I5,': |',17I4)
  80   continue
       end if
 *
