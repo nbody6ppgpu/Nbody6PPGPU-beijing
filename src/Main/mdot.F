@@ -718,6 +718,7 @@ c$$$            end if
          TGR = JORB/DJGR
          RSCHW = 2.0*BODY(J)/CL2
          QPERI = SEMI*(1.D0 - ECC)
+         IF(J1.LT.1)J1 = J
 * RSp updated output Dec. 2021
       if(rank.eq.0.AND.DJGR.GT.1.E-06)WRITE(6,665)
      &   TTOT,DTGR,STEP(J1),I,IPAIR,LIST(1,J1),
