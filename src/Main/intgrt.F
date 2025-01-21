@@ -935,8 +935,8 @@ c$$$      end if
 !$omp end parallel do
 *     
             NBSUM = 0
-            call cputim(tt2)
-            if(rank.eq.0)ttreg = ttreg + (tt2-tt1)*60.
+            call cputim(tt998)
+            if(rank.eq.0)ttmov = ttmov + (tt998-tt2)*60.
 
 #ifdef PARALLEL
 *       Start PARALLEL section for regint

@@ -1,3 +1,6 @@
+# junk and tmp files
+*.swp
+
 # Prerequisites
 *.d
 
