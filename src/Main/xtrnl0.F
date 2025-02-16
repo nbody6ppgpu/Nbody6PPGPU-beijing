@@ -9,7 +9,7 @@
       INCLUDE 'MWpotential.h'
       REAL*8 RGKPC(3), VGPCMYR(3)
       NAMELIST /INXTRNL0/ GMG, RG0, DISK, A, B, VCIRC, RCIRC, GMB, AR,
-     &        GAM,RG,VG,MP,AP2,MPDOT,TDELAY
+     &        GAM,RG,VG,MP,AP2,MPDOT,TDELAY,RGKPC,VGPCMYR
 *
 *
 #ifdef PARALLEL
@@ -304,7 +304,7 @@ C          IF (RTIDE.EQ.0.0D0) RTIDE = 10.0
 *     reading orbit data (position,velocity of star cluster)
 *     unit: R: kpc, v: pc/Myr
          if(rank.eq.0) 
-     &        READ (5,*)  (RGKPC(K),K=1,3),(VGPCMYR(K),K=1,3)
+     &        READ (NML=INXTRNL0, IOSTAT=IIC, UNIT=5)
 #if MPIINIT
          CALL MPI_BCAST(RGKPC,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
          CALL MPI_BCAST(VGPCMYR,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
