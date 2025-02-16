@@ -152,6 +152,18 @@
 *       Check reading modified restart parameters (KSTART = 3, 4 or 5).
 *       Or control output RSp March 2019 (KSTART = 2)
           CALL MODIFY
+
+*     initial tidal field (Kai Wu Feb 2025; adpoted from Long's version)
+*     https://github.com/nbodyx/Nbody6ppGPU/commit/2e04014
+*     MW potential
+          IF (KZ(14).EQ.5) call mwpotinit(RBAR,VSTAR,TSTAR)
+#ifdef TT
+*** FlorentR - restart with new tensors
+          IF (KZ(14).EQ.9) THEN
+             CALL TTINIT
+          ENDIF
+***   FRenaud
+#endif
 *
 *       Open all other files.
           if(rank.eq.0)CALL FILE_INIT

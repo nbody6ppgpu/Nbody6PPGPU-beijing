@@ -112,7 +112,8 @@ custom_output.f custom_output_facility.f ksres_op.f kstran.f \
 global_output.f global_params_gether.f \
 accretion.f dragblckhl1.f dragblckhl.f bh_out.f bh_energy.f \
 dragforce.f reduce_tstep_drag.f init_drag.f\
-potgal.f loghalo.f ext_energy.f bisection.f
+potgal.f loghalo.f ext_energy.f bisection.f\
+fpowercut.f asa147.f fmiyamoto.f fnfw.f fmwpot.f mwpotinit.f
 
 .SUFFIXES : .o .F
 
