@@ -1,0 +1,474 @@
+
+\vspace{0.2cm}
+\noindent
+\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+\caption{\texttt{Input of \&INNBODY6, nbody6.F}}
+\label{table:innbody6}\\\hline
+%
+KSTART  & Run control index\\
+        & =1: new run (construct new model or read from \texttt{dat.10}) \\
+        & =2: restart/continuation of a run, needs \texttt{comm.1}\footnote{the user should create a comm.1 file by copy-pasting the comm.2\_X, where X is the wanted NBU time value to restart the run. Notice that the same applies to KSTART $>$ 2; notice also that \\
+        \texttt{cp -p `ls -rt comm.2* | tail -1` comm.1} \\
+        is a nice unix way to automatically copy the last comm.2 to comm.1 }\\
+        & =3: \textcolor{red}{now obsolete}. Old function with old input file: restart + changes of: \\ & DTADJ, DELTAT, TADJ, TNEXT, TCRIT, QE, J, KZ(J), NCOMM\\
+        & =4: \textcolor{red}{now obsolete}. Old function with old input file: restart + changes of: \\ & ETAI, ETAR, ETAU, DTMIN, RMIN, NCRIT, NNBOPT, SMAX, GMIN, GMAX\\
+        & =5: \textcolor{red}{now obsolete}. Old function with old input file: restart containing the combination of the control index 3 and 4\\
+%
+TCOMP   & Maximum wall-clock time in seconds (parallel runs: wall clock)\\
+%
+TCRTP0 & Termination time in Myr \\
+%
+isernb  & For MPI parallel runs: only irregular block sizes larger than
+          this value are executed in parallel mode
+          (dummy variable for single CPU) \\
+iserreg & For MPI parallel runs: only regular block sizes larger than
+          this value are executed in parallel mode
+          (dummy variable for single CPU) \\
+iserks  & For MPI parallel runs: only ks block sizes larger than this value
+           are executed in parallel mode 
+          (dummy variable for single CPU) \\
+
+\end{longtable}
+
+\hrule
+\noindent
+\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+\caption{\texttt{Input of \&ININPUT, input.F line 1}}
+\label{table:ininput1}\\\hline
+%
+N       & Total number of particles (single + c.m.s.~of binaries;
+          singles + 3$\times$c.m.s.~of binaries < NMAX$-$2)\\
+NFIX    & Multiplicator for output interval of data on \texttt{conf.3} and
+          of data for binary stars (output each DELTAT$\times$NFIX time steps; compare KZ(3) and KZ(6))\\
+NCRIT   & Minimum particle number (alternative termination criterion) \\
+NRAND   & Random number seed; any positive integer \\
+%          (< LMAX$-$5) set in \texttt{params.h}\\
+NNBOPT  & Desired optimal neighbour number (< LMAX$-$5)\\ %(R.Sp.)
+NRUN    & Run identification index\\
+NCOMM   & Multiplicator for frequency to store the dumping data (mydump); basic frequency determined by DELTAT \\
+\end{longtable}
+
+\hrule
+\noindent
+\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+\caption{\texttt{Input of \&ININPUT, input.F line 2}}
+\label{table:ininput2}\\\hline
+%
+ETAI    & Time--step factor for irregular force polynomial\\
+ETAR    & Time--step factor for regular force polynomial\\
+RS0     & Initial guess for all radii of neighbour spheres ($N$--body units)\\
+DTADJ   & Time interval for parameter adjustment and energy check ($N$--body units) \\
+%%          (in TCR if KZ(35)=0, otherwise in $N$-body units)\\
+DELTAT  & Time interval for writing output data and diagnostics,
+          multiplied by NFIX ($N$--body units)\\
+%%        & -- in units of $t_{\rm cr}$ if KZ(35) = 0;\\
+%%$        & -- in scaled units if KZ(35) > 0.\\
+%%        & for DTADJ=DELTAT (recommended) output data is written every
+%%          adjust time\\
+TCRIT   & Termination time ($N$--body units) \\
+%*->             The _earlier_ termination criterion becomes active
+QE      & Energy tolerance:\\
+        & -- immediate termination if DE/E > 5*QE \& KZ(2) $\leq$ 1;\\
+        & -- restart if DE/E > 5*QE \& KZ(2) > 1 and
+         termination after second restart attempt.\\
+RBAR    & Scaling unit in pc for distance ($N$--body units)\\
+ZMBAR   & Scaling unit for average particle mass in solar masses\\
+        & (in scale-free simulations RBAR and ZMBAR can be set to zero; depends on KZ(20)) \\
+\end{longtable}
+
+\hrule
+\noindent
+\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+\caption{\texttt{Input of \&ININPUT, input.F lines 3-7}}
+\label{table:ininput37}\\\hline
+%
+KZ(1)   & Save COMMON to file \texttt{comm.1}\\
+        & $=1$: at end of run or when dummy file STOP is created\\
+        & $=2$: every 100*NMAX steps\\
+KZ(2)   & Save COMMON to file \texttt{comm.2}\\
+        & $=1$: save at output time\\
+        & $=2$: save at output time and restart simulation if energy error DE/E > 5*QE\\
+KZ(3)   & Save basic data to file \texttt{conf.3} at output time (unformatted)\\
+KZ(4)   & (Suppressed) Binary diagnostics on \texttt{bdat.4} (\# = threshold levels <10)\\
+KZ(5)   & Initial conditions of the particle distribution, needs KZ(22)=0\\
+        & $=0$: uniform \& isotropic sphere\\
+        & $=1$: Plummer random generation\\
+        & $=2$: two Plummer models in orbit (extra input)\\
+        & $=3$: massive perturber and planetesimal disk (each pariticle 
+              has circular orbit, constant separation along 
+              radial direction between each neighbor and random phase)
+              (extra input)\\
+        & $=4$: massive initial binary (extra input)\\
+        & $=5$: Jaffe model (extra input) \\
+        & $\ge 6$: Zhao BH cusp model (extra input if KZ(24)<0) \\
+KZ(6)   & Output of significant and regularized binaries at main output (\texttt{bodies.f})\\
+        & $=1$: output regularized and significant binaries (|E|>0.1 ECLOSE)\\
+        & $=2$: output regularized binaries only\\
+        & $=3$: output significant binaries at output time and regularized binaries with time interval DELTAT\\
+        & $=4$: output of regularized binaries only at output time\\
+KZ(7)   & Determine Lagrangian radii and average mass, particle counters, average velocity, velocity dispersion, rotational velocity within Lagrangian radii (\texttt{lagr.f})\\
+        & $=1$: Get actual value of half mass radius RSCALE by using current total mass\\
+        & $\ge 2$: Output data at main output and \texttt{lagr.7} \\
+        & $\ge 6$: Output Lagrangian radii for two mass groups at \texttt{lagr.31} and \texttt{lagr.32} (\texttt{lagr2.f}; based on KZ(5)=1,2; cost is O($N^2$))\\
+        & ---- methods:\\
+        & $=2,4$: Lagrangian radii calculated by initial total mass \\
+        & $=3,\ge 5$: Lagrangian radii calculated by current total mass (The single/K.S-binary Lagrangian radii are still calculated by initial single/binary total mass)\\
+        & $=2,3$: All parameters are averaged within the shell between two Lagrangian radii neighbors \\
+        & $\ge 4$: All parameters are averaged from center to each Lagrangian radius\\
+KZ(8)   & Primordial binaries initialization and output (\texttt{binpop.f})\\
+        & ---- Initialization:\\
+        & $=0$: No primordial binaries \\
+        & $=1,\ge 3$: generate primordial binaries based on KZ(41) and KZ(42) (\texttt{binpop.F}) \\
+        & $=2$: Input primordial binaries from first 2$\times$NBIN0 lines of \texttt{dat.10} \\
+        & ---- Output:\\
+        & $>0$: Save information of primordial binary that change member in \texttt{pbin.18}; binary diagnostics at main output (\texttt{binout.f}) \\
+        & $\ge 2$: Output KS binary in \texttt{bdat.9}, soft binary in \texttt{bwdat.19} at output time\\
+KZ(9)   & Binary diagnostics \\
+        & $=1,3$: Output diagnostics for the hardest binary below ECLOSE in \texttt{hbin.39} (\texttt{adjust.f}) \\
+        & $\ge 2$: Output binary evolution stages in \texttt{binev.17} (\texttt{binev.f}) \\
+        & $\ge 3$: Output binary with degenerate stars in \texttt{degen.4} (\texttt{degen.f}) \\
+KZ(10)  & K.S. regularization diagnostics at main output \\
+        & $>0$: Output new K.S. information \\
+        & $>1$: Output end K.S. information \\
+        & $\ge 3$: Output each integrating step information\\
+KZ(11)  & (Suppressed) \\
+% KZ(11)  & Hierarchical systems (\texttt{hiarch.f})\\
+%        & $=1,3$: write to \texttt{hia.12} \\
+%        & $=2$: create primordial triples (\texttt{hipop.f})\\
+%        & $=3$: both \\
+KZ(12)  & $>0$: HR diagnostics of evolving stars with output time interval DTPLOT in \texttt{sse.83} (single star) and \texttt{bse.82} (K.S. binary) \\
+        & $=-1$: used if KZ(19)$=0$ (see details in KZ(19) description)\\
+KZ(13)  & Interstellar clouds \\
+        & $=1$: constant velocity for new cloud\\
+        & $>2$: Gaussian velocity for new cloud\\
+KZ(14)  & External tidal force \\
+        & $=1$: standard solar neighbor tidal field\\
+        & $=2$: point-mass galaxy with circular orbit (extra input) \\
+        & $=3$: point-mass + disk + halo + Plummer (extra input) \\
+        & $=4$: Plummer model (extra input) \\
+        & \textcolor{red}{Namelist input has all fields for values 2,3,4, but user must take care to put proper values} \\
+KZ(15)  & Triple, quad, chain and merger search \\
+        & $\ge 1$: Switch on triple, quad, chain (KZ(30)>0) and merger search (\texttt{impact.f}) \\
+        & $\ge 2$: Diagnostics at main output at begin and end of triple, quad \\
+        & $\ge 3$: Save first five outer orbits every half period of wide quadruple before merger and stable quadruples accepted for merger in \texttt{quastab.89} \\
+KZ(16)  & Auto-adjustment of regularization parameters \\
+        & $\ge 1$: Adjust RMIN, DTMIN \& ECLOSE every DTADJ time \\
+        & $\ge 3$: modify RMIN for GPERT > $0.05$ or < $0.002$ in chain; output diagnostics at \texttt{kscrit.77} \\
+KZ(17)  & Auto-adjustment of ETAI, ETAR and ETAU by tolerance QE every DTADJ time (\texttt{check.f}) \\
+        & $\ge 1$: Adjust ETAI, ETAR \\
+        & $\ge 2$: Adjust ETAU \\
+KZ(18)  & Hierarchical systems \\
+        & $=1,3$: diagnostics (\texttt{hiarch.f})\\
+        & $\ge 2$: Initialize primordial stable triples, number is NHI0 (\texttt{hipop.F}) \\
+        & $\ge 4$: Data bank of stable triple, quad in \texttt{hidat.87} (\texttt{hidat.f}) \\
+KZ(19)  & Stellar evolution and mass loss scheme \\
+        & $=0$: if KZ(12)$=-1$, the output data will keep the input data unit if KZ(22)$=2-4$ or $N$-body units if KZ(22)$=6-10$\\
+        & $=1,2$: supernova scheme \\
+        & $\ge 3$: Eggleton, Tout \& Hurley \\
+        & $\ge 5$: extra diagnostics ({mdot.F}) \\
+        & $=2,4$: input stellar parameters from \texttt{datsev.21}; 
+                  read by (\texttt{instar.f}): \\
+                & N lines of (MI, KW, M0, EPOCH1, OSPIN, MC); N is the number of particles in \texttt{datsev.21} and \texttt{dat.10} and has to be set accordingly in Nbody input file. \\
+                & ~~~~~~   MI: current mass \\
+                & ~~~~~~   KW: stellar type \\
+                & ~~~~~~   M0: initial mass \\
+                & ~~~~~~   EPOCH1: evolved age of star (AGE $= -$ EPOCH1 [Myr]) \\
+                & ~~~~~~   OSPIN: angular velocity of star (may be zero if not relevant) \\
+                & ~~~~~~   MC: core mass (may be zero if not relevant) \\
+        & $=4$: Take input data from other code (e.g. Monte Carlo); \\ 
+        & first line of \texttt{datsev.21} in this case read by \texttt{start.F} to establish desired scaling: \\
+                & 1 line of (TMOC,NZERO,RBAR,ZMBAR,TSTAR) \\ 
+                &  \ff{(these data override data read or computed by Nbody before)} \\
+                & ~~~~~~   TMOC: Cluster age in Myr \\
+                & ~~~~~~   NZERO: Particle number at zero cluster age \\
+                & ~~~~~~   RBAR, ZMBAR: scaling for radii and average \\  & ~~~~~~   TSTAR: 1Myr in model units; \\
+KZ(20)  & Initial mass functions, need KZ(22)$=$0 or 9: \\
+        & $=0$: self-defined power-law mass function using ALPHAS (\texttt{data.F}) \\
+        & $=1$: Miller-Scalo-(1979) IMF (\texttt{imf.f}) \\
+        & $=2,4$: KTG (1993) IMF (\texttt{imf2.f}) \\
+        & $=3,5$: Eggleton-IMF (\texttt{imf2.f}) \\
+        & $=6,7$: Kroupa(2001) (\texttt{imf2.f}), extended to Brown Dwarf regime (\texttt{imfbd.f}) \\
+        & ---- Primordial binary mass \\
+        & $=2,6$: random pairing (\texttt{imf2.f}) \\
+        & $=3,4,5,7$: binary mass ratio corrected by $(m_1/m_2)\prime = (m_1/m_2)^{0.4}$ + constant (Eggleton, \texttt{imf2.f}) \\
+        & $=8$: binary mass ratio $q=m_1/m_2$ ($m_2 \le m_1$) use distribtution $0.6 q^{-0.4}$ (Kouwenhoven) \\
+%        & $=7$: Distinct mass bins  (\texttt{imf3.f}) \\
+%        & $=8$: Scalo (1986)-IMF  with new random function RAN2 (\texttt{imf3.f}) \\
+KZ(21)  & Extra diagnostics information at main output every DELTAT interval (\texttt{output.F}) \\
+        & $\ge 1$: output NRUN, MODEL, TCOMP, TRC, DMIN, AMIN, RMAX, RSMIN, NEFF \\
+        & $\ge 2$: Number of escapers NESC at main output will be counted by Jacobi escape criterion (cost is O($N^2$), \texttt{jacobi.f}) \\
+KZ(22)  & Initialization of basic particle data mass, position and velocity (\texttt{data.F}) \\
+        & ---- Initialization with internal method \\
+        & $=0,1$: Initial position, velocity based on KZ(5), initial mass based on KZ(20) \\
+        & $=1$: write initial conditions in \texttt{dat.10} (\texttt{scale.F}) \\
+        & ---- Initialization by reading data from \texttt{dat.10} \\
+        & $=2$: input through NBODY-format (7 parameters each line: mass, position(1:3), velocity(1:3))\\
+        & $=3$: input through Tree-format (\texttt{data.F}) \\
+        & $=4$: input through Starlab-format \\
+        & $=6$: input through NBODY-format and do scaling\\
+        & $=7$: input through Tree-Format and do scaling\\
+        & $=8$: input through Starlab-format and do Scaling\\
+        & $=9$: input through NBODY-format but ignore mass (first column) and use IMF based on KZ(20), then do scaling \\
+        & $=10$: input through NBODY-format and all units are astrophysical units (mass: $M_\odot$; position: pc; velocity: km/s)\\
+KZ(23)  & Removal of escapers (\texttt{escape.F})\\
+        & $= 0, \ge 5$: no removal of escapers \\ 
+        & $\ge 1$: remove escapers, and ghost particles generated by stellar evolution or two star coalescence (collision) \\
+        & $=2,3,4$: write escaper diagnostics in \texttt{esc.11} and \texttt{escbin.31} for binary systems. \\
+        & $=3$: tidal cutoff escape criterion (this option has been misused for tidal tail for a while) \\
+        & $=4$: escape angles in main output \\
+        & $\ge 5$: initialization \& integration of tidal tail (was wrongly: $\ge 3$)\\
+%        & $=4$: write \#3 to diagnostics \\
+KZ(24)  & =1: should not be used anymore, not supported (was: subsystems and IMBH)\\
+        & =2: start with only black holes at T=0. \\
+%KZ(25)  & Partial reflection of KS binary orbit (GAMMA < GMIN; suppressed) \\
+KZ(25)  & Velocity kicks for white dwarfs (\texttt{kick.F}) \\
+        & $=1$: Type 10 Helium white dwarf \& 11 Carbon-Oxygen white dwarf \\
+        & $=2$: All WDs (type 10, 11 and type 12 Oxygen-Neon white dwarf) \\
+KZ(26)  & Slow-down of two-body motion, increase the regularization integration efficiency \\
+        & $\ge 1$: Apply to KS binary \\
+        & $\ge 2$: Apply to chain \\
+        & $=3$: Rectify to get better energy conservation \\
+KZ(27)  & Two-body tidal circularization (Mardling \& Aarseth, 2001; Portegies Zwart et al. 1997) (for values 1,2) plus orbit shrinking of relativistic compact binaries (Rizzuto et al. 2021, 2022; Arca Sedda et al. 2021 (for values 3,4).
+        (Please suppress in KS parallel version) \\
+        & $=1$: sequential  \\
+        & $=2$: chaos \\
+        & $=3$: GR energy loss with sequential tides\\
+        & $=4$: GR energy loss with chaos tides \\
+        & $=-1$: Only detect collision and suppress coalescence \\
+KZ(28)  & Magnetic braking. \rs{Gravitational radiation for NS or BH binaries is diabled here, since it is treated with KZ(27) now.}. \\
+        & $\ge 1$: magnetic braking for NS \& BH (\texttt{brake.f}, \texttt{brake3.f})\\
+        & $\ge 2$: Diagnostics at main output (\texttt{brake.f}) \\
+        & $=3$: Input of ZMH = 1/SQRT(2*N) (Need KZ(5)$\ge$6) (\texttt{setup.F}) \\
+        & $=4$: Set every star as type 13 Neutron star (Need KZ(27)=3) (\texttt{instar.f})  \\
+KZ(29)  & (Reserved for new pulsar treatment decisions, not yet used)  \\
+KZ(30)  & Hierarchical system regularization \\
+        & $=-1$: Use chain only \\
+        & $=0$: No triple, quad and chain regularization, only merger \\
+        & $=1$: Use triple, quad and chain (\texttt{impact.f}) \\
+        & $\ge 2$: Diagnostics at begin/end of chain at main output \\
+        & $\ge 3$: Diagnostics at each step of chain at main output \\
+KZ(31)  & Centre of mass correction after energy check (\texttt{cmcorr.f}) \\
+KZ(32)  & Adjustment (increase) of adjust interval DTADJ, output interval DELTAT and energy error criterion QE based on binding eneryg of cluster (\texttt{check.f}) \\
+KZ(33)  & Block-step statistics at main output (diagnostics) \\
+        & $\ge 1$: Output irregular block step; and K.S. binary step if KZ(8)>0 \\
+        & $\ge 2$: Output regular block step \\
+KZ(34)  & Roche-lobe overflow \\
+        & $=1$: Roche \& Spin synchronisation on binary with circular orbit (\texttt{synch.f}) \\
+        & $=2$: Roche \& Tidal synchronisation on binary with circular orbit by BSE method (\texttt{bsetid.f}) \\
+KZ(35)  & TIME reset to zero every 100 time units, total time is TTOT = TIME + TOFF (\texttt{offset.f})\\
+KZ(36)  & (Suppressed) Step reduction for hierarchical systems \\
+KZ(37)  & Neighbour list additions (\texttt{checkl.F}) \\
+        & $\ge 1$: Add high-velocity particles into neighbor list \\
+        & $\ge 2$: Add small time step particle (like close encounter particles near neighbor radius) into neighbor list \\
+KZ(38)  & Force polynomial corrections during regular block step calculation \\
+        & $=0$: no corrections \\
+        & $=1$: all gains \& losses included \\
+        & $=2$: small regular force change skipped \\
+        & $=3$: fast neighbour loss only \\
+KZ(39)  & Neighbor radius adjustment method \\
+        & $=0$: The system has unique density centre and smooth density profile\\
+        & $=1,\ge 3$: The system has no unique density centre or smooth density profile\\
+        & ~~~~~~skip velocity modification of RS(I) (\texttt{regint.f}, \texttt{regcor\_gpu.f}) \\
+        & ~~~~~~do not reduce neighbor radius if particle is outside half mass radius \\
+        & ~~~~~~reduce RS(I) by multiply $0.9$ instead of estimation of RS(I) based on NNBOPT/NNB when neighbor list overflow happens (\texttt{fpoly0.F}, \texttt{util\_gpu.F}) \\
+        & $=2,3$: Consider sqrt(particle mass / average mass) as the factor to determine the particle's neighbor membership. (\texttt{fpoly0.F}, \texttt{util\_gpu.F}) ({\bf Important to use if GPU is used for regular forces and neighbour lists!}) \\
+KZ(40)  & $=0$: For the initialization of particle time steps, use only force and its first derivative to estimate. This is very efficent.\\
+        & $>0$: Use fpoly2 (second and third order force derivatives calculation) to estimate the initial time steps. This method provides more accurate {\bf initial (only)} time steps and avoid incorrent time steps for some special cases like initially cold systems, but the computing cost (initial model only) is much higher ($O(N^2)$)\\
+KZ(41)  & proto-star evolution of eccentricity and period for primordial binaries initialization (\texttt{proto\_star\_evol}, \texttt{binpop.F}) \\
+KZ(42)  & Initial binary distribution \\
+        & $=0$: RANGE>0: uniform distribution in log(semi) between SEMI0 and SEMI0/RANGE \\
+        & ~~~~~~~ RANGE<0: uniform distribution in semi between SEMI0 and -1*RANGE. \\
+        & $=1$: linearly increasing distribution function $f=0.03438*logP$ \\
+        & $=2$: $f=3.5logP/[100+(logP)**2]$ \\
+        & $=3$: $f=2.3(logP-1)/[45+(logP-1)**2]$; This is a ``3rd'' iteration when  pre-ms evolution is taken into account with KZ(41)=1 \\
+        & $=4$: $f=2.5(logP-1)/[45+(logP-1)**2]$; This is a ``34th'' iteration when pre-ms evolution is taken into account with KZ(41)=1 and RBAR<$1.5$ \\
+        & $=5$: Duquennoy \& Mayor 1991, Gaussian distribution with mean $\log{P}=4.8$, SDEV in $\log{P}=2.3$. Use Num.Recipes routine \texttt{gasdev.f} to obtain random deviates given ``idum1'' \\
+%        & $=6$: eigen-evolution (Pavel Kroupa \& Rosemary Mardling)\\
+KZ(43)  & (Unused) \\
+KZ(44)  & (Unused) \\
+KZ(45)  & $>0$: Computation of Moments of Inertia (with Chr. Theis) in output listing (\texttt{ellan.f}) \\
+KZ(46)  &  HDF5/BINARY/ANSI format output and global parameter output (main output, see chapter~\ref{ch:output} for details) \\
+        &  $=1,3$: HDF5(if HDF5 is compiled)/BINARY format\\
+        &  $=2,4$: ANSI format \\
+        &  $=1,2$: Only output active stars with time interval defined by KZ(47) \\
+        &  $=3,4$: Output full particle list with time interval defined by KZ(47) \\
+KZ(47)  &  Frequency for KZ(46) output. Should be non-negative integer. \\
+        &  Output data with time interval $0.5^{KZ(47)} \times SMAX$ \\
+KZ(48)  & $=0,1$: if 1 reduced HDF5 output (no 2nd and 3rd derivatives of force); warning: if KZ(40)=0 initial values wrong, undefined. \\
+KZ(49)  & was used for ellan.f call in output, changed to KZ(45) \\
+KZ(50)  & For unperted KS binary. The neighbor list is searched for finding next KS step. It is safer to get correct step but not efficient when unperted binary number is large. To suppress this, set to $1$ \\
+
+\end{longtable}
+
+\hrule
+\noindent
+\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+\caption{\texttt{Input of \&ININPUT, input.F line 8-9}}
+\label{table:ininput89}\\\hline
+%
+DTMIN   & Time--step criterion for regularization search \\
+RMIN    & Distance criterion for regularization search \\
+ETAU    & Regularized time-step parameter (6.28/ETAU steps/orbit) \\
+ECLOSE  & Binding energy per unit mass for hard binary (positive) \\
+GMIN    & Relative two-body perturbation for unperturbed motion \\
+GMAX    & Secondary termination parameter for soft KS binaries \\
+SMAX    & Maximum time-step (factor of 2 commensurate with 1.0) \\
+LEVEL   & \textcolor{red}{Stellar Evolution Level (see Kamlah et al. 2022), new input element} \\
+\multicolumn{2}{l}{\textcolor{red}{\&INSSE, \&INBSE, \&INCOLL: new NAMELIST blocks read after LEVEL by subroutine READSE,}} \\
+\multicolumn{2}{l}{\textcolor{red}{called from input.F; if blocks are empty in input, defaults according to LEVEL taken.}}
+\end{longtable}
+
+% & \texttt{if (kz(4).gt.0)} (suppressed now) \\
+%DELTAS  & Output interval for binary search (in TCR; suppressed) \\
+%ORBITS  & Minimum periods for binary output (level 1) \\
+%GPRINT  & Perturbation thresholds for binary output (9 levels) \\
+
+\hrule
+\noindent
+\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+\caption{\texttt{Input of \&INDATA, data.F}}
+\label{table:indata}\\\hline
+%
+ALPHAS  & Power-law index for initial mass function, routine \texttt{data.F}\\
+BODY1   & Maximum particle mass before scaling (based on KZ(20); solar mass unit)\\
+BODYN   & Minimum particle mass before scaling\\
+NBIN0   & Number of primordial binaries (need KZ(8)>0) \\
+        & -- by routine \texttt{imf2.F} using a binary IMF (KZ(20)$\ge$2)\\
+        & -- by routine \texttt{binpop.F} splitting single stars (KZ(8)>0)\\
+        & -- by reading subsystems from \texttt{dat.10} (KZ(22)$\ge$2)\\
+NHI0    & Number of primordial hierarchical systems (need KZ(18)$\ge$2)\\
+ZMET    & Metal abundance (in range 0.03 - 0.0001) \\
+EPOCH0  & Formation time of stellar population, should be $\le$ 0, since at time of simulation start the stellar AGE is -EPOCH0 (in $10^6$ yrs); note that datsev.21 allows to input individual stellar ages \\
+DTPLOT  & Plotting interval for stellar evolution HRDIAG (N-body units; $\ge$ DELTAT) \\
+\end{longtable}
+
+\hrule
+\noindent
+\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+\caption{\texttt{Input of \&INSETUP, setup.F, KZ(5)>1}}
+\label{table:insetup}\\\hline
+       & \texttt{if (kz(5)=2)} \\\hline
+APO    & Separation of two Plummer models in $N$--body units (SEMI = APO/(1 $+$ ECC). (Notice SEMI will be limited between $2.0$ and $50.0$) \\
+ECC    & Eccentricity of two-body orbit (ECC $\ge$0 and ECC < $0.999$) \\
+N2     & Membership of second Plummer model (N2 <= N) \\
+SCALE  & Scale factor for the second Plummer model, second cluster will be generated by first Plummer model with $X \times SCALE$ and $V \times \sqrt{SCALE}$($\ge 0.2$ for limiting minimum size) \\\hline
+       & \texttt{if (kz(5)=3)} \\\hline
+APO    & Separation between the perturber and Sun in $N$--body units \\
+ECC    & Eccentricity of orbit (=1 for parabolic encounter) \\
+SCALE  & Perturber mass scale factor, perturber mass = Center star mass $\times$ SCALE (=1 for Msun) \\\hline
+       & \texttt{if (kz(5)=4)} \\\hline
+SEMI   & Semi-major axis (slightly modified; ignore if ECC > 1) \\
+ECC    & Eccentricity (ECC > 1: NAME = 1 \& 2 free-floating) \\
+M1     & Mass of first member (in units of mean mass) \\
+M2     & Mass of second member (rescaled total mass = 1) \\\hline
+       & \texttt{if (kz(5)$\ge$6) and (kz(24)<0)} \\\hline
+ZMH    & Mass of single BH (in N-body units) \\
+RCUT   & Radial cutoff in Zhao cusp distribution (MNRAS, 278, 488) \\
+\end{longtable}
+
+\hrule
+\noindent
+\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+\caption{\texttt{Input of \&INSCALE, scale.F}}
+\label{table:inscale}\\\hline
+\texttt{scale.F:} & \\\hline
+%
+Q       & Virial ratio (routine \texttt{scale.F}; Q=0.5 for equilibrium) \\
+VXROT   & XY--velocity scaling factor (> 0 for solid-body rotation) \\
+VZROT   & Z--velocity scaling factor (not used if VXROT = 0) \\
+RTIDE   & Unscaled tidal radius for KZ(14)=2 and KZ(22)$\ge$2. If not zero, RBAR = RT/RTIDE where RT[pc] is tidal radius calculated from input GMG and RG0\\
+\end{longtable}
+
+
+\hrule
+\noindent
+\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+\caption{\texttt{Input of \&XTRNL0, xtrnl0.F}}
+\label{table:indata}\\\hline
+       & \texttt{if (kz(14)=2)} \\\hline
+GMG    & Point-mass galaxy (solar masses, linearized tidel field in circular orbit) \\
+RG0    & Central distance (in kpc) \\\hline
+       & \texttt{if (kz(14)=3)} \\\hline
+GMG    & Point-mass galaxy (solar masses) \\
+DISK   & Mass of Miyamoto disk (solar masses) \\
+A      & Softening length in Miyamoto potential (in kpc) \\
+B      & Vertical softening length (kpc) \\
+VCIRC  & Galactic circular velocity (km/sec) at RCIRC (=0: no halo) \\
+RCIRC  & Central distance for VCIRC with logarithmic potential (kpc) \\
+GMB    & Dehnen model budge mass (solar masses)\\
+AR     & Dehnen model budge scaling radius (kpc)\\
+GAM    & Dehnen model budge profile power index gamma \\  
+RG(1:3) & Initial cluster position vector (kpc) \\
+VG(1:3) & Initial cluster velocity vector (km/s) \\\hline
+       & \texttt{if (kz(14)=3,4)} \\\hline
+MP     & Total mass of Plummer sphere (in scaled units) \\
+AP     & Plummer scale factor (N-body units; square saved in AP2) \\
+MPDOT  & Decay time for gas expulsion (MP = MP0/(1 + MPDOT*(T-TD)) \\
+TDELAY & Delay time for starting gas expulsion (T > TDELAY) \\\hline
+       & \texttt{if (kz(14)=5)} \\\hline
+RG(1:3) & Initial cluster position vector (kpc) \\
+VG(1:3) & Initial cluster velocity vector (km/s) \\ 
+\end{longtable}
+
+\hrule
+\noindent
+\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+\caption{\texttt{Input of \&INBINPOP, binpop.F, \\\phantom{xxxxxxxx}if (kz(8)=1 or kz(8)>2)}}
+\label{table:inbinpop}\\\hline
+%
+SEMI   & Initial semi-major axis limit\\
+ECC    & Initial eccentricity \\
+        & $<0$: thermal distribution, $f(e)=2e$ \\
+        & $\ge 0$ and $\le 1$: fixed value of eccentricity\\
+        & $=20$: uniform distribution \\
+        & $=30$: distribution with $f(e)=0.1765/(e^2)$ \\
+        & $=40$: general $f(e)=a*e^b$, $e0<=e<=1$ with $a=(1+b)/(1-e0^{(1+b)})$, current values: $e0=0$ and $b=1$ (thermal distribution) \\
+RATIO   & KZ(42)$\le 1$: Binary mass ratio $M1/(M1 + M2)$\\
+        & KZ(42)$=1.0$: $M1 = M2 = \langle M \rangle$\\
+RANGE   & KZ(42)$=0$: semi-major axis range for uniform logarithmic distribution; \\
+        & not used for other KZ(42)\\
+NSKIP   & Binary frequency of mass spectrum (starting from body \#1)\\
+IDORM   & Indicator for dormant binaries ($>0$: merged components)\\
+\end{longtable}
+
+\hrule
+\noindent
+\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+\caption{\texttt{Input of \&INHIPOP, hipop.F\\\phantom{xxxxxxx} if (kz(8)>0 and kz(18)>1)}}
+\label{table:inhipop}\\\hline
+%
+SEMI  &  Max semi-major axis in model units (all equal if RANGE = 0) \\
+ECC   &  Initial eccentricity ($<0$ for thermal distribution) \\
+RATIO &  Mass ratio ($= 1.0$: $M1 = M2$; random in [$0.5\thicksim0.9$]) \\
+RANGE &  Range in SEMI for uniform logarithmic distribution ($> 0$) \\
+\end{longtable}
+
+\hrule
+\noindent
+
+
+%\hrule
+%\noindent
+%\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+%\texttt{intide.F:}& \texttt{if (kz(27)>0)} (currently suppressed)
+%RSTAR &  Size of typical star in A.U. \\
+%IMS   &  # idealized main-sequence stars \\
+%IEV   &  # idealized evolved stars \\
+%RMS   &  Scale factor for main-sequence radii (>0: fudge factor) \\
+%REV   &  Scale factor for evolved radii (initial size RSTAR)\\
+%\end{longtable}
+
+\hrule
+\noindent
+\begin{longtable}{@{}p{1.5cm}p{13.0cm}}
+\texttt{cloud0.F:}& \texttt{if (kz(13)>0)} 
+\textcolor{red}{Input currently NOT working with Namelist input method}
+\\\hline
+%
+NCL   &  Number of interstellar clouds \\
+RB2   &  Radius of cloud boundary in pc (square is saved) \\
+VCL   &  Mean cloud velocity in km/sec \\
+SIGMA &  Velocity dispersion (KZ(13)>1: Gaussian) \\
+CLM   &  Individual cloud masses in solar masses (maximum MCL) \\
+RCL2  &  Half-mass radii of clouds in pc (square is saved) \\
+\end{longtable}
