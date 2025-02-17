@@ -9,7 +9,7 @@
       INCLUDE 'MWpotential.h'
       REAL*8 RGKPC(3), VGPCMYR(3)
       NAMELIST /INXTRNL0/ GMG, RG0, DISK, A, B, VCIRC, RCIRC, GMB, AR,
-     &        GAM,RG,VG,MP,AP2,MPDOT,TDELAY,RGKPC,VGPCMYR
+     &        GAM,RG,VG,MP,AP2,MPDOT,TDELAY
 *
 *
 #ifdef PARALLEL
@@ -303,8 +303,16 @@ C          IF (RTIDE.EQ.0.0D0) RTIDE = 10.0
 
 *     reading orbit data (position,velocity of star cluster)
 *     unit: R: kpc, v: pc/Myr
-         if(rank.eq.0) 
-     &        READ (NML=INXTRNL0, IOSTAT=IIC, UNIT=5)
+         if(rank.eq.0) then
+          READ (NML=INXTRNL0, IOSTAT=IIC, UNIT=5)
+          IF(IIC.NE.0) WRITE (6,'("XTRNL0C: invalid Namelist format")')
+         end if
+*     Kai Wu Feb 2025 : Long's routine uses RGKPC and VGPCMYR to pass to 
+*     galpy-compatible potentials
+*     The inputed RG is always in kpc and VG is in km/s
+*     convert to RGKPC and VGPCMYR to make galpy happy
+         RGKPC = RG
+         VGPCMYR = VG / VSTAR * V_PcMyr
 #if MPIINIT
          CALL MPI_BCAST(RGKPC,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
          CALL MPI_BCAST(VGPCMYR,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
