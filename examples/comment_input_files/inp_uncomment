@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+import re
+import sys
+
+# 1. 读取文件。第一个参数为commented_file_path，第二个参数为是否原位更改
+if len(sys.argv) < 2:
+    print('Usage: inp_uncomment commented_file_path [is_inplace]')
+    sys.exit(1)
+commented_file_path = sys.argv[1]
+is_inplace = int(sys.argv[2]) if len(sys.argv) == 3 else False
+output_file_path = commented_file_path if is_inplace else commented_file_path+'.recovered'
+
+with open(commented_file_path, 'r') as f:
+    lines = f.readlines()
+
+# 2. 去掉注释
+uncommented_lines = [line for line in lines if not line.strip().startswith('!')]
+whole_file = ''.join(uncommented_lines)
+
+# 3. 换行符减一
+def process_string(s):
+    # 第一步：移除单个换行符（前后都是非换行符）
+    s = re.sub(r'(?<!\n)\n(?!\n)', '', s)
+    
+    # 第二步：多个减去一个
+    s = re.sub(r'\n\n', '\n', s)
+    
+    return s
+recovered_whole_file_except_KZ = process_string(whole_file)
+
+# 4. 复原KZ
+# KZ(1)=1,KZ(2)=1,KZ(3)=1,KZ(4)=0,KZ(5)=1,KZ(6)=0,KZ(7)=4,KZ(8)=2,KZ(9)=3,KZ(10)=2, --> KZ(1:10)= 1 1 1 0 1 0 4 2 3 2
+def recover_kz_line(line):
+    # use re.findall to get all the values
+    values = re.findall(r'KZ\((\d+)\)=([0-9]+)', line)
+    start = values[0][0]
+    end = values[-1][0]
+    values = [value for _, value in values]
+    if start == '1':
+        return f'KZ({start}:{end})= ' + ' '.join(values)
+    elif start == '41':
+        return f'KZ({start}:{end})=' + ' '.join(values) + ' ,'
+    else:
+        return f'KZ({start}:{end})=' + ' '.join(values)
+lines = recovered_whole_file_except_KZ.split('\n')
+recovered_lines = []
+for line in lines:
+    if line.startswith('KZ'):
+        recovered_lines.append(recover_kz_line(line))
+    else:
+        recovered_lines.append(line)
+recovered_whole_file = '\n'.join(recovered_lines)
+
+# 5. 保存文件
+with open(output_file_path, 'w') as f:
+    f.write(recovered_whole_file)
+
+print("Recovered file is saved to", output_file_path)
