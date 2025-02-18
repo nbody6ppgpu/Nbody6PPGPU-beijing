@@ -394,7 +394,7 @@ C         IF(J.EQ.9951) print*,'L',L,'J',J,'T',TIME
          if(rank.eq.0)ttksintgrt = ttksintgrt + (tt6-tt5)*60.
          if(rank.eq.0)ttks = ttks + (tt6-tt5)*60.
 *
-         IF (IQ.LT.0) GO TO 999
+         IF (IQ.LT.0) GO TO 1
       END IF
 
 *
