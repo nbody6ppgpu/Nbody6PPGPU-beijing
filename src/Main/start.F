@@ -142,10 +142,11 @@
    45         CONTINUE
               EREL = 0.5*VIJ2 - XMBIN/DSQRT(RIJ2)
 *     regularize all binaries from mcluster works well R.Sp. Jan2022
-*             IF (RIJ2.LT.RMIN**2.AND.EREL.LT.-1.0E-02) THEN
+*     works not well for dragon 3 so switch to check, Kai + Rainer Feb2025
+              IF (RIJ2.LT.RMIN**2.AND.EREL.LT.-1.0E-02) THEN
 *             IF (EREL.LT.-1.0E-02) THEN
                  CALL KSPREG
-*             END IF
+              END IF
    50     CONTINUE
 *     recover kstart
           KSTART = KSDUM
