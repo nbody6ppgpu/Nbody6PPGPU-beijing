@@ -21,7 +21,7 @@ collaborate with Rainer Spurzem spurzem@ari.uni-heidelberg.de spurzem@nao.cas.cn
 Here is an example of current differences between the code version (May 2023), more changes and differences may occur in the future, if in doubt, ask the authors.
 
 1. LW: implementation of Milky Way potential following the MWPotential2014 in
-Galpy (Bovy 2015).
+Galpy (Bovy 2015). Note: on Feb 2025, with Long's help, MWPotential2014 becomes available also in RS's version, with KZ(14)=5.
 2. RS: implementation of spin and mass dependent recoil kicks after GW merger
 (Arca Sedda et al. 2023 subm. MNRAS)
 3. LW:  implementation of python data reading interface for PeTar analysis tool.
