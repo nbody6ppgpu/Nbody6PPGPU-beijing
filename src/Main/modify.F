@@ -158,6 +158,13 @@
       CALL MPI_BCAST(LEVEL,1,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
 #endif
 *
+#ifdef TT
+*** FlorentR - restart with new tensors
+      IF (KZ(14).EQ.9) THEN
+        CALL TTINIT
+      ENDIF
+*** FRenaud
+#endif
 *        Read stellar evolution and collision parameters.
       CALL READSE(LEVEL)
 *

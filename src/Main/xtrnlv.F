@@ -24,14 +24,13 @@
       IF (FIRST.AND.TIME.EQ.0.0D0) THEN
          FIRST = .FALSE.
          GO TO 30
-      END IF
 *       Treat all cases uniformly (but note Coliolis term in FIRR).
 #ifdef TT
 *** FlorentR - case of tidal tensor
-      IF ((KZ(14).LE.5.OR.KZ(14).EQ.9).AND.I2.NE.I1) THEN
+      ELSE IF ((KZ(14).LE.5.OR.KZ(14).EQ.9).AND.I2.NE.I1) THEN
 *** FRenaud
 #else
-      IF (KZ(14).LE.5.AND.I2.NE.I1) THEN
+      ELSE IF (KZ(14).LE.5.AND.I2.NE.I1) THEN
 #endif
           VIR = 0.0
           DO 5 I = I1,I2

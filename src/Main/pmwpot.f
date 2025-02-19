@@ -5,7 +5,7 @@
 *     --------------------------
       implicit none
       INCLUDE 'MWpotential.h'
-      REAL*8 RG(3), VG(3), POTG
+      REAL*8 RG(3), POTG
       REAL*8 Pot_PowCut, Pot_Miyamoto, Pot_NFW
       REAL*8 RGKPC(3),rxy2, rxy, r
 

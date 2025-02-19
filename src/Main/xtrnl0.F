@@ -311,15 +311,15 @@ C          IF (RTIDE.EQ.0.0D0) RTIDE = 10.0
 *     galpy-compatible potentials
 *     The inputed RG is always in kpc and VG is in km/s
 *     convert to RGKPC and VGPCMYR to make galpy happy
-         RGKPC = RG
-         VGPCMYR = VG / VSTAR * V_PcMyr
+         RGKPC(1:3) = RG(1:3)
+         VGPCMYR(1:3) = VG(1:3) / VSTAR * V_PcMyr
 #if MPIINIT
          CALL MPI_BCAST(RGKPC,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
          CALL MPI_BCAST(VGPCMYR,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 #endif 
 *     convert to NB unit
-         RG = RGKPC/R_KPC
-         VG = VGPCMYR/V_PcMyr
+         RG(1:3) = RG(1:3) * 1000.0 / RBAR
+         VG(1:3) = VG(1:3) / VSTAR
 
 *     calculate Rtide
          R02 = RG(1)**2 + RG(2)**2
