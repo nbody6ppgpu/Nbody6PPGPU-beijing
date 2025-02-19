@@ -2,9 +2,9 @@
 import re
 import sys
 
-# 将.inp文件按照逗号分隔，每个变量一行，便于加注释。
-# 方法：
-# 0. 读取文件。第一个参数为original_inp_file，第二个参数为manual.txt的路径，第三个参数(0或者1)为是否原位更改
+# Separate the .inp file by commas, with each variable on a new line for easier annotation.
+# Method:
+# 0. Read the file. The first parameter is original_inp_file, the second parameter is the path to manual.txt, and the third parameter (0 or 1) indicates whether to change in place.
 if len(sys.argv) < 3:
     print('Usage: inp_comment path_to_original_input path_to_manual_tex [is_inplace]')
     sys.exit(1)
@@ -15,7 +15,7 @@ new_inp_file = original_inp_file if is_inplace else original_inp_file+'.commente
 
 with open(original_inp_file, 'r') as f:
     lines = f.readlines()
-# 1. 将KZ特殊处理。例如，将KZ(1:10)= 1 1 1 0 1 0 4 2 3 2 替换为KZ(1)=1, KZ(2)=1, KZ(3)=1, KZ(4)=0, KZ(5)=1, KZ(6)=0, KZ(7)=4, KZ(8)=2, KZ(9)=3, KZ(10)=2。一共有KZ(1:10), KZ(11:20), KZ(21:30), KZ(31:40), KZ(41:50)五行需要考虑
+# 1. Special processing for KZ. For example, replace KZ(1:10)= 1 1 1 0 1 0 4 2 3 2 with KZ(1)=1, KZ(2)=1, KZ(3)=1, KZ(4)=0, KZ(5)=1, KZ(6)=0, KZ(7)=4, KZ(8)=2, KZ(9)=3, KZ(10)=2. There are a total of five lines to consider: KZ(1:10), KZ(11:20), KZ(21:30), KZ(31:40), KZ(41:50).
 def process_kz_line(line):
     match = re.match(r'KZ\((\d+):(\d+)\)=\s*(.*)', line)
     if match:
@@ -32,7 +32,7 @@ for line in lines:
     else:
         processed_lines.append(line)
 
-# 2. 查找所有的逗号，每逢逗号单独列做一个，并添加换行符
+# 2. Find all commas, list each one separately, and add a newline character.
 one_variable_per_line = []
 for line in processed_lines:
     if ',' in line:
@@ -43,10 +43,10 @@ for line in processed_lines:
     else:
         one_variable_per_line.append(line + '\n')
 
-# 3. 从manual.txt中查找说明，使用注释（以感叹号开始）加入到该变量之前
-# 查找方法：
-# 从key=value中获取key作为变量名
-# 对变量名，在manual中搜索第一个匹配（行开头为变量名）。然后继续往下搜，直到遇到下一个开头行不为空格、不为百分号的行。这中间的内容就是该变量的说明
+# 3. Look for instructions in manual.txt and add comments (starting with an exclamation mark) before the variable
+# Search method:
+# Obtain the key from key=value as the variable name
+# For the variable name, search for the first match in the manual (the line starts with the variable name). Then continue searching downwards until encountering the next line that does not start with a space and is not a percentage sign. The content in between is the description of the variable.
 with open(manual_path, 'r') as f:
     manual_lines = f.readlines()
 commented_lines = []
@@ -75,7 +75,6 @@ for line in one_variable_per_line:
         pass
     commented_lines.append(line)
 
-# 4. 将结果写入新文件
 with open(new_inp_file, 'w') as f:
     f.writelines(commented_lines)
 
