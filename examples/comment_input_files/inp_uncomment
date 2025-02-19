@@ -2,7 +2,7 @@
 import re
 import sys
 
-# 1. 读取文件。第一个参数为commented_file_path，第二个参数为是否原位更改
+# 1. Read the file. The first parameter is commented_file_path, and the second parameter is whether to change in place.
 if len(sys.argv) < 2:
     print('Usage: inp_uncomment commented_file_path [is_inplace]')
     sys.exit(1)
@@ -13,22 +13,22 @@ output_file_path = commented_file_path if is_inplace else commented_file_path+'.
 with open(commented_file_path, 'r') as f:
     lines = f.readlines()
 
-# 2. 去掉注释
+# 2. remove comment
 uncommented_lines = [line for line in lines if not line.strip().startswith('!')]
 whole_file = ''.join(uncommented_lines)
 
-# 3. 换行符减一
+# 3. one less newline
 def process_string(s):
-    # 第一步：移除单个换行符（前后都是非换行符）
+    # Step 1: Remove single newline characters (with non-newline characters on both sides)
     s = re.sub(r'(?<!\n)\n(?!\n)', '', s)
     
-    # 第二步：多个减去一个
+    # Step 2: Remove multiple newline
     s = re.sub(r'\n\n', '\n', s)
     
     return s
 recovered_whole_file_except_KZ = process_string(whole_file)
 
-# 4. 复原KZ
+# 4. restore KZ
 # KZ(1)=1,KZ(2)=1,KZ(3)=1,KZ(4)=0,KZ(5)=1,KZ(6)=0,KZ(7)=4,KZ(8)=2,KZ(9)=3,KZ(10)=2, --> KZ(1:10)= 1 1 1 0 1 0 4 2 3 2
 def recover_kz_line(line):
     # use re.findall to get all the values
@@ -51,7 +51,6 @@ for line in lines:
         recovered_lines.append(line)
 recovered_whole_file = '\n'.join(recovered_lines)
 
-# 5. 保存文件
 with open(output_file_path, 'w') as f:
     f.write(recovered_whole_file)
 

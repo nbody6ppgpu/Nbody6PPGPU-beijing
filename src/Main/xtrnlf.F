@@ -12,7 +12,7 @@
 *     Safe for parallel
       INCLUDE 'galaxy.h'
       REAL*8  XI(3),XIDOT(3),FIRR(3),FREG(3),FD(3),FDR(3),
-     &        XG(3),XGDOT(3),FM(3),FMD(3),FS(3),FSD(3),RGP(3),VGP(3)
+     &        XG(3),XGDOT(3),FM(3),FMD(3),FS(3),FSD(3)
 *
 *
 *       See whether to include a linearized galactic tidal force (two cases).
