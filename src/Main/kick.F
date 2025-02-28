@@ -206,6 +206,7 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
           ZM2 = BODY(I1+1)*SMU
           EB = BODY(I1)*BODY(I1+1)/BODY(N+IPAIR)*H(IPAIR)
           RI = R(IPAIR)
+
 *       Skip on #25 = 0/1 for consistent net WD modification of EKICK.
           IF ((KW.LT.13.AND.KZ(25).EQ.0).OR.
      &        (KW.EQ.12.AND.KZ(25).NE.2)) GO TO 30
@@ -218,11 +219,17 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
           I2 = I1 + 1
           if(rank.eq.0)
      &    WRITE (6,1)  TTOT*TSTAR, NAME(I1), NAME(I2), KSTAR(I1), 
-     &         KSTAR(I2),ZM1,ZM2,VESC, VDIS, R(IPAIR)/SEMI, EB, R(IPAIR)
+     &         KSTAR(I2),ZM1,ZM2,VESC, VDIS, R(IPAIR)/SEMI, EB,
+     &         R(IPAIR),
+     &         X(1,I1)*RBAR, X(2,I1)*RBAR, X(3,I1)*RBAR,
+     &         XDOT(1,I1)*VSTAR, XDOT(2,I1)*VSTAR, XDOT(3,I1)*VSTAR,
+     &         X(1,I2)*RBAR, X(2,I2)*RBAR, X(3,I2)*RBAR,
+     &         XDOT(1,I2)*VSTAR, XDOT(2,I2)*VSTAR, XDOT(3,I2)*VSTAR
     1     FORMAT (' BINARY KICK:  TIME[Myr] NAME(I1) NAME(I2) K*(I1) ',
-     &         'K*(I2) M(I1)[M*] M(I2)[M*] VESC[km/s] VDIS[km/s] ',
-     &         'R12/SEMI EB R12[NB] ',1P,E14.3,0P,2I10,2I4,2F9.3,
-     &         1P,5E14.3)
+     &         ' K*(I2) M(I1)[M*] M(I2)[M*] VESC[km/s] VDIS[km/s] ',
+     &         ' R12/SEMI EB R12[au] X1(1,2,3) V1(1,2,3) X2(1,2,3)',
+     &         ' V2(1,2,3)'
+     &         ,1P,E14.3,0P,2I10,2I4,2F9.3,1P,5E14.3,12E14.3)
           NBKICK = NBKICK + 1
 *       Remove any circularized KS binary from the CHAOS/SYNCH table.
           IF (KSTAR(N+IPAIR).GE.10.AND.NCHAOS.GT.0) THEN
@@ -422,11 +429,14 @@ c		Sambaran 2019.11.19.
             ENDIF
       if(rank.eq.0)WRITE (6,190)TTOT,NAME(I),I,KW,KSTAR(I),
      &      TTOT*TSTAR,BODY(I)*ZMBAR, BODY0(I)*ZMBAR,
-     &      FBFAC, FBTOT, VKICK, KMECH
+     &      FBFAC, FBTOT, VKICK, KMECH,
+     &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
+     &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
   190 FORMAT (' NS/BH FORMATION FALLBACK TIME[NB]',1P,E17.10,
      &        ' NM=',I10,' I=',I10,' KW,KW0=',2I4,
      &        ' TIME[Myr]=',E13.5,' M,M0[*]=',2E13.5,
-     &        ' FB FBTOT VK[km/s] KMECH: ',3E12.5,I4)
+     &        ' FB FBTOT VK[km/s] KMECH: ',3E12.5,I4,
+     &        ' X(1,2,3) ', 3E12.5, ' V(1,2,3) ', 3E12.5)
             END IF
 *
 *******BH Kerr Metric spin parameter *****
@@ -476,14 +486,20 @@ c		Sambaran 2019.11.19.
 *       Skip case of zero kick velocity.
       IF (VKICK.EQ.0.0D0.OR.DISP0.EQ.0.0D0) then
          if(rank.eq.0)
+*       X and XDOT in rdens
+
+
      &    WRITE (6,18)  TTOT, I, NAME(I), KSTAR(I), KW, KC,
      &         TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
-     &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC
-   18     FORMAT (' ZERO VELOCITY KICK: TIME[NB]',1P,E17.10,' I',I10,
-     &         '  NAME',I10,' K*0',I4,'  K*',I4,'  K*(ICM)',I4,
-     &         '  Time[Myr]',E12.5,' M0[M*]',E12.5,' MN[M*]',E12.5,
-     &         '  VI[km/s]',E12.5,' VK[km/s]',E12.5' VF[km/s]',E12.5,
-     &         '  VK0[km/s]',E12.5,' FB',E12.5)
+     &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,
+     &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
+     &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
+   18     FORMAT (' ZERO VELOCITY KICK: TIME[NB] ',1P,E17.10,' I ',I10,
+     &         '  NAME ',I10,' K*0 ',I4,'  K* ',I4,'  K*(ICM) ',I4,
+     &         '  Time[Myr] ',E12.5,' M0[M*] ',E12.5,' MN[M*] ',E12.5,
+     &         '  VI[km/s] ',E12.5,' VK[km/s] ',E12.5' VF[km/s] ',E12.5,
+     &         '  VK0[km/s] ',E12.5,' FB ',E12.5,
+     &         ' X(1,2,3) ', 3E12.5, ' V(1,2,3) ', 3E12.5)
          GO TO 30
       ENDIF
 
@@ -541,21 +557,27 @@ c		Sambaran 2019.11.19.
           if(rank.eq.0)
      &    WRITE (6,20)  TTOT, I, NAME(I), KSTAR(I), KW, KC,
      &         TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
-     &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC
+     &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,
+     &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
+     &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
    20     FORMAT (' FULL VELOCITY KICK: TIME[NB]',1P,E17.10,' I',I10,
      &         '  NAME',I10,' K*0',I4,'  K*',I4,'  K*(ICM)',I4,
      &         '  Time[Myr]',E12.5,' M0[M*]',E12.5,' MN[M*]',E12.5,
      &         '  VI[km/s]',E12.5,' VK[km/s]',E12.5' VF[km/s]',E12.5,
-     &         '  VK0[km/s]',E12.5,' FB',E12.5)
+     &         '  VK0[km/s]',E12.5,' FB',E12.5,
+     &         ' X(1,2,3)', E12.5, ' V(1,2,3)', E12.5)
           KC = 0
 *     END IF
 *
 *       Highlight BH/NS velocities below 4 times rms velocity.
       IF (VKICK.LT.4.0*SQRT(0.5).AND.KW.GE.13) THEN
           if(rank.eq.0)
-     &    WRITE (6,25)  I, NAME(I), KW, VKICK*VSTAR, SQRT(VF2)*VSTAR
+     &    WRITE (6,25)  I, NAME(I), KW, VKICK*VSTAR, SQRT(VF2)*VSTAR,
+     &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
+     &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
    25     FORMAT (' LOW KICK:    I',I10,'  NAME',I10,'  K*',I4,
-     &         '  VK[km/s]',F7.2,'  VF[km/s]',F7.2)
+     &         '  VK[km/s]',F7.2,'  VF[km/s]',F7.2,
+     &         ' X(1,2,3)', E12.5, ' V(1,2,3)', E12.5)
       END IF
 *
 *       Include optional list of high-velocity particles (double counting!).
