@@ -243,7 +243,9 @@
       call counter_reset
 *
 *       Include diagnostics about cluster orbit in general external field.
+#ifdef PARALLEL
       IF(rank.eq.0) then
+#endif
 #ifdef TT
 *** FlorentR - add KZ(14)=9 in case of mode B
         IF (KZ(14).EQ.3.OR.KZ(14).EQ.5
@@ -264,7 +266,9 @@
    79     FORMAT (/,5X,'GAS EXPULSION    T N <R> M MP DETOT ',
      &                                   F7.1,I7,3F7.3,1P,E10.2)
         END IF
+#ifdef PARALLEL
       END IF
+#endif
 *
 *       Reset minimum encounter distances & maximum apocentre separation.
       DMIN2 = 100.0

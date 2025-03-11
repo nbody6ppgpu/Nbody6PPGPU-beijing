@@ -1,6 +1,10 @@
 # junk and tmp files
 *.swp
 
+# macos ds store
+.DS_Store
+**/.DS_Store
+
 # Prerequisites
 *.d
 
