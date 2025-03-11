@@ -165,6 +165,9 @@
       ENDIF
 *** FRenaud
 #endif
+*     MWpotential14
+      IF (KZ(14).EQ.5) call mwpotinit(RBAR,VSTAR,TSTAR)
+
 *        Read stellar evolution and collision parameters.
       CALL READSE(LEVEL)
 *
