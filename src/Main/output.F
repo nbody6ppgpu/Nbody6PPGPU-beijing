@@ -243,13 +243,14 @@
       call counter_reset
 *
 *       Include diagnostics about cluster orbit in general external field.
+      IF(rank.eq.0) then
 #ifdef TT
 *** FlorentR - add KZ(14)=9 in case of mode B
-      IF (KZ(14).EQ.3.OR.KZ(14).EQ.5
+        IF (KZ(14).EQ.3.OR.KZ(14).EQ.5
      &     .OR.(KZ(14).EQ.9.AND.TTMODE.EQ.0)) THEN
 *** FRenaud
 #else
-      IF (KZ(14).EQ.3.OR.KZ(14).EQ.5) THEN
+        IF (KZ(14).EQ.3.OR.KZ(14).EQ.5) THEN
 #endif
           GZ = RG(1)*VG(2) - RG(2)*VG(1)
           SX = RBAR/1000.0
@@ -257,11 +258,12 @@
      &         (VG(K)*VSTAR,K=1,3),GZ, ETIDE
    78     FORMAT (/,5X,'CLUSTER ORBIT   T RG VG JZ ET ',
      &         1P,9E24.15,0P)
-      END IF
-      IF (KZ(14).EQ.4) THEN
+        END IF
+        IF (KZ(14).EQ.4) THEN
           WRITE (6,79)  TTOT, N, RSCALE, ZMASS, MP, DETOT
    79     FORMAT (/,5X,'GAS EXPULSION    T N <R> M MP DETOT ',
      &                                   F7.1,I7,3F7.3,1P,E10.2)
+        END IF
       END IF
 *
 *       Reset minimum encounter distances & maximum apocentre separation.

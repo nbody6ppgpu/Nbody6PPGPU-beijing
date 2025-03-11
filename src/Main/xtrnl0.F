@@ -7,7 +7,6 @@
       INCLUDE 'common6.h'
       INCLUDE 'galaxy.h'
       INCLUDE 'MWpotential.h'
-      REAL*8 RGKPC(3), VGPCMYR(3)
       NAMELIST /INXTRNL0/ GMG, RG0, DISK, A, B, VCIRC, RCIRC, GMB, AR,
      &        GAM,RG,VG,MP,AP2,MPDOT,TDELAY,RGKPC,VGPCMYR
 *
@@ -297,57 +296,17 @@ C          IF (RTIDE.EQ.0.0D0) RTIDE = 10.0
 
 *     MWpotential14
       IF (KZ(14).EQ.5) THEN
-
-*     initial potential
-         call mwpotinit(RBAR,VSTAR,TSTAR)
-
-*     reading orbit data (position,velocity of star cluster)
-*     unit: R: kpc, v: pc/Myr
          if(rank.eq.0) then
-          READ (NML=INXTRNL0, IOSTAT=IIC, UNIT=5)
-          IF(IIC.NE.0) WRITE (6,'("XTRNL0C: invalid Namelist format")')
+           READ (NML=INXTRNL0, IOSTAT=IIC, UNIT=5)
+           IF(IIC.NE.0) WRITE (6,'("XTRNL0C: invalid Namelist format")')
          end if
-*     Kai Wu Feb 2025 : Long's routine uses RGKPC and VGPCMYR to pass to 
-*     galpy-compatible potentials
-*     The inputed RG is always in kpc and VG is in km/s
-*     convert to RGKPC and VGPCMYR to make galpy happy
-         RGKPC(1:3) = RG(1:3)
-         VGPCMYR(1:3) = VG(1:3) / VSTAR * V_PcMyr
-*     convert to NB unit
+         
+*        The inputed RG is always in kpc and VG is in km/s
+*        convert to NB unit
          RG(1:3) = RG(1:3) * 1000.0 / RBAR
          VG(1:3) = VG(1:3) / VSTAR
-#if MPIINIT
-         CALL MPI_BCAST(RGKPC,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-         CALL MPI_BCAST(VGPCMYR,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-         CALL MPI_BCAST(RG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-         CALL MPI_BCAST(VG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-#endif 
-
-*     calculate Rtide
-         R02 = RG(1)**2 + RG(2)**2
-         OMEGA = (RG(1)*VG(2) - RG(2)*VG(1))/R02
-
-*       Form tidal radius from circular angular velocity (assumes apocentre).
-         IF (RTIDE.EQ.0.0D0) RTIDE = (0.5/OMEGA**2)**0.3333
-
-*     initial c.m. f and fdot
-         call fmwpot(RG, VG, FG, FGD)
-
-*     initial c.m. energy
-         call pmwpot(RG, ETI)
-         EGPOT = ZMASS*ETI
-         EGKIN = 0.5D0*ZMASS*(VG(1)*VG(1)+VG(2)*VG(2)+VG(3)*VG(3))
-         
-*      
-         if(rank.eq.0) then
-            write (6,85) RGKPC, VGPCMYR, OMEGA, RTIDE*RBAR,EGPOT,EGKIN
- 85         FORMAT (/,12X,'Milky-Way Galaxy potential (Bovy 2015)'
-     &           '  RG[kpc] =',1P,3E16.8,'  VG[pc/myr] =',3E16.8,
-     &           '  OMEGA =',E9.1, '  RTIDE[pc] =',E9.2,
-     &           '  POT = ',E16.8, ' KIN = ',E16.8,0P)
-
-         end if
-
+*        initial potential
+         call mwpotinit(RBAR,VSTAR,TSTAR)
       END IF
 
       RTIDE0 = RTIDE

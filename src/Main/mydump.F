@@ -59,6 +59,8 @@
      &               R(KMAX),R0(KMAX),GAMMA(KMAX),SF(7,KMAX),H0(KMAX),
      &               FP0(4,KMAX),FD0(4,KMAX),KBLIST(10*KMAX),
      &               KSLOW(KMAX),DTGW(KMAX),TBLIST
+*     
+      COMMON/GALAXY/ RG(3),VG(3)
 *
       REAL*8 CC(265)
       EQUIVALENCE (CC(1),C(1))
@@ -166,6 +168,7 @@
      &       ((tteigenv(k,i),k=1,3),i=1,3),(ttrtide(k),k=1,3)
 *** FRenaud
 #endif
+        write (J) (VG(i),i=1,3),(RG(i),i=1,3)
         END FILE J
         CLOSE (UNIT=J)
         END IF
@@ -312,6 +315,8 @@
      *       ((tteigenv(k,i),k=1,3),i=1,3),(ttrtide(k),k=1,3)
 
 #endif
+
+        read (J) (VG(i),i=1,3),(RG(i),i=1,3)
 
         end if
 
@@ -486,6 +491,8 @@
        CALL MPI_BCAST(tteigenv(1,1),9,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(ttrtide(1),3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 #endif
+       CALL MPI_BCAST(RG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(VG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        call cputim(tt998)
        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
        call cputim(tt999)

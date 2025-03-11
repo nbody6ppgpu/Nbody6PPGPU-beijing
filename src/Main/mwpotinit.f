@@ -51,8 +51,53 @@
       FD_PcMyr3= F_PcMyr2/TSCALE*1000.0D0 ! pc/Myr^3
       P_kpcPcMyr2= F_PcMyr2*R_KPC !pc^2/Myr^2
 
+      call mwpotinitPartTwo()
 
       RETURN
 
+      END
+
+*----------------------------------------------------
+      SUBROUTINE mwpotinitPartTwo()
+*     
+*     The second part, to run inside common block, taken from 
+*       Long's code in xtrnl0.F
+*     This part may go to the subroutine above, but due to conflict in 
+*       the common block variable names, it is separated.
+*     K. Wu  2025.March.11
+*
+      INCLUDE 'common6.h'
+      INCLUDE 'galaxy.h'
+      INCLUDE 'MWpotential.h'
+#ifdef PARALLEL
+         CALL MPI_BCAST(RG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+         CALL MPI_BCAST(VG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+#endif 
+
+*     calculate Rtide
+         R02 = RG(1)**2 + RG(2)**2
+         OMEGA = (RG(1)*VG(2) - RG(2)*VG(1))/R02
+
+*       Form tidal radius from circular angular velocity (assumes apocentre).
+         IF (RTIDE.EQ.0.0D0) RTIDE = (0.5/OMEGA**2)**0.3333
+
+*     initial c.m. f and fdot
+         call fmwpot(RG, VG, FG, FGD)
+
+*     initial c.m. energy
+         call pmwpot(RG, ETI)
+         EGPOT = ZMASS*ETI
+         EGKIN = 0.5D0*ZMASS*(VG(1)*VG(1)+VG(2)*VG(2)+VG(3)*VG(3))
+*      
+         if(rank.eq.0) then
+           write (6,85) RG*R_KPC,VG*V_PcMyr,OMEGA,RTIDE*RBAR,EGPOT,EGKIN
+ 85        FORMAT (/,12X,'Milky-Way Galaxy potential (Bovy 2015)'
+     &           '  RG[kpc] =',1P,3E16.8,'  VG[pc/myr] =',3E16.8,
+     &           '  OMEGA =',E9.1, '  RTIDE[pc] =',E9.2,
+     &           '  POT = ',E16.8, ' KIN = ',E16.8,0P)
+
+         end if
+
+      RETURN
       END
 
