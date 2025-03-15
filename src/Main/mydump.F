@@ -12,7 +12,7 @@
 #ifdef TT
       INCLUDE 'tt.h'
 #endif
-      PARAMETER  (NA=85,NB=168,NC=530,ND=381+MLR+MLD+MLV,NE=24,NM=40,
+      PARAMETER  (NA=85,NB=168,NC=530,ND=381+MLR+MLD+MLV,NE=24,NM=60,
      &    NG=132,NL=99,NO=20*MCL+16,NP=32*NTMAX,NQ=31*MMAX,
      &    NS=44*MMAX)
       REAL*4  B,C,D,E,G,L,M,O,P,Q,S
@@ -59,8 +59,6 @@
      &               R(KMAX),R0(KMAX),GAMMA(KMAX),SF(7,KMAX),H0(KMAX),
      &               FP0(4,KMAX),FD0(4,KMAX),KBLIST(10*KMAX),
      &               KSLOW(KMAX),DTGW(KMAX),TBLIST
-*     
-      COMMON/GALAXY/ RG(3),VG(3)
 *
       REAL*8 CC(265)
       EQUIVALENCE (CC(1),C(1))
@@ -168,7 +166,6 @@
      &       ((tteigenv(k,i),k=1,3),i=1,3),(ttrtide(k),k=1,3)
 *** FRenaud
 #endif
-        write (J) (VG(i),i=1,3),(RG(i),i=1,3)
         END FILE J
         CLOSE (UNIT=J)
         END IF
@@ -315,8 +312,6 @@
      *       ((tteigenv(k,i),k=1,3),i=1,3),(ttrtide(k),k=1,3)
 
 #endif
-
-        read (J) (VG(i),i=1,3),(RG(i),i=1,3)
 
         end if
 
@@ -491,8 +486,6 @@
        CALL MPI_BCAST(tteigenv(1,1),9,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(ttrtide(1),3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 #endif
-       CALL MPI_BCAST(RG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-       CALL MPI_BCAST(VG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        call cputim(tt998)
        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
        call cputim(tt999)
