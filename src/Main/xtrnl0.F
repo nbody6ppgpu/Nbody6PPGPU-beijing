@@ -305,6 +305,17 @@ C          IF (RTIDE.EQ.0.0D0) RTIDE = 10.0
 *        convert to NB unit
          RG(1:3) = RG(1:3) * 1000.0 / RBAR
          VG(1:3) = VG(1:3) / VSTAR
+#ifdef PARALLEL
+         CALL MPI_BCAST(RG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+         CALL MPI_BCAST(VG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+#endif 
+
+*     calculate Rtide, same method as KZ(14)=3 (around '30     CONTINUE')
+         R02 = RG(1)**2 + RG(2)**2
+         OMEGA = (RG(1)*VG(2) - RG(2)*VG(1))/R02
+*       Form tidal radius from circular angular velocity (assumes apocentre).
+         IF (RTIDE.EQ.0.0D0) RTIDE = (0.5/OMEGA**2)**0.3333
+         
 *        initial potential
          call mwpotinit(RBAR,VSTAR,TSTAR)
       END IF
