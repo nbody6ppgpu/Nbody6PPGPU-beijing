@@ -14,6 +14,12 @@
 
       FG = 0
       FGD =0
+*     mod of RG will be used as dominator in all forces below
+*     if too small then the cluster is too close to center = no force
+      if(sqrt(RG(1)**2+RG(2)**2+RG(3)**2).lt.tinyR) then
+           return
+      end if
+
 *     bulge
       call F_PowCut(RGKPC,VGPCMYR,FS,FSD)
       FG = FG  + FS
