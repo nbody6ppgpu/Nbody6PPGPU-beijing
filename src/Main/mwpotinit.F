@@ -69,17 +69,6 @@
       INCLUDE 'common6.h'
       INCLUDE 'galaxy.h'
       INCLUDE 'MWpotential.h'
-#ifdef PARALLEL
-         CALL MPI_BCAST(RG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-         CALL MPI_BCAST(VG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-#endif 
-
-*     calculate Rtide
-         R02 = RG(1)**2 + RG(2)**2
-         OMEGA = (RG(1)*VG(2) - RG(2)*VG(1))/R02
-
-*       Form tidal radius from circular angular velocity (assumes apocentre).
-         IF (RTIDE.EQ.0.0D0) RTIDE = (0.5/OMEGA**2)**0.3333
 
 *     initial c.m. f and fdot
          call fmwpot(RG, VG, FG, FGD)

@@ -161,14 +161,24 @@
 *
 *       Define the angular velocity (z-component) and mass in N-body units.
           R02 = RG(1)**2 + RG(2)**2
-          OMEGA = (RG(1)*VG(2) - RG(2)*VG(1))/R02
+          if (R02.EQ.0.D0) then
+             OMEGA = 0.D0
+          else
+             OMEGA = (RG(1)*VG(2) - RG(2)*VG(1))/R02
+          END IF
           TIDAL(4) = 2.0*OMEGA
           GMG = GMG/ZMTOT
           GMB = GMB/ZMTOT
           AR = 1000.0*AR/RBAR
 
 *       Form tidal radius from circular angular velocity (assumes apocentre).
-          IF (RTIDE.EQ.0.0D0) RTIDE = (0.5/OMEGA**2)**0.3333
+          IF (RTIDE.EQ.0.0D0) THEN
+            if (r02.lt.(10*RSCALE)**2) then 
+                RTIDE = 1.0E30 ! cluster position close to galaxy center; tidal radius should be inf
+            else
+                RTIDE = (0.5/OMEGA**2)**0.3333
+            end if
+          END IF
 *       Adopt a tidal radius of 10 units unless specified by routine SCALE.
 C          IF (RTIDE.EQ.0.0D0) RTIDE = 10.0
 *
@@ -305,6 +315,27 @@ C          IF (RTIDE.EQ.0.0D0) RTIDE = 10.0
 *        convert to NB unit
          RG(1:3) = RG(1:3) * 1000.0 / RBAR
          VG(1:3) = VG(1:3) / VSTAR
+#ifdef PARALLEL
+         CALL MPI_BCAST(RG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+         CALL MPI_BCAST(VG,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+#endif 
+
+*     calculate Rtide, same method as KZ(14)=3 (around '30     CONTINUE')
+         R02 = RG(1)**2 + RG(2)**2
+         if (R02.EQ.0.D0) then
+            OMEGA = 0.D0
+         else
+            OMEGA = (RG(1)*VG(2) - RG(2)*VG(1))/R02
+         END IF
+
+*       Form tidal radius from circular angular velocity (assumes apocentre).
+          IF (RTIDE.EQ.0.0D0) THEN
+            if (r02.lt.100*RSCALE**2) then 
+                RTIDE = 1.0E30 ! cluster position close to galaxy center; tidal radius should be inf
+            else
+                RTIDE = (0.5/OMEGA**2)**0.3333
+            end if
+          END IF
 *        initial potential
          call mwpotinit(RBAR,VSTAR,TSTAR)
       END IF
