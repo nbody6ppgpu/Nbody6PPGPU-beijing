@@ -16,6 +16,7 @@
       REAL*8 D_AMP, D_A, D_B, D_NORM  
       REAL*8 H_AMP, H_A, H_NORM
       REAL*8 F_PcMyr2, FD_PcMyr3, V_PcMyr, R_KPC, P_kpcPcMyr2
+      REAL*8 tinyR
       PARAMETER (tinyR=1.D-9)
       
       
