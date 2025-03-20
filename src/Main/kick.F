@@ -168,7 +168,8 @@
       CONVF = 5.0D0
       MNUEFF = 7.0D0
       MNSTYP = 1.4D0
-      KMECH = 3
+* KMECH is now an input parameter with default 1 for level A,B, and 4 for C.
+*     KMECH = 3
 
 *******
 
