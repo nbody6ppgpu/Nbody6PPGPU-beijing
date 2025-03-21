@@ -6,6 +6,7 @@
 *     
       INCLUDE 'common6.h'
       INCLUDE 'timing.h'
+      INCLUDE 'galaxy.h'
 #ifdef TT
       include 'tt.h'
 #endif
