@@ -218,7 +218,14 @@ c$$$         ALPHA = FAC*ALPHA
 c$$$      END IF
 *     
 *     Define tidal radius for isolated system (2*RTIDE used in ESCAPE).
-      IF (KZ(14).EQ.0) RTIDE = 10.0*RSCALE
+      IF (KZ(14) .EQ. 0) THEN
+          RTIDE = 10.0 * RSCALE
+      ELSE IF (KZ(14) .EQ. 1 .OR. KZ(14) .EQ. 2) THEN
+          RTIDE = (ZMASS/TIDAL(1))**0.3333
+      ELSE IF (KZ(14) .EQ. 3 .OR. KZ(14) .EQ. 4 .OR. KZ(14) .EQ. 5) THEN
+          OMEGA = (RG(1)*VG(2) - RG(2)*VG(1))/R02
+          RTIDE = (0.5/OMEGA**2)**0.3333
+      END IF
 #ifdef TT
 *** FlorentR - set the tidal radius
       IF (KZ(14).EQ.9) THEN
