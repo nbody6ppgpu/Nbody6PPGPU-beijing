@@ -242,24 +242,12 @@
 #endif
           CALL XTRNLV(I,I)
           ZK = ZK + HT
-          RTIDE = (ZMASS/TIDAL(1))**0.3333
-      ELSE IF (KZ(14).EQ.4.OR.KZ(14).EQ.3.OR.KZ(14).EQ.5) THEN
-          RTIDE = RTIDE0*ZMASS**0.3333
-#ifdef TT
-      ELSE IF (KZ(14).EQ.9) THEN
-         IF(TTMODE.NE.1) THEN
-*     Temporary solution, need to be checked in the future
-            RTIDE = 10.*RSCALE
-         END IF
-*** FRenaud
-#endif
       END IF
       EI = ZK - BODY(I)*POTI
 *
 *       Update tidal radius in case of tidal cutoff (R.Sp.)
       IF(KZ(23).EQ.3)THEN
           RTOLD = RTIDE
-          RTIDE = RTIDE*(ZMASS/ZMOLD)**0.3333
       END IF
 *
 *       Correct total energy.
