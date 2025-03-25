@@ -4,6 +4,7 @@
 *     Parameter adjustment and energy check.
 *     --------------------------------------
 *     
+      use, intrinsic :: ieee_arithmetic
       INCLUDE 'common6.h'
       INCLUDE 'timing.h'
       INCLUDE 'galaxy.h'
@@ -224,8 +225,22 @@ c$$$      END IF
       ELSE IF (KZ(14) .EQ. 1 .OR. KZ(14) .EQ. 2) THEN
           RTIDE = (ZMASS/TIDAL(1))**0.3333
       ELSE IF (KZ(14) .EQ. 3 .OR. KZ(14) .EQ. 4 .OR. KZ(14) .EQ. 5) THEN
-          OMEGA = (RG(1)*VG(2) - RG(2)*VG(1))/R02
-          RTIDE = (0.5/OMEGA**2)**0.3333
+*        calculate Rtide, same method as xtrnl0.F
+         R02 = RG(1)**2 + RG(2)**2
+         if (R02.EQ.0.D0) then
+            OMEGA = 0.D0
+         else
+            OMEGA = (RG(1)*VG(2) - RG(2)*VG(1))/R02
+         END IF
+         IF (RTIDE.EQ.0.0D0 .OR. 
+     &         (ieee_is_nan(RTIDE) .OR. 
+     &            ieee_is_finite(RTIDE) .EQV. .FALSE.)) THEN
+            if (r02.lt.100*RSCALE**2) then 
+                RTIDE = 1.0E30 
+            else
+                RTIDE = (0.5/OMEGA**2)**0.3333
+            end if
+         END IF
       END IF
 #ifdef TT
 *** FlorentR - set the tidal radius
