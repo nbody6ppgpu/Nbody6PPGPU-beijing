@@ -498,7 +498,7 @@ c		Sambaran 2019.11.19.
    18     FORMAT (' ZERO VELOCITY KICK: TIME[NB] ',1P,E17.10,' I ',I10,
      &         '  NAME ',I10,' K*0 ',I4,'  K* ',I4,'  K*(ICM) ',I4,
      &         '  Time[Myr] ',E12.5,' M0[M*] ',E12.5,' MN[M*] ',E12.5,
-     &         '  VI[km/s] ',E12.5,' VK[km/s] ',E12.5' VF[km/s] ',E12.5,
+     &         '  VI[km/s] ',E12.5,' VK[km/s] ',E12.5,' VF[km/s] ',E12.5,
      &         '  VK0[km/s] ',E12.5,' FB ',E12.5,
      &         ' X(1,2,3) ', 3E12.5, ' V(1,2,3) ', 3E12.5)
          GO TO 30
@@ -564,9 +564,9 @@ c		Sambaran 2019.11.19.
    20     FORMAT (' FULL VELOCITY KICK: TIME[NB]',1P,E17.10,' I',I10,
      &         '  NAME',I10,' K*0',I4,'  K*',I4,'  K*(ICM)',I4,
      &         '  Time[Myr]',E12.5,' M0[M*]',E12.5,' MN[M*]',E12.5,
-     &         '  VI[km/s]',E12.5,' VK[km/s]',E12.5' VF[km/s]',E12.5,
+     &         '  VI[km/s]',E12.5,' VK[km/s]',E12.5,' VF[km/s]',E12.5,
      &         '  VK0[km/s]',E12.5,' FB',E12.5,
-     &         ' X(1,2,3)', E12.5, ' V(1,2,3)', E12.5)
+     &         ' X(1,2,3)', 3E12.5, ' V(1,2,3)', 3E12.5)
           KC = 0
 *     END IF
 *

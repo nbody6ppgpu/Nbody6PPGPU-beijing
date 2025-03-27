@@ -61,15 +61,15 @@ C      IF (NDISS + NCOLL + NCOAL.GT.0.OR.EGRAV.LT.0.0D0) THEN
       if(rank.eq.0)then
          WRITE (6,30)
  30      FORMAT (/,5X,' NDISS NTIDE  NSYNC  NCOLL  NCOAL  NDD  NCIRC',
-     &        '  NROCHE  NRO  NCE  NHYP  NHYPC  NKICK  EBIN ',
-     &        '  EMERGE  ECOLL  EMDOT  ECDOT  EKICK  ESESC ',
+     &        '  NROCHE  NRO  NCE  NHYP  NHYPC  NKICK   EBIN ',
+     &        '  EMERGE   ECOLL  EMDOT  ECDOT  EKICK    ESESC ',
      &        '  EBESC  EMESC  DEGRAV   EBIND  MMAX')
          WRITE (6,35)  NDISS, NTIDE, NSYNC, NCOLL, NCOAL, NDD, NCIRC,
      &        NROCHE, NRO, NCE, NHYP, NHYPC, NKICK, EBIN, EMERGE,
      &        ECOLL, EMDOT, ECDOT, EKICK, ESESC, EBESC,
      &        EMESC, DEGRAV, E(3), ZMX
- 35      FORMAT (' #5',I8,I6,3I7,I5,I7,I8,2I5,I6,2I7,3F8.3,4F7.3,F8.3,
-     &        F7.3,2F8.3,F6.1)
+ 35      FORMAT (' #5',I8,I6,3I7,I5,I7,I8,2I5,I6,2I7,3F8.3,3F7.3,
+     &        F10.3,F7.3,F8.3,F7.3,2F8.3,F6.1)
       end if
 C      END IF
 
