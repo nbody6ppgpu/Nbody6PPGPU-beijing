@@ -28,6 +28,7 @@
       ETAICURR0 = ETAI
       ETARCURR0 = ETAR
       ETAUCURR0 = ETAU
+      DTADJCURR0 = DTADJ
 
 *
       if(rank.eq.0)then
@@ -89,6 +90,10 @@
          IF (KZ(17).GT.1) THEN
              ETAU = ETAUCURR0
          END IF
+
+         ! Before dump, TADJ = TADJ + DTADJ was calculated and saved 
+         ! To immediately apply new DTADJ: 
+         TADJ = TADJ - DTADJCURR0 + DTADJ
 *
          WRITE (6,10)
  10      FORMAT(//,30X,'RESTART PARAMETERS:',/,30X,'==================')
