@@ -27,6 +27,9 @@
       COMMON/h5part/ h5_file_id, h5_step, h5_group_id, h5_dset_ids,
      &     h5_vec_len, h5_file_name, h5_current_time
       INTEGER*4 :: ERROR
+      CHARACTER(LEN=64) :: obj_name
+      INTEGER*4 :: obj_type, num_objs
+      LOGICAL :: file_exists
       
 *       Close any previously opened file (if any)
       IF (h5_file_id .GT. 0) CALL HDF5_CLOSE
@@ -36,11 +39,29 @@
 
 *     Create a new file using default properties.
       h5_file_name = h5_fname
-      CALL h5fcreate_f(TRIM(h5_file_name), H5F_ACC_TRUNC_F, h5_file_id, 
-     &      ERROR)
-
-      h5_step = -1
-      print*, 'HDF5 Init ID:',h5_file_id,' Snapshot file: ',h5_file_name
+      INQUIRE(FILE=TRIM(h5_file_name), EXIST=file_exists)
+      IF (file_exists) THEN
+        CALL h5fopen_f(TRIM(h5_file_name), H5F_ACC_RDWR_F, h5_file_id, 
+     &                   ERROR)
+        CALL h5gn_members_f(h5_file_id, '/', num_objs, ERROR)
+        h5_step = -1
+        DO i = 0, num_objs-1
+          CALL h5gget_obj_info_idx_f(h5_file_id, '/', i, obj_name, 
+     &                                obj_type, ERROR)
+          IF (obj_type==H5G_GROUP_F .AND. obj_name(1:5)=='Step#') THEN
+            h5_step = h5_step + 1
+          END IF
+        END DO
+        print*, 'Reuse HDF5 with ID:',h5_file_id,' Snapshot file: ',
+     &            h5_file_name, 'at Step#',h5_step
+        ! h5_current_time = TTOT
+      ELSE
+        CALL h5fcreate_f(TRIM(h5_file_name), H5F_ACC_EXCL_F, h5_file_id,
+     &                   ERROR)
+        h5_step = -1
+        print*, 'HDF5 Init ID:',h5_file_id,' Snapshot file: ',
+     &            h5_file_name
+      ENDIF
       h5_group_id = 0
       h5_prev_group_id = 0
       h5_current_time = -999.0
