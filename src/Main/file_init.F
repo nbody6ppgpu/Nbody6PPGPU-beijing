@@ -90,7 +90,8 @@
 #endif
 * At beginning of run make sure all files are deleted, except those to
 * read from or stdin, stdout (5,6,10,21) .
-      IF(TTOT.EQ.0.D0)THEN
+* Beginning of run means TTOT=0 and KSTART=1, as a double check
+      IF(TTOT.EQ.0.D0.AND.KSTART.EQ.1) THEN
          DO IFILE = 1,100
          LSKIP = IFILE.EQ.5.OR.IFILE.EQ.6.OR.IFILE.EQ.10.OR.IFILE.EQ.21
          IF(LSKIP) GOTO 123
