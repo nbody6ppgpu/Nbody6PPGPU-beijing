@@ -578,7 +578,7 @@ c		Sambaran 2019.11.19.
      &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
    25     FORMAT (' LOW KICK:    I',I10,'  NAME',I10,'  K*',I4,
      &         '  VK[km/s]',F7.2,'  VF[km/s]',F7.2,
-     &         ' X(1,2,3)', E12.5, ' V(1,2,3)', E12.5)
+     &         ' X(1,2,3)',3E12.5, ' V(1,2,3)',3E12.5)
       END IF
 *
 *       Include optional list of high-velocity particles (double counting!).
