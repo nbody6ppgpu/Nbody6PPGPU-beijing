@@ -313,7 +313,7 @@
      &    WRITE (6,20)  NAME(I1), NAME(I2), SEMI1, ECC, ECC1, HI,
      &                  QPERI, DH, DP
    20     FORMAT (' NEW KSTIDE    NAM AF E0 EF HI QP DH DP ',
-     &                            2I5,1P,E11.3,0P,2F8.3,F9.1,1P,3E11.3)
+     &                            2I9,1P,E11.3,0P,2F8.3,F9.1,1P,3E11.3)
           TTIDE = TIME + TOFF
           IONE = IONE + 1
       END IF

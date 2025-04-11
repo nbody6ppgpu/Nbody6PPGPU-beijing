@@ -199,7 +199,7 @@ c$$$#endif
                  TEV(I) = TIME + DTR
                  if(rank.eq.0)
      &           WRITE(6,902)I,NAME(I),IPAIR,KSTAR(I),TEV(I),TTOT
- 902             FORMAT(' WARNING   MDOT NO ROCHE ',3i6,i4,1x,1p,2e13.4)
+ 902             FORMAT(' WARNING   MDOT NO ROCHE ',3i9,i4,1x,1p,2e13.4)
               ENDIF
           ELSE
 *       Include other cases (even types outside 10 R_sun).

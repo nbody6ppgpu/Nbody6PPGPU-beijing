@@ -92,8 +92,11 @@
          END IF
 
          ! Before dump, TADJ = TADJ + DTADJ was calculated and saved 
-         ! To immediately apply new DTADJ: 
-         TADJ = TADJ - DTADJCURR0 + DTADJ
+         ! in case of DTADJ update, new TADJ = TADJ - DTADJCURR0 + DTADJ
+         ! but if TADJ < TTOT, error happens; in this case do not change
+         if (TADJ - DTADJCURR0 + DTADJ .GT. TTOT) then
+            TADJ = TADJ - DTADJCURR0 + DTADJ
+         end if
 *
          WRITE (6,10)
  10      FORMAT(//,30X,'RESTART PARAMETERS:',/,30X,'==================')
