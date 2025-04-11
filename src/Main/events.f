@@ -27,13 +27,13 @@ C      IF (NMDOT.GT.0) THEN
 *
       if(rank.eq.0)then
          WRITE (6,15)
- 15      FORMAT (/,6X,'  NMDOT NRG  NHE  NRS  NNH  NWD  NSN  NBH  NBS',
-     &        '  ZMRG  ZMHE  ZMRS  ZMNH  ZMWD  ZMSN   ZMDOT',
-     &        '  NTYPE')
+ 15      FORMAT (/,6X,' NMDOT  NRG   NHE   NRS   NNH   NWD   NSN   NBH',
+     &        '   NBS    ZMRG    ZMHE    ZMRS    ZMNH    ZMWD    ZMSN',
+     &        '   ZMDOT   NTYPE')
          WRITE (6,20)  NMDOT, NRG, NHE, NRS, NNH, NWD, NSN, NBH, NBS,
      &        ZMRG, ZMHE, ZMRS, ZMNH, ZMWD, ZMSN, ZMDOT,
      &        (NTYPE(J),J=1,KM)
- 20      FORMAT (' #4',I9,8I5,6F6.1,F8.1,I7,I6,9I4,I5,3I7)
+ 20      FORMAT (' #4',I9,8I6,7F8.1,I8,I7,9I4,I5,3I7)
       end if
 C      END IF
 *

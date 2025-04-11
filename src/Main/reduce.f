@@ -136,7 +136,7 @@ C              call exchange_tlist(I,ICH,STEP,DTK)
 *
       IF (rank.eq.0.and.KZ(30).GT.1) THEN
           WRITE (6,53)  NAME0, NAME(ICH), ICH
-   53     FORMAT (' REDUCE:    SWITCH C.M.    NAME0 NAMECH ICH ',3I5)
+   53     FORMAT (' REDUCE:    SWITCH C.M.    NAME0 NAMECH ICH ',3I9)
       END IF
 *
 *       Exchange name of reference body and initialize new c.m. name.

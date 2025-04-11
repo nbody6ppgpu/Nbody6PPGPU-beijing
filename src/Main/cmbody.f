@@ -135,7 +135,7 @@ c$$$          END IF
               WRITE (6,200)  NAME(JX), ECCX, RX, SEMIX*(1.0 - ECCX),
      &                       RDX, SEMI
   200         FORMAT (' PERTURBER:    NM E1 RX PM RD A0 ',
-     &                                I6,F7.3,1P,4E9.1)
+     &                                I9,F7.3,1P,4E9.1)
           END IF
 *
 *       Search for evidence of recent regularization.

@@ -1440,7 +1440,7 @@ C      END IF
      &        ERRTOT, DETOT
  98      FORMAT (//,9X,'COMMON SAVED AT TOFF/TIME/TTOT =',1P,E16.8,
      &        '  TCOMP =',E16.8,'  CPUTOT =',E16.8,
-     &                  '  ERRTOT =',F10.6,'  DETOT =',F10.6)
+     &                  '  ERRTOT =',F12.5,'  DETOT =',F12.5)
       END IF
 *
 *     Determine time interval and step numbers per time unit
