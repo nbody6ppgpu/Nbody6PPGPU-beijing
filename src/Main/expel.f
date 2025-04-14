@@ -336,7 +336,7 @@ cnew-abbas-26/07/2017
                  if(rank.eq.0)WRITE (6,35)  KW1, R(IPAIR)/SEMI, SEMI*SU,
      &                          BODY(I)*ZMBAR, (XDOT(K,I)*VSTAR,K=1,3)
    35             FORMAT (' WD/NS BINARY    KW R/A A M V ',
-     &                                      I4,3F7.2,3F7.1)
+     &                                      I4,3F11.2,3F11.1)
               END IF
           ELSE
 *       Set new binary indicator and Roche look-up time (ECC > 0 is OK).
