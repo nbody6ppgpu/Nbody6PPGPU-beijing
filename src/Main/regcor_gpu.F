@@ -717,7 +717,7 @@ c$$$      END IF
           FDRT =  SQRT(FDR(1)**2+FDR(2)**2+FDR(3)**2)
           NNB = LIST(1,I)
           NB1 = LIST(2,I)
-         write(6,81) ttot,i,name(i),kstar(i),dt0/stepr(i),dt0,stepr(i),
+         write(0,81) ttot,i,name(i),kstar(i),dt0/stepr(i),dt0,stepr(i),
      &        STEP(I),BODY(I)*ZMBAR,RI,VI,FIT,FDIT,FRT,FDRT,
      &        NNB,NB1,NAME(NB1),KSTAR(NB1),BODY(NB1)*ZMBAR
          call flush(6)

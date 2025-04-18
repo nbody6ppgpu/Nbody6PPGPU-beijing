@@ -1072,8 +1072,10 @@ cc          WRITE (h5_step_name, *), h5_step
       CALL HDF5_write_integer_vector_as_dset(h5_group_id,
      &     '163 Bin cm Name', NB_NAMC, N_BINARY, 1, h5_dset_ids(126),
      &     original_vec_len,finalize)
+      CALL HDF5_write_integer_vector_as_dset(h5_group_id,
+     &     '176 Bin cm Name', NB_LAB, N_BINARY, 1, h5_dset_ids(139),
+     &     original_vec_len,finalize)
 
-      CALL HDF5_write_real_vector_as_dset(h5_group_id,
      &        '164 ASPN1', B_ASPN1, N_BINARY, 1, h5_dset_ids(127),
      &        original_vec_len,finalize)
       CALL HDF5_write_real_vector_as_dset(h5_group_id,
@@ -1110,7 +1112,8 @@ cc          WRITE (h5_step_name, *), h5_step
 *     CALL HDF5_write_integer_vector_as_dset(h5_group_id,
 *    &        '175 NPOPU2', NB_NPOPU2, N_BINARY, 1, h5_dset_ids(138), 
 *    &        original_vec_len,finalize)
-
+*     176 see above NB_LAB h5_dset_ids(139)
+*
 
       CALL h5fflush_f(h5_group_id, H5F_SCOPE_LOCAL_F, error)
       CALL h5gclose_f(h5_group_id, error) 
@@ -1132,7 +1135,8 @@ cc          WRITE (h5_step_name, *), h5_step
       IF(KMODE.EQ.1.OR.KMODE.EQ.3) THEN
        OPEN (UNIT=40,STATUS='UNKNOWN',FORM='UNFORMATTED',FILE=filename)
        WRITE (40) N_BINARY, NB_NAM1(1:N_BINARY), NB_NAM2(1:N_BINARY),
-     &     NB_NAMC(1:N_BINARY), B_M1(1:N_BINARY), B_M2(1:N_BINARY),
+     &     NB_NAMC(1:N_BINARY), NB_LAB(1:N_BINARY), 
+     &     B_M1(1:N_BINARY), B_M2(1:N_BINARY),
      &     B_XC1(1:N_BINARY), B_XC2(1:N_BINARY), B_XC3(1:N_BINARY),
      &     B_VC1(1:N_BINARY), B_VC2(1:N_BINARY), B_VC3(1:N_BINARY), 
      &     B_FC1(1:N_BINARY), B_FC2(1:N_BINARY), B_FC3(1:N_BINARY),
@@ -1172,7 +1176,7 @@ cc          WRITE (h5_step_name, *), h5_step
           IF(KRED.EQ.1) THEN
              DO K=1,N_BINARY
                WRITE (40,*) NB_NAM1(K), NB_NAM2(K),
-     &         NB_NAMC(K), B_M1(K), B_M2(K),
+     &         NB_NAMC(K), NB_LAB(K), B_M1(K), B_M2(K),
      &         B_XC1(K), B_XC2(K), B_XC3(K),
      &         B_VC1(K), B_VC2(K), B_VC3(K), 
      &         B_FC1(K), B_FC2(K), B_FC3(K),
@@ -1198,7 +1202,7 @@ cc          WRITE (h5_step_name, *), h5_step
           ELSE 
              DO K=1,N_BINARY
              WRITE (40,*) NB_NAM1(K), NB_NAM2(K),
-     &         NB_NAMC(K), B_M1(K), B_M2(K),
+     &         NB_NAMC(K), NB_LAB(K), B_M1(K), B_M2(K),
      &         B_XC1(K), B_XC2(K), B_XC3(K),
      &         B_VC1(K), B_VC2(K), B_VC3(K),
      &         B_FC1(K), B_FC2(K), B_FC3(K),
@@ -1228,7 +1232,7 @@ cc          WRITE (h5_step_name, *), h5_step
           IF(KRED.EQ.1) THEN
               DO K=1,N_BINARY
                 WRITE (40,*) NB_NAM1(K), NB_NAM2(K),
-     &          NB_NAMC(K), B_M1(K), B_M2(K),
+     &          NB_NAMC(K), NB_LAB(K), B_M1(K), B_M2(K),
      &          B_XC1(K), B_XC2(K), B_XC3(K),
      &          B_VC1(K), B_VC2(K), B_VC3(K), 
      &          B_FC1(K), B_FC2(K), B_FC3(K),
@@ -1248,7 +1252,7 @@ cc          WRITE (h5_step_name, *), h5_step
           ELSE
               DO K=1,N_BINARY
                 WRITE (40,*) NB_NAM1(K), NB_NAM2(K),
-     &          NB_NAMC(K), B_M1(K), B_M2(K),
+     &          NB_NAMC(K), NB_LAB(K), B_M1(K), B_M2(K),
      &          B_XC1(K), B_XC2(K), B_XC3(K),
      &          B_VC1(K), B_VC2(K), B_VC3(K),
      &          B_FC1(K), B_FC2(K), B_FC3(K),

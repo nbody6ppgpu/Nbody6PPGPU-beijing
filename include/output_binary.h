@@ -25,7 +25,8 @@
      &                  B_MC2(KMAX), B_A(KMAX), B_ECC(KMAX), B_P(KMAX),
      &                  B_G(KMAX),
      &                  NB_KW1(KMAX), NB_NAM1(KMAX), NB_KW2(KMAX), 
-     &                  NB_NAM2(KMAX), NB_KWC(KMAX), NB_NAMC(KMAX)
+     &                  NB_NAM2(KMAX), NB_KWC(KMAX), NB_NAMC(KMAX),
+     &                  NB_LAB(KMAX)
       REAL*4 B_M1, B_M2, B_XC1, B_XC2, B_XC3, B_VC1, B_VC2, B_VC3
       REAL*4 B_FC1, B_FC2, B_FC3, B_FDC1, B_FDC2, B_FDC3, B_G
       REAL*4 B_D21, B_D22, B_D23, B_D31, B_D32, B_D33
@@ -38,4 +39,4 @@
       REAL*4 B_D21R, B_D22R, B_D23R, B_D31R, B_D32R, B_D33R
       REAL*4 B_RS1, B_L1, B_TE1, B_RS2, B_L2, B_TE2
       REAL*4 B_RC1, B_MC1, B_RC2, B_MC2,B_A, B_ECC, B_P, B_POT
-      INTEGER NB_KW1, NB_NAM1, NB_KW2, NB_NAM2, NB_KWC, NB_NAMC
+      INTEGER NB_KW1, NB_NAM1, NB_KW2, NB_NAM2, NB_KWC, NB_NAMC, NB_LAB
