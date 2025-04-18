@@ -145,6 +145,7 @@
                NB_NAMC(IK) = NAME(I)
                NB_NAM1(IK) = NAME(J1)
                NB_NAM2(IK) = NAME(J2)
+               NB_LAB(IK) = 1
 *     Dynamic information
                B_M1(IK) = REAL(BODY(J1)*MSCALE_OUT)
                B_M2(IK) = REAL(BODY(J2)*MSCALE_OUT)
@@ -644,6 +645,7 @@ C     &           + XREL(3,IM)*VREL(3,IM)
                NB_NAMC(IK) = IWBINC
                NB_NAM1(IK) = NAME(I)
                NB_NAM2(IK) = NAME(I2)
+               NB_LAB(IK) = 0
 *     Dynamic information
                B_M1(IK) = REAL(BODY(I)*MSCALE_OUT)
                B_M2(IK) = REAL(BODY(I2)*MSCALE_OUT)
@@ -953,6 +955,7 @@ C*     Binary
       NB_NAMC(IK) = NCM
       NB_NAM1(IK) = NAME(J1)
       NB_NAM2(IK) = NAME(J2)
+      NB_LAB(IK) = -1
 *
           S = TIME - T0(I)
           DTR = TIME - T0R(I)
