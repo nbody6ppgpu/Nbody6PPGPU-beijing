@@ -29,6 +29,7 @@
       ETARCURR0 = ETAR
       ETAUCURR0 = ETAU
       DTADJCURR0 = DTADJ
+      DELTATCURR0 = DELTAT
 
 *
       if(rank.eq.0)then
@@ -96,6 +97,10 @@
          ! but if TADJ < TTOT, error happens; in this case do not change
          if (TADJ - DTADJCURR0 + DTADJ .GT. TTOT) then
             TADJ = TADJ - DTADJCURR0 + DTADJ
+         end if
+         ! also safe check for TNEXT, for output
+         if (TNEXT - DELTATCURR0 + DELTAT .GT. TTOT) then
+            TNEXT = TNEXT - DELTATCURR0 + DELTAT
          end if
 *
          WRITE (6,10)
