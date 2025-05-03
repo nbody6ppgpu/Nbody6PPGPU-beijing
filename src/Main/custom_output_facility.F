@@ -1075,7 +1075,7 @@ cc          WRITE (h5_step_name, *), h5_step
       CALL HDF5_write_integer_vector_as_dset(h5_group_id,
      &     '176 Bin cm Name', NB_LAB, N_BINARY, 1, h5_dset_ids(139),
      &     original_vec_len,finalize)
-
+      CALL HDF5_write_real_vector_as_dset(h5_group_id,
      &        '164 ASPN1', B_ASPN1, N_BINARY, 1, h5_dset_ids(127),
      &        original_vec_len,finalize)
       CALL HDF5_write_real_vector_as_dset(h5_group_id,
