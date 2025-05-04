@@ -95,7 +95,7 @@ jobs:
         cd autotest; 
         export OMP_NUM_THREADS=$((`grep -c processor /proc/cpuinfo` < 32 ? `grep -c processor /proc/cpuinfo` : 32)); 
         export EXEC=`ls ../build/nbody6++*`; 
-        mpirun --allow-run-as-root --bind-to none -n 1 $EXEC < N10k_1nbtime.inp;
+        mpirun --allow-run-as-root --bind-to none -n 1 $EXEC < N10k_1nbtime.inp || $EXEC < N10k_1nbtime.inp;
         ls -alh;
 
 
