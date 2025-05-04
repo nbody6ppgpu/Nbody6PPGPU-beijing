@@ -14,7 +14,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: install dependencies
-      run: sudo apt-get install -y wget gfortran gcc g++; gcc --version; g++ --version; gfortran --version;
+      run: sudo apt update && sudo apt install -y wget gfortran gcc g++; gcc --version; g++ --version; gfortran --version;
 
     - name: configure
       run: >
@@ -42,31 +42,51 @@ jobs:
         ./$execname < N10k_1nbtime.inp;
 
 
-  old_input_transform_1k:
+  mpi_and_hdf5:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
 
     - name: install dependencies
-      run: sudo apt-get install -y wget gfortran gcc g++; gcc --version; g++ --version; gfortran --version;
+      run: > 
+        [[ $(curl -s http://ip-api.com | grep countryCode) =~ CN|HK ]] && wget -4 https://tuna.moe/oh-my-tuna/oh-my-tuna.py -P ~/ && sudo python3 ~/oh-my-tuna.py --global --yes;
+        sudo apt update && sudo apt install -y wget gfortran gcc g++ libhdf5-dev openmpi-bin openmpi-common libopenmpi-dev && gcc --version && g++ --version && mpif77 --version
 
     - name: configure
       run: >
-        ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large --disable-mpi --disable-gpu;
+        ./configure --with-par=b1m --enable-mcmodel=large --disable-gpu
+
+    - name: patch hdf5
+      run: |
+        cat << 'EOF' > hdf5.patch
+        25c25
+        < HDF5_FLAGS = -D H5OUTPUT
+        ---
+        > HDF5_FLAGS = -D H5OUTPUT -I/usr/include/hdf5/serial -L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5_fortran
+        30c30
+        < FFLAGS =  -O3 -fPIC -mcmodel=large -fopenmp -I../include $(MPI_FLAGS) ${SIMD_FLAGS} $(GPU_FLAGS) ${OMP_FLAGS}
+        ---
+        > FFLAGS =  -O3 -fPIC -mcmodel=large -fopenmp -I../include $(MPI_FLAGS) ${SIMD_FLAGS} $(GPU_FLAGS) ${OMP_FLAGS} ${HDF5_FLAGS}
+        122c122
+        < 	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++
+        ---
+        > 	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++ -lhdf5_fortran
+        EOF
+        cat hdf5.patch
+        cat build/Makefile
+        patch build/Makefile < hdf5.patch
 
     - name: make
-      run: make clean; make;
+      run: make clean && make -j
 
     - name: prepare simulation
       run: >
         mkdir autotest;
-        cp -p ./build/nbody6++.sse ./autotest/;
-        cp -p ./examples/input_files/@input-transform ./autotest/;
+        cp -p ./examples/input_files/N100k.inp ./autotest/;
+        cp -p ./examples/input_files/dat.10 ./autotest/;
         cd autotest;
-        wget https://github.com/wukai-meow/garage/raw/main/Nbody6ppGPU-inputfile/kai_1k_no_dat-10/1k.inp;
-        mv 1k.inp 1k.inp.old;
-        bash @input-transform 1k;
+        sed -r 's/\bN=[0-9]*/N=10000/g' N100k.inp | sed -r 's/\bTCRIT=[0-9]*/TCRIT=1/g' > N10k_1nbtime.inp ;
         pwd; ls -alh;
 
     - name: simulation
@@ -74,8 +94,9 @@ jobs:
         ulimit -s unlimited; 
         cd autotest; 
         export OMP_NUM_THREADS=$((`grep -c processor /proc/cpuinfo` < 32 ? `grep -c processor /proc/cpuinfo` : 32)); 
-        export execname=`ls nbody6++*`; 
-        ./$execname < 1k.inp.new;
+        export EXEC=`ls ../build/nbody6++*`; 
+        mpirun --allow-run-as-root --bind-to none -n 1 $EXEC < N10k_1nbtime.inp;
+        ls -alh;
 
 
   gcc9_old_1k:
@@ -85,7 +106,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: install dependencies
-      run: sudo apt-get install -y wget gcc-9 g++-9 gfortran-9;
+      run: sudo apt update && sudo apt install -y wget gcc-9 g++-9 gfortran-9;
 
     - name: configure
       run: >
