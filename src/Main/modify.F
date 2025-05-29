@@ -95,12 +95,22 @@
          ! Before dump, TADJ = TADJ + DTADJ was calculated and saved 
          ! in case of DTADJ update, new TADJ = TADJ - DTADJCURR0 + DTADJ
          ! but if TADJ < TTOT, error happens; in this case do not change
-         if (TADJ - DTADJCURR0 + DTADJ .GT. TTOT) then
+         if (TADJ - DTADJCURR0 + DTADJ .GT. TIME) then
             TADJ = TADJ - DTADJCURR0 + DTADJ
+         else
+             write(0,*) 'Warning: tentative new TADJ = TADJ - ',
+     &       'DTADJCURR0 + DTADJ [', TADJ - DTADJCURR0 + DTADJ,
+     &       ' = ', TADJ, ' - ', DTADJCURR0, ' + ', DTADJ,
+     &       '], is less than TIME = ', TIME, ' . TADJ not changed.'
          end if
          ! also safe check for TNEXT, for output
-         if (TNEXT - DELTATCURR0 + DELTAT .GT. TTOT) then
+         if (TNEXT - DELTATCURR0 + DELTAT .GT. TIME) then
             TNEXT = TNEXT - DELTATCURR0 + DELTAT
+         else
+             write(0,*) 'Warning: tentative new TNEXT = TNEXT - ',
+     &       'DELTATCURR0 + DELTAT [', TNEXT - DELTATCURR0 + DELTAT,
+     &       ' = ', TNEXT, ' - ', DELTATCURR0, ' + ', DELTAT,
+     &       '], is less than TIME = ', TIME, ' . TNEXT not changed.'
          end if
 *
          WRITE (6,10)

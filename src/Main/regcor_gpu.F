@@ -721,8 +721,8 @@ c$$$      END IF
      &        STEP(I),BODY(I)*ZMBAR,RI,VI,FIT,FDIT,FRT,FDRT,
      &        NNB,NB1,NAME(NB1),KSTAR(NB1),BODY(NB1)*ZMBAR
          call flush(6)
- 81      format(' Warning!: Regular step jump! I N K* ',1P,E15.6,2I8,I4,
-     &       ' ratio',1P,E15.6,' dt0',E15.6,' stepr,step=',2E15.6,
+ 81      format(' Warning!: Regular step jump! T I N K* ',1P,E15.6,2I8,
+     &       I4,' ratio',1P,E15.6,' dt0',E15.6,' stepr,step=',2E15.6,
      &       ' M*,RI,VI',E15.6,2E15.6,' FI,FDI',2E15.6,' FR,FDR',2E15.6,
      &       ' NNB',I4,' NB1: N, K*,M*',2I8,I4,E15.6)
       lnan = isnan(dt0).or.isnan(FREG(1)).or.isnan(FDR(1))

@@ -539,7 +539,8 @@ c$$$     &           nmerge,name(j1),name(j2),name(icm)
          IF(KZ(23).GE.5) THEN
             write(OUTTAIL,119) TCHAR
  119        format('tail.50_',A20)
-            OPEN (UNIT=50,STATUS='UNKNOWN',FILE=OUTTAIL)
+            OPEN (UNIT=50,STATUS='UNKNOWN',FORM='FORMATTED'
+     &                                       ,FILE=OUTTAIL)
             
             NK = 13
             WRITE (50) NTAIL, MODEL, NK
