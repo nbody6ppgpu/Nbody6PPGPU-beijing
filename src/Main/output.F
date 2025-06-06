@@ -160,7 +160,7 @@
           IF(rank.EQ.0)THEN
              WRITE (6,45)  NRUN, MODEL, TCOMP, TRC, DMIN1, DMIN2, DMIN3,
      &            DMIN4, AMIN, RMAX, RSMIN, NEFF
- 45          FORMAT (/,' NRUN =',I3,'  M# =',I3,'  CPU =',1P,E12.5,
+ 45          FORMAT (/,' NRUN =',I6,'  M# =',I3,'  CPU =',1P,E12.5,
      &            '  TRC =',E12.5, '  DMIN =',0P,4E8.1,'  AMIN =',E8.1,
      &            '  RMAX =',E8.1,'  RSMIN =',0P,F5.2,'  NEFF =',I6)
           END IF
