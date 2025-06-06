@@ -418,8 +418,10 @@ c$$$          END IF
               ELSE IF (GB.LT.0.01.AND.NCH.GT.4.AND.
      &                 (RDOT**2.GT.BODY(ICH)/RI.OR.RI.GT.RMIN)) THEN
                   if(rank.eq.0)
-     &            WRITE (6,28)  IESC, JESC, NAMEC(IESC), NAMEC(JESC),
-     &                          RI, RDOT**2, 2.0*BODY(ICH)/RI, RB
+     &            WRITE (6,28)  TTOT, TIME, TIMEC, IESC, JESC, 
+     &            NAMEC(IESC), NAMEC(JESC), BODYC(IESC), BODYC(JESC),
+     &            RI, RDOT, GPERT,
+     &            2.0*BODY(ICH)/RI, RB, VINF
                   CM(9) = CM(9) - EB
                   GO TO 40
               ELSE
