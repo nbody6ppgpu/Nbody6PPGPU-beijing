@@ -69,7 +69,7 @@ C      IF (NDISS + NCOLL + NCOAL.GT.0.OR.EGRAV.LT.0.0D0) THEN
      &        ECOLL, EMDOT, ECDOT, EKICK, ESESC, EBESC,
      &        EMESC, DEGRAV, E(3), ZMX
  35      FORMAT (' #5',I8,I6,3I7,I5,I7,I8,2I5,I6,2I7,3F8.3,3F7.3,
-     &        F10.3,F7.3,F8.3,F7.3,2F8.3,F6.1)
+     &        F10.3,F7.3,F8.3,F7.3,2F8.3,1P,E10.3)
       end if
 C      END IF
 
