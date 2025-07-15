@@ -452,38 +452,21 @@ C                      call delay_remove_tlist(I1,STEP,DTK)
      &           '  M1 =',E26.17,'  TSCALE =',E26.17,0P,
      &           '  NB =',I12,'  N0 =',I12,//)
             WRITE (24,45)
- 45         FORMAT ('          TIME[NB]        ',
-     &           '   NAME(I1) ',
-     &           '   NAME(I2) ',
-     &           '    K*(I1)  ',
-     &           '    K*(I2)  ',
-     &           '     K*1    ',
-     &           '   IQCOLL   ',
-     &           '          M(I1)[M*]       ',
-     &           '          M(I2)[M*]       ',
-     &           '         M(INEW)[M*]      ',
-     &           '          DM[M*]          ',
-     &           '          RS(I1)[R*]      ',
-     &           '          RS(I2)[R*]      ',
-     &           '           RI/RC          ',
-     &           '           R12[R*]        ',
-     &           '           ECC            ',
-     &           '           P[days]        ',
-     &           '           RCOLL[R*]      ',
-     &           '            EB[NB]        ',
-     &           '            DP[NB]        ',
-     &           '            VINF[km/s]    ')
+ 45         FORMAT (' WHICH1 ','IQCOLL',
+     &           ' TTOT        ',
+     &           '   NAME(I1,I2)       ',
+     &           ' K*(I1,I2,I)',
+     &           ' M(I1)[NB]   ',' M(I2)[NB]   ',
+     &           ' R12[NB]     ',' ECC         ',
+     &           ' SEMI        ',' EB          ',
+     &           ' DP          ',' P[days]     ',
+     &           ' M1[M*]      ',' M2[M*]      ',
+     &           ' MTOT[M*]    ',' DM[M*]      ',
+     &           ' RAD1[R*]    ',' RAD2[R*]    ',
+     &           ' RCOLL[R*]   ',' VINF[km/s]  ',
+     &           ' RI[NB]      ',' VI[NB]      ')
          END IF
       END IF
-*
-      if(rank.eq.0)then
-         WRITE (24,*)  TTOT, NAME1, NAME2, KSTAR(I1), KSTAR(I2), 
-     &        KW1, IQCOLL, ZM1, ZM2, ZMNEW*ZMBAR, 
-     &        DM*ZMBAR, RADIUS(I1)*SU, RADIUS(I2)*SU,
-     &        RI/RC, RIJ*SU, ECC, TK, RCOLL*SU, EB, DP, VINF
-C 50      FORMAT (1X,F7.1,2I6,3I4,3F5.1,2F7.2,F6.1,F7.2,F9.5,1P,E9.1)
-         CALL FLUSH(24)
-      end if
 *
       if(rank.eq.0)then
           RI = SQRT((X(1,I1) - RDENS(1))**2 +
@@ -494,10 +477,16 @@ C 50      FORMAT (1X,F7.1,2I6,3I4,3F5.1,2F7.2,F6.1,F7.2,F9.5,1P,E9.1)
      &   KW1,MASS(1),MASS(2),RIJ,ECC,SEMI,EB,DP,TK,ZM1,ZM2,ZMNEW*ZMBAR,
      &   DM*ZMBAR,RADIUS(I1)*SU,RADIUS(I2)*SU,RCOLL*SU,VINF,RI,VI
  55   FORMAT (/,A8,'COAL: IQCOLL',I3,' TIME[NB]',1P,E17.10,' N1,2',2I10,
-     &     ' KW1,2,S',3I4,' M1,2[NB]',1P,2E11.3,' R12[NB]',E11.3,
-     &         ' e,a,eb,dp[NB]=',2E12.4,2E11.3,' P[d]=',E11.3,
-     &     '  M12S,DM[*]',4E11.3,' RAD1,2[*]',2E11.3,' RCOLL[R*]',E11.3,
-     &     ' VINF[km/s]',E11.3,' RI,VI[NB]=',2E11.3)
+     &     ' KW1,2,S',3I4,' M1,2[NB]',1P,2E13.5,' R12[NB]',E13.5,
+     &         ' e,a,eb,dp[NB]=',4E13.5,' P[d]=',E13.5,
+     &     '  M12S,DM[*]',4E13.5,' RAD1,2[*]',2E13.5,' RCOLL[R*]',E13.5,
+     &     ' VINF[km/s]',E13.5,' RI,VI[NB]=',2E13.5)
+*
+      WRITE (24,56) WHICH1,IQCOLL,TTOT,NAME1,NAME2,KSTAR(I1),KSTAR(I2),
+     &   KW1,MASS(1),MASS(2),RIJ,ECC,SEMI,EB,DP,TK,ZM1,ZM2,ZMNEW*ZMBAR,
+     &   DM*ZMBAR,RADIUS(I1)*SU,RADIUS(I2)*SU,RCOLL*SU,VINF,RI,VI
+ 56   FORMAT (A8,I3,1P,E17.10,2I10,3I4,18E13.5)
+         CALL FLUSH(24)
       end if
 *
       KSTAR(I1) = KW1
