@@ -6,7 +6,7 @@ FUNCTION get_Lx(Kacc, Racc, Macc, dMdonor) RESULT(Lx)
     REAL(KIND=8) :: Lx
 
     INTEGER LX_MODEL
-    COMMON /C_LX/ LX_MODEL
+    LX_MODEL = 0  ! later make a switch or input; temporarily hard-coded to 0
 
     IF (LX_MODEL == 0) THEN
         Lx = get_Lx_startrack(Kacc, Racc, Macc, dMdonor)
