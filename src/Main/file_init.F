@@ -5,7 +5,7 @@
 *
       INCLUDE 'common6.h'
 *
-      CHARACTER*10 FILE(100)
+      CHARACTER*10 FILE(500)
       CHARACTER*7 FILESTAT
       INTEGER STAT
       LOGICAL LSKIP
@@ -16,7 +16,7 @@
 #define MPIINIT 0
 #endif
 *
-      DO IFILE = 1,100
+      DO IFILE = 1,500
       FILE(IFILE) = '          '
       END DO
 *
@@ -85,6 +85,10 @@
       FILE(91) = 'bs.91     '
       FILE(95) = 'wdcirc.95 '
       FILE(96) = 'cirdiag.96'
+      FILE(200) ='ulx.200   '
+      FILE(201) ='cv.201    '
+      FILE(203) ='xrb.203   '
+      FILE(204) ='pulsar.203'
 #ifdef PARALLEL
       if(rank.eq.0) then
 #endif
@@ -92,7 +96,7 @@
 * read from or stdin, stdout (5,6,10,21) .
 * Beginning of run means TTOT=0 and KSTART=1, as a double check
       IF(TTOT.EQ.0.D0.AND.KSTART.EQ.1) THEN
-         DO IFILE = 1,100
+         DO IFILE = 1,500
          LSKIP = IFILE.EQ.5.OR.IFILE.EQ.6.OR.IFILE.EQ.10.OR.IFILE.EQ.21
          IF(LSKIP) GOTO 123
       OPEN(UNIT=IFILE,IOSTAT=STAT,FILE=FILE(IFILE),STATUS='OLD',ERR=123)
@@ -249,6 +253,15 @@
      &             ACCESS='APPEND')
       IF (KZ(27).GT.0) 
      &OPEN (UNIT=96,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(96),
+     &             ACCESS='APPEND')
+     
+      OPEN (UNIT=200,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(200),
+     &             ACCESS='APPEND')
+      OPEN (UNIT=201,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(201),
+     &             ACCESS='APPEND')
+      OPEN (UNIT=203,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(203),
+     &             ACCESS='APPEND')
+      OPEN (UNIT=204,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(204),
      &             ACCESS='APPEND')
 #ifdef PARALLEL
       end if

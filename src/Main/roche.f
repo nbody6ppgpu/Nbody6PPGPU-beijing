@@ -40,6 +40,12 @@
       SAVE FIRST
       DATA FIRST /.TRUE./
       INTEGER IGR
+        
+      ! new variables for event bank. 14 July 2025 | K.Wu & R.Sp
+      REAL*8 LUM_TMP(2), RCC_TMP(2), Mdot_RLOF
+      DATA LUM_TMP, RCC_TMP, Mdot_RLOF /2*0.0D0, 2*0.0D0, 0.0D0/
+      REAL*8 BMAG(NMAX)
+      data BMAG /NMAX*0.0D0/ ! temporary, before NS treatment by Robert finishes
 *
 *       Set variables with different names in common (RSp Mar23).
       K3 = XK3
@@ -138,6 +144,8 @@
              CALL star(KW,M01,M1,TM,TN,TSCLS,LUMS,GB,ZPARS)
              CALL hrdiag(M01,AGE,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
      &                   R1,LUM,KW,MC,RCC,M1CE,RCE,K2)
+             LUM_TMP(K) = LUM
+             RCC_TMP(K) = RCC
              MASSC(K) = MC
              AJ(K) = AGE
              MENV(K) = M1CE
@@ -243,15 +251,15 @@
      &              (X(3,I) - RDENS(3))**2)
           VI = SQRT(XDOT(1,I)**2+XDOT(2,I)**2+XDOT(3,I)**2)
 
-          if(rank.eq.0)
-     &    WRITE (6,8)  TTOT,NAME(J1),NAME(J2),
+          if(rank.eq.0) THEN
+              WRITE (6,8)  TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
      &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
      &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &         STEP(I),LIST(1,J1),LIST(1,I),
      &         MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
      &         RAD(1),RAD(2),ROL(1),ROL(2),SEP,RL1
-  8      FORMAT (/,' NEW ROCHE   TIME[NB]',1P,E17.10,' NM1,2,S=',
+  8           FORMAT (/,' NEW ROCHE   TIME[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
      &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
@@ -259,6 +267,42 @@
      &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
      &         ' SEP[*]',2E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
      &         ' SEMI[*],RL1[*]=',2E13.5)
+    !         K.Wu & R.Sp | 14 July 2025
+    !         Using the same output sequence as MOCCA code detailed_outputs.f90 below
+    !         note that the meaning of some variables differs.
+    !         By comparing assignment statement in both code, found:
+    !          NBODY DMA = MOCCA DMT outside mlwind.f
+    !           inside mlwind is another thing; dmt is local var
+    !           mocca guys took same variable name which scratched my head for hours
+    !          NBODY DMR = MOCCA DMR
+    !                      MOCCA dmdt(k) = dmt(k) - dmr(k) 
+    !           same units of five variables above = return of mlwind.f
+    !          NBODY DMS = MOCCA DMS , unit = above * time
+    !          NBODY DM1 = MOCCA DM1
+    !          NBODY DM2 = MOCCA DM2
+    ! -------
+    !         MOCCA detailed_outputs.f90 excerpt here: 
+    !         write(fp, *) label, idbin, 
+    !           id1, id2, j1, j2, tphys, dtm, age, epoch(1), &
+    !           epoch(2), kstar(1), kstar(2), mass(1), mass(2), sep, ecc,&
+    !           rad(1), rad(2), lumin(1), lumin(2), massc(1), massc(2),&
+    !           radc(1), radc(2), menv(1), menv(2), renv(1), renv(2),& 
+    !           ospin(1), ospin(2), dmt(1), dmt(2), dmr(1), dmr(2), rol(1),&
+    !           rol(2),dmdt(1), dmdt(2), dm1, dm2, tb, Lx, Mdot_RLOF, Bi(1), Bi(2)
+            ! dev note: Mdot_RLOF calcs later in this file 
+            ! If Mdot_RLOF from output is always zero, then may need re-calc here 
+              tphys = TTOT*TSTAR
+              age = tphys - EPOCH(I)
+              Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
+              WRITE (203,*) 'NEW_ROCHE',NAME(I),
+     &          NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
+     &          EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
+     &          RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
+     &          RCC_TMP(1),RCC_TMP(2),MENV(1),MENV(2),RENV(1),RENV(2),
+     &          OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
+     &          ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
+     &          Mdot_RLOF,bmag(1),bmag(2)
+          END IF
               IF(rank.eq.0.and.KSTAR(I).EQ.50)THEN
                  WRITE(6,9)NAME(J1),NAME(J2),KW1,KW2
     9            FORMAT(' WARNING: TOO MUCH ROCHE  NAM K* ',2I6,2I3)
@@ -633,6 +677,8 @@
 *
          DM1 = 3.0D-06*TB*(LOG(RAD(1)/ROL(1))**3)*
      &         MIN(MASS(1),5.D0)**2
+         ! relationship from MOCCA Mdot_RLOF assignment statement
+         Mdot_RLOF = DM1/TB 
          IF(KSTAR(J1).EQ.2)THEN
             MEW = (MASS(1) - MASSC(1))/MASS(1)
             DM1 = MAX(MEW,0.01D0)*DM1
@@ -1199,15 +1245,15 @@
      &                TPHYS,AJ(K),TK,MASS0(K),MASS0(3-K),
      &                MASS(K),TK,ZMET,ECC,TK,JSPIN(K),TK,CH5
 *
-          if(rank.eq.0)
-     &    WRITE (6,77)  TTOT,NAME(J1),NAME(J2),
+          if(rank.eq.0) THEN
+            WRITE (6,77)  TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
      &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
      &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &         STEP(I),LIST(1,J1),LIST(1,I),
      &         MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
      &         RAD(1),RAD(2),ROL(1),ROL(2),DM1,DM2,DTM,COALS,IXXX
-  77     FORMAT (/,' END ROCHE COAL TIME[NB]',1P,E17.10,' NM1,2,S=',
+  77        FORMAT (/,' END ROCHE COAL TIME[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
      &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
@@ -1215,6 +1261,18 @@
      &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
      &         ' SEP[*]',2E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
      &         ' DM1/2,DT=',3E13.5,' COALS, IXXX=',E13.5,I3)
+            tphys = TTOT*TSTAR
+            age = tphys - EPOCH(I)
+            Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
+            WRITE (203,*) 'END_ROCHE_COAL',NAME(I),
+     &            NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
+     &            EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
+     &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
+     &            RCC_TMP(1),RCC_TMP(2),MENV(1),MENV(2),RENV(1),RENV(2),
+     &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
+     &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
+     &            Mdot_RLOF,bmag(1),bmag(2)
+          END IF
 
           CALL coal(IPAIR,KW1,MASS)
           GO TO 200
@@ -1627,22 +1685,34 @@
           IF(TEV0(I).LT.TIME) GOTO 10
           IF (ITER.EQ.1.AND.GAMMA(IPAIR).LT.GMIN) GO TO 10
       ELSE
-          if(rank.eq.0)
-     &    WRITE (6,76)  TTOT,NAME(J1),NAME(J2),
-     &         NAME(I),KW1,KW2,KSTAR(I),
-     &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
-     &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
-     &         STEP(I),LIST(1,J1),LIST(1,I),
-     &         MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
-     &         RAD(1),RAD(2),ROL(1),ROL(2),DM1,DM2,DTM
-  76     FORMAT (/,' END ROCHE      TIME[NB]',1P,E17.10,' NM1,2,S=',
-     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
-     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
-     &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
-     &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
-     &         ' SEP[*]',2E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
-     &         ' DM1/2,DT=',3E13.5)
+          if(rank.eq.0) THEN
+            WRITE (6,76)  TTOT,NAME(J1),NAME(J2),
+     &           NAME(I),KW1,KW2,KSTAR(I),
+     &           IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &           ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
+     &           STEP(I),LIST(1,J1),LIST(1,I),
+     &           MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
+     &           RAD(1),RAD(2),ROL(1),ROL(2),DM1,DM2,DTM
+  76        FORMAT (/,' END ROCHE      TIME[NB]',1P,E17.10,' NM1,2,S=',
+     &           3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
+     &           ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &           ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
+     &           ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
+     &           ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
+     &           ' SEP[*]',2E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
+     &           ' DM1/2,DT=',3E13.5)
+            tphys = TTOT*TSTAR
+            age = tphys - EPOCH(I)
+            Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
+            WRITE (203,*) 'END_ROCHE',NAME(I),
+     &         NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
+     &         EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
+     &         RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
+     &         RCC_TMP(1),RCC_TMP(2),MENV(1),MENV(2),RENV(1),RENV(2),
+     &         OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
+     &         ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
+     &         Mdot_RLOF,bmag(1),bmag(2)
+          END IF
 *       Check optional diagnostics for degenerate objects.
           IF(MAX(KSTAR(J1),KSTAR(J2)).GE.10)THEN
              IF(KZ(9).GE.3)THEN

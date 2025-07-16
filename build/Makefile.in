@@ -112,14 +112,20 @@ custom_output.f custom_output_facility.f ksres_op.f kstran.f \
 global_output.f global_params_gether.f \
 fpowercut.f asa147.f fmiyamoto.f fnfw.f fmwpot.f mwpotinit.f pmwpot.f
 
+F90_SOURCE = Lx.f90
+F90_OBJECTS = $(F90_SOURCE:.f90=.o)
+
 .SUFFIXES : .o .F
 
 OBJECTS = $(SOURCE:.f=.o)
 
 TARGET: $(RESULT) @EXTRARESULT@
 
-$(RESULT): $(OBJECTS) $(EXTRAOBJ)
-	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)  @LIBS@
+$(RESULT): $(OBJECTS) $(F90_OBJECTS) $(EXTRAOBJ)
+	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(F90_OBJECTS) $(EXTRAOBJ)  @LIBS@
+
+%.o: %.f90
+	$(FC) $(FFLAGS) -c $< -o $@
 
 libinitial.so: initial.h initial.cpp
 	$(CXX) -shared $(CXXFLAGS) ../src/Tools/initial.cpp -o libinitial.so
