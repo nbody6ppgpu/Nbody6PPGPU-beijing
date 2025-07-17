@@ -42,7 +42,7 @@
       INTEGER IGR
         
       ! new variables for event bank. 14 July 2025 | K.Wu & R.Sp
-      REAL*8 LUM_TMP(2), RCC_TMP(2), Mdot_RLOF
+      REAL*8 LUM_TMP(2), RCC_TMP(2), Mdot_RLOF, get_Lx
       DATA LUM_TMP, RCC_TMP, Mdot_RLOF /2*0.0D0, 2*0.0D0, 0.0D0/
       REAL*8 BMAG(NMAX)
       data BMAG /NMAX*0.0D0/ ! temporary, before NS treatment by Robert finishes
@@ -291,17 +291,20 @@
     !           rol(2),dmdt(1), dmdt(2), dm1, dm2, tb, Lx, Mdot_RLOF, Bi(1), Bi(2)
             ! dev note: Mdot_RLOF calcs later in this file 
             ! If Mdot_RLOF from output is always zero, then may need re-calc here 
-              tphys = TTOT*TSTAR
-              age = tphys - EPOCH(I)
-              Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
-              WRITE (203,*) 'NEW_ROCHE',NAME(I),
-     &          NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
-     &          EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
-     &          RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
-     &          RCC_TMP(1),RCC_TMP(2),MENV(1),MENV(2),RENV(1),RENV(2),
-     &          OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
-     &          ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
-     &          Mdot_RLOF,bmag(1),bmag(2)
+              if( (kstar(j2).GE.10 .AND. kstar(j2).LE.14).OR.
+     &            (kstar(j1).GE.10 .AND. kstar(j1).LE.14)    ) then
+                 tphys = TTOT*TSTAR
+                 age = tphys - EPOCH(I)
+                 Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
+                 WRITE (203,*) 'NEW_ROCHE',NAME(I),
+     &            NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
+     &            EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
+     &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
+     &            RCC_TMP(1),RCC_TMP(2),MENV(1),MENV(2),RENV(1),RENV(2),
+     &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
+     &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
+     &            Mdot_RLOF,bmag(1),bmag(2)
+              endif
           END IF
               IF(rank.eq.0.and.KSTAR(I).EQ.50)THEN
                  WRITE(6,9)NAME(J1),NAME(J2),KW1,KW2
@@ -1261,10 +1264,12 @@
      &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
      &         ' SEP[*]',2E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
      &         ' DM1/2,DT=',3E13.5,' COALS, IXXX=',E13.5,I3)
-            tphys = TTOT*TSTAR
-            age = tphys - EPOCH(I)
-            Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
-            WRITE (203,*) 'END_ROCHE_COAL',NAME(I),
+            if( (kstar(j2).GE.10 .AND. kstar(j2).LE.14).OR.
+     &          (kstar(j1).GE.10 .AND. kstar(j1).LE.14)    ) then
+               tphys = TTOT*TSTAR
+               age = tphys - EPOCH(I)
+               Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
+               WRITE (203,*) 'END_ROCHE_COAL',NAME(I),
      &            NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
      &            EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
      &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
@@ -1272,6 +1277,7 @@
      &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
      &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
      &            Mdot_RLOF,bmag(1),bmag(2)
+            endif
           END IF
 
           CALL coal(IPAIR,KW1,MASS)
@@ -1701,17 +1707,20 @@
      &           ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
      &           ' SEP[*]',2E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
      &           ' DM1/2,DT=',3E13.5)
-            tphys = TTOT*TSTAR
-            age = tphys - EPOCH(I)
-            Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
-            WRITE (203,*) 'END_ROCHE',NAME(I),
-     &         NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
-     &         EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
-     &         RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
-     &         RCC_TMP(1),RCC_TMP(2),MENV(1),MENV(2),RENV(1),RENV(2),
-     &         OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
-     &         ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
-     &         Mdot_RLOF,bmag(1),bmag(2)
+            if( (kstar(j2).GE.10 .AND. kstar(j2).LE.14).OR.
+     &          (kstar(j1).GE.10 .AND. kstar(j1).LE.14)    ) then
+               tphys = TTOT*TSTAR
+               age = tphys - EPOCH(I)
+               Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
+               WRITE (203,*) 'END_ROCHE',NAME(I),
+     &          NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
+     &          EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
+     &          RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
+     &          RCC_TMP(1),RCC_TMP(2),MENV(1),MENV(2),RENV(1),RENV(2),
+     &          OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
+     &          ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
+     &          Mdot_RLOF,bmag(1),bmag(2)
+            endif
           END IF
 *       Check optional diagnostics for degenerate objects.
           IF(MAX(KSTAR(J1),KSTAR(J2)).GE.10)THEN
