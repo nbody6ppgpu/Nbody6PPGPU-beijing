@@ -274,6 +274,13 @@ c$$$          if(R(IPAIR).ge.1) call abort()
      &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
      &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
      &         ' RI,VI[NB],DEB=',3E11.3)
+          WRITE (212,*)  TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+     &         NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
+     &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
+     &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(NTOT),LIST(1,ICOMP),LIST(1,NTOT),
+     &         BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,
+     &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,DEB
                end if
           END IF
       END IF
