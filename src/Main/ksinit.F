@@ -247,8 +247,8 @@ c$$$          if(R(IPAIR).ge.1) call abort()
 *     --03/15/14 13:20-lwang-end----------------------------------------*
       END IF
 *
-*       Include diagnostics for NS or BH hard binary formation.
-      IF (MAX(KSTAR(ICOMP),KSTAR(JCOMP)).GE.13.AND.EB.LT.EBH.AND.
+*       Include diagnostics for NS or BH or WD hard binary formation.
+      IF (MAX(KSTAR(ICOMP),KSTAR(JCOMP)).GE.10.AND.EB.LT.EBH.AND.
      &    IPHASE.NE.7) THEN
 *       Limit the diagnostics to significant change or new case.
           ISUM = KSTAR(ICOMP) + KSTAR(JCOMP) + KSTAR(NTOT)
@@ -267,7 +267,7 @@ c$$$          if(R(IPAIR).ge.1) call abort()
      &         STEP(NTOT),LIST(1,ICOMP),LIST(1,NTOT),
      &         BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,
      &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,DEB
-  65      FORMAT (/,' NS/BH BINARY T[NB]',1P,E17.10,' NM1,2,S=',
+  65      FORMAT (/,' WD/NS/BH BINARY T[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
      &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
      &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
