@@ -85,10 +85,14 @@
       FILE(91) = 'bs.91     '
       FILE(95) = 'wdcirc.95 '
       FILE(96) = 'cirdiag.96'
-      FILE(200) ='ulx.200   '
-      FILE(201) ='cv.201    '
+    !   FILE(200) ='ulx.200   '
+    !   FILE(201) ='cv.201    '
       FILE(203) ='xrb.203   '
-      FILE(204) ='pulsar.203'
+      FILE(204) ='pulsar.204'
+      FILE(211) ='wdnsbh.211'
+      FILE(212) ='compb.212 '
+      FILE(220) ='ks.220    '
+
 #ifdef PARALLEL
       if(rank.eq.0) then
 #endif
@@ -255,13 +259,19 @@
      &OPEN (UNIT=96,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(96),
      &             ACCESS='APPEND')
      
-      OPEN (UNIT=200,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(200),
-     &             ACCESS='APPEND')
-      OPEN (UNIT=201,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(201),
-     &             ACCESS='APPEND')
+    !   OPEN (UNIT=200,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(200),
+    !  &             ACCESS='APPEND')
+    !   OPEN (UNIT=201,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(201),
+    !  &             ACCESS='APPEND')
       OPEN (UNIT=203,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(203),
      &             ACCESS='APPEND')
       OPEN (UNIT=204,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(204),
+     &             ACCESS='APPEND')
+      OPEN (UNIT=211,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(211),
+     &             ACCESS='APPEND')
+      OPEN (UNIT=212,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(212),
+     &             ACCESS='APPEND')
+      OPEN (UNIT=220,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(220),
      &             ACCESS='APPEND')
 #ifdef PARALLEL
       end if
