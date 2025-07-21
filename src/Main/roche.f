@@ -257,7 +257,7 @@
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
      &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
-     &         ' SEP[*]',2E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
+     &         ' SEP[*]',E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
      &         ' SEMI[*],RL1[*]=',2E13.5)
               IF(rank.eq.0.and.KSTAR(I).EQ.50)THEN
                  WRITE(6,9)NAME(J1),NAME(J2),KW1,KW2
@@ -1213,8 +1213,8 @@
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
      &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
-     &         ' SEP[*]',2E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
-     &         ' DM1/2,DT=',3E13.5,' COALS, IXXX=',E13.5,I3)
+     &         ' SEP[*]',1E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
+     &         ' DM1/2,DT=',3E13.5,' COALS, IXXX=',L1,I3)
 
           CALL coal(IPAIR,KW1,MASS)
           GO TO 200
@@ -1641,7 +1641,7 @@
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
      &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
-     &         ' SEP[*]',2E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
+     &         ' SEP[*]',1E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
      &         ' DM1/2,DT=',3E13.5)
 *       Check optional diagnostics for degenerate objects.
           IF(MAX(KSTAR(J1),KSTAR(J2)).GE.10)THEN
