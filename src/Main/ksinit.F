@@ -183,7 +183,7 @@ c$$$      end if
 *         PMIN = SEMI*(1.0 - SQRT(ECC2))
 *         if(rank.eq.0)
 *    &    WRITE (6,56)  TIME+TOFF, NAME(ICOMP), NAME(JCOMP), PMIN
-*  56     FORMAT (' HYPERBOLIC    T NAM PMIN ',F8.2,2I6,1P,E11.3)
+*  56     FORMAT (' HYPERBOLIC    T NAM PMIN ',F8.2,2I6,1P,E13.5)
 *     END IF
 *
 *       Set 2*SEMI as termination scale for hard binary if 2*SEMI < RS/20.
@@ -231,16 +231,26 @@ c$$$      end if
      &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,
      &         R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
      &         R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
-  60      FORMAT (/,' NEW KSREG   TIME[NB]',1P,E17.10,' NM1,2,S=',
-     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
-     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
-     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
-     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
+  60      FORMAT (/,' NEW KSREG   TIME[NB]',1P,E17.9,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
+     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
+     &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RAD1,2,S[*]',3E13.5,
      &         ' RCM,VCM[NB]=',2E13.5,
      &' I1 RXY[NB],i,alp[rad] ',3E13.5,' I1 VXY[NB],i,alp[rad] ',3E13.5,
      &' I2 RXY[NB],i,alp[rad] ',3E13.5,' I2 VXY[NB],i,alp[rad] ',3E13.5)
           call flush(6)
+          WRITE(210,61)TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+     &         NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
+     &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
+     &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(NTOT),LIST(1,ICOMP),LIST(1,NTOT),
+     &         BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,
+     &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,
+     &         R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
+     &         R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
+ 61       FORMAT(1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,19E17.9
 *     --03/15/14 13:20-lwang-debug--------------------------------------*
 ***** Note:------------------------------------------------------------**
 c$$$          if(R(IPAIR).ge.1) call abort()
@@ -267,20 +277,21 @@ c$$$          if(R(IPAIR).ge.1) call abort()
      &         STEP(NTOT),LIST(1,ICOMP),LIST(1,NTOT),
      &         BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,
      &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,DEB
-  65      FORMAT (/,' WD/NS/BH BINARY T[NB]',1P,E17.10,' NM1,2,S=',
-     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
-     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
-     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
-     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
-     &         ' RI,VI[NB],DEB=',3E11.3)
-          WRITE (212,*)  TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+  65      FORMAT (/,' WD/NS/BH BINARY T[NB]',1P,E17.9,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
+     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
+     &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RAD1,2,S[*]',3E13.5,
+     &         ' RI,VI[NB],DEB=',3E13.5)
+          WRITE (212,62)  TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
      &         NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
      &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
      &         STEP(NTOT),LIST(1,ICOMP),LIST(1,NTOT),
      &         BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,
      &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,DEB
+ 62       FORMAT(1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,8E17.9)
                end if
           END IF
       END IF
