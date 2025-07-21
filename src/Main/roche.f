@@ -265,7 +265,7 @@
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
      &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
-     &         ' SEP[*]',2E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
+     &         ' SEP[*]',E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
      &         ' SEMI[*],RL1[*]=',2E13.5)
     !         K.Wu & R.Sp | 14 July 2025
     !         Using the same output sequence as MOCCA code detailed_outputs.f90 below
@@ -1262,8 +1262,8 @@
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
      &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
-     &         ' SEP[*]',2E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
-     &         ' DM1/2,DT=',3E13.5,' COALS, IXXX=',E13.5,I3)
+     &         ' SEP[*]',1E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
+     &         ' DM1/2,DT=',3E13.5,' COALS, IXXX=',L1,I3)
             if( (kstar(j2).GE.10 .AND. kstar(j2).LE.14).OR.
      &          (kstar(j1).GE.10 .AND. kstar(j1).LE.14)    ) then
                tphys = TTOT*TSTAR
@@ -1705,7 +1705,7 @@
      &           ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &           ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
      &           ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
-     &           ' SEP[*]',2E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
+     &           ' SEP[*]',1E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
      &           ' DM1/2,DT=',3E13.5)
             if( (kstar(j2).GE.10 .AND. kstar(j2).LE.14).OR.
      &          (kstar(j1).GE.10 .AND. kstar(j1).LE.14)    ) then
