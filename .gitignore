@@ -1,5 +1,6 @@
 # junk and tmp files
 *.swp
+*.swo
 
 # macos ds store
 .DS_Store
