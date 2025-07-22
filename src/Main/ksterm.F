@@ -196,10 +196,10 @@ c$$$      END IF
      &' I2 RXY[NB],i,alp[rad] ',3E13.5,' I2 VXY[NB],i,alp[rad] ',3E13.5)
           call flush(6)
           WRITE(210,16)' END KSREG ',TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
-     &         NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
+     &         NAME(ICM),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(ICM),
      &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
-     &         STEP(NTOT),LIST(1,ICOMP),LIST(1,NTOT),
+     &         STEP(ICM),LIST(1,ICOMP),LIST(1,ICM),
      &         BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,
      &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,
      &         R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
