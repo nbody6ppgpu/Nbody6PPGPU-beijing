@@ -187,7 +187,7 @@ c$$$                  END IF
      &             STEP(ICM),LIST(1,I1),LIST(1,ICM),
      &             BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
      &             RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VII
- 61       FORMAT(1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,13E17.9)
+ 61       FORMAT(A,1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,13E17.9)
                   END IF
 * End event data bank output, RSp July 25     
                   XMOLD1 = BODY(I1)
