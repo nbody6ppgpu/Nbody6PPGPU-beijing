@@ -168,18 +168,15 @@ c$$$                  END IF
 *    Prepare output for event data bank, RSp July 2025.
                   DEB1 = DABS(BODY(I1) - XMOLD1)/BODY(I1)
                   DEB2 = DABS(BODY(I2) - XMOLD2)/BODY(I2)
-                  KW1 = ABS(KSTAR(I1) - KWOLD1)
-                  KW2 = ABS(KSTAR(I2) - KWOLD2)
-                  LOUT = DEB1.GT.0.05.OR.DEB2.GT.0.05.OR.
-     &                   KW1.GT.0.OR.KW2.GT.0
-*
-                  IF (LOUT) THEN
+                  KW1 = IABS(KSTAR(I1) - KWOLD1)
+                  KW2 = IABS(KSTAR(I2) - KWOLD2)
+                  IF (DEB1+DEB2.GT.0.05D0.OR.KW1+KW2.GT.0) THEN
                      RI = SQRT((X(1,ICM) - RDENS(1))**2 +
      &                         (X(2,ICM) - RDENS(2))**2 +
      &                         (X(3,ICM) - RDENS(3))**2)
                VII = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
                SEMI = -0.5*BODY(ICM)/H(IPAIR)
-               ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
+          ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
                EB = -0.5*BODY(I1)*BODY(I2)/SEMI
                PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6 
 *
@@ -197,7 +194,8 @@ c$$$                  END IF
                   XMOLD2 = BODY(I2)
                   KWOLD1 = KSTAR(I1)
                   KWOLD2 = KSTAR(I2)
-
+*
+ 10               continue
                   CALL KSINT(I1)
 *
 *     Check for multiple calls of #I1 (saves using CALL INSERT).
