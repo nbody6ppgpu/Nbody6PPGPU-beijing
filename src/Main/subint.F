@@ -163,79 +163,43 @@ c$$$                  END IF
                   IPAIR = KVEC(I1)
                   TIME = T0(I1) + STEP(I1)
                   IMULT = 0
-*     
- 10               continue
-*     --12/21/13 22:29-lwang-print------------------------------------------*
-***** Note:-----------------------------------------------------------------**
-c$$$  #ifdef PRINT
-c$$$  PRINT*,' L, I1, IPAIR, TIME=',L,I1,IPAIR,
-c$$$  &                    TIME,IMULT,STEP(I1)
-c$$$  CALL FLUSH(6)
-c$$$  #endif               
-*     --12/21/13 22:30-lwang-end----------------------------------------*
-*     
-c$$$*     --12/30/13 9:16-lwang-debug--------------------------------------*
-c$$$***** Note:------------------------------------------------------------**
-c$$$                  if(ipair.eq.1605.and.time.le.29.047283380920465) then
-c$$$                     print*,rank,'single ks t',time
-c$$$                  end if
-c$$$                  if(name(i1).eq.7173) then
-c$$$                  write(102+rank,*)'I1',I1,'IPAIR',ipair,'U',U(1,IPAIR),
-c$$$     &                 'U0',U0(1,IPAIR),'UDOT',UDOT(1,ipair),
-c$$$     &                 'FU',FU(1,ipair),'FT',FUDOT(1,ipair),
-c$$$     &                 'FT2',FUDOT2(1,ipair),'FT3',FUDOT3(1,ipair),
-c$$$     &                 'FP0',FP0(1,Ipair),'FD0',FD0(1,ipair),
-c$$$     &                 'H',H(ipair),'HT',HDOT(ipair),'HT2',HDOT2(ipair),
-c$$$     &                 'HT3',HDOT3(ipair),'HT4',HDOT4(ipair),
-c$$$     &                 'dt',DTAU(ipair),'TD2',TDOT2(ipair),
-c$$$     &                 'TD3',TDOT3(ipair),'R',R(ipair),'R0',r0(ipair),
-c$$$     &                 'Gamma',GAMMA(ipair),'H0',h0(ipair),
-c$$$     &                 'SF',sf(1,ipair),'kslow',kslow(ipair),
-c$$$     &                 'nnb',LIST(1,i1),'list',list(2,i1),
-c$$$     &                 'tblock',tblock,'ksb',ksb,'mass',body(i1),
-c$$$     *                 'r',radius(i1)
-c$$$                  call flush(102+rank)
-c$$$                  if(i1.eq.3327.and.tblock.ge.4.21E-3) then
-c$$$                     print*,rank,'SINGLE KSINT TBLOCK',tblock
-c$$$                     call flush(6)
-c$$$                  end if
-c$$$*     --12/30/13 9:16-lwang-end----------------------------------------*
-                  CALL KSINT(I1)
-*     
-*     --03/17/14 20:22-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$               if(name(i1).eq.7173) then
-c$$$                  write(102+rank,*)'I1',I1,'IPAIR',ipair,'U',U(1,IPAIR),
-c$$$     &                 'U0',U0(1,IPAIR),'UDOT',UDOT(1,ipair),
-c$$$     &                 'FU',FU(1,ipair),'FT',FUDOT(1,ipair),
-c$$$     &                 'FT2',FUDOT2(1,ipair),'FT3',FUDOT3(1,ipair),
-c$$$     &                 'FP0',FP0(1,Ipair),'FD0',FD0(1,ipair),
-c$$$     &                 'H',H(ipair),'HT',HDOT(ipair),'HT2',HDOT2(ipair),
-c$$$     &                 'HT3',HDOT3(ipair),'HT4',HDOT4(ipair),
-c$$$     &                 'dt',DTAU(ipair),'TD2',TDOT2(ipair),
-c$$$     &                 'TD3',TDOT3(ipair),'R',R(ipair),'R0',r0(ipair),
-c$$$     &                 'Gamma',GAMMA(ipair),'H0',h0(ipair),
-c$$$     &                 'SF',sf(1,ipair),'kslow',kslow(ipair),
-c$$$     &                 'nnb',LIST(1,i1),'list',list(2,i1),
-c$$$     &                 'tblock',tblock,'ksb',ksb,'mass',body(i1),
-c$$$     *                 'r',radius(i1),'T',TIME
-c$$$                  call flush(102+rank)
-c$$$                  if(i1.eq.3327.and.tblock.ge.4.21E-3) then
-c$$$                     print*,rank,'SINGLE KSINT TBLOCK',tblock
-c$$$                     call flush(6)
-c$$$               end if
-c$$$               print*,rank,'sig iq',iq,'t',time
-c$$$               call flush(6)
-*     --03/17/14 20:22-lwang-end----------------------------------------*
-*     --12/21/13 22:49-lwang-print--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$  #ifdef PRINT
-c$$$  PRINT*,' Ret KSINT T0+STEP STEP=',
-c$$$  &                    T0(I1)+STEP(I1),STEP(I1)
-c$$$  CALL FLUSH(6)
-c$$$  #endif               
-*     --12/21/13 22:49-lwang-end----------------------------------------*
+                  ICM = N + IPAIR
+                  I2 = I1 + 1
+*    Prepare output for event data bank, RSp July 2025.
+                  DEB1 = DABS(BODY(I1) - XMOLD1)/BODY(I1)
+                  DEB2 = DABS(BODY(I2) - XMOLD2)/BODY(I2)
+                  KW1 = ABS(KSTAR(I1) - KWOLD1)
+                  KW2 = ABS(KSTAR(I2) - KWOLD2)
+                  LOUT = DEB1.GT.0.05.OR.DEB2.GT.0.05.OR.
+     &                   KW1.GT.0.OR.KW2.GT.0
+*
+                  IF (LOUT) THEN
+                     RI = SQRT((X(1,ICM) - RDENS(1))**2 +
+     &                         (X(2,ICM) - RDENS(2))**2 +
+     &                         (X(3,ICM) - RDENS(3))**2)
+               VII = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
+               SEMI = -0.5*BODY(ICM)/H(IPAIR)
+               ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
+               EB = -0.5*BODY(I1)*BODY(I2)/SEMI
+               PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6 
+*
+               WRITE(210,61)'     KSREG ',TIME+TOFF,NAME(I1),NAME(I2),
+     &             NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
+     &             IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
+     &             R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+     &             STEP(ICM),LIST(1,I1),LIST(1,ICM),
+     &             BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
+     &             RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VII
+ 61       FORMAT(1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,13E17.9)
+                  END IF
+* End event data bank output, RSp July 25     
+                  XMOLD1 = BODY(I1)
+                  XMOLD2 = BODY(I2)
+                  KWOLD1 = KSTAR(I1)
+                  KWOLD2 = KSTAR(I2)
 
+                  CALL KSINT(I1)
+*
 *     Check for multiple calls of #I1 (saves using CALL INSERT).
                   IF (IPHASE.EQ.0) THEN
                      TI = TIME + STEP(I1)
