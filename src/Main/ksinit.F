@@ -221,8 +221,8 @@ c$$$      end if
           V2PHI = ACOS(XDOT(1,JCOMP)/V2XY)
 *
           PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(NTOT))*TSTAR*365.24D6
-          if(rank.eq.0)
-     &    WRITE (6,60)  TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+          if(rank.eq.0) then
+            WRITE (6,60)  TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
      &         NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
      &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
@@ -231,7 +231,7 @@ c$$$      end if
      &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,
      &         R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
      &         R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
-  60      FORMAT (/,' NEW KSREG   TIME[NB]',1P,E17.9,' NM1,2,S=',
+  60        FORMAT (/,' NEW KSREG   TIME[NB]',1P,E17.9,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
      &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
@@ -241,7 +241,7 @@ c$$$      end if
      &' I1 RXY[NB],i,alp[rad] ',3E13.5,' I1 VXY[NB],i,alp[rad] ',3E13.5,
      &' I2 RXY[NB],i,alp[rad] ',3E13.5,' I2 VXY[NB],i,alp[rad] ',3E13.5)
           call flush(6)
-          WRITE(210,61)' NEW KSREG ',TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+           WRITE(210,61)' NEW_KSREG ',TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
      &         NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
      &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
@@ -250,7 +250,8 @@ c$$$      end if
      &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,
      &         R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
      &         R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
- 61       FORMAT(1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,19E17.9)
+ 61         FORMAT(1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,19E17.9)
+           endif
       END IF
 *
 *       Include diagnostics for NS or BH or WD hard binary formation.

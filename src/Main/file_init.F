@@ -89,9 +89,9 @@
     !   FILE(201) ='cv.201    '
       FILE(203) ='xrb.203   '
       FILE(204) ='pulsar.204'
+      FILE(210) ='ks.210    '
       FILE(211) ='wdnsbh.211'
       FILE(212) ='compb.212 '
-      FILE(220) ='ks.220    '
 
 #ifdef PARALLEL
       if(rank.eq.0) then
@@ -267,11 +267,11 @@
      &             ACCESS='APPEND')
       OPEN (UNIT=204,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(204),
      &             ACCESS='APPEND')
+      OPEN (UNIT=210,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(210),
+     &             ACCESS='APPEND')
       OPEN (UNIT=211,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(211),
      &             ACCESS='APPEND')
       OPEN (UNIT=212,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(212),
-     &             ACCESS='APPEND')
-      OPEN (UNIT=220,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(220),
      &             ACCESS='APPEND')
 #ifdef PARALLEL
       end if

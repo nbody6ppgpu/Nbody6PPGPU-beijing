@@ -175,8 +175,8 @@ c$$$      END IF
       ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
           EB = -0.5*BODY(I1)*BODY(I2)/SEMI
           PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6
-          if(rank.eq.0)
-     &    WRITE (6,15)  TIME+TOFF,NAME(I1),NAME(I2),
+          if(rank.eq.0) then
+            WRITE (6,15)  TIME+TOFF,NAME(I1),NAME(I2),
      &         NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
      &         IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
@@ -185,7 +185,7 @@ c$$$      END IF
      &         RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VI,
      &         R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
      &         R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
-  15      FORMAT (/,' END KSREG   TIME[NB]',1P,E17.9,' NM1,2,S=',
+  15        FORMAT (/,' END KSREG   TIME[NB]',1P,E17.9,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
      &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
@@ -194,8 +194,8 @@ c$$$      END IF
      &         ' RCM,VCM[NB]=',2E13.5,
      &' I1 RXY[NB],i,alp[rad] ',3E13.5,' I1 VXY[NB],i,alp[rad] ',3E13.5,
      &' I2 RXY[NB],i,alp[rad] ',3E13.5,' I2 VXY[NB],i,alp[rad] ',3E13.5)
-          call flush(6)
-          WRITE(210,16)' END KSREG ',TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+            call flush(6)
+           WRITE(210,16)' END_KSREG ',TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
      &         NAME(ICM),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(ICM),
      &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
@@ -204,7 +204,8 @@ c$$$      END IF
      &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,
      &         R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
      &         R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
- 16       FORMAT(1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,19E17.9)
+ 16         FORMAT(1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,19E17.9)
+          endif
       END IF
 *
 *       Obtain global coordinates & velocities.
