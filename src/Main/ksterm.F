@@ -185,24 +185,26 @@ c$$$      END IF
      &         RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VI,
      &         R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
      &         R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
-  15      FORMAT (/,' END KSREG   TIME[NB]',1P,E17.10,' NM1,2,S=',
-     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
-     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
-     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
-     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
+  15      FORMAT (/,' END KSREG   TIME[NB]',1P,E17.9,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
+     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
+     &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RAD1,2,S[*]',3E13.5,
      &         ' RCM,VCM[NB]=',2E13.5,
      &' I1 RXY[NB],i,alp[rad] ',3E13.5,' I1 VXY[NB],i,alp[rad] ',3E13.5,
      &' I2 RXY[NB],i,alp[rad] ',3E13.5,' I2 VXY[NB],i,alp[rad] ',3E13.5)
-*     --04/15/14 21:40-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$          if(rank.eq.0.and.name(icm).eq.2567) call abort()
-c$$$          if(rank.eq.0.and.name(icm).eq.11569)
-c$$$     &         print*,'IFIRST',IFIRST,'N',NAME(IFIRST),'IPAIR',IPAIR,'N',
-c$$$     &         ,NAME(2*IPAIR-1),'LIST',LIST(1:6,I1),
-c$$$     &     'N',(NAME(LIST(2+K,I1)),K=1,5)
-*     --04/15/14 21:40-lwang-end----------------------------------------*
           call flush(6)
+          WRITE(210,16)' END KSREG ',TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+     &         NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
+     &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
+     &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(NTOT),LIST(1,ICOMP),LIST(1,NTOT),
+     &         BODY(ICOMP)*ZMBAR,BODY(JCOMP)*ZMBAR,
+     &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,
+     &         R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
+     &         R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
+ 16       FORMAT(1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,19E17.9)
       END IF
 *
 *       Obtain global coordinates & velocities.
@@ -213,8 +215,8 @@ c$$$     &     'N',(NAME(LIST(2+K,I1)),K=1,5)
 *       Add correction term with opposite sign for conservation.
 *     ECOLL = ECOLL + (POT2 - POT1)
 *     if(rank.eq.0)then
-*     IF (ABS(POT1-POT2).GT.0.0001) WRITE (6,16)  POT1,BE(3),POT1-POT2
-*  16 FORMAT (' CORRECT:    POT1 BE3 POT1-POT2  ',2F10.6,F10.6)
+*     IF (ABS(POT1-POT2).GT.0.0001) WRITE (6,17)  POT1,BE(3),POT1-POT2
+*  17 FORMAT (' CORRECT:    POT1 BE3 POT1-POT2  ',2F10.6,F10.6)
 *     end if
 *
 *       Modify c.m. neighbour radius by density contrast and set new values.

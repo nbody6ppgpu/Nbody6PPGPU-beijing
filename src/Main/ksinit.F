@@ -241,7 +241,7 @@ c$$$      end if
      &' I1 RXY[NB],i,alp[rad] ',3E13.5,' I1 VXY[NB],i,alp[rad] ',3E13.5,
      &' I2 RXY[NB],i,alp[rad] ',3E13.5,' I2 VXY[NB],i,alp[rad] ',3E13.5)
           call flush(6)
-          WRITE(210,61)TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+          WRITE(210,61)' NEW KSREG ',TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
      &         NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
      &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
@@ -250,11 +250,7 @@ c$$$      end if
      &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,
      &         R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
      &         R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
- 61       FORMAT(1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,19E17.9
-*     --03/15/14 13:20-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$          if(R(IPAIR).ge.1) call abort()
-*     --03/15/14 13:20-lwang-end----------------------------------------*
+ 61       FORMAT(1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,19E17.9)
       END IF
 *
 *       Include diagnostics for NS or BH or WD hard binary formation.

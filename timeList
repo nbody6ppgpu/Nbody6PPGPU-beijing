@@ -1,4 +1,4 @@
-file modified time information in Berlin time recorded at Tue Feb 18 16:00:00 CET 2025
+file modified time information in Berlin time recorded at Tue Jul 22 17:54:18 CEST 2025
 Nbody6PPGPU-beijing/  
 2020-06-29 23:35:57 extra_inc
 2020-07-09 23:24:04 src
@@ -8,22 +8,21 @@ Nbody6PPGPU-beijing/
 2022-08-30 10:26:01 restore_mtime.py
 2022-09-19 16:35:52 macro
 2022-09-19 16:35:52 configure.ac
-2023-03-30 11:19:19 build
 2023-08-10 07:05:21 configure
 2023-08-10 07:05:21 Makefile.in
 2025-01-20 19:26:43 config.examples
 2025-02-18 11:45:49 README.md
-2025-02-18 16:00:00 timeList
+2025-02-28 15:41:00 build
+2025-07-22 17:54:18 timeList
 
 Nbody6PPGPU-beijing/build/  
 2020-09-25 22:53:55 Makefile.debug
 2022-09-12 17:30:50 Makefile.save.hdf5
 2023-03-30 11:19:19 Makefile.MPCDF
-2023-08-23 17:26:55 Makefile
-2023-08-23 17:32:06 Makefile.in
+2025-07-17 01:18:49 Makefile.in
 
 Nbody6PPGPU-beijing/doc/  
-2022-04-17 09:24:05 nbody6++_manual.txt
+2025-02-19 22:21:27 nbody6++_manual.txt
 
 Nbody6PPGPU-beijing/examples/  
 2022-07-28 15:41:28 example_1k
@@ -38,12 +37,10 @@ Nbody6PPGPU-beijing/examples/
 
 Nbody6PPGPU-beijing/examples/comment_input_files/  
 2025-02-17 22:03:19 manual_2025Feb17_part.tex
-2025-02-17 22:03:19 inp_uncomment
-2025-02-17 22:03:19 inp_comment
+2025-02-19 15:32:19 inp_uncomment
+2025-02-19 15:32:19 inp_comment
 
 Nbody6PPGPU-beijing/examples/example_1k/  
-2023-04-12 08:16:03 1k.inp.old
-2023-04-28 10:44:11 1k.inp.new
 2023-04-28 10:46:19 1k.inp
 
 Nbody6PPGPU-beijing/examples/input_files/  
@@ -104,17 +101,17 @@ Nbody6PPGPU-beijing/include/
 2022-04-17 09:24:05 params.h
 2022-09-22 14:54:30 timing.h
 2023-11-19 09:29:09 output_single.h
-2023-11-19 09:29:09 output_binary.h
 2024-03-15 13:20:04 common6.h
-2025-02-16 17:47:57 MWpotential.h
+2025-03-18 15:49:58 MWpotential.h
+2025-04-18 17:15:08 output_binary.h
 
 Nbody6PPGPU-beijing/macro/  
 2022-09-19 16:35:52 ax_fc_check_bounds.m4
 2022-09-19 16:35:52 ax_check_compile_flag.m4
 
 Nbody6PPGPU-beijing/src/  
-2025-01-18 10:02:13 Main
 2025-02-18 15:59:30 Tools
+2025-07-17 01:18:49 Main
 
 Nbody6PPGPU-beijing/src/Main/  
 1995-11-14 18:13:08 ksphys.f
@@ -226,8 +223,6 @@ Nbody6PPGPU-beijing/src/Main/
 2013-11-26 13:28:04 gpupot.gpu.cu
 2016-01-06 10:58:57 zero.f
 2016-01-06 10:58:57 zare.f
-2016-01-06 10:58:57 xtrnlv.F
-2016-01-06 10:58:57 xtrnlf.F
 2016-01-06 10:58:57 xcpred.f
 2016-01-06 10:58:57 ttgalaxy.f
 2016-01-06 10:58:57 ttforce.f
@@ -249,7 +244,6 @@ Nbody6PPGPU-beijing/src/Main/
 2016-01-06 10:58:57 reset2.f
 2016-01-06 10:58:57 rename_ks.F
 2016-01-06 10:58:57 reinit.f
-2016-01-06 10:58:57 reduce.f
 2016-01-06 10:58:57 qpmod4.f
 2016-01-06 10:58:57 qpmod3.f
 2016-01-06 10:58:57 proto_star.f
@@ -275,7 +269,6 @@ Nbody6PPGPU-beijing/src/Main/
 2016-01-06 10:58:57 hidat.f
 2016-01-06 10:58:57 hiarch.f
 2016-01-06 10:58:57 giant2.f
-2016-01-06 10:58:57 gcint.F
 2016-01-06 10:58:57 gcinit.f
 2016-01-06 10:58:57 fpoly2_ks.f
 2016-01-06 10:58:57 fpoly2.f
@@ -289,7 +282,6 @@ Nbody6PPGPU-beijing/src/Main/
 2016-01-06 10:58:57 fcorr.F
 2016-01-06 10:58:57 fbulge.f
 2016-01-06 10:58:57 expel2.f
-2016-01-06 10:58:57 events.f
 2016-01-06 10:58:57 efac3.f
 2016-01-06 10:58:57 difsy1.f
 2016-01-06 10:58:57 derqp.f
@@ -300,7 +292,6 @@ Nbody6PPGPU-beijing/src/Main/
 2016-01-06 10:58:57 cstab3.f
 2016-01-06 10:58:57 cstab2.f
 2016-01-06 10:58:57 core.f
-2016-01-06 10:58:57 cmcorr.f
 2016-01-06 10:58:57 chstab.f
 2016-01-06 10:58:57 chlist.f
 2016-01-06 10:58:57 chinit.f
@@ -310,7 +301,6 @@ Nbody6PPGPU-beijing/src/Main/
 2016-04-14 04:04:45 trdot.f
 2016-11-18 13:45:35 sort1.f
 2016-11-18 13:45:35 global_params_gether.f
-2016-11-18 13:45:35 energy.F
 2016-11-18 13:45:35 delay_remove_tlist.f
 2016-11-18 13:45:36 tpert.f
 2016-11-18 13:45:36 counter_reset.f
@@ -410,25 +400,20 @@ Nbody6PPGPU-beijing/src/Main/
 2022-05-05 06:01:37 xbpredall.F
 2022-05-05 06:01:37 mdot.F.standard
 2022-05-05 06:01:37 mdot.F.diag
-2022-05-05 06:01:37 expel.f
 2022-07-08 16:57:38 bindat.f
 2022-07-08 17:17:53 unpert.f
 2022-07-08 17:27:36 ksperi.f
-2022-07-27 18:11:04 cmbody.f
 2022-07-27 18:13:28 ksrect.f
 2022-07-31 16:37:19 remove_ks.F
 2022-07-31 16:37:19 remove.f
 2022-07-31 16:37:19 kspreg.F
 2022-08-20 14:12:49 hrplot.F
 2022-11-10 10:16:08 tides3.f
-2022-11-10 10:18:04 kstide.f
 2022-12-02 10:54:48 binout.f
 2022-12-02 11:04:03 chain.f
-2022-12-02 11:05:56 chmod_chain.f
 2022-12-02 11:07:55 chterm.f
 2022-12-02 11:09:56 degen.f
 2022-12-02 11:18:34 exchange_tlist.f
-2022-12-02 11:20:25 file_init.F
 2022-12-02 11:31:22 kscorr.f
 2022-12-02 11:36:59 recoil.f
 2022-12-02 11:38:30 remove_tlist.f
@@ -436,7 +421,6 @@ Nbody6PPGPU-beijing/src/Main/
 2022-12-02 11:41:17 reset.f
 2022-12-02 11:44:01 shift_tlist.f
 2022-12-02 11:50:15 units.f
-2022-12-13 13:49:31 mydump.F
 2023-01-23 10:53:59 ksreg.F
 2023-04-01 15:44:13 levels.f
 2023-04-02 14:56:31 fpoly1_mpi.f
@@ -446,48 +430,62 @@ Nbody6PPGPU-beijing/src/Main/
 2023-04-10 13:16:08 checkl.F
 2023-04-11 17:53:47 ttinit.f
 2023-04-11 17:53:47 setup.F
-2023-04-11 17:53:47 roche.f
 2023-04-11 17:53:47 kickGW.f
 2023-04-11 17:53:47 imbhinit.F
 2023-04-11 17:53:47 hipop.F
-2023-04-11 17:53:47 coal.f
 2023-04-11 17:53:47 cloud0.f
 2023-04-11 17:59:16 binpop.F
 2023-08-01 10:38:06 update.F
-2023-08-01 10:38:06 regcor_gpu.F
-2023-08-01 10:38:06 nbint_cor.f
 2023-08-23 17:26:55 scale.F
-2023-08-23 17:26:55 output.F
 2023-11-17 04:22:55 ksint.f
 2023-11-17 04:22:55 instar.F
-2023-11-19 09:29:09 custom_output_facility.F
-2023-11-19 09:29:09 custom_output.F
 2023-12-18 16:17:02 input.F
 2023-12-18 16:32:43 mlwind.f
 2023-12-18 16:32:43 mix.f
-2023-12-18 16:32:43 kick.F
 2023-12-18 16:32:43 corerd.f
 2023-12-18 16:32:43 comenv.f
 2023-12-24 12:11:33 hrdiag.f
 2023-12-28 15:22:13 data.F
 2024-04-19 15:33:54 ksterm.F
-2024-04-19 15:33:54 ksinit.F
-2024-12-20 11:44:07 mdot.F
-2025-01-03 10:52:11 adjust.F
-2025-02-16 17:47:57 xtrnlt.F
-2025-02-16 17:47:57 nbody6.F
-2025-02-16 17:47:57 modify.F
-2025-02-16 17:47:57 escape.F
-2025-02-17 20:10:56 xtrnl0.F
-2025-02-18 11:50:39 intgrt.F
 2025-02-18 15:13:43 start.F
-2025-02-18 15:59:30 mwpotinit.f
 2025-02-18 15:59:30 fpowercut.f
 2025-02-18 15:59:30 fnfw.f
-2025-02-18 15:59:30 fmwpot.f
 2025-02-18 15:59:30 fmiyamoto.f
-2025-02-18 15:59:30 asa147.f
-2025-02-18 15:59:30 pmwpot.f
+2025-02-19 14:39:39 xtrnlv.F
+2025-02-19 14:39:39 xtrnlt.F
+2025-02-19 14:39:39 xtrnlf.F
+2025-02-19 14:39:39 pmwpot.f
+2025-02-19 14:39:39 nbody6.F
+2025-02-19 14:39:39 gcint.F
+2025-02-19 14:39:39 energy.F
+2025-02-19 14:39:39 cmcorr.f
+2025-02-28 15:41:00 asa147.f
+2025-03-14 21:11:17 mydump.F
+2025-03-18 14:45:11 fmwpot.f
+2025-03-18 15:11:13 xtrnl0.F
+2025-03-23 18:36:36 escape.F
+2025-04-07 14:29:33 kick.F
+2025-04-11 13:54:13 reduce.f
+2025-04-11 13:54:13 kstide.f
+2025-04-11 13:54:13 intgrt.F
+2025-04-11 13:54:13 cmbody.f
+2025-04-14 12:02:51 expel.f
+2025-04-18 17:15:08 nbint_cor.f
+2025-04-18 17:15:08 custom_output.F
+2025-04-28 19:23:20 adjust.F
+2025-05-02 19:59:50 mwpotinit.F
+2025-05-11 22:07:51 custom_output_facility.F
+2025-05-27 15:01:28 regcor_gpu.F
+2025-05-28 20:51:28 modify.F
+2025-06-06 08:53:45 output.F
+2025-06-06 08:53:45 events.f
+2025-06-06 08:58:12 chmod_chain.f
+2025-07-15 17:43:38 coal.f
+2025-07-17 01:25:05 Lx.f90
+2025-07-17 16:34:57 file_init.F
+2025-07-17 16:59:39 roche.f
+2025-07-17 17:27:13 mdot.F
+2025-07-21 13:04:58 ksinit.F
 
 Nbody6PPGPU-beijing/src/Tools/  
 2025-02-18 15:59:30 MWpotential.f
