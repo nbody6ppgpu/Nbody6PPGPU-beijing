@@ -80,26 +80,38 @@
          RI = DSQRT(RIJ2)
          VI2 = XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2
          PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6
-         if(rank.eq.0)
-     &    WRITE (6,60)  TIME+TOFF,NAME(I1),NAME(I2),
+         if(rank.eq.0) then
+           WRITE (6,60)  TIME+TOFF,NAME(I1),NAME(I2),
      &         NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
      &         IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
      &         STEP(ICM),LIST(1,I1),LIST(1,ICM),
      &         BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
      &         RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,DSQRT(VI2)
-         call flush(6)
+  60       FORMAT (/,' NEW KSREG   TIME[NB]',1P,E17.9,' NM1,2,S=',
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
+     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
+     &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
+     &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RAD1,2,S[*]',3E13.5,
+     &         ' RCM,VCM[NB]=',2E13.5)
+           call flush(6)
+           WRITE(210,61) TIME+TOFF,NAME(I1),NAME(I2),
+     &         NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
+     &         IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
+     &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+     &         STEP(ICM),LIST(1,I1),LIST(1,ICM),
+     &         BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
+     &         RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,DSQRT(VI2)
+ 61        FORMAT(' NEW_KSREG ',1P,E17.9,3I10,3I4,I9,11E17.9,2I5,7E17.9)
+         endif
       END IF
       END DO
 *
-  60      FORMAT (/,' NEW KSREG   TIME[NB]',1P,E17.10,' NM1,2,S=',
-     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E11.3,
-     &         ' M1,2[NB]',2E11.3,' R12[NB]',E11.3,
-     &         ' e,a,eb[NB]=',2E12.4,E11.3,' P[d]=',E11.3,' H',E11.3,
-     &         ' GAMMA',1P,E11.3,' STEP(ICM)',E11.3,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E11.3,' RAD1,2,S[*]',3E11.3,
-     &         ' RI,VI[NB]=',2E11.3)
+
 *
+
+
       TIME = TIME0
 *
       RETURN
