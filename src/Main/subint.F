@@ -31,6 +31,10 @@ c$$$      COMMON/KSSTAT/ISTEPP,ISTEPU,IBINP,IBINU
 *     EMPI: 1:EMERGE; 2:BE(3); 3:RMAX
       LOGICAL CMFLAG
 #endif
+*      Local variables for event output RSp July 2025.
+      LOGICAL LPROUT
+      REAL*8 XMOLD1(KMAX),XMOLD2(KMAX)
+      INTEGER KWOLD1(KMAX),KWOLD2(KMAX)
 *
 *       Determine correct index after restart (NNTB = 0 initially).
       IF (IRUN.EQ.0) THEN
@@ -166,11 +170,13 @@ c$$$                  END IF
                   ICM = N + IPAIR
                   I2 = I1 + 1
 *    Prepare output for event data bank, RSp July 2025.
-                  DEB1 = DABS(BODY(I1) - XMOLD1)/BODY(I1)
-                  DEB2 = DABS(BODY(I2) - XMOLD2)/BODY(I2)
-                  KW1 = IABS(KSTAR(I1) - KWOLD1)
-                  KW2 = IABS(KSTAR(I2) - KWOLD2)
-                  IF (DEB1+DEB2.GT.0.05D0.OR.KW1+KW2.GT.0) THEN
+                  DEB1 = DABS(BODY(I1) - XMOLD1(IPAIR))/BODY(I1)
+                  DEB2 = DABS(BODY(I2) - XMOLD2(IPAIR))/BODY(I2)
+                  KW1 = IABS(KSTAR(I1) - KWOLD1(IPAIR))
+                  KW2 = IABS(KSTAR(I2) - KWOLD2(IPAIR))
+                  LPROUT = DEB1.GT.0.D0.OR.DEB2.GT.0.D0.OR.
+     &                     KW1.GT.0.OR.KW2.GT.0
+                  IF (LPROUT) THEN
                      RI = SQRT((X(1,ICM) - RDENS(1))**2 +
      &                         (X(2,ICM) - RDENS(2))**2 +
      &                         (X(3,ICM) - RDENS(3))**2)
@@ -190,10 +196,10 @@ c$$$                  END IF
  61       FORMAT(A,1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,13E17.9)
                   END IF
 * End event data bank output, RSp July 25     
-                  XMOLD1 = BODY(I1)
-                  XMOLD2 = BODY(I2)
-                  KWOLD1 = KSTAR(I1)
-                  KWOLD2 = KSTAR(I2)
+                  XMOLD1(IPAIR) = BODY(I1)
+                  XMOLD2(IPAIR) = BODY(I2)
+                  KWOLD1(IPAIR) = KSTAR(I1)
+                  KWOLD2(IPAIR) = KSTAR(I2)
 *
  10               continue
                   CALL KSINT(I1)
