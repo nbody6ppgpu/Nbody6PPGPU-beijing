@@ -195,7 +195,7 @@ c$$$      END IF
      &' I1 RXY[NB],i,alp[rad] ',3E13.5,' I1 VXY[NB],i,alp[rad] ',3E13.5,
      &' I2 RXY[NB],i,alp[rad] ',3E13.5,' I2 VXY[NB],i,alp[rad] ',3E13.5)
             call flush(6)
-           WRITE(210,16)' END_KSREG ',TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+           WRITE(210,16) TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
      &         NAME(ICM),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(ICM),
      &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
@@ -204,7 +204,7 @@ c$$$      END IF
      &         RADIUS(ICOMP)*SU,RADIUS(JCOMP)*SU,R(IPAIR)*SU,RI,VII,
      &         R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
      &         R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
- 16         FORMAT(A,1X,1P,E17.9,3I10,3I4,I9,11E17.9,2I5,19E17.9)
+ 16       FORMAT(' END_KSREG ',1P,E17.9,3I10,3I4,I9,11E17.9,2I5,19E17.9)
           endif
       END IF
 *
