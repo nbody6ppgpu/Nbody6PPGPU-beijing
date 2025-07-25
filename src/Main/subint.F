@@ -183,6 +183,23 @@ c$$$                  END IF
      &                         (X(2,ICM) - RDENS(2))**2 +
      &                         (X(3,ICM) - RDENS(3))**2)
                VII = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
+*
+          R1XY=SQRT((X(1,I1)-RDENS(1))**2+(X(2,I1)-RDENS(2))**2)
+          R1INC = ATAN((X(3,I1)-RDENS(3))/R1XY)
+          R1PHI = ACOS((X(1,I1)-RDENS(1))/R1XY)
+*
+          R2XY=SQRT((X(1,I2)-RDENS(1))**2+(X(2,I2)-RDENS(2))**2)
+          R2INC = ATAN((X(3,I2)-RDENS(3))/R2XY)
+          R2PHI = ACOS((X(1,I2)-RDENS(1))/R2XY)
+*
+          V1XY = SQRT(XDOT(1,I1)**2+XDOT(2,I1)**2)
+          V1INC = ATAN(XDOT(3,I1)/V1XY)
+          V1PHI = ACOS(XDOT(1,I1)/V1XY)
+*
+          V2XY = SQRT(XDOT(1,I2)**2+XDOT(2,I2)**2)
+          V2INC = ATAN(XDOT(3,I2)/V2XY)
+          V2PHI = ACOS(XDOT(1,I2)/V2XY)
+
                SEMI = -0.5*BODY(ICM)/H(IPAIR)
           ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
                EB = -0.5*BODY(I1)*BODY(I2)/SEMI
@@ -194,8 +211,11 @@ c$$$                  END IF
      &             R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
      &             STEP(ICM),LIST(1,I1),LIST(1,ICM),
      &             BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
-     &             RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VII
- 61       FORMAT('     KSREG ',1P,E17.9,3I10,3I4,I9,11E17.9,2I5,13E17.9)
+     &             RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VII,
+     &             R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
+     &             R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
+
+ 61       FORMAT('     KSREG ',1P,E17.9,3I10,3I4,I9,11E17.9,2I5,19E17.9)
 *
                   XMOLD1(IPAIR) = BODY(I1)
                   XMOLD2(IPAIR) = BODY(I2)
