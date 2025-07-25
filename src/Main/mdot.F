@@ -52,6 +52,8 @@
       LOGICAL LPROUT
       REAL*8 XMOLD1(KMAX),XMOLD2(KMAX)
       INTEGER KWOLD1(KMAX),KWOLD2(KMAX)
+      DATA KWOLD1,KWOLD2 /KMAX*0,KMAX*0/
+      DATA XMOLD1,XMOLD2 /KMAX*0.D0,KMAX*0.D0/
 *       Set variables with different names in common (RSp Mar23).
       K3 = XK3
       BETA = XBETA
@@ -1538,7 +1540,7 @@ c$$$#endif
                   KW2 = 0
                   ICM = I
          ELSE IF(I.GT.N)THEN
-                  IPAIR = KVEC(I)
+                  IPAIR = I - N
                   ICM = N + IPAIR
                   I1 = 2*IPAIR - 1
                   I2 = I1 + 1

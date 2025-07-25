@@ -35,6 +35,8 @@ c$$$      COMMON/KSSTAT/ISTEPP,ISTEPU,IBINP,IBINU
       LOGICAL LPROUT
       REAL*8 XMOLD1(KMAX),XMOLD2(KMAX)
       INTEGER KWOLD1(KMAX),KWOLD2(KMAX)
+      DATA KWOLD1,KWOLD2 /KMAX*0,KMAX*0/
+      DATA XMOLD1,XMOLD2 /KMAX*0.D0,KMAX*0.D0/
 *
 *       Determine correct index after restart (NNTB = 0 initially).
       IF (IRUN.EQ.0) THEN
