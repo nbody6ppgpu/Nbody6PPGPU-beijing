@@ -92,6 +92,8 @@
       FILE(210) ='ks.210    '
       FILE(211) ='wdnsbh.211'
       FILE(212) ='compb.212 '
+      FILE(220) ='bmdot.220 '
+      FILE(221) ='smdot.221 '
 
 #ifdef PARALLEL
       if(rank.eq.0) then
@@ -272,6 +274,10 @@
       OPEN (UNIT=211,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(211),
      &             ACCESS='APPEND')
       OPEN (UNIT=212,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(212),
+     &             ACCESS='APPEND')
+      OPEN (UNIT=220,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(220),
+     &             ACCESS='APPEND')
+      OPEN (UNIT=221,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(221),
      &             ACCESS='APPEND')
 #ifdef PARALLEL
       end if

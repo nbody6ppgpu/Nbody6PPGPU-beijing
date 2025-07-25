@@ -1557,7 +1557,7 @@ c$$$#endif
              IF(I.LE.N)THEN
                  WRITE(221,62) TIME+TOFF,NAME(I),KSTAR(I),
      &             BODY(I),LIST(1,I),BODY(I)*ZMBAR,RADIUS(I)*SU,RI,VII
- 62       FORMAT(' SING MDOT ',1P,E17.9,3I10,3I4,I9,11E17.9,2I5,13E17.9)
+ 62       FORMAT(' SING_MDOT ',1P,E17.9,2I10,E17.9,I10,4E17.9)
                  XMOLD1(I) = BODY(I)
                  KWOLD1(I) = KSTAR(I)
                  XMOLD2(I) = 0.D0
@@ -1574,7 +1574,7 @@ c$$$#endif
      &             STEP(ICM),LIST(1,I1),LIST(1,ICM),
      &             BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
      &             RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VII
- 61       FORMAT(' BIN MDOT  ',1P,E17.9,3I10,3I4,I9,11E17.9,2I5,13E17.9)
+ 61       FORMAT('  BIN_MDOT ',1P,E17.9,3I10,3I4,I9,11E17.9,2I5,13E17.9)
 *
              XMOLD1(IPAIR) = BODY(I1)
              XMOLD2(IPAIR) = BODY(I2)
