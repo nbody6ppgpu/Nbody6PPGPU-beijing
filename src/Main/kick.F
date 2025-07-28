@@ -433,7 +433,7 @@ c		Sambaran 2019.11.19.
             WHICH1 = ' NS/BH FB '
       if(rank.eq.0)WRITE (6,190)TTOT,NAME(I),I,KW,KSTAR(I),
      &      TTOT*TSTAR,BODY(I)*ZMBAR, BODY0(I)*ZMBAR,
-     &      FBFAC, FBTOT, VKICK*VSTAR, KMECH,
+     &      FBFAC, FBTOT, VKICK, KMECH,
      &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
      &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
   190 FORMAT (' NS/BH FORMATION FALLBACK TIME[NB]',1P,E17.10,
