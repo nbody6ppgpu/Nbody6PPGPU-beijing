@@ -14,15 +14,16 @@
       REAL*8 VK(4)
       REAL*8 mbh1,mbh2,abh1,abh2
       
-      REAL*8 mas1,mas2,mas3,Qr, acosa, acosb, acosg
+      REAL*8 mas1,mas2,mas3,qr, acosa, acosb, acosg
       REAL*8 mfinal, sfinal
+      CHARACTER*15 WHICH
 
 *      SPIN(I1) = 0.7
 *      SPIN(I2) = 0.7
 
-      Qr = BODY(I1)/BODY(I2)
-      IF(Qr .GT. 1.0)THEN
-         Qr = 1.0 / Qr
+      qr = BODY(I1)/BODY(I2)
+      IF(QR .GT. 1.0)THEN
+         QR = 1.0 / QR
       ENDIF
       
 
@@ -35,8 +36,8 @@
          mas1 = 212.18D0
          mas2 = 86.7878D0
          mas3 = 0.769689D0         
-         VKICK = mas1*Qr**1.2D0/(mas2*Qr**1.2D0+2.0D0) 
-         VKICK = VKICK * exp(-mas3*Qr**4.2D0)
+         VKICK = mas1*QR**1.2D0/(mas2*QR**1.2D0+2.0D0) 
+         VKICK = VKICK * exp(-mas3*QR**4.2D0)
          VKICK = 10.D0 ** VKICK
          mfinal= 0.985 * (BODY0(I1)+BODY0(I2)) * ZMBAR
          sfinal= 0.2        
@@ -69,7 +70,7 @@
          abh1 = ASPN(I1)
          abh2 = ASPN(I2)
          
-         CALL GWKICKS(mbh1, mbh2 ,abh1 ,abh2, Qr,
+         CALL GWKICKS(mbh1, mbh2 ,abh1 ,abh2, QR,
      &              acosa, acosb, acosg, VKICK, mfinal, sfinal)
          
          ASPN(I1) = sfinal
@@ -94,12 +95,29 @@
       VK(2) = SIN(THETA)*CPHI*VKICK
       VK(3) = SPHI*VKICK
       VK(4) = VKICK
-      
+*
+      WHICH = ' GW recoil:    '
+      ZM1 = BODY(I1)*ZMBAR
+      ZM2 = BODY(I2)*ZMBAR
+      ZM01 = BODY0(I1)*ZMBAR
+      ZM02 = BODY0(I2)*ZMBAR
+      IPAIR = KVEC(I1)
+      ICASE = 2
+      I = N + IPAIR
+      VD2 = 2.0*(BODY(N+IPAIR))/R(IPAIR)
+      VDIS = SQRT(VD2)*VSTAR
+      VESC = SQRT(VD2 + 4.0)*VSTAR
+      SEMI = -0.5*BODY(N+IPAIR)/H(IPAIR)
+      EB = BODY(I1)*BODY(I1+1)/BODY(N+IPAIR)*H(IPAIR)
+* XJSPIN in N-Body units
+      XJSPIN1 = ASPN(I1)*BODY(I1)**2/CLIGHT
+      XJSPIN2 = ASPN(I2)*BODY(I2)**2/CLIGHT
+* multiply by SPNFAC to get Msun*Rsun**2/Myr
       IF(rank.eq.0) THEN
          
          WRITE (6,310)  TTOT*TSTAR, NAME(I1), NAME(I2), KSTAR(I1), 
-     &        KSTAR(I2), BODY(I1)*ZMBAR, BODY(I2)*ZMBAR,
-     &        ASPN(I1),ASPN(I2), Qr,
+     &        KSTAR(I2),ZM01,ZM02,ZM1,ZM2,
+     &        ASPN(I1),ASPN(I2), QR,
      &        VKICK, VK(1),VK(2),VK(3)
  310       FORMAT (' GW recoil:  TIME[Myr] NAME(I1) NAME(I2) K*(I1) ',
      &        'K*(I2) M(I1)[M*] M(I2)[M*] SPIN(I1) SPIN(I2) Q', 
@@ -108,6 +126,16 @@
      &        1P,4E14.3)
          
          NBKICK = NBKICK + 1
+
+      WRITE(231,61)WHICH,ICASE,TTOT,I1,I2,NAME(I1),NAME(I2),
+     &        KSTAR(I1),KSTAR(I2),KW,KC,ZM01,ZM02,
+     &        ZM1,ZM2,VESC,VDIS,R(IPAIR)/SEMI,EB,R(IPAIR),
+     &        ASPN(I1),ASPN(I2),QR,XJSPIN1,XJSPIN2,SPNFAC,
+     &         X(1,I1)*RBAR, X(2,I1)*RBAR, X(3,I1)*RBAR,
+     &         XDOT(1,I1)*VSTAR, XDOT(2,I1)*VSTAR, XDOT(3,I1)*VSTAR,
+     &         X(1,I2)*RBAR, X(2,I2)*RBAR, X(3,I2)*RBAR,
+     &         XDOT(1,I2)*VSTAR, XDOT(2,I2)*VSTAR, XDOT(3,I2)*VSTAR
+   61 FORMAT(A15,I2,1P,E17.9,4I10,4I4,27E17.9)
          
       ENDIF
 

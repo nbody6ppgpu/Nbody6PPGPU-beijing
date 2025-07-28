@@ -220,6 +220,12 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
 *         call ksparmpi(K_store,K_real8,K_EKICK,0,0,EB)
           I2 = I1 + 1
           WHICH = ' BINARY KICK:  '
+* JSPIN in N-Body units
+          JSPIN1 = ASPN(I1)*BODY(I1)**2/CLIGHT
+          JSPIN2 = ASPN(I2)*BODY(I2)**2/CLIGHT
+* multiply by SPNFAC to get Msun*Rsun**2/Myr
+          QR = BODY(I1)/BODY(I2)
+*
           if(rank.eq.0)
      &    WRITE (6,1)  TTOT*TSTAR, NAME(I1), NAME(I2), KSTAR(I1), 
      &         KSTAR(I2),ZM1,ZM2,VESC, VDIS, R(IPAIR)/SEMI, EB,
@@ -597,11 +603,12 @@ c		Sambaran 2019.11.19.
       WRITE(231,61)WHICH,ICASE,TTOT,I1,I2,NAME(I1),NAME(I2),
      &        KSTAR(I1),KSTAR(I2),KW,KC,BODY0(I1)*ZMBAR,BODY0(I2)*ZMBAR,
      &        ZM1,ZM2,VESC,VDIS,R(IPAIR)/SEMI,EB,R(IPAIR),
+     &        ASPN(I1),ASPN(I2),QR,JSPIN1,JSPIN2,SPNFAC,
      &         X(1,I1)*RBAR, X(2,I1)*RBAR, X(3,I1)*RBAR,
      &         XDOT(1,I1)*VSTAR, XDOT(2,I1)*VSTAR, XDOT(3,I1)*VSTAR,
      &         X(1,I2)*RBAR, X(2,I2)*RBAR, X(3,I2)*RBAR,
      &         XDOT(1,I2)*VSTAR, XDOT(2,I2)*VSTAR, XDOT(3,I2)*VSTAR
-   61 FORMAT(A15,I2,1P,E17.9,4I10,4I4,21E17.9)
+   61 FORMAT(A15,I2,1P,E17.9,4I10,4I4,27E17.9)
       ELSE
       WRITE(230,60)WHICH1,WHICH2,ICASE,TTOT,I,NAME(I),KSTAR(I),KW,KC,
      &         KMECH,TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
