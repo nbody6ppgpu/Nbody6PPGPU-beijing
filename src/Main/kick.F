@@ -1,5 +1,6 @@
       SUBROUTINE KICK(I,ICASE,KW,DM)
 *
+*    ICASE = 0: binary  ; ICASE = 1: single
 *
 *       Velocity kick for WD, neutron stars or black holes.
 *       ---------------------------------------------------
@@ -52,9 +53,7 @@
 *     BHSPINFL = 5 - Mesa models (implemented by Sambaran) *
 *  A new vector in common6.h has been defined, named
 *     ASPN(NMAX)
-      
-
-      
+* 
       Include 'kspars.h'
       INCLUDE 'common6.h'
       REAL*8  RAN2,VK(4)
@@ -84,6 +83,8 @@
       integer ECS
       REAL*8 JSPIN,NUMBER
       COMMON /FBACK/ FBFAC,FBTOT,MCO,ECS
+      CHARACTER*10 WHICH1,WHICH2
+      CHARACTER*15 WHICH
 *
 *       Set variables with different names in common (RSp Mar23).
       VFAC = VVFAC
@@ -218,6 +219,7 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
 *         call ksparmpi(K_store,K_real8,K_EGRAV,0,0,EB)
 *         call ksparmpi(K_store,K_real8,K_EKICK,0,0,EB)
           I2 = I1 + 1
+          WHICH = ' BINARY KICK:  '
           if(rank.eq.0)
      &    WRITE (6,1)  TTOT*TSTAR, NAME(I1), NAME(I2), KSTAR(I1), 
      &         KSTAR(I2),ZM1,ZM2,VESC, VDIS, R(IPAIR)/SEMI, EB,
@@ -428,9 +430,10 @@ c		Sambaran 2019.11.19.
 *     &              VKICK = VK(4)*(MIN(ZM,MNUEFF)/ZM)
 ***********************************************
             ENDIF
+            WHICH1 = ' NS/BH FB '
       if(rank.eq.0)WRITE (6,190)TTOT,NAME(I),I,KW,KSTAR(I),
      &      TTOT*TSTAR,BODY(I)*ZMBAR, BODY0(I)*ZMBAR,
-     &      FBFAC, FBTOT, VKICK, KMECH,
+     &      FBFAC, FBTOT, VKICK*VSTAR, KMECH,
      &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
      &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
   190 FORMAT (' NS/BH FORMATION FALLBACK TIME[NB]',1P,E17.10,
@@ -486,10 +489,9 @@ c		Sambaran 2019.11.19.
 
 *       Skip case of zero kick velocity.
       IF (VKICK.EQ.0.0D0.OR.DISP0.EQ.0.0D0) then
-         if(rank.eq.0)
 *       X and XDOT in rdens
-
-
+      WHICH2 = ' ZERO VK: '
+         if(rank.eq.0)
      &    WRITE (6,18)  TTOT, I, NAME(I), KSTAR(I), KW, KC,
      &         TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
      &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,
@@ -555,6 +557,8 @@ c		Sambaran 2019.11.19.
 *     IF (NKICK.LT.50.OR.NAME(I).LE.2*NBIN0.OR.
 *    &    (KW.GE.13.AND.TTOT*TSTAR.GT.100.0)) THEN
           ZM = BODY(I)*ZMBAR
+          WHICH2 = ' FULL VK: '
+
           if(rank.eq.0)
      &    WRITE (6,20)  TTOT, I, NAME(I), KSTAR(I), KW, KC,
      &         TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
@@ -572,6 +576,7 @@ c		Sambaran 2019.11.19.
 *
 *       Highlight BH/NS velocities below 4 times rms velocity.
       IF (VKICK.LT.4.0*SQRT(0.5).AND.KW.GE.13) THEN
+          WHICH2 = '  LOW VK: '
           if(rank.eq.0)
      &    WRITE (6,25)  I, NAME(I), KW, VKICK*VSTAR, SQRT(VF2)*VSTAR,
      &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
@@ -586,7 +591,27 @@ c		Sambaran 2019.11.19.
 *         CALL HIVEL(I)
 *     END IF
 *
-   30 RETURN
+   30 CONTINUE
+*
+      IF(ICASE.EQ.0)THEN
+      WRITE(231,61)WHICH,ICASE,TTOT,I1,I2,NAME(I1),NAME(I2),
+     &        KSTAR(I1),KSTAR(I2),KW,KC,BODY0(I1)*ZMBAR,BODY0(I2)*ZMBAR,
+     &        ZM1,ZM2,VESC,VDIS,R(IPAIR)/SEMI,EB,R(IPAIR),
+     &         X(1,I1)*RBAR, X(2,I1)*RBAR, X(3,I1)*RBAR,
+     &         XDOT(1,I1)*VSTAR, XDOT(2,I1)*VSTAR, XDOT(3,I1)*VSTAR,
+     &         X(1,I2)*RBAR, X(2,I2)*RBAR, X(3,I2)*RBAR,
+     &         XDOT(1,I2)*VSTAR, XDOT(2,I2)*VSTAR, XDOT(3,I2)*VSTAR
+   61 FORMAT(A15,I2,1P,E17.9,4I10,4I4,21E17.9)
+      ELSE
+      WRITE(230,60)WHICH1,WHICH2,ICASE,TTOT,I,NAME(I),KSTAR(I),KW,KC,
+     &         KMECH,TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
+     &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,FBTOT,
+     &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
+     &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
+   60 FORMAT(2A10,I2,1P,E17.9,2I10,4I4,15E17.9)
+      END IF
+*
+      RETURN
 *
       END
 
