@@ -354,6 +354,13 @@ C      IF (KZ(30).EQ.-2.AND.KCHAIN.EQ.0) GO TO 100
       END IF
 *
       IF (KZ(15).GT.1.OR.KZ(30).GT.1) THEN
+*       Copy coordinates and velocities to local variables.
+          XX(1:3,1) = X(1:3,I1) - RDENS(1:3)
+          XX(1:3,2) = X(1:3,I2) - RDENS(1:3)
+          XX(1:3,3) = X(1:3,JCOMP) - RDENS(1:3)
+          VV(1:3,1) = XDOT(1:3,I1)
+          VV(1:3,2) = XDOT(1:3,I2)
+          VV(1:3,3) = XDOT(1:3,JCOMP)
           RI = SQRT((X(1,I) - RDENS(1))**2 +
      &              (X(2,I) - RDENS(2))**2 +
      &              (X(3,I) - RDENS(3))**2)
@@ -380,6 +387,19 @@ C      IF (KZ(30).EQ.-2.AND.KCHAIN.EQ.0) GO TO 100
      &         E8.1,'  NP',I4,' M1,2,3,TOT[*]',4E11.3,' RAD1,2,3[*]',
      &         3E11.3,' IN,OUT Sep[*]',2E11.3,'  RI,VI[NB]',2E11.3)
           call flush(6)
+            if(rank.eq.0)
+     &      WRITE(240,66) WHICH1, NCH, TTOT, I, JCOMP, IPAIR, NAME(I1),
+     &      NAME(I2), NAME(JCOMP), NAME(I), KSTAR(I1), KSTAR(I2),
+     &      KSTAR(JCOMP), KSTAR(I), BODY(I1), BODY(I2), BODY(JCOMP),
+     &      BODY(I)+BODY(JCOMP),R(IPAIR),H(IPAIR),ECC,SEMI,EB,PD,
+     &      ECC1,SEMI1,EB1,PD1,PERT4, RIJ, PMIN, EB1/EB, LIST(1,I1),
+     &      BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,BODY(JCOMP)*ZMBAR,
+     &      (BODY(I)+BODY(JCOMP))*ZMBAR,RADIUS(I1)*SU,RADIUS(I2)*SU,
+     &      RADIUS(JCOMP)*SU,R(IPAIR)*SU,RIJ*SU,RI,VI,
+     &      XX(1:3,1),XX(1:3,2),XX(1:3,3),VV(1:3,1),VV(1:3,2),VV(1:3,3)
+*
+ 66       FORMAT('  NEW ',A8,I4,1P,E17.9,7I10,4I4,18E17.9,I5,29E17.9)
+
       END IF
 *
 *     --01/03/14 13:46-lwang-debug--------------------------------------*

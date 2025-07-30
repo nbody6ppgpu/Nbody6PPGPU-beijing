@@ -23,6 +23,7 @@
       COMMON/INCOND/  X4(3,NMX),XDOT4(3,NMX)
       COMMON/ECHAIN/  ECH
       COMMON/KSAVE/  K1,K2
+      REAL*8  XX(3,3),VV(3,3)
 *
 *
 *       Decide between standard termination or collision (ISUB > 0 or < 0).
@@ -583,13 +584,40 @@ C      TIME = MIN(TBLOCK,TIME)
 *  100 IF (ITERM.GE.0) TPREV = TIME - 16.0*DT8
   100 IF (ITERM.GE.0) TPREV = TIME
 *     --03/07/14 23:16-lwang-end----------------------------------------*
-*     --03/03/14 19:59-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$      call adjust
-c$$$      print*,rank,'nstepi',nstepi,'t',time
-c$$$      call flush(6)
-c$$$      stop
-*     --03/03/14 19:59-lwang-end----------------------------------------*
+*
+*  Event data bank output RSp July 2025
+*  (currently only valid for NCH.LE.3)
+      IF (KZ(15).GT.1.OR.KZ(30).GT.1) THEN
+*       Copy coordinates and velocities to local variables.
+          XX(1:3,1) = X(1:3,I1) - RDENS(1:3)
+          XX(1:3,2) = X(1:3,I2) - RDENS(1:3)
+          XX(1:3,3) = X(1:3,I3) - RDENS(1:3)
+          VV(1:3,1) = XDOT(1:3,I1)
+          VV(1:3,2) = XDOT(1:3,I2)
+          VV(1:3,3) = XDOT(1:3,I3)
+          RI = SQRT((X(1,NTOT) - RDENS(1))**2 +
+     &              (X(2,NTOT) - RDENS(2))**2 +
+     &              (X(3,NTOT) - RDENS(3))**2)
+          VI = SQRT(XDOT(1,NTOT)**2+XDOT(2,NTOT)**2+XDOT(3,NTOT)**2)
+          PD = TWOPI*SEMI*SQRT(DABS(SEMI)/(BODY(NTOT)+BODY(I3)))
+     &                             *TSTAR*365.24D6
+          PD1 = TWOPI*SEMI1*SQRT(DABS(SEMI1)/BODY(NTOT))*TSTAR*365.24D6
+
+            if(rank.eq.0)
+     &      WRITE(240,66) WHICH1, NCH, TTOT, NTOT, I3, 0, NAME(I1),
+     &      NAME(I2), NAME(I3), NAME(NTOT), KSTAR(I1), KSTAR(I2),
+     &      KSTAR(I3), KSTAR(NTOT), BODY(I1), BODY(I2), BODY(I3),
+     &      BODY(NTOT)+BODY(I3),0.D0,0.D0,ECC,SEMI,EB,PD,
+     &      ECC1,SEMI1,EB1,PD1,PERT4, RIJ, PMIN, EB1/EB, LIST(1,I1),
+     &      BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,BODY(I3)*ZMBAR,
+     &      (BODY(I)+BODY(I3))*ZMBAR,RADIUS(I1)*SU,RADIUS(I2)*SU,
+     &      RADIUS(I3)*SU,0.D0,RIJ*SU,RI,VI,
+     &      XX(1:3,1),XX(1:3,2),XX(1:3,3),VV(1:3,1),VV(1:3,2),VV(1:3,3)
+*
+ 66       FORMAT('  NEW ',A8,I4,1P,E17.9,7I10,4I4,18E17.9,I5,29E17.9)
+*
+      END IF
+
       RETURN
 *
       END
