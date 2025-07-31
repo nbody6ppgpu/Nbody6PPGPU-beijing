@@ -24,6 +24,7 @@
       COMMON/ECHAIN/  ECH
       COMMON/KSAVE/  K1,K2
       REAL*8  XX(3,3),VV(3,3)
+      CHARACTER*8  WHICH1
 *
 *
 *       Decide between standard termination or collision (ISUB > 0 or < 0).
@@ -602,6 +603,7 @@ C      TIME = MIN(TBLOCK,TIME)
           PD = TWOPI*SEMI*SQRT(DABS(SEMI)/(BODY(NTOT)+BODY(I3)))
      &                             *TSTAR*365.24D6
           PD1 = TWOPI*SEMI1*SQRT(DABS(SEMI1)/BODY(NTOT))*TSTAR*365.24D6
+          WHICH1 = ' CHAIN  '
 
             if(rank.eq.0)
      &      WRITE(240,66) WHICH1, NCH, TTOT, NTOT, I3, 0, NAME(I1),
@@ -614,7 +616,7 @@ C      TIME = MIN(TBLOCK,TIME)
      &      RADIUS(I3)*SU,0.D0,RIJ*SU,RI,VI,
      &      XX(1:3,1),XX(1:3,2),XX(1:3,3),VV(1:3,1),VV(1:3,2),VV(1:3,3)
 *
- 66       FORMAT('  NEW ',A8,I4,1P,E17.9,7I10,4I4,18E17.9,I5,29E17.9)
+ 66       FORMAT('  END ',A8,I4,1P,E17.9,7I10,4I4,18E17.9,I5,29E17.9)
 *
       END IF
 

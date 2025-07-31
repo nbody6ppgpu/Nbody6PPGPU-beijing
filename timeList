@@ -1,4 +1,4 @@
-file modified time information in Berlin time recorded at Fri Jul 25 13:47:56 CEST 2025
+file modified time information in Berlin time recorded at Thu Jul 31 17:23:55 CEST 2025
 Nbody6PPGPU-beijing/  
 2020-06-29 23:35:57 extra_inc
 2020-07-09 23:24:04 src
@@ -13,7 +13,7 @@ Nbody6PPGPU-beijing/
 2025-01-20 19:26:43 config.examples
 2025-02-18 11:45:49 README.md
 2025-02-28 15:41:00 build
-2025-07-25 13:47:56 timeList
+2025-07-31 17:23:55 timeList
 
 Nbody6PPGPU-beijing/build/  
 2020-09-25 22:53:55 Makefile.debug
@@ -379,7 +379,6 @@ Nbody6PPGPU-beijing/src/Main/
 2022-04-17 09:24:05 kick2.f
 2022-04-17 09:24:05 irr.sse.cpp
 2022-04-17 09:24:05 irr.avx.cpp
-2022-04-17 09:24:05 impact.f
 2022-04-17 09:24:05 higrow.f
 2022-04-17 09:24:05 gpunb.velocity.cu.single
 2022-04-17 09:24:05 gpunb.velocity.cu.openmp
@@ -409,7 +408,6 @@ Nbody6PPGPU-beijing/src/Main/
 2022-11-10 10:16:08 tides3.f
 2022-12-02 10:54:48 binout.f
 2022-12-02 11:04:03 chain.f
-2022-12-02 11:07:55 chterm.f
 2022-12-02 11:09:56 degen.f
 2022-12-02 11:18:34 exchange_tlist.f
 2022-12-02 11:31:22 kscorr.f
@@ -428,7 +426,6 @@ Nbody6PPGPU-beijing/src/Main/
 2023-04-10 13:16:08 checkl.F
 2023-04-11 17:53:47 ttinit.f
 2023-04-11 17:53:47 setup.F
-2023-04-11 17:53:47 kickGW.f
 2023-04-11 17:53:47 imbhinit.F
 2023-04-11 17:53:47 hipop.F
 2023-04-11 17:53:47 cloud0.f
@@ -461,7 +458,6 @@ Nbody6PPGPU-beijing/src/Main/
 2025-03-18 14:45:11 fmwpot.f
 2025-03-18 15:11:13 xtrnl0.F
 2025-03-23 18:36:36 escape.F
-2025-04-07 14:29:33 kick.F
 2025-04-11 13:54:13 reduce.f
 2025-04-11 13:54:13 kstide.f
 2025-04-11 13:54:13 intgrt.F
@@ -483,9 +479,13 @@ Nbody6PPGPU-beijing/src/Main/
 2025-07-23 15:05:14 ksterm.F
 2025-07-23 15:05:14 ksinit.F
 2025-07-23 16:40:19 kspinit.f
-2025-07-25 08:44:03 subint.F
-2025-07-25 12:53:38 mdot.F
-2025-07-25 12:53:38 file_init.F
+2025-07-25 16:48:06 mdot.F
+2025-07-25 17:49:21 subint.F
+2025-07-28 16:04:06 kickGW.f
+2025-07-28 16:04:06 kick.F
+2025-07-30 18:37:27 impact.f
+2025-07-30 18:37:27 chterm.f
+2025-07-31 15:04:37 file_init.F
 
 Nbody6PPGPU-beijing/src/Tools/  
 2025-02-18 15:59:30 MWpotential.f
