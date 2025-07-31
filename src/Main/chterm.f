@@ -604,12 +604,14 @@ C      TIME = MIN(TBLOCK,TIME)
      &                             *TSTAR*365.24D6
           PD1 = TWOPI*SEMI1*SQRT(DABS(SEMI1)/BODY(NTOT))*TSTAR*365.24D6
           WHICH1 = ' CHAIN  '
-
+          I4 = I3
+          XZERO = 0.D0
+*
             if(rank.eq.0)
-     &      WRITE(240,66) WHICH1, NCH, TTOT, NTOT, I3, 0, NAME(I1),
+     &      WRITE(240,66) WHICH1, NCH, TTOT, NTOT, I3, I4, NAME(I1),
      &      NAME(I2), NAME(I3), NAME(NTOT), KSTAR(I1), KSTAR(I2),
      &      KSTAR(I3), KSTAR(NTOT), BODY(I1), BODY(I2), BODY(I3),
-     &      BODY(NTOT)+BODY(I3),0.D0,0.D0,ECC,SEMI,EB,PD,
+     &      BODY(NTOT)+BODY(I3),XZERO,XZERO,ECC,SEMI,EB,PD,
      &      ECC1,SEMI1,EB1,PD1,PERT4, RIJ, PMIN, EB1/EB, LIST(1,I1),
      &      BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,BODY(I3)*ZMBAR,
      &      (BODY(I)+BODY(I3))*ZMBAR,RADIUS(I1)*SU,RADIUS(I2)*SU,
