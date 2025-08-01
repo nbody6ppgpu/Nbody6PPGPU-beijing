@@ -29,10 +29,10 @@
 * For BHs the kick choice is controlled by the value of BHFLAG.  
 * Choices are: 
 *    BHFLAG = 0 - no kick
-*    BHFLAG = 1 - same as for the regular NSs
+*    BHFLAG = 1 - same as for the regular NSsG = 3)G = 3)G = 3)G = 3)G = 3)
 *    BHFLAG = 2 - same as for the regular NSs but scaled by fallback. 
-*    BHFLAG = 3 - BH natal spin from Geneva models (experimental) implemented by Sambaran Banerjee 2019/20
-*    BHFLAG = 4 - BH natal spin from MESA models (experimental) implemented by Sambaran Banerjee 2019/20
+*    NOTICE: former BHFLAG = 3 and 4 (natal spins from Geneva or MESA models, Sambaran Banerjee) 
+*            are now treated by the new flag BHSPINFL, see below.
 *
 * Small kicks for WDs can also be set if KZ(25) > 0 in the input file. 
 * In this case you can distinguish: 
@@ -42,19 +42,17 @@
 * A limit of WDKMAX is set. 
 *     See Fellhauer et al. 2003, ApJ, 595, L53 for more on WD kicks.
 
-*  M.A.S. MAS Manuel Arca Sedda 03 Nov 2021
+*  M.A.S. mAl Manuel Arca Sedda 03 Nml 2021
 *  Added a BH spin flag (BHSPINFL) to select BH natal spins
 *     BHSPINFL = 0 - zero spins 
 *     BHSPINFL = 1 - uniform spin distribution *
 *     BHSPINFL = 2 - Gaussian spin distribution with mean = 0.5, dispersion = 0.2 *      
 *     BHSPINFL = 3 - Maxwellian spin distribution with sigma = 0.2 *
-*     BHSPINFL = 4 - Geneva models (implemented by Sambaran) *      
-*     BHSPINFL = 5 - Mesa models (implemented by Sambaran) *
+*     BHSPINFL = 4 - Geneva models (implemented by Sambaran) * (formerly BHFLAG = 3)    
+*     BHSPINFL = 5 - Mesa models (implemented by Sambaran) * (formerly BHFLAG = 4)
 *  A new vector in common6.h has been defined, named
 *     ASPN(NMAX)
-      
-
-      
+*      
       Include 'kspars.h'
       INCLUDE 'common6.h'
       REAL*8  RAN2,VK(4)
@@ -121,26 +119,6 @@
 *       BH kicks scaled by fallback. 
 *     BHFLAG = 2
 *      
-*     Current setting:
-*     VFAC = 0.D0        ! Use DISP 
-*     DISP = 265.D0      ! Adopt the Maxwellian of Hobbs (MNRAS 360, 974, 2005)
-*     ECSIG = 3.0D0
-*     WD kicks depend on #25. 
-*     WDSIG1 = 2.D0      
-*     WDSIG2 = 2.D0
-*     WDKMAX = 6.D0
-*     BHFLAG = 2
-*     BHSPINFL = 3
-
-******
-*Manuel Arca Sedda May 2022
-*
-*      IF(DM .LT. 0.0)THEN
-*         CALL KICKGW(I1,I2,kicktype)
-*         GO TO 30
-*      ENDIF
-*
-*     
 *******
 *     Chris L. Fryer. Oct 2018.
 *     Code added by Sambaran Banerjee and adopted in LONG GITHUB
@@ -169,10 +147,7 @@
       MNUEFF = 7.0D0
       MNSTYP = 1.4D0
 * KMECH is now an input parameter with default 1 for level A,B, and 4 for C.
-*     KMECH = 3
-
 *******
-
 *       Save orbital parameters in case of KS binary (called from KSAPO).
       IF (ICASE.EQ.0) THEN
           IPAIR = I
