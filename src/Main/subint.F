@@ -176,7 +176,7 @@ c$$$                  END IF
                   DEB2 = DABS(BODY(I2) - XMOLD2(IPAIR))/BODY(I2)
                   KW1 = IABS(KSTAR(I1) - KWOLD1(IPAIR))
                   KW2 = IABS(KSTAR(I2) - KWOLD2(IPAIR))
-                  LPROUT = DEB1.GT.0.D0.OR.DEB2.GT.0.D0.OR.
+                  LPROUT = DEB1.GT.0.05D0.OR.DEB2.GT.0.05D0.OR.
      &                     KW1.GT.0.OR.KW2.GT.0
                   IF (LPROUT) THEN
                      RI = SQRT((X(1,ICM) - RDENS(1))**2 +
