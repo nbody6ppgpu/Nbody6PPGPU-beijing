@@ -240,7 +240,8 @@
       call cputim(tt1)
           ISUB = 0
           TIMENB = TTOT
-          CALL CHAIN(ISUB,TIMENB)
+          KZ50 = KZ(50)
+          CALL CHAIN(ISUB,TIMENB,KZ50)
       call cputim(tt2)
       if(rank.eq.0)ttks = ttks + (tt2-tt1)*60.
       END IF

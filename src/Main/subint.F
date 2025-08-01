@@ -682,7 +682,8 @@ c$$$            call mpi_barrier(MPI_COMM_WORLD,ierr)
                   GO TO 50
                END IF
                TIMENB = TTOT
-               CALL CHAIN(ISUB,TIMENB)
+               KZ50 = KZ(50)
+               CALL CHAIN(ISUB,TIMENB,KZ50)
                IF (ISUB.GT.0) THEN
                   IF(STEPS(ISUB).LT.0.0D0) THEN
                      STEPS(ISUB) = 1.0D-10
