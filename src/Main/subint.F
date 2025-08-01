@@ -206,8 +206,8 @@ c$$$                  END IF
                PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6 
 *
                IF(KZ(50).EQ.1)
-     &         WRITE(210,61) TIME+TOFF,NAME(I1),NAME(I2),
-     &             NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
+     &         WRITE(210,61) TIME+TOFF,DEB1,DEB2,KW1,KW2,NAME(I1),
+     &             NAME(I2),NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
      &             IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
      &             R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
      &             STEP(ICM),LIST(1,I1),LIST(1,ICM),
@@ -216,7 +216,8 @@ c$$$                  END IF
      &             R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
      &             R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
 
- 61       FORMAT('     KSREG ',1P,E17.9,3I10,3I4,I9,11E17.9,2I5,19E17.9)
+ 61       FORMAT('     KSREG ',1P,E17.9,2E13.5,2I4,3I10,3I4,I9,
+     &                         11E17.9,2I5,19E17.9)
 *
                   XMOLD1(IPAIR) = BODY(I1)
                   XMOLD2(IPAIR) = BODY(I2)
