@@ -368,8 +368,8 @@ C      IF (KZ(30).EQ.-2.AND.KCHAIN.EQ.0) GO TO 100
           PD = TWOPI*SEMI*SQRT(DABS(SEMI)/(BODY(I)+BODY(JCOMP)))
      &                             *TSTAR*365.24D6
           PD1 = TWOPI*SEMI1*SQRT(DABS(SEMI1)/BODY(I))*TSTAR*365.24D6
-          if(rank.eq.0)
-     &    WRITE (6,20)  WHICH1, TTOT, I, JCOMP, IPAIR, NAME(I1),
+          if(rank.eq.0) then
+          WRITE (6,20)  WHICH1, TTOT, I, JCOMP, IPAIR, NAME(I1),
      &      NAME(I2), NAME(JCOMP), NAME(I), KSTAR(I1), KSTAR(I2),
      &      KSTAR(JCOMP), KSTAR(I), BODY(I1), BODY(I2), BODY(JCOMP),
      &      BODY(I)+BODY(JCOMP),R(IPAIR),H(IPAIR),ECC,SEMI,EB,PD,
@@ -387,7 +387,7 @@ C      IF (KZ(30).EQ.-2.AND.KCHAIN.EQ.0) GO TO 100
      &         E8.1,'  NP',I4,' M1,2,3,TOT[*]',4E11.3,' RAD1,2,3[*]',
      &         3E11.3,' IN,OUT Sep[*]',2E11.3,'  RI,VI[NB]',2E11.3)
           call flush(6)
-            if(rank.eq.0)
+            IF(KZ(50).EQ.1)
      &      WRITE(240,66) WHICH1, NCH, TTOT, I, JCOMP, IPAIR, NAME(I1),
      &      NAME(I2), NAME(JCOMP), NAME(I), KSTAR(I1), KSTAR(I2),
      &      KSTAR(JCOMP), KSTAR(I), BODY(I1), BODY(I2), BODY(JCOMP),
@@ -399,6 +399,7 @@ C      IF (KZ(30).EQ.-2.AND.KCHAIN.EQ.0) GO TO 100
      &      XX(1:3,1),XX(1:3,2),XX(1:3,3),VV(1:3,1),VV(1:3,2),VV(1:3,3)
 *
  66       FORMAT('  NEW ',A8,I4,1P,E17.9,7I10,4I4,18E17.9,I5,29E17.9)
+          end if
 
       END IF
 *

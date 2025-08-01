@@ -873,7 +873,8 @@ c$$$            end if
      &        ' I,K,N,KW=',I10,I4,I10,2I4,
      &    ' AGE,AGE0=',2E13.5,' Body, Mass [*]=',1P,2E13.5,' M0/1[*]',
      &        2E13.5,' RAD[*]',E9.1,' R,V=',2E9.1,' RCC,MC=',2E9.1)
-      WRITE (211,*)TIME+TOFF,I, K, NAME(I), KSTAR(I), KW, AGE,AGEOLD,
+      IF(KZ(50).EQ.1)
+     &WRITE (211,*)TIME+TOFF,I, K, NAME(I), KSTAR(I), KW, AGE,AGEOLD,
      &      BODY(I)*ZMBAR,MASS(K), M0, M1, RADIUS(I)*SU, VI, RI, RCC, MC
             END IF
 *
@@ -1557,7 +1558,8 @@ c$$$#endif
      &                         (X(3,ICM) - RDENS(3))**2)
                VII = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
              IF(I.LE.N)THEN
-                 WRITE(221,62) TIME+TOFF,I,NAME(I),KSTAR(I),
+                 IF(KZ(50).EQ.1)
+     &           WRITE(221,62) TIME+TOFF,I,NAME(I),KSTAR(I),
      &             BODY(I),LIST(1,I),BODY(I)*ZMBAR,RADIUS(I)*SU,RI,VII
  62       FORMAT(' SING_MDOT ',1P,E17.9,3I10,E17.9,I10,4E17.9)
                  XMOLD1(I) = BODY(I)
@@ -1569,7 +1571,8 @@ c$$$#endif
           ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
                  EB = -0.5*BODY(I1)*BODY(I2)/SEMI
                PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6
-                 WRITE(220,61) TIME+TOFF,I,NAME(I1),NAME(I2),
+                 IF(KZ(50).EQ.1)
+     &           WRITE(220,61) TIME+TOFF,I,NAME(I1),NAME(I2),
      &             NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
      &             IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
      &             R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),

@@ -195,7 +195,8 @@ c$$$      END IF
      &' I1 RXY[NB],i,alp[rad] ',3E13.5,' I1 VXY[NB],i,alp[rad] ',3E13.5,
      &' I2 RXY[NB],i,alp[rad] ',3E13.5,' I2 VXY[NB],i,alp[rad] ',3E13.5)
             call flush(6)
-           WRITE(210,16) TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+           IF(KZ(50).EQ.1)
+     &     WRITE(210,16) TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
      &         NAME(ICM),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(ICM),
      &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),

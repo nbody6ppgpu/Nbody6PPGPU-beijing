@@ -607,7 +607,8 @@ C      TIME = MIN(TBLOCK,TIME)
           I4 = I3
           XZERO = 0.D0
 *
-            if(rank.eq.0)
+            if(rank.eq.0) then
+            IF(KZ(50.EQ.0)
      &      WRITE(240,66) WHICH1, NCH, TTOT, NTOT, I3, I4, NAME(I1),
      &      NAME(I2), NAME(I3), NAME(NTOT), KSTAR(I1), KSTAR(I2),
      &      KSTAR(I3), KSTAR(NTOT), BODY(I1), BODY(I2), BODY(I3),
@@ -619,6 +620,7 @@ C      TIME = MIN(TBLOCK,TIME)
      &      XX(1:3,1),XX(1:3,2),XX(1:3,3),VV(1:3,1),VV(1:3,2),VV(1:3,3)
 *
  66       FORMAT('  END ',A8,I4,1P,E17.9,7I10,4I4,18E17.9,I5,29E17.9)
+            end if
 *
       END IF
 

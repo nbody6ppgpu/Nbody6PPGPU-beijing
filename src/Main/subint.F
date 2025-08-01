@@ -205,7 +205,8 @@ c$$$                  END IF
                EB = -0.5*BODY(I1)*BODY(I2)/SEMI
                PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6 
 *
-               WRITE(210,61) TIME+TOFF,NAME(I1),NAME(I2),
+               IF(KZ(50).EQ.1)
+     &         WRITE(210,61) TIME+TOFF,NAME(I1),NAME(I2),
      &             NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
      &             IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
      &             R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),

@@ -296,7 +296,8 @@
                  tphys = TTOT*TSTAR
                  age = tphys - EPOCH(I)
                  Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
-                 WRITE (203,*) 'NEW_ROCHE',NAME(I),
+                 IF(KZ(50).EQ.1)
+     &           WRITE (203,*) 'NEW_ROCHE',NAME(I),
      &            NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
      &            EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
      &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
@@ -1269,7 +1270,8 @@
                tphys = TTOT*TSTAR
                age = tphys - EPOCH(I)
                Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
-               WRITE (203,*) 'END_ROCHE_COAL',NAME(I),
+               IF(KZ(50).EQ.1)
+     &         WRITE (203,*) 'END_ROCHE_COAL',NAME(I),
      &            NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
      &            EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
      &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),

@@ -241,7 +241,8 @@ c$$$      end if
      &' I1 RXY[NB],i,alp[rad] ',3E13.5,' I1 VXY[NB],i,alp[rad] ',3E13.5,
      &' I2 RXY[NB],i,alp[rad] ',3E13.5,' I2 VXY[NB],i,alp[rad] ',3E13.5)
           call flush(6)
-           WRITE(210,61) TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+           IF(KZ(50).EQ.1)
+     &     WRITE(210,61) TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
      &         NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
      &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
@@ -281,7 +282,8 @@ c$$$      end if
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
      &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RAD1,2,S[*]',3E13.5,
      &         ' RI,VI[NB],DEB=',3E13.5)
-          WRITE (212,62)  TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
+          IF(KZ(50).EQ.1)
+     &    WRITE (212,62)  TIME+TOFF,NAME(ICOMP),NAME(JCOMP),
      &         NAME(NTOT),KSTAR(ICOMP),KSTAR(JCOMP),KSTAR(NTOT),
      &         IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),

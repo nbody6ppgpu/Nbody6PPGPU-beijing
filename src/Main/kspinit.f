@@ -96,7 +96,8 @@
      &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RAD1,2,S[*]',3E13.5,
      &         ' RCM,VCM[NB]=',2E13.5)
            call flush(6)
-           WRITE(210,61) TIME+TOFF,NAME(I1),NAME(I2),
+           IF(KZ(50).EQ.1)
+     &     WRITE(210,61) TIME+TOFF,NAME(I1),NAME(I2),
      &         NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
      &         IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),

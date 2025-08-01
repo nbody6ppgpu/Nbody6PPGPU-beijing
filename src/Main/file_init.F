@@ -99,6 +99,7 @@
          FILE(230) ='gwkick.230'
          FILE(231) ='bkick.231'
          FILE(240) ='chain.240'
+         FILE(241) ='chain.241'
       END IF
 
 #ifdef PARALLEL
@@ -292,6 +293,8 @@
         OPEN (UNIT=231,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(231),
      &             ACCESS='APPEND')
         OPEN (UNIT=240,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(240),
+     &             ACCESS='APPEND')
+        OPEN (UNIT=241,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(241),
      &             ACCESS='APPEND')
       END IF
 #ifdef PARALLEL
