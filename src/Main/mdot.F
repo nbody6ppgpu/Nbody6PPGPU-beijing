@@ -1550,9 +1550,8 @@ c$$$#endif
                   IKW1 = IABS(KSTAR(I1) - KWOLD1(NAME(I1)))
                   IKW2 = IABS(KSTAR(I2) - KWOLD2(NAME(I2)))
          END IF
-                  EPS = 1.D-10
-                  IF(DABS(DEB1-1.D0).LT.1.D-10)DEB1 = 0.D0
-                  IF(DABS(DEB2-1.D0).LT.1.D-10)DEB2 = 0.D0
+                  IF(DABS(DEB1-1.D0).LT.TOL)DEB1 = 0.D0
+                  IF(DABS(DEB2-1.D0).LT.TOL)DEB2 = 0.D0
 *
          LPROUT = DEB1.GT.0.05D0.OR.DEB2.GT.0.05D0.OR.
      &                     IKW1.GT.0.OR.IKW2.GT.0

@@ -33,6 +33,7 @@ c$$$      COMMON/KSSTAT/ISTEPP,ISTEPU,IBINP,IBINU
 #endif
 *      Local variables for event output RSp July 2025.
       LOGICAL LPROUT
+      PARAMETER(TOL=1.0D-10)
       REAL*8 XMOLD1(NMAX),XMOLD2(NMAX)
       INTEGER KWOLD1(NMAX),KWOLD2(NMAX)
       DATA KWOLD1,KWOLD2 /NMAX*0,NMAX*0/
@@ -172,11 +173,10 @@ c$$$                  END IF
                   ICM = N + IPAIR
                   I2 = I1 + 1
 *    Prepare output for event data bank, RSp July 2025.
-                  EPS = 1.D-10
                   DEB1 = DABS(BODY(I1) - XMOLD1(NAME(I1)))/BODY(I1)
                   DEB2 = DABS(BODY(I2) - XMOLD2(NAME(I2)))/BODY(I2)
-                  IF(DABS(DEB1-1.D0).LT.1.D-10)DEB1 = 0.D0
-                  IF(DABS(DEB2-1.D0).LT.1.D-10)DEB2 = 0.D0
+                  IF(DABS(DEB1-1.D0).LT.TOL)DEB1 = 0.D0
+                  IF(DABS(DEB2-1.D0).LT.TOL)DEB2 = 0.D0
                   IKW1 = IABS(KSTAR(I1) - KWOLD1(NAME(I1)))
                   IKW2 = IABS(KSTAR(I2) - KWOLD2(NAME(I2)))
                   LPROUT = DEB1.GT.0.05D0.OR.DEB2.GT.0.05D0.OR.
