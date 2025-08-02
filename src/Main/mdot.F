@@ -50,10 +50,10 @@
       DATA IWARN /0/
 *      Local variables for event output RSp July 2025.
       LOGICAL LPROUT
-      REAL*8 XMOLD1(KMAX),XMOLD2(KMAX)
-      INTEGER KWOLD1(KMAX),KWOLD2(KMAX)
-      DATA KWOLD1,KWOLD2 /KMAX*0,KMAX*0/
-      DATA XMOLD1,XMOLD2 /KMAX*0.D0,KMAX*0.D0/
+      REAL*8 XMOLD1(NMAX),XMOLD2(NMAX)
+      INTEGER KWOLD1(NMAX),KWOLD2(NMAX)
+      DATA KWOLD1,KWOLD2 /NMAX*0,NMAX*0/
+      DATA XMOLD1,XMOLD2 /NMAX*0.D0,NMAX*0.D0/
 *       Set variables with different names in common (RSp Mar23).
       K3 = XK3
       BETA = XBETA
@@ -1535,23 +1535,27 @@ c$$$#endif
 *
 *    Prepare output for event data bank, RSp July 2025.
          IF(I.LE.N)THEN
-                  DEB1 = DABS(BODY(I) - XMOLD1(I))/BODY(I)
+                  DEB1 = DABS(BODY(I) - XMOLD1(NAME(I)))/BODY(I)
                   DEB2 = 0.D0
-                  KW1 = IABS(KSTAR(I) - KWOLD1(I))
-                  KW2 = 0
+                  IKW1 = IABS(KSTAR(I) - KWOLD1(NAME(I)))
+                  IKW2 = 0
                   ICM = I
          ELSE IF(I.GT.N)THEN
                   IPAIR = I - N
                   ICM = N + IPAIR
                   I1 = 2*IPAIR - 1
                   I2 = I1 + 1
-                  DEB1 = DABS(BODY(I1) - XMOLD1(IPAIR))/BODY(I1)
-                  DEB2 = DABS(BODY(I2) - XMOLD2(IPAIR))/BODY(I2)
-                  KW1 = IABS(KSTAR(I1) - KWOLD1(IPAIR))
-                  KW2 = IABS(KSTAR(I2) - KWOLD2(IPAIR))
+                  DEB1 = DABS(BODY(I1) - XMOLD1(NAME(I1)))/BODY(I1)
+                  DEB2 = DABS(BODY(I2) - XMOLD2(NAME(I2)))/BODY(I2)
+                  IKW1 = IABS(KSTAR(I1) - KWOLD1(NAME(I1)))
+                  IKW2 = IABS(KSTAR(I2) - KWOLD2(NAME(I2)))
          END IF
+                  EPS = 1.D-10
+                  IF(DABS(DEB1-1.D0).LT.1.D-10)DEB1 = 0.D0
+                  IF(DABS(DEB2-1.D0).LT.1.D-10)DEB2 = 0.D0
+*
          LPROUT = DEB1.GT.0.05D0.OR.DEB2.GT.0.05D0.OR.
-     &                     KW1.GT.0.OR.KW2.GT.0
+     &                     IKW1.GT.0.OR.IKW2.GT.0
          IF (LPROUT) THEN
                      RI = SQRT((X(1,ICM) - RDENS(1))**2 +
      &                         (X(2,ICM) - RDENS(2))**2 +
@@ -1559,21 +1563,21 @@ c$$$#endif
                VII = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
              IF(I.LE.N)THEN
                  IF(KZ(50).EQ.1)
-     &           WRITE(221,62) TIME+TOFF,DEB1,DEB2,KW1,KW2,I,NAME(I),
+     &           WRITE(221,62) TIME+TOFF,DEB1,DEB2,IKW1,IKW2,I,NAME(I),
      &             KSTAR(I),BODY(I),LIST(1,I),BODY(I)*ZMBAR,
      &             RADIUS(I)*SU,RI,VII
  62      FORMAT(' SING_MDOT ',1P,E17.9,2E13.5,2I4,3I10,E17.9,I10,4E17.9)
-                 XMOLD1(I) = BODY(I)
-                 KWOLD1(I) = KSTAR(I)
-                 XMOLD2(I) = 0.D0
-                 KWOLD2(I) = 0
+                 XMOLD1(NAME(I)) = BODY(I)
+                 KWOLD1(NAME(I)) = KSTAR(I)
+                 XMOLD2(NAME(I)) = 0.D0
+                 KWOLD2(NAME(I)) = 0
              ELSE IF(I.GT.N)THEN
                  SEMI = -0.5*BODY(ICM)/H(IPAIR)
           ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
                  EB = -0.5*BODY(I1)*BODY(I2)/SEMI
                PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6
                  IF(KZ(50).EQ.1)
-     &           WRITE(220,61) TIME+TOFF,DEB1,DEB2,KW1,KW2,I,NAME(I1),
+     &           WRITE(220,61) TIME+TOFF,DEB1,DEB2,IKW1,IKW2,I,NAME(I1),
      &             NAME(I2),NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
      &             IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
      &             R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
@@ -1583,10 +1587,10 @@ c$$$#endif
  61       FORMAT('  BIN_MDOT ',1P,E17.9,2E13.5,2I4,4I10,3I4,I9,
      &                         11E17.9,2I5,13E17.9)
 *
-             XMOLD1(IPAIR) = BODY(I1)
-             XMOLD2(IPAIR) = BODY(I2)
-             KWOLD1(IPAIR) = KSTAR(I1)
-             KWOLD2(IPAIR) = KSTAR(I2)
+             XMOLD1(NAME(I1)) = BODY(I1)
+             XMOLD2(NAME(I2)) = BODY(I2)
+             KWOLD1(NAME(I1)) = KSTAR(I1)
+             KWOLD2(NAME(I2)) = KSTAR(I2)
 * End event data bank output, RSp July 25
              END IF
          END IF

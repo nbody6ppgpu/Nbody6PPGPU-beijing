@@ -33,10 +33,10 @@ c$$$      COMMON/KSSTAT/ISTEPP,ISTEPU,IBINP,IBINU
 #endif
 *      Local variables for event output RSp July 2025.
       LOGICAL LPROUT
-      REAL*8 XMOLD1(KMAX),XMOLD2(KMAX)
-      INTEGER KWOLD1(KMAX),KWOLD2(KMAX)
-      DATA KWOLD1,KWOLD2 /KMAX*0,KMAX*0/
-      DATA XMOLD1,XMOLD2 /KMAX*0.D0,KMAX*0.D0/
+      REAL*8 XMOLD1(NMAX),XMOLD2(NMAX)
+      INTEGER KWOLD1(NMAX),KWOLD2(NMAX)
+      DATA KWOLD1,KWOLD2 /NMAX*0,NMAX*0/
+      DATA XMOLD1,XMOLD2 /NMAX*0.D0,NMAX*0.D0/
 *
 *       Determine correct index after restart (NNTB = 0 initially).
       IF (IRUN.EQ.0) THEN
@@ -172,13 +172,16 @@ c$$$                  END IF
                   ICM = N + IPAIR
                   I2 = I1 + 1
 *    Prepare output for event data bank, RSp July 2025.
-                  DEB1 = DABS(BODY(I1) - XMOLD1(IPAIR))/BODY(I1)
-                  DEB2 = DABS(BODY(I2) - XMOLD2(IPAIR))/BODY(I2)
-                  KW1 = IABS(KSTAR(I1) - KWOLD1(IPAIR))
-                  KW2 = IABS(KSTAR(I2) - KWOLD2(IPAIR))
+                  EPS = 1.D-10
+                  DEB1 = DABS(BODY(I1) - XMOLD1(NAME(I1)))/BODY(I1)
+                  DEB2 = DABS(BODY(I2) - XMOLD2(NAME(I2)))/BODY(I2)
+                  IF(DABS(DEB1-1.D0).LT.1.D-10)DEB1 = 0.D0
+                  IF(DABS(DEB2-1.D0).LT.1.D-10)DEB2 = 0.D0
+                  IKW1 = IABS(KSTAR(I1) - KWOLD1(NAME(I1)))
+                  IKW2 = IABS(KSTAR(I2) - KWOLD2(NAME(I2)))
                   LPROUT = DEB1.GT.0.05D0.OR.DEB2.GT.0.05D0.OR.
-     &                     KW1.GT.0.OR.KW2.GT.0
-                  IF (LPROUT) THEN
+     &                     IKW1.GT.0.OR.IKW2.GT.0
+               IF (LPROUT) THEN
                      RI = SQRT((X(1,ICM) - RDENS(1))**2 +
      &                         (X(2,ICM) - RDENS(2))**2 +
      &                         (X(3,ICM) - RDENS(3))**2)
@@ -206,7 +209,7 @@ c$$$                  END IF
                PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6 
 *
                IF(KZ(50).EQ.1)
-     &         WRITE(210,61) TIME+TOFF,DEB1,DEB2,KW1,KW2,NAME(I1),
+     &         WRITE(210,61) TIME+TOFF,DEB1,DEB2,IKW1,IKW2,NAME(I1),
      &             NAME(I2),NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
      &             IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
      &             R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
@@ -219,12 +222,12 @@ c$$$                  END IF
  61       FORMAT('     KSREG ',1P,E17.9,2E13.5,2I4,3I10,3I4,I9,
      &                         11E17.9,2I5,19E17.9)
 *
-                  XMOLD1(IPAIR) = BODY(I1)
-                  XMOLD2(IPAIR) = BODY(I2)
-                  KWOLD1(IPAIR) = KSTAR(I1)
-                  KWOLD2(IPAIR) = KSTAR(I2)
+                  XMOLD1(NAME(I1)) = BODY(I1)
+                  XMOLD2(NAME(I2)) = BODY(I2)
+                  KWOLD1(NAME(I1)) = KSTAR(I1)
+                  KWOLD2(NAME(I2)) = KSTAR(I2)
 * End event data bank output, RSp July 25
-                  END IF
+               END IF
 *
  10               continue
                   CALL KSINT(I1)

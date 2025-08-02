@@ -96,15 +96,20 @@
      &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RAD1,2,S[*]',3E13.5,
      &         ' RCM,VCM[NB]=',2E13.5)
            call flush(6)
+           DEB1 = 0.D0
+           DEB2 = 0.D0
+           IKW1 = 0
+           IKW2 = 0
            IF(KZ(50).EQ.1)
-     &     WRITE(210,61) TIME+TOFF,NAME(I1),NAME(I2),
-     &         NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
+     &     WRITE(210,61) TIME+TOFF,DEB1,DEB2,IKW1,IKW2,NAME(I1),
+     &         NAME(I2),NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
      &         IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
      &         R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
      &         STEP(ICM),LIST(1,I1),LIST(1,ICM),
      &         BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
      &         RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,DSQRT(VI2)
- 61        FORMAT(' NEW_KSREG ',1P,E17.9,3I10,3I4,I9,11E17.9,2I5,7E17.9)
+ 61        FORMAT(' NEW_KSREG ',1P,E17.9,2E13.5,2I4,3I10,3I4,I9,
+     &                          11E17.9,2I5,7E17.9)
          endif
       END IF
       END DO
