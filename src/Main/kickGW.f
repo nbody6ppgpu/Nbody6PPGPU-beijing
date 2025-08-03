@@ -131,10 +131,8 @@
      &        KSTAR(I1),KSTAR(I2),KW,KC,ZM01,ZM02,
      &        ZM1,ZM2,VESC,VDIS,R(IPAIR)/SEMI,EB,R(IPAIR),
      &        ASPN(I1),ASPN(I2),QR,XJSPIN1,XJSPIN2,SPNFAC,
-     &         X(1,I1)*RBAR, X(2,I1)*RBAR, X(3,I1)*RBAR,
-     &         XDOT(1,I1)*VSTAR, XDOT(2,I1)*VSTAR, XDOT(3,I1)*VSTAR,
-     &         X(1,I2)*RBAR, X(2,I2)*RBAR, X(3,I2)*RBAR,
-     &         XDOT(1,I2)*VSTAR, XDOT(2,I2)*VSTAR, XDOT(3,I2)*VSTAR
+     &         X(1:3,I1)*RBAR, XDOT(1:3,I1)*VSTAR,
+     &         X(1:3,I2)*RBAR, XDOT(1:3,I2)*VSTAR
    61 FORMAT(A15,I2,1P,E17.9,4I10,4I4,27E17.9)
          
       ENDIF

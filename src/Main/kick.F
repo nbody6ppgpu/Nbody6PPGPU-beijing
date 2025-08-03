@@ -601,10 +601,8 @@ c		Sambaran 2019.11.19.
      &        KSTAR(I1),KSTAR(I2),KW,KC,BODY0(I1)*ZMBAR,BODY0(I2)*ZMBAR,
      &        ZM1,ZM2,VESC,VDIS,R(IPAIR)/SEMI,EB,R(IPAIR),
      &        ASPN(I1),ASPN(I2),QR,XJSPIN1,XJSPIN2,SPNFAC,
-     &         X(1,I1)*RBAR, X(2,I1)*RBAR, X(3,I1)*RBAR,
-     &         XDOT(1,I1)*VSTAR, XDOT(2,I1)*VSTAR, XDOT(3,I1)*VSTAR,
-     &         X(1,I2)*RBAR, X(2,I2)*RBAR, X(3,I2)*RBAR,
-     &         XDOT(1,I2)*VSTAR, XDOT(2,I2)*VSTAR, XDOT(3,I2)*VSTAR
+     &         X(1:3,I1)*RBAR, XDOT(1:3,I1)*VSTAR,
+     &         X(1:3,I2)*RBAR, XDOT(1:3,I2)*VSTAR
    61 FORMAT(A15,I2,1P,E17.9,4I10,4I4,27E17.9)
       ELSE
       IF(KZ(50).EQ.1)
@@ -612,8 +610,7 @@ c		Sambaran 2019.11.19.
      &         KMECH,TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,
      &         ASPN(I),XJSPIN,SPNFAC,SQRT(VI2)*VSTAR,
      &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,FBTOT,
-     &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
-     &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
+     &         X(1:3,I)*RBAR, XDOT(1:3,I)*VSTAR
    60 FORMAT(2A10,I2,1P,E17.9,2I10,4I4,18E17.9)
       END IF
 *
