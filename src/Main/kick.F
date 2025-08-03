@@ -220,25 +220,23 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
 *         call ksparmpi(K_store,K_real8,K_EKICK,0,0,EB)
           I2 = I1 + 1
           WHICH = ' BINARY KICK:  '
-* JSPIN in N-Body units
-          JSPIN1 = ASPN(I1)*BODY(I1)**2/CLIGHT
-          JSPIN2 = ASPN(I2)*BODY(I2)**2/CLIGHT
+* XJSPIN in N-Body units
+          XJSPIN1 = ASPN(I1)*BODY(I1)**2/CLIGHT
+          XJSPIN2 = ASPN(I2)*BODY(I2)**2/CLIGHT
 * multiply by SPNFAC to get Msun*Rsun**2/Myr
           QR = BODY(I1)/BODY(I2)
 *
           if(rank.eq.0)
      &    WRITE (6,1)  TTOT*TSTAR, NAME(I1), NAME(I2), KSTAR(I1), 
-     &         KSTAR(I2),ZM1,ZM2,VESC, VDIS, R(IPAIR)/SEMI, EB,
-     &         R(IPAIR),
-     &         X(1,I1)*RBAR, X(2,I1)*RBAR, X(3,I1)*RBAR,
-     &         XDOT(1,I1)*VSTAR, XDOT(2,I1)*VSTAR, XDOT(3,I1)*VSTAR,
-     &         X(1,I2)*RBAR, X(2,I2)*RBAR, X(3,I2)*RBAR,
-     &         XDOT(1,I2)*VSTAR, XDOT(2,I2)*VSTAR, XDOT(3,I2)*VSTAR
-    1     FORMAT (' BINARY KICK:  TIME[Myr] NAME(I1) NAME(I2) K*(I1) ',
-     &         ' K*(I2) M(I1)[M*] M(I2)[M*] VESC[km/s] VDIS[km/s] ',
-     &         ' R12/SEMI EB R12[au] X1(1,2,3) V1(1,2,3) X2(1,2,3)',
-     &         ' V2(1,2,3)'
-     &         ,1P,E14.3,0P,2I10,2I4,2F9.3,1P,5E14.3,12E14.3)
+     &         KSTAR(I2),ASPN(I1),ASPN(I2),QR,XJSPIN1,XJSPIN2,SPNFAC,
+     &         ZM1,ZM2,VESC, VDIS, R(IPAIR)/SEMI, EB, R(IPAIR),
+     &         X(1:3,I1)*RBAR, XDOT(1:3,I1)*VSTAR,
+     &         X(1:3,I2)*RBAR, XDOT(1:3,I2)*VSTAR
+    1     FORMAT (' BINARY KICK:  TIME[Myr] N12 K12 ',1P,E17.9,2I10,2I4,
+     &         ' ASPN12,QR,XJSPN12[NB],SPNFAC ',6E13.5,' M12[M*] ',
+     &         ' VESC[km/s] VDIS[km/s] R12/SEMI EB R12[au] ',7E13.5,
+     &         ' X1(1:3)[pc] V1(1:3)[km/s] X2(1:3)[pc] V2(1:3)[km/s] ',
+     &         12E13.5)
           NBKICK = NBKICK + 1
 *       Remove any circularized KS binary from the CHAOS/SYNCH table.
           IF (KSTAR(N+IPAIR).GE.10.AND.NCHAOS.GT.0) THEN
@@ -436,37 +434,32 @@ c		Sambaran 2019.11.19.
 *     &              VKICK = VK(4)*(MIN(ZM,MNUEFF)/ZM)
 ***********************************************
             ENDIF
+*******BH Kerr Metric spin parameter *****
+            IF (KW.EQ.14) THEN
+              CALL SPIN_SELECT(BHSPINFL,ZMET,MCO,NUMBER)
+              aspin = NUMBER
+              ASPN(I) = aspin
+* JSPIN in N-Body units
+              JSPIN = aspin*BODY(I)**2/CLIGHT
+              XJSPIN = JSPIN
+* JSPIN in Msun*Rsun**2/Myr
+              JSPIN = JSPIN*SPNFAC
+            END IF
+***********************************
             WHICH1 = ' NS/BH FB '
       if(rank.eq.0)WRITE (6,190)TTOT,NAME(I),I,KW,KSTAR(I),
+     &      ASPN(I),XJSPIN,SPNFAC,
      &      TTOT*TSTAR,BODY(I)*ZMBAR, BODY0(I)*ZMBAR,
      &      FBFAC, FBTOT, VKICK, KMECH,
-     &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
-     &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
+     &         X(1:3,I)*RBAR, XDOT(1:3,I)*VSTAR
   190 FORMAT (' NS/BH FORMATION FALLBACK TIME[NB]',1P,E17.10,
      &        ' NM=',I10,' I=',I10,' KW,KW0=',2I4,
+     &        ' ASPN,XJSPIN[NB],SPNFAC=',3E13.5,
      &        ' TIME[Myr]=',E13.5,' M,M0[*]=',2E13.5,
-     &        ' FB FBTOT VK[km/s] KMECH: ',3E12.5,I4,
-     &        ' X(1,2,3) ', 3E12.5, ' V(1,2,3) ', 3E12.5)
-            END IF
+     &        ' FB FBTOT VK[km/s] KMECH: ',3E13.5,I4,
+     &        ' X(1:3)[pc] V(1:3)[km/s] ', 6E13.5)
 *
-*******BH Kerr Metric spin parameter *****
-         IF (KW.EQ.14) THEN
-
-           CALL SPIN_SELECT(BHSPINFL,ZMET,MCO,NUMBER)
-           aspin = NUMBER
-           ASPN(I) = aspin
-* JSPIN in N-Body units
-           JSPIN = aspin*BODY(I)**2/CLIGHT
-* JSPIN in Msun*Rsun**2/Myr
-           JSPIN = JSPIN*SPNFAC 
-***********************************
-          if(rank.eq.0)
-     &    WRITE (6,22)  TTOT, I, NAME(I), KSTAR(I),TTOT*TSTAR,
-     &        BODY(I)*ZMBAR,SPIN(I),JSPIN,ASPN(I)
-   22     FORMAT (' BH-SPIN: TIME[NB]',1P,E17.10,' I',I10,
-     &       '  NAME',I10,' KW',I4,' Time[Myr]',E12.5,' M[M*]',E12.5,
-     &       '  J[NB] J[MsRs^2/Myr] ASPIN ',3E12.5)
-        ENDIF
+         ENDIF
 *******************************************
       ENDIF
 *      
@@ -499,16 +492,17 @@ c		Sambaran 2019.11.19.
       WHICH2 = ' ZERO VK: '
          if(rank.eq.0)
      &    WRITE (6,18)  TTOT, I, NAME(I), KSTAR(I), KW, KC,
+     &         ASPN(I),XJSPIN,SPNFAC,
      &         TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
      &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,
-     &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
-     &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
+     &         X(1:3,I)*RBAR, XDOT(1:3,I)*VSTAR
    18     FORMAT (' ZERO VELOCITY KICK: TIME[NB] ',1P,E17.10,' I ',I10,
      &         '  NAME ',I10,' K*0 ',I4,'  K* ',I4,'  K*(ICM) ',I4,
-     &         '  Time[Myr] ',E12.5,' M0[M*] ',E12.5,' MN[M*] ',E12.5,
-     &         '  VI[km/s] ',E12.5,' VK[km/s] ',E12.5,' VF[km/s] ',E12.5,
-     &         '  VK0[km/s] ',E12.5,' FB ',E12.5,
-     &         ' X(1,2,3) ', 3E12.5, ' V(1,2,3) ', 3E12.5)
+     &         ' ASPN,XJSPIN[NB],SPNFAC=',3E13.5,
+     &         '  Time[Myr] ',E13.5,' M0[M*] ',E13.5,' MN[M*] ',E13.5,
+     &         '  VI[km/s] ',E13.5,' VK[km/s] ',E13.5,' VF[km/s] ',E13.5,
+     &         '  VK0[km/s] ',E13.5,' FB ',E13.5,
+     &         '  X(1:3)[pc] V(1:3)[km/s] ',6E13.5)
          GO TO 30
       ENDIF
 
@@ -567,16 +561,17 @@ c		Sambaran 2019.11.19.
 
           if(rank.eq.0)
      &    WRITE (6,20)  TTOT, I, NAME(I), KSTAR(I), KW, KC,
+     &         ASPN(I), XJSPIN, SPNFAC,
      &         TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
      &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,
-     &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
-     &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
+     &         X(1:3,I)*RBAR,XDOT(1:3,I)*VSTAR
    20     FORMAT (' FULL VELOCITY KICK: TIME[NB]',1P,E17.10,' I',I10,
      &         '  NAME',I10,' K*0',I4,'  K*',I4,'  K*(ICM)',I4,
-     &         '  Time[Myr]',E12.5,' M0[M*]',E12.5,' MN[M*]',E12.5,
-     &         '  VI[km/s]',E12.5,' VK[km/s]',E12.5,' VF[km/s]',E12.5,
-     &         '  VK0[km/s]',E12.5,' FB',E12.5,
-     &         ' X(1,2,3)', 3E12.5, ' V(1,2,3)', 3E12.5)
+     &         ' ASPN,XJSPIN[NB],SPNFAC=',3E13.5,
+     &         '  Time[Myr]',E13.5,' M0[M*]',E13.5,' MN[M*]',E13.5,
+     &         '  VI[km/s]',E13.5,' VK[km/s]',E13.5,' VF[km/s]',E13.5,
+     &         '  VK0[km/s]',E13.5,' FB',E13.5,
+     &         '  X(1:3)[pc] V(1:3)[km/s] ',6E13.5)
           KC = 0
 *     END IF
 *
@@ -584,12 +579,13 @@ c		Sambaran 2019.11.19.
       IF (VKICK.LT.4.0*SQRT(0.5).AND.KW.GE.13) THEN
           WHICH2 = '  LOW VK: '
           if(rank.eq.0)
-     &    WRITE (6,25)  I, NAME(I), KW, VKICK*VSTAR, SQRT(VF2)*VSTAR,
-     &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
-     &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
+     &    WRITE (6,25)  I, NAME(I), KW, ASPN(I), XJSPIN, SPNFAC,
+     &         VKICK*VSTAR, SQRT(VF2)*VSTAR,
+     &         X(1:3,I)*RBAR, XDOT(1:3,I)*VSTAR
    25     FORMAT (' LOW KICK:    I',I10,'  NAME',I10,'  K*',I4,
-     &         '  VK[km/s]',F7.2,'  VF[km/s]',F7.2,
-     &         ' X(1,2,3)',3E12.5, ' V(1,2,3)',3E12.5)
+     &         ' ASPN,XJSPIN,SPNFAC ',3E13.5,
+     &         '  VK[km/s]',E13.5,'  VF[km/s]',E13.5,
+     &         ' X(1:3)[pc] V(1:3)[km/s] ',6E13.5)
       END IF
 *
 *       Include optional list of high-velocity particles (double counting!).
@@ -604,7 +600,7 @@ c		Sambaran 2019.11.19.
      &WRITE(231,61)WHICH,ICASE,TTOT,I1,I2,NAME(I1),NAME(I2),
      &        KSTAR(I1),KSTAR(I2),KW,KC,BODY0(I1)*ZMBAR,BODY0(I2)*ZMBAR,
      &        ZM1,ZM2,VESC,VDIS,R(IPAIR)/SEMI,EB,R(IPAIR),
-     &        ASPN(I1),ASPN(I2),QR,JSPIN1,JSPIN2,SPNFAC,
+     &        ASPN(I1),ASPN(I2),QR,XJSPIN1,XJSPIN2,SPNFAC,
      &         X(1,I1)*RBAR, X(2,I1)*RBAR, X(3,I1)*RBAR,
      &         XDOT(1,I1)*VSTAR, XDOT(2,I1)*VSTAR, XDOT(3,I1)*VSTAR,
      &         X(1,I2)*RBAR, X(2,I2)*RBAR, X(3,I2)*RBAR,
@@ -613,11 +609,12 @@ c		Sambaran 2019.11.19.
       ELSE
       IF(KZ(50).EQ.1)
      &WRITE(230,60)WHICH1,WHICH2,ICASE,TTOT,I,NAME(I),KSTAR(I),KW,KC,
-     &         KMECH,TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
+     &         KMECH,TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,
+     &         ASPN(I),XJSPIN,SPNFAC,SQRT(VI2)*VSTAR,
      &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,FBTOT,
      &         X(1,I)*RBAR, X(2,I)*RBAR, X(3,I)*RBAR,
      &         XDOT(1,I)*VSTAR, XDOT(2,I)*VSTAR, XDOT(3,I)*VSTAR
-   60 FORMAT(2A10,I2,1P,E17.9,2I10,4I4,15E17.9)
+   60 FORMAT(2A10,I2,1P,E17.9,2I10,4I4,18E17.9)
       END IF
 *
       RETURN

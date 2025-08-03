@@ -874,9 +874,10 @@ c$$$            end if
      &    ' AGE,AGE0=',2E13.5,' Body, Mass [*]=',1P,2E13.5,' M0/1[*]',
      &        2E13.5,' RAD[*]',E9.1,' R,V=',2E9.1,' RCC,MC=',2E9.1)
       IF(KZ(50).EQ.1)
-     &WRITE (211,*)TIME+TOFF,I, K, NAME(I), KSTAR(I), KW, AGE,AGEOLD,
+     &WRITE (211,63)TIME+TOFF,I, K, NAME(I), KSTAR(I), KW, AGE,AGEOLD,
      &      BODY(I)*ZMBAR,MASS(K), M0, M1, RADIUS(I)*SU, VI, RI, RCC, MC
             END IF
+ 63   FORMAT(' WD/NS/BH FORMATION ',1P,E17.9,3I10,2I4,12E13.5)
 *
          END IF
 *
