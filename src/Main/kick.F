@@ -83,7 +83,7 @@
       integer ECS
       REAL*8 JSPIN,NUMBER
       COMMON /FBACK/ FBFAC,FBTOT,MCO,ECS
-      CHARACTER*10 WHICH1,WHICH2
+      CHARACTER*20 WHICH1
       CHARACTER*15 WHICH
 *
 *       Set variables with different names in common (RSp Mar23).
@@ -261,64 +261,6 @@ C          VP2 = 2.0*BODY(N+IPAIR)/R(IPAIR)
 *     IF (FAC.LT.RAN2(IDUM1).AND.IT.LT.10) GO TO 2
 *     VKICK = V0*VT
 *
-******* BELOW IS THE PREVIOUS NBODY6++GPU-JUL2019 ****************
-*C*       Adopt the Maxwellian of Hansen & Phinney (MNRAS 291, 569, 1997).
-*C     DISP = 190.0
-*
-*       Adopt the Maxwellian of Hobbs (MNRAS 360, 974, 2005)
-*      DISP = 265.0
-*
-*       Include velocity dispersion in terms of VSTAR (Parameter statement!).
-*      IF (VFAC.GT.0.0D0) THEN
-*          DISP = VFAC*VSTAR
-*      END IF
-*
-*       Allow for optional type-dependent WD kick.
-*      IF (KW.LT.13) THEN
-*          IF (KZ(25).EQ.1.AND.(KW.EQ.10.OR.KW.EQ.11)) THEN
-*              DISP = 5.0
-*          ELSE IF (KZ(25).GT.1.AND.KW.EQ.12) THEN
-*              DISP = 5.0
-*          ELSE
-*              DISP = 0.0
-*          END IF
-*      END IF
-*
-*       Use Henon's method for pairwise components (Douglas Heggie 22/5/97).
-*      DO 2 K = 1,2
-*          X1 = RAN2(IDUM1)
-*          X2 = RAN2(IDUM1)
-*       Generate two velocities from polar coordinates S & THETA.
-*          S = DISP*SQRT(-2.0*LOG(1.0 - X1))
-*          THETA = TWOPI*X2
-*          VK(2*K-1) = S*COS(THETA)
-*          VK(2*K) = S*SIN(THETA)
-*    2 CONTINUE
-*      VKICK = SQRT(VK(1)**2 + VK(2)**2 + VK(3)**2)
-*      VK(4) = VKICK
-*      IF(KW.EQ.14) VKICK = VKICK*(1.D0-fallback)
-*
-*       Limit kick velocity to VDIS+10*VSTAR/10*VST for binary/single stars.
-*C      IF (IPAIR.GT.0) THEN
-*C          VBF = SQRT(VDIS**2 + 100.0*VSTAR**2)
-*C          VKICK = MIN(VKICK,VBF)
-*C      ELSE
-*C          VKICK = MIN(VKICK,10.0D0*VSTAR)
-*       Ensure escape of massless star.
-*      IF (IPAIR.LE.0.AND.BODY(I).EQ.0.0D0) VKICK = 10.0*VSTAR
-*C      END IF
-*     VKICK = VKICK/VSTAR
-*
-*      IF (VKICK.EQ.0.0) GO TO 30
-*
-*       Randomize the velocity components.
-*     A(4) = 0.0
-*     DO 5 K = 1,3
-*         A(K) = 2.0*RAN2(IDUM1) - 1.0
-*         A(4) = A(4) + A(K)**2
-*   5 CONTINUE
-***************** END OF NBODY6++GPU-July2019 ************
-* 
 ******** BELOW IS TAKEN FROM LONG GITHUB - 26.10.2019 *********
 *
       ZM = BODY(I)*ZMBAR
@@ -445,20 +387,11 @@ c		Sambaran 2019.11.19.
 * JSPIN in Msun*Rsun**2/Myr
               JSPIN = JSPIN*SPNFAC
             END IF
-***********************************
-            WHICH1 = ' NS/BH FB '
-      if(rank.eq.0)WRITE (6,190)TTOT,NAME(I),I,KW,KSTAR(I),
-     &      ASPN(I),XJSPIN,SPNFAC,
-     &      TTOT*TSTAR,BODY(I)*ZMBAR, BODY0(I)*ZMBAR,
-     &      FBFAC, FBTOT, VKICK, KMECH,
-     &         X(1:3,I)*RBAR, XDOT(1:3,I)*VSTAR
-  190 FORMAT (' NS/BH FORMATION FALLBACK TIME[NB]',1P,E17.10,
-     &        ' NM=',I10,' I=',I10,' KW,KW0=',2I4,
-     &        ' ASPN,XJSPIN[NB],SPNFAC=',3E13.5,
-     &        ' TIME[Myr]=',E13.5,' M,M0[*]=',2E13.5,
-     &        ' FB FBTOT VK[km/s] KMECH: ',3E13.5,I4,
-     &        ' X(1:3)[pc] V(1:3)[km/s] ', 6E13.5)
-*
+* reset fallback and ECS for printout if no NS/BH  R.Sp. Aug. 2025.
+         ELSE
+            FBFAC = 0.D0
+            FBTOT = 0.D0
+            ECS = 0
          ENDIF
 *******************************************
       ENDIF
@@ -489,24 +422,9 @@ c		Sambaran 2019.11.19.
 *       Skip case of zero kick velocity.
       IF (VKICK.EQ.0.0D0.OR.DISP0.EQ.0.0D0) then
 *       X and XDOT in rdens
-      WHICH2 = ' ZERO VK: '
-         if(rank.eq.0)
-     &    WRITE (6,18)  TTOT, I, NAME(I), KSTAR(I), KW, KC,
-     &         ASPN(I),XJSPIN,SPNFAC,
-     &         TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
-     &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,
-     &         X(1:3,I)*RBAR, XDOT(1:3,I)*VSTAR
-   18     FORMAT (' ZERO VELOCITY KICK: TIME[NB] ',1P,E17.10,' I ',I10,
-     &         '  NAME ',I10,' K*0 ',I4,'  K* ',I4,'  K*(ICM) ',I4,
-     &         ' ASPN,XJSPIN[NB],SPNFAC=',3E13.5,
-     &         '  Time[Myr] ',E13.5,' M0[M*] ',E13.5,' MN[M*] ',E13.5,
-     &         '  VI[km/s] ',E13.5,' VK[km/s] ',E13.5,' VF[km/s] ',E13.5,
-     &         '  VK0[km/s] ',E13.5,' FB ',E13.5,
-     &         '  X(1:3)[pc] V(1:3)[km/s] ',6E13.5)
-         GO TO 30
+      WHICH1 = ' ZERO VELOCITY KICK:'
+         GO TO 25
       ENDIF
-
-*
 *
 *     Add truncated/full kick velocity and initialize X0DOT.
       VKICK = VKICK/VSTAR
@@ -554,39 +472,31 @@ c		Sambaran 2019.11.19.
           IPAIR = 0
       END IF
 *
-*     IF (NKICK.LT.50.OR.NAME(I).LE.2*NBIN0.OR.
-*    &    (KW.GE.13.AND.TTOT*TSTAR.GT.100.0)) THEN
           ZM = BODY(I)*ZMBAR
-          WHICH2 = ' FULL VK: '
-
-          if(rank.eq.0)
-     &    WRITE (6,20)  TTOT, I, NAME(I), KSTAR(I), KW, KC,
-     &         ASPN(I), XJSPIN, SPNFAC,
-     &         TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,SQRT(VI2)*VSTAR,
-     &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,
-     &         X(1:3,I)*RBAR,XDOT(1:3,I)*VSTAR
-   20     FORMAT (' FULL VELOCITY KICK: TIME[NB]',1P,E17.10,' I',I10,
-     &         '  NAME',I10,' K*0',I4,'  K*',I4,'  K*(ICM)',I4,
-     &         ' ASPN,XJSPIN[NB],SPNFAC=',3E13.5,
-     &         '  Time[Myr]',E13.5,' M0[M*]',E13.5,' MN[M*]',E13.5,
-     &         '  VI[km/s]',E13.5,' VK[km/s]',E13.5,' VF[km/s]',E13.5,
-     &         '  VK0[km/s]',E13.5,' FB',E13.5,
-     &         '  X(1:3)[pc] V(1:3)[km/s] ',6E13.5)
+          WHICH1 = ' FULL VELOCITY KICK:'
           KC = 0
-*     END IF
 *
 *       Highlight BH/NS velocities below 4 times rms velocity.
       IF (VKICK.LT.4.0*SQRT(0.5).AND.KW.GE.13) THEN
-          WHICH2 = '  LOW VK: '
-          if(rank.eq.0)
-     &    WRITE (6,25)  I, NAME(I), KW, ASPN(I), XJSPIN, SPNFAC,
-     &         VKICK*VSTAR, SQRT(VF2)*VSTAR,
-     &         X(1:3,I)*RBAR, XDOT(1:3,I)*VSTAR
-   25     FORMAT (' LOW KICK:    I',I10,'  NAME',I10,'  K*',I4,
-     &         ' ASPN,XJSPIN,SPNFAC ',3E13.5,
-     &         '  VK[km/s]',E13.5,'  VF[km/s]',E13.5,
-     &         ' X(1:3)[pc] V(1:3)[km/s] ',6E13.5)
+          WHICH1 = '  LOW VELOCITY KICK:'
       END IF
+*
+  25  CONTINUE
+*
+      if(rank.eq.0)
+     &   WRITE (6,20)WHICH1,TTOT,I,NAME(I),KSTAR(I),KW,KC,
+     &         KMECH,ICASE,TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,
+     &         ASPN(I),XJSPIN,SPNFAC,SQRT(VI2)*VSTAR,
+     &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,FBTOT,ECS,
+     &         X(1:3,I)*RBAR, XDOT(1:3,I)*VSTAR
+   20     FORMAT (A20,' TIME[NB]',1P,E17.9,' I,N=',2I10,
+     &         ' K*0 K* K*(ICM) KMECH ICASE ',5I4,
+     &         '  Time[Myr]',E13.5,' M0[M*]',E13.5,' MN[M*]',E13.5,
+     &         ' ASPN,XJSPIN[NB],SPNFAC=',3E13.5,
+     &         '  VI[km/s]',E13.5,' VK[km/s]',E13.5,' VF[km/s]',E13.5,
+     &         '  VK0[km/s]',E13.5,' FBFAC FBTOT ECS ',2E13.5,I4,
+     &         '  X(1:3)[pc] V(1:3)[km/s] ',6E13.5)
+
 *
 *       Include optional list of high-velocity particles (double counting!).
 *     IF (KZ(37).GT.0) THEN
@@ -606,7 +516,7 @@ c		Sambaran 2019.11.19.
    61 FORMAT(A15,I2,1P,E17.9,4I10,4I4,27E17.9)
       ELSE
       IF(KZ(50).EQ.1)
-     &WRITE(230,60)WHICH1,WHICH2,ICASE,TTOT,I,NAME(I),KSTAR(I),KW,KC,
+     &WRITE(230,60)WHICH1,ICASE,TTOT,I,NAME(I),KSTAR(I),KW,KC,
      &         KMECH,TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,
      &         ASPN(I),XJSPIN,SPNFAC,SQRT(VI2)*VSTAR,
      &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,FBTOT,
