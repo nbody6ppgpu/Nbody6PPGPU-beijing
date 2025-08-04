@@ -297,7 +297,7 @@
                  age = tphys - EPOCH(I)
                  Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
                  IF(KZ(50).EQ.1)
-     &           WRITE (203,*) 'NEW_ROCHE',NAME(I),
+     &           WRITE (203,61) NAME(I),
      &            NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
      &            EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
      &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
@@ -305,6 +305,7 @@
      &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
      &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
      &            Mdot_RLOF,bmag(1),bmag(2)
+  61  FORMAT(' NEW ROCHE  ',5I10,1P,5E17.9,2I4,33E17.9)
               endif
           END IF
               IF(rank.eq.0.and.KSTAR(I).EQ.50)THEN
@@ -1271,7 +1272,7 @@
                age = tphys - EPOCH(I)
                Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
                IF(KZ(50).EQ.1)
-     &         WRITE (203,*) 'END_ROCHE_COAL',NAME(I),
+     &         WRITE (203,62) NAME(I),
      &            NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
      &            EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
      &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
@@ -1279,6 +1280,7 @@
      &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
      &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
      &            Mdot_RLOF,bmag(1),bmag(2)
+  62  FORMAT(' ROCHE COAL ',5I10,1P,5E17.9,2I4,33E17.9)
             endif
           END IF
 
@@ -1714,7 +1716,8 @@
                tphys = TTOT*TSTAR
                age = tphys - EPOCH(I)
                Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
-               WRITE (203,*) 'END_ROCHE',NAME(I),
+               IF(KZ(50).EQ.1)
+     &         WRITE (203,63) NAME(I),
      &          NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
      &          EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
      &          RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
@@ -1722,6 +1725,7 @@
      &          OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
      &          ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
      &          Mdot_RLOF,bmag(1),bmag(2)
+  63  FORMAT(' END ROCHE  ',5I10,1P,5E17.9,2I4,33E17.9)
             endif
           END IF
 *       Check optional diagnostics for degenerate objects.

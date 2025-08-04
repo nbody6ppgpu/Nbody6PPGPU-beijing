@@ -108,7 +108,7 @@
      &         STEP(ICM),LIST(1,I1),LIST(1,ICM),
      &         BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
      &         RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,DSQRT(VI2)
- 61        FORMAT(' NEW_KSREG ',1P,E17.9,2E13.5,2I4,3I10,3I4,I9,
+ 61        FORMAT(' NEW KSREG  ',1P,E17.9,2E13.5,2I4,3I10,3I4,I9,
      &                          11E17.9,2I5,7E17.9)
          endif
       END IF

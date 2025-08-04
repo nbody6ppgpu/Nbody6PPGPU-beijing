@@ -219,7 +219,7 @@ c$$$                  END IF
      &             R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
      &             R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
 
- 61       FORMAT('     KSREG ',1P,E17.9,2E13.5,2I4,3I10,3I4,I9,
+ 61       FORMAT('     KSREG  ',1P,E17.9,2E13.5,2I4,3I10,3I4,I9,
      &                         11E17.9,2I5,19E17.9)
 *
                   XMOLD1(NAME(I1)) = BODY(I1)
