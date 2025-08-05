@@ -40,6 +40,7 @@
       SAVE FIRST
       DATA FIRST /.TRUE./
       INTEGER IGR
+      CHARACTER*12 WHICH
         
       ! new variables for event bank. 14 July 2025 | K.Wu & R.Sp
       REAL*8 LUM_TMP(2), RCC_TMP(2), Mdot_RLOF, Lx, get_Lx
@@ -250,18 +251,25 @@
      &              (X(2,I) - RDENS(2))**2 +
      &              (X(3,I) - RDENS(3))**2)
           VI = SQRT(XDOT(1,I)**2+XDOT(2,I)**2+XDOT(3,I)**2)
-
+          XOSPN1 = OSPIN(J1)/SPNFAC
+          XOSPN2 = OSPIN(J2)/SPNFAC
+          TPHYS = TTOT*TSTAR
+          AGE = TPHYS - EPOCH(I)
+          WHICH =' NEW ROCHE  '
           if(rank.eq.0) THEN
-              WRITE (6,8)  TTOT,NAME(J1),NAME(J2),
+              WRITE (6,8)WHICH,TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
-     &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
-     &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
+     &         IPAIR,DTAU(IPAIR),TPHYS,AGE,BODY(J1),BODY(J2),
+     &         SPIN(J1),SPIN(J1),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
+     &         R(IPAIR),ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &         STEP(I),LIST(1,J1),LIST(1,I),
      &         MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
      &         RAD(1),RAD(2),ROL(1),ROL(2),SEP,RL1
-  8           FORMAT (/,' NEW ROCHE   TIME[NB]',1P,E17.10,' NM1,2,S=',
+  8           FORMAT (A12,'  TIME[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
-     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &         ' TIME,AGE[Myr] ',2E13.5,' M1,2[NB]',2E13.5,
+     &         ' SPIN12,OSPIN12[NB] SPNFAC JORB,OORB[*] ',7E13.5,
+     &         ' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
      &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
@@ -291,22 +299,26 @@
     !           rol(2),dmdt(1), dmdt(2), dm1, dm2, tb, Lx, Mdot_RLOF, Bi(1), Bi(2)
             ! dev note: Mdot_RLOF calcs later in this file 
             ! If Mdot_RLOF from output is always zero, then may need re-calc here 
+                 
               if( (kstar(j2).GE.10 .AND. kstar(j2).LE.14).OR.
      &            (kstar(j1).GE.10 .AND. kstar(j1).LE.14)    ) then
-                 tphys = TTOT*TSTAR
-                 age = tphys - EPOCH(I)
-                 Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
+                 Lx = get_Lx(kstar(j2),rad(j2),mass(2),Mdot_RLOF) 
+              else
+                 Mdot_RLOF = 0.D0
+                 Lx = 0.D0
+              end if
+*
                  IF(KZ(50).EQ.1)
      &           WRITE (203,61) NAME(I),
-     &            NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
-     &            EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
+     &            NAME(J1),NAME(J2),J1,J2,TTOT,STEP(I),AGE,EPOCH(J1),
+     &            EPOCH(J2),KSTAR(J1),KSTAR(J2),TPHYS,MASS(1),MASS(2),
+     &            SPIN(J1),SPIN(J1),XOSPN1,XOSPN2,SPNFAC,SEP,ECC,
      &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
      &            RCC_TMP(1),RCC_TMP(2),MENV(1),MENV(2),RENV(1),RENV(2),
      &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
      &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
-     &            Mdot_RLOF,bmag(1),bmag(2)
-  61  FORMAT(' NEW ROCHE  ',5I10,1P,5E17.9,2I4,33E17.9)
-              endif
+     &            Mdot_RLOF,BMAG(1),BMAG(2)
+  61  FORMAT(' NEW ROCHE  ',5I10,1P,5E17.9,2I4,34E17.9)
           END IF
               IF(rank.eq.0.and.KSTAR(I).EQ.50)THEN
                  WRITE(6,9)NAME(J1),NAME(J2),KW1,KW2
@@ -1475,11 +1487,17 @@
             ENDIF
 *
             IF(ITERB.EQ.0.AND.NWARN.LT.50)THEN
+               WHICH =' CIRC SYNCH '
                if(rank.eq.0)
-     &         WRITE(6,710)NAME(J1),KSTAR(J1),KSTAR(J2),ECC0,FAC0,
-     &                     TC,TSYN,JORB,OORB,SEP
-  710          FORMAT(' CIRC & SYNCH NM K* ECC0 SPIN1/OORB TC TSYN ',
-     &         I7,2I4,F7.4,F9.3,1P,2E11.3,' JORB OORB SEP ',3E11.3)
+     &         WRITE(6,710)WHICH,TTOT,NAME(J1),NAME(J2),NAME(I),
+     &            KSTAR(J1),KSTAR(J2),KSTAR(I),
+     &            TPHYS,AGE,BODY(J1),BODY(J2),
+     &            SPIN(J1),SPIN(J1),ECC0,FAC0,
+     &            TC,TSYN,JORB,OORB,SEP
+  710          FORMAT(A12,' TIME[NB] ',1P,E17.9,' N12S,K12S ',
+     &            3I10,3I4,' TIME,AGE[Myr] M12[NB] ',4E13.5,
+     &            ' ECC0 SPIN1/OORB TC TSYN ',4E13.5,
+     &            ' JORB OORB SEP ',3E13.5)
                NWARN = NWARN + 1
             ENDIF
 *
@@ -1553,8 +1571,6 @@
                   KW1 = KTYPE(KSTAR(J1),KSTAR(J2))
                   IF (KW1.GT.100) KW1 = KW1 - 100
 * -----------------------------------              
-                  WRITE(6,*) ' IXXX=8 K(1),K(2) ', KSTAR(J1),KSTAR(J2),
-     &            ' KW1,KW2 ',KW1,KW2,' J1, J2 ', NAME(J1), NAME(J2)     
                   GO TO 60
                ENDIF
 *     --02/28/13 9:59-lwang-end-add------------------------------------*

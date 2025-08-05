@@ -89,7 +89,7 @@
       IF(KZ(50).EQ.1) THEN
     !   FILE(200) ='ulx.200   '
     !   FILE(201) ='cv.201    '
-         FILE(203) ='xrb.203   '
+         FILE(203) ='roche.203 '
          FILE(204) ='pulsar.204'
          FILE(210) ='ks.210    '
          FILE(211) ='wdnsbh.211'
