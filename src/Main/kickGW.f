@@ -14,14 +14,14 @@
       REAL*8 VK(4)
       REAL*8 mbh1,mbh2,abh1,abh2
       
-      REAL*8 mas1,mas2,mas3,qr, acosa, acosb, acosg
+      REAL*8 mas1,mas2,mas3,QR, acosa, acosb, acosg
       REAL*8 mfinal, sfinal
       CHARACTER*15 WHICH
 
 *      SPIN(I1) = 0.7
 *      SPIN(I2) = 0.7
 
-      qr = BODY(I1)/BODY(I2)
+      QR = BODY(I1)/BODY(I2)
       IF(QR .GT. 1.0)THEN
          QR = 1.0 / QR
       ENDIF
@@ -114,7 +114,7 @@
       XJSPIN2 = ASPN(I2)*BODY(I2)**2/CLIGHT
 * multiply by SPNFAC to get Msun*Rsun**2/Myr
       IF(rank.eq.0) THEN
-         
+
          WRITE (6,310)WHICH,TTOT,I1,I2,NAME(I1),NAME(I2),
      &        KSTAR(I1),KSTAR(I2),ICASE,
      &        TTOT*TSTAR,ZM01,ZM02,ZM1,ZM2,
@@ -130,7 +130,7 @@
      &        ' VESC[km/s] VDIS[km/s] R/SEMI EB R ',5E13.5,
      &        ' X1(1:3)[pc] V1(1:3)[km/s] X2(1:3)[pc] V2(1:3)[km/s] ',
      &        12E13.5)
-         
+
          NBKICK = NBKICK + 1
       IF(KZ(50).EQ.1)
      &WRITE(231,61)WHICH,TTOT,I1,I2,NAME(I1),NAME(I2),
