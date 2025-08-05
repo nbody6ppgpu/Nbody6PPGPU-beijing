@@ -387,7 +387,7 @@ c		Sambaran 2019.11.19.
 * JSPIN in Msun*Rsun**2/Myr
               JSPIN = JSPIN*SPNFAC
             ELSE
-              ASPIN(I) = 0.D0
+              ASPN(I) = 0.D0
               XJSPIN = 0.D0
               JSPIN = 0.D0
             END IF
