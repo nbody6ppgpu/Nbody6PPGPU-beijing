@@ -1,4 +1,4 @@
-file modified time information in Berlin time recorded at Thu Jul 31 17:23:55 CEST 2025
+file modified time information in Berlin time recorded at Mon Aug 4 18:02:33 CEST 2025
 Nbody6PPGPU-beijing/  
 2020-06-29 23:35:57 extra_inc
 2020-07-09 23:24:04 src
@@ -13,7 +13,7 @@ Nbody6PPGPU-beijing/
 2025-01-20 19:26:43 config.examples
 2025-02-18 11:45:49 README.md
 2025-02-28 15:41:00 build
-2025-07-31 17:23:55 timeList
+2025-08-04 18:02:33 timeList
 
 Nbody6PPGPU-beijing/build/  
 2020-09-25 22:53:55 Makefile.debug
@@ -407,7 +407,6 @@ Nbody6PPGPU-beijing/src/Main/
 2022-08-20 14:12:49 hrplot.F
 2022-11-10 10:16:08 tides3.f
 2022-12-02 10:54:48 binout.f
-2022-12-02 11:04:03 chain.f
 2022-12-02 11:09:56 degen.f
 2022-12-02 11:18:34 exchange_tlist.f
 2022-12-02 11:31:22 kscorr.f
@@ -449,7 +448,6 @@ Nbody6PPGPU-beijing/src/Main/
 2025-02-19 14:39:39 xtrnlt.F
 2025-02-19 14:39:39 xtrnlf.F
 2025-02-19 14:39:39 pmwpot.f
-2025-02-19 14:39:39 nbody6.F
 2025-02-19 14:39:39 gcint.F
 2025-02-19 14:39:39 energy.F
 2025-02-19 14:39:39 cmcorr.f
@@ -475,17 +473,19 @@ Nbody6PPGPU-beijing/src/Main/
 2025-06-06 08:58:12 chmod_chain.f
 2025-07-15 17:43:38 coal.f
 2025-07-17 01:25:05 Lx.f90
-2025-07-21 19:09:05 roche.f
-2025-07-23 15:05:14 ksterm.F
-2025-07-23 15:05:14 ksinit.F
-2025-07-23 16:40:19 kspinit.f
-2025-07-25 16:48:06 mdot.F
-2025-07-25 17:49:21 subint.F
-2025-07-28 16:04:06 kickGW.f
-2025-07-28 16:04:06 kick.F
-2025-07-30 18:37:27 impact.f
-2025-07-30 18:37:27 chterm.f
-2025-07-31 15:04:37 file_init.F
+2025-08-01 10:32:01 impact.f
+2025-08-01 10:32:01 file_init.F
+2025-08-01 10:43:40 nbody6.F
+2025-08-01 10:43:40 chterm.f
+2025-08-01 10:43:40 chain.f
+2025-08-03 13:48:20 mdot.F
+2025-08-03 14:53:11 kickGW.f
+2025-08-04 13:02:29 subint.F
+2025-08-04 13:02:29 roche.f
+2025-08-04 13:02:29 ksterm.F
+2025-08-04 13:02:29 kspinit.f
+2025-08-04 13:02:29 ksinit.F
+2025-08-04 18:02:05 kick.F
 
 Nbody6PPGPU-beijing/src/Tools/  
 2025-02-18 15:59:30 MWpotential.f

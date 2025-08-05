@@ -386,6 +386,10 @@ c		Sambaran 2019.11.19.
               XJSPIN = JSPIN
 * JSPIN in Msun*Rsun**2/Myr
               JSPIN = JSPIN*SPNFAC
+            ELSE
+              ASPIN(I) = 0.D0
+              XJSPIN = 0.D0
+              JSPIN = 0.D0
             END IF
 * reset fallback and ECS for printout if no NS/BH  R.Sp. Aug. 2025.
          ELSE

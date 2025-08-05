@@ -42,7 +42,7 @@
       INTEGER IGR
         
       ! new variables for event bank. 14 July 2025 | K.Wu & R.Sp
-      REAL*8 LUM_TMP(2), RCC_TMP(2), Mdot_RLOF, get_Lx
+      REAL*8 LUM_TMP(2), RCC_TMP(2), Mdot_RLOF, Lx, get_Lx
       DATA LUM_TMP, RCC_TMP, Mdot_RLOF /2*0.0D0, 2*0.0D0, 0.0D0/
       REAL*8 BMAG(NMAX)
       data BMAG /NMAX*0.0D0/ ! temporary, before NS treatment by Robert finishes
