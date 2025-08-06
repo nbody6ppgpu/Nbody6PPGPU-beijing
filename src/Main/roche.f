@@ -40,7 +40,7 @@
       SAVE FIRST
       DATA FIRST /.TRUE./
       INTEGER IGR
-      CHARACTER*12 WHICH
+      CHARACTER*12 A12WHICH
         
       ! new variables for event bank. 14 July 2025 | K.Wu & R.Sp
       REAL*8 LUM_TMP(2), RCC_TMP(2), Mdot_RLOF, Lx, get_Lx
@@ -260,7 +260,7 @@
               WRITE (6,8)WHICH,TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
      &         IPAIR,DTAU(IPAIR),TPHYS,AGE,BODY(J1),BODY(J2),
-     &         SPIN(J1),SPIN(J1),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
+     &         SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
      &         R(IPAIR),ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &         STEP(I),LIST(1,J1),LIST(1,I),
      &         MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
@@ -309,16 +309,16 @@
               end if
 *
                  IF(KZ(50).EQ.1)
-     &           WRITE (203,61) NAME(I),
-     &            NAME(J1),NAME(J2),J1,J2,TTOT,STEP(I),AGE,EPOCH(J1),
+     &           WRITE (203,61) WHICH,TTOT,NAME(I),
+     &            NAME(J1),NAME(J2),J1,J2,STEP(I),AGE,EPOCH(J1),
      &            EPOCH(J2),KSTAR(J1),KSTAR(J2),TPHYS,MASS(1),MASS(2),
-     &            SPIN(J1),SPIN(J1),XOSPN1,XOSPN2,SPNFAC,SEP,ECC,
+     &            SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,SEP,ECC,
      &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
      &            RCC_TMP(1),RCC_TMP(2),MENV(1),MENV(2),RENV(1),RENV(2),
      &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
      &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
      &            Mdot_RLOF,BMAG(1),BMAG(2)
-  61  FORMAT(' NEW ROCHE  ',5I10,1P,5E17.9,2I4,34E17.9)
+  61  FORMAT(A12,1P,E17.9,5I10,4E17.9,2I4,39E17.9)
           END IF
               IF(rank.eq.0.and.KSTAR(I).EQ.50)THEN
                  WRITE(6,9)NAME(J1),NAME(J2),KW1,KW2
@@ -1262,15 +1262,16 @@
      &                TPHYS,AJ(K),TK,MASS0(K),MASS0(3-K),
      &                MASS(K),TK,ZMET,ECC,TK,JSPIN(K),TK,CH5
 *
+          WHICH = ' ROCHE COAL '
           if(rank.eq.0) THEN
-            WRITE (6,77)  TTOT,NAME(J1),NAME(J2),
+            WRITE (6,77) WHICH,TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
      &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
      &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &         STEP(I),LIST(1,J1),LIST(1,I),
      &         MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
      &         RAD(1),RAD(2),ROL(1),ROL(2),DM1,DM2,DTM,COALS,IXXX
-  77        FORMAT (/,' END ROCHE COAL TIME[NB]',1P,E17.10,' NM1,2,S=',
+  77        FORMAT (A12,'  TIME[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
      &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
@@ -1284,7 +1285,7 @@
                age = tphys - EPOCH(I)
                Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
                IF(KZ(50).EQ.1)
-     &         WRITE (203,62) NAME(I),
+     &         WRITE (203,62) WHICH,NAME(I),
      &            NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
      &            EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
      &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
@@ -1292,7 +1293,7 @@
      &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
      &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
      &            Mdot_RLOF,bmag(1),bmag(2)
-  62  FORMAT(' ROCHE COAL ',5I10,1P,5E17.9,2I4,33E17.9)
+  62  FORMAT(A12,5I10,1P,5E17.9,2I4,33E17.9)
             endif
           END IF
 
@@ -1711,15 +1712,16 @@
           IF(TEV0(I).LT.TIME) GOTO 10
           IF (ITER.EQ.1.AND.GAMMA(IPAIR).LT.GMIN) GO TO 10
       ELSE
+          WHICH = ' END ROCHE  '
           if(rank.eq.0) THEN
-            WRITE (6,76)  TTOT,NAME(J1),NAME(J2),
+            WRITE (6,76) WHICH,TTOT,NAME(J1),NAME(J2),
      &           NAME(I),KW1,KW2,KSTAR(I),
      &           IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
      &           ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &           STEP(I),LIST(1,J1),LIST(1,I),
      &           MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
      &           RAD(1),RAD(2),ROL(1),ROL(2),DM1,DM2,DTM
-  76        FORMAT (/,' END ROCHE      TIME[NB]',1P,E17.10,' NM1,2,S=',
+  76        FORMAT (A12,'  TIME[NB]',1P,E17.10,' NM1,2,S=',
      &           3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
      &           ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &           ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
@@ -1733,7 +1735,7 @@
                age = tphys - EPOCH(I)
                Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
                IF(KZ(50).EQ.1)
-     &         WRITE (203,63) NAME(I),
+     &         WRITE (203,63) WHICH,NAME(I),
      &          NAME(J1),NAME(J2),J1,J2,tphys,STEP(I),age,EPOCH(J1),
      &          EPOCH(J2),KSTAR(J1),KSTAR(J2),MASS(1),MASS(2),SEP,ECC,
      &          RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
@@ -1741,7 +1743,7 @@
      &          OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
      &          ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
      &          Mdot_RLOF,bmag(1),bmag(2)
-  63  FORMAT(' END ROCHE  ',5I10,1P,5E17.9,2I4,33E17.9)
+  63  FORMAT(A12,5I10,1P,5E17.9,2I4,33E17.9)
             endif
           END IF
 *       Check optional diagnostics for degenerate objects.
