@@ -248,8 +248,8 @@
           TPHYS = TTOT*TSTAR
           AGE = TPHYS - EPOCH(I)
           WHICH =' NEW ROCHE  '
-          if(rank.eq.0) THEN
-              WRITE (6,8)WHICH,TTOT,NAME(J1),NAME(J2),
+          if(rank.eq.0)
+     &        WRITE (6,8)WHICH,TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
      &         IPAIR,DTAU(IPAIR),TPHYS,AGE,BODY(J1),BODY(J2),
      &         SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
