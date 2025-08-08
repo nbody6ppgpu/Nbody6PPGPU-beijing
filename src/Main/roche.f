@@ -40,6 +40,7 @@
       SAVE FIRST
       DATA FIRST /.TRUE./
       INTEGER IGR
+      CHARACTER*12 WHICH
 *
 *       Set variables with different names in common (RSp Mar23).
       K3 = XK3
@@ -242,23 +243,32 @@
      &              (X(2,I) - RDENS(2))**2 +
      &              (X(3,I) - RDENS(3))**2)
           VI = SQRT(XDOT(1,I)**2+XDOT(2,I)**2+XDOT(3,I)**2)
-
-          if(rank.eq.0)
-     &    WRITE (6,8)  TTOT,NAME(J1),NAME(J2),
+          XOSPN1 = OSPIN(J1)/SPNFAC
+          XOSPN2 = OSPIN(J2)/SPNFAC
+          TPHYS = TTOT*TSTAR
+          AGE = TPHYS - EPOCH(I)
+          WHICH =' NEW ROCHE  '
+          if(rank.eq.0) THEN
+              WRITE (6,8)WHICH,TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
-     &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
-     &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
+     &         IPAIR,DTAU(IPAIR),TPHYS,AGE,BODY(J1),BODY(J2),
+     &         SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
+     &         R(IPAIR),ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &         STEP(I),LIST(1,J1),LIST(1,I),
-     &         MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
-     &         RAD(1),RAD(2),ROL(1),ROL(2),SEP,RL1
-  8      FORMAT (/,' NEW ROCHE   TIME[NB]',1P,E17.10,' NM1,2,S=',
+     &         MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
+     &         RAD(1:2),ROL(1:2),SEP,RL1
+  8           FORMAT (A12,'  TIME[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
-     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &         ' TIME,AGE[Myr] ',2E13.5,' M1,2[NB]',2E13.5,
+     &         ' SPIN12,OSPIN12[NB] SPNFAC JORB,OORB[*] ',7E13.5,
+     &         ' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
-     &         ' SEP[*]',E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
+     &         ' NB(ICM)',I5,' M0(1:2) M(1:2) MC(1:2)[*]',6E13.5,
+     &         ' RI,VI[NB]=',2E13.5,
+     &         ' SEP[*]',E13.5,' RAD(1:2) ROL(1:2)[*]=',4E13.5,
      &         ' SEMI[*],RL1[*]=',2E13.5)
+*
               IF(rank.eq.0.and.KSTAR(I).EQ.50)THEN
                  WRITE(6,9)NAME(J1),NAME(J2),KW1,KW2
     9            FORMAT(' WARNING: TOO MUCH ROCHE  NAM K* ',2I6,2I3)
@@ -271,17 +281,18 @@
               IF(rank.eq.0.and.FIRST.and.KSTART.eq.1)THEN
                  FIRST = .FALSE.
                  WRITE (85,94)
-   94            FORMAT (/,' NAM1  NAM2  K1 K2   TPHYS     AGE1     ',
-     &                     ' AGE2     M01    M02    M1     M2     Z ',
+   94            FORMAT (/,'      NAM1       NAM2  K1  K2   TPHYS  ',
+     &                     '     AGE1 ','     AGE2 ',
+     &                     '   M01    M02    M1     M2     Z ',
      &                     '     e        P        JSPIN1      JSPIN2')
               ENDIF
               CH5 = ' NEW '
               if(rank.eq.0)then
               WRITE(85,95)NAME(J1),NAME(J2),KSTAR(J1),KSTAR(J2),
      &                    KSTAR(I),TPHYS,AJ(1),AJ(2),
-     &                    MASS0(1),MASS0(2),MASS(1),MASS(2),
+     &                    MASS0(1:2),MASS(1:2),
      &                    ZMET,ECC,TK,JSPIN(1),JSPIN(2),CH5
-   95         FORMAT(2I7,3I3,3F10.3,4F7.3,F7.4,F6.3,1P,3E13.5,A5)
+   95         FORMAT(2I10,3I4,3F10.3,4F7.3,F7.4,F6.3,1P,3E13.5,A5)
               CALL FLUSH(85)
               end if
           ENDIF
@@ -479,14 +490,14 @@
      &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
      &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &         STEP(I),LIST(1,J1),LIST(1,I),
-     &         MASS(1),MASS(2),MASSC(1),MASSC(2),RI,VI,R(IPAIR)*SU,
+     &         MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
      &         RAD(1),RAD(2),ROL(1),ROL(2),SEP,RL1
  20      FORMAT (/,' NEW CE   TIME[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
      &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' MC1,2[*]',2E13.5,
+     &         ' NB(ICM)',I5,' M0(1,2) M(1:2) MC(1:2) ',6E13.5,
      &         ' RI,VI[NB]=',2E13.5,' SEP[*]',E13.5,
      &         ' RAD1,2 ROL1,2[*]=',4E13.5,' SEMI[*],RL1[*]=',2E13.5)
          KW1 = KSTAR(J1)
@@ -500,14 +511,14 @@
      &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
      &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &         STEP(I),LIST(1,J1),LIST(1,I),
-     &         MASS(1),MASS(2),MASSC(1),MASSC(2),RI,VI,R(IPAIR)*SU,
+     &         MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
      &         RAD(1),ROL(1),RAD(2),ROL(2),SEP,RL1
  25      FORMAT (/,' END CE   TIME[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
      &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' MC1,2[*]',2E13.5,
+     &         ' NB(ICM)',I5,' M0(1,2) M(1:2) MC(1:2) ',6E13.5,
      &         ' RI,VI[NB]=',2E13.5,' SEP[*]',E13.5,
      &         ' RAD1,2 ROL1,2[*]=',4E13.5,' SEMI[*],RL1[*]=',2E13.5)
 *
@@ -1199,22 +1210,26 @@
      &                TPHYS,AJ(K),TK,MASS0(K),MASS0(3-K),
      &                MASS(K),TK,ZMET,ECC,TK,JSPIN(K),TK,CH5
 *
-          if(rank.eq.0)
-     &    WRITE (6,77)  TTOT,NAME(J1),NAME(J2),
+          AGE = TPHYS - EPOCH(I)
+          WHICH = ' ROCHE COAL '
+          if(rank.eq.0) THEN
+            WRITE (6,77) WHICH,TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
      &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
      &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &         STEP(I),LIST(1,J1),LIST(1,I),
-     &         MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
-     &         RAD(1),RAD(2),ROL(1),ROL(2),DM1,DM2,DTM,COALS,IXXX
-  77     FORMAT (/,' END ROCHE COAL TIME[NB]',1P,E17.10,' NM1,2,S=',
+     &         MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
+     &         RAD(1:2),ROL(1:2),DM1,DM2,DTM,AGE,COALS,IXXX
+  77        FORMAT (A12,'  TIME[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
      &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
-     &         ' SEP[*]',1E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
-     &         ' DM1/2,DT=',3E13.5,' COALS, IXXX=',L1,I3)
+     &         ' NB(ICM)',I5,' M0(1:2) M(1:2) MC(1:2)[*]',6E13.5,
+     &         ' RI,VI[NB]=',2E13.5,
+     &         ' SEP[*]',1E13.5,' RAD(1:2) ROL(1:2)[*]=',4E13.5,
+     &         ' DM1/2,DT=',3E13.5,' AGE COALS, IXXX=',E13.5,L1,I3)
+          END IF
 
           CALL coal(IPAIR,KW1,MASS)
           GO TO 200
@@ -1407,11 +1422,17 @@
             ENDIF
 *
             IF(ITERB.EQ.0.AND.NWARN.LT.50)THEN
+               WHICH =' CIRC SYNCH '
                if(rank.eq.0)
-     &         WRITE(6,710)NAME(J1),KSTAR(J1),KSTAR(J2),ECC0,FAC0,
-     &                     TC,TSYN,JORB,OORB,SEP
-  710          FORMAT(' CIRC & SYNCH NM K* ECC0 SPIN1/OORB TC TSYN ',
-     &         I7,2I4,F7.4,F9.3,1P,2E11.3,' JORB OORB SEP ',3E11.3)
+     &         WRITE(6,710)WHICH,TTOT,NAME(J1),NAME(J2),NAME(I),
+     &            KSTAR(J1),KSTAR(J2),KSTAR(I),
+     &            TPHYS,AGE,BODY(J1),BODY(J2),
+     &            SPIN(J1),SPIN(J1),ECC0,FAC0,
+     &            TC,TSYN,JORB,OORB,SEP
+  710          FORMAT(A12,' TIME[NB] ',1P,E17.9,' N12S,K12S ',
+     &            3I10,3I4,' TIME,AGE[Myr] M12[NB] ',4E13.5,
+     &            ' ECC0 SPIN1/OORB TC TSYN ',4E13.5,
+     &            ' JORB OORB SEP ',3E13.5)
                NWARN = NWARN + 1
             ENDIF
 *
@@ -1485,8 +1506,6 @@
                   KW1 = KTYPE(KSTAR(J1),KSTAR(J2))
                   IF (KW1.GT.100) KW1 = KW1 - 100
 * -----------------------------------              
-                  WRITE(6,*) ' IXXX=8 K(1),K(2) ', KSTAR(J1),KSTAR(J2),
-     &            ' KW1,KW2 ',KW1,KW2,' J1, J2 ', NAME(J1), NAME(J2)     
                   GO TO 60
                ENDIF
 *     --02/28/13 9:59-lwang-end-add------------------------------------*
@@ -1627,22 +1646,27 @@
           IF(TEV0(I).LT.TIME) GOTO 10
           IF (ITER.EQ.1.AND.GAMMA(IPAIR).LT.GMIN) GO TO 10
       ELSE
-          if(rank.eq.0)
-     &    WRITE (6,76)  TTOT,NAME(J1),NAME(J2),
-     &         NAME(I),KW1,KW2,KSTAR(I),
-     &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
-     &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
-     &         STEP(I),LIST(1,J1),LIST(1,I),
-     &         MASS(1),MASS(2),RI,VI,R(IPAIR)*SU,
-     &         RAD(1),RAD(2),ROL(1),ROL(2),DM1,DM2,DTM
-  76     FORMAT (/,' END ROCHE      TIME[NB]',1P,E17.10,' NM1,2,S=',
-     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
-     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
-     &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
-     &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
-     &         ' NB(ICM)',I5,' M1,2[*]',2E13.5,' RI,VI[NB]=',2E13.5,
-     &         ' SEP[*]',1E13.5,' RAD1,2 ROL1,2[*]=',4E13.5,
-     &         ' DM1/2,DT=',3E13.5)
+          TPHYS = TTOT*TSTAR
+          AGE = TPHYS - EPOCH(I)
+          WHICH = ' END ROCHE  '
+          if(rank.eq.0) THEN
+             WRITE (6,76) WHICH,TTOT,NAME(J1),NAME(J2),
+     &           NAME(I),KW1,KW2,KSTAR(I),
+     &           IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &           ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
+     &           STEP(I),LIST(1,J1),LIST(1,I),
+     &           MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
+     &           RAD(1:2),ROL(1:2),DM1,DM2,DTM
+  76        FORMAT (A12,'  TIME[NB]',1P,E17.10,' NM1,2,S=',
+     &           3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
+     &           ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &           ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
+     &           ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
+     &           ' NB(ICM)',I5,' M0(1:2) M(1:2) MC(1:2)[*]',6E13.5,
+     &           ' RI,VI[NB]=',2E13.5,
+     &           ' SEP[*]',1E13.5,' RAD(1:2) ROL(1:2)[*]=',4E13.5,
+     &           ' DM1/2,DT=',3E13.5)
+          END IF
 *       Check optional diagnostics for degenerate objects.
           IF(MAX(KSTAR(J1),KSTAR(J2)).GE.10)THEN
              IF(KZ(9).GE.3)THEN
