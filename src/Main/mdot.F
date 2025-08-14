@@ -1562,7 +1562,7 @@ c$$$#endif
      &                         (X(3,ICM) - RDENS(3))**2)
                VII = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
              IF(I.LE.N)THEN
-                 IF(KZ(50).EQ.1)
+                 IF(KZ(50).EQ.1.and.rank.eq.0)
      &           WRITE(221,62) TIME+TOFF,DEB1,DEB2,IKW1,IKW2,I,NAME(I),
      &             KSTAR(I),BODY(I),LIST(1,I),BODY(I)*ZMBAR,
      &             RADIUS(I)*SU,RI,VII
@@ -1576,7 +1576,7 @@ c$$$#endif
           ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
                  EB = -0.5*BODY(I1)*BODY(I2)/SEMI
                PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6
-                 IF(KZ(50).EQ.1)
+                 IF(KZ(50).EQ.1.and.rank.eq.0)
      &           WRITE(220,61) TIME+TOFF,DEB1,DEB2,IKW1,IKW2,I,NAME(I1),
      &             NAME(I2),NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
      &             IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),

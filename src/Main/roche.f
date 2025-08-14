@@ -310,7 +310,7 @@
     !           ospin(1), ospin(2), dmt(1), dmt(2), dmr(1), dmr(2), rol(1),&
     !           rol(2),dmdt(1), dmdt(2), dm1, dm2, tb, Lx, Mdot_RLOF, Bi(1), Bi(2)
 *
-                 IF(KZ(50).EQ.1)
+                 IF(KZ(50).EQ.1.and.rank.eq.0)
      &           WRITE (203,61) WHICH,TTOT,NAME(J1),NAME(J2),
      &            NAME(I),KW1,KW2,KSTAR(I),
      &            IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
@@ -1298,7 +1298,7 @@
      &         ' DM1/2,DT=',3E13.5,
      &         ' AGE Lx Mdot_RLOF ',3E13.5,' COALS, IXXX=',L1,I3)
 *
-               IF(KZ(50).EQ.1)
+               IF(KZ(50).EQ.1.and.rank.eq.0)
      &           WRITE (203,62) WHICH,TTOT,NAME(J1),NAME(J2),
      &            NAME(I),KW1,KW2,KSTAR(I),
      &            IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
@@ -1755,7 +1755,7 @@
             else
                Lx = 0.d0
             end if
-               IF(KZ(50).EQ.1)
+               IF(KZ(50).EQ.1.and.rank.eq.0)
      &           WRITE (203,63) WHICH,TTOT,NAME(J1),NAME(J2),
      &            NAME(I),KW1,KW2,KSTAR(I),
      &            IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
