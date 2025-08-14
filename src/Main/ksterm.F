@@ -199,7 +199,7 @@ c$$$      END IF
            DEB2 = 0.D0
            IKW1 = 0
            IKW2 = 0
-           IF(KZ(50).EQ.1.and.rank.eq.0)
+           IF(KZ(50).EQ.1)
      &     WRITE(210,16) TIME+TOFF,DEB1,DEB2,IKW1,IKW2,NAME(ICOMP),
      &         NAME(JCOMP),NAME(ICM),KSTAR(ICOMP),KSTAR(JCOMP),
      &         KSTAR(ICM),IPAIR,DTAU(IPAIR),BODY(ICOMP),BODY(JCOMP),

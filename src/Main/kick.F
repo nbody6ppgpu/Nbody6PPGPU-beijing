@@ -485,7 +485,7 @@ c		Sambaran 2019.11.19.
   30  CONTINUE
 *
       IF(ICASE.EQ.0)THEN
-      IF(KZ(50).EQ.1)
+      IF(KZ(50).EQ.1.and.rank.eq.0)
      &WRITE(231,61)WHICH,TTOT,I1,I2,NAME(I1),NAME(I2),KSTAR(I1),
      &        KSTAR(I2),KW,KC,KMECH,ICASE,
      &        BODY0(I1)*ZMBAR,BODY0(I2)*ZMBAR,
@@ -495,7 +495,7 @@ c		Sambaran 2019.11.19.
      &         X(1:3,I2)*RBAR, XDOT(1:3,I2)*VSTAR
    61 FORMAT(A15,1P,E17.9,4I10,6I4,27E17.9)
       ELSE
-      IF(KZ(50).EQ.1)
+      IF(KZ(50).EQ.1.and.rank.eq.0)
      &WRITE(230,60)WHICH1,TTOT,I,NAME(I),KSTAR(I),KW,KC,
      &         KMECH,ICASE,TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,
      &         ASPN(I),XJSPIN,SPNFAC,SQRT(VI2)*VSTAR,

@@ -100,7 +100,7 @@
            DEB2 = 0.D0
            IKW1 = 0
            IKW2 = 0
-           IF(KZ(50).EQ.1.and.rank.eq.0)
+           IF(KZ(50).EQ.1)
      &     WRITE(210,61) TIME+TOFF,DEB1,DEB2,IKW1,IKW2,NAME(I1),
      &         NAME(I2),NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
      &         IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
