@@ -34,10 +34,10 @@ c$$$      COMMON/KSSTAT/ISTEPP,ISTEPU,IBINP,IBINU
 *      Local variables for event output RSp July 2025.
       LOGICAL LPROUT
       PARAMETER(TOL=1.0D-10)
-      REAL*8 XMOLD1(NMAX),XMOLD2(NMAX)
-      INTEGER KWOLD1(NMAX),KWOLD2(NMAX)
-      DATA KWOLD1,KWOLD2 /NMAX*0,NMAX*0/
-      DATA XMOLD1,XMOLD2 /NMAX*0.D0,NMAX*0.D0/
+      REAL*8 XMOLD(NMAX)
+      INTEGER KWOLD(NMAX)
+      DATA KWOLD /NMAX*-1/
+      DATA XMOLD /NMAX*-1.D0/
 *
 *       Determine correct index after restart (NNTB = 0 initially).
       IF (IRUN.EQ.0) THEN
@@ -173,12 +173,14 @@ c$$$                  END IF
                   ICM = N + IPAIR
                   I2 = I1 + 1
 *    Prepare output for event data bank, RSp July 2025.
-                  DEB1 = DABS(BODY(I1) - XMOLD1(NAME(I1)))/BODY(I1)
-                  DEB2 = DABS(BODY(I2) - XMOLD2(NAME(I2)))/BODY(I2)
-                  IF(DABS(DEB1-1.D0).LT.TOL)DEB1 = 0.D0
-                  IF(DABS(DEB2-1.D0).LT.TOL)DEB2 = 0.D0
-                  IKW1 = IABS(KSTAR(I1) - KWOLD1(NAME(I1)))
-                  IKW2 = IABS(KSTAR(I2) - KWOLD2(NAME(I2)))
+                  DEB1 = DABS(BODY(I1) - XMOLD(NAME(I1)))/BODY(I1)
+                  DEB2 = DABS(BODY(I2) - XMOLD(NAME(I2)))/BODY(I2)
+                  IF(XMOLD(NAME(I1)).LT.0.0) DEB1 = 0.D0 ! first change, no old value
+                  IF(XMOLD(NAME(I2)).LT.0.0) DEB2 = 0.D0 ! first change, no old value
+                  IKW1 = IABS(KSTAR(I1) - KWOLD(NAME(I1)))
+                  IKW2 = IABS(KSTAR(I2) - KWOLD(NAME(I2)))
+                  IF(KWOLD(NAME(I1)).LT.0) IKW1 = 0 ! first change, no old value
+                  IF(KWOLD(NAME(I2)).LT.0) IKW2 = 0 ! first change, no old value
                   LPROUT = DEB1.GT.0.05D0.OR.DEB2.GT.0.05D0.OR.
      &                     IKW1.GT.0.OR.IKW2.GT.0
                IF (LPROUT) THEN
@@ -222,10 +224,10 @@ c$$$                  END IF
  61       FORMAT('     KSREG  ',1P,E17.9,2E13.5,2I4,3I10,3I4,I9,
      &                         11E17.9,2I5,19E17.9)
 *
-                  XMOLD1(NAME(I1)) = BODY(I1)
-                  XMOLD2(NAME(I2)) = BODY(I2)
-                  KWOLD1(NAME(I1)) = KSTAR(I1)
-                  KWOLD2(NAME(I2)) = KSTAR(I2)
+                  XMOLD(NAME(I1)) = BODY(I1)
+                  XMOLD(NAME(I2)) = BODY(I2)
+                  KWOLD(NAME(I1)) = KSTAR(I1)
+                  KWOLD(NAME(I2)) = KSTAR(I2)
 * End event data bank output, RSp July 25
                END IF
 *
