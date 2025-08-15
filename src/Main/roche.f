@@ -315,7 +315,7 @@
      &            NAME(I),KW1,KW2,KSTAR(I),
      &            IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
      &            ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
-     &            SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,
+     &            SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
      &            STEP(I),LIST(1,J1),LIST(1,I),
      &            MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
      &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
@@ -323,7 +323,7 @@
      &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
      &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
      &            Mdot_RLOF,BMAG(1),BMAG(2)
-  61  FORMAT(A12,1P,E17.9,3I10,16E17.9,2I6,38E17.9)
+  61  FORMAT(A12,1P,E17.9,3I10,4I4,18E17.9,2I6,38E17.9)
           END IF
               IF(rank.eq.0.and.KSTAR(I).EQ.50)THEN
                  WRITE(6,9)NAME(J1),NAME(J2),KW1,KW2
@@ -543,14 +543,14 @@
           if(rank.eq.0)
      &    WRITE (6,20)  TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
-     &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &         IPAIR,DTAU(IPAIR),TPHYS,BODY(J1),BODY(J2),R(IPAIR),
      &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &         STEP(I),LIST(1,J1),LIST(1,I),
      &         MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
      &         RAD(1),RAD(2),ROL(1),ROL(2),SEP,RL1
  20      FORMAT (/,' NEW CE   TIME[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
-     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &         ' T[Myr] ',E13.5,' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
      &         ' NB(ICM)',I5,' M0(1,2) M(1:2) MC(1:2) ',6E13.5,
@@ -564,14 +564,14 @@
           if(rank.eq.0)
      &    WRITE (6,25)  TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
-     &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &         IPAIR,DTAU(IPAIR),TPHYS,BODY(J1),BODY(J2),R(IPAIR),
      &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &         STEP(I),LIST(1,J1),LIST(1,I),
      &         MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
      &         RAD(1),ROL(1),RAD(2),ROL(2),SEP,RL1
  25      FORMAT (/,' END CE   TIME[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
-     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &         ' T[Myr] ',E13.5,' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
      &         ' NB(ICM)',I5,' M0(1,2) M(1:2) MC(1:2) ',6E13.5,
@@ -1280,18 +1280,20 @@
           if(rank.eq.0) THEN
             WRITE (6,77) WHICH,TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
-     &         IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &         IPAIR,DTAU(IPAIR),TPHYS,BODY(J1),BODY(J2),R(IPAIR),
      &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
-     &         SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,
+     &         SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
      &         STEP(I),LIST(1,J1),LIST(1,I),
      &         MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
      &         RAD(1:2),ROL(1:2),DM1,DM2,DTM,
      &         AGE,Lx,Mdot_RLOF,COALS,IXXX
   77        FORMAT (A12,'  TIME[NB]',1P,E17.10,' NM1,2,S=',
-     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
-     &         ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
-     &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
-     &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU ',E13.5,
+     &         ' T[Myr] ',E13.5,' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H ',E13.5,
+     &         ' GAMMA',E13.5,
+     &         ' SPIN12,OSPIN12[NB] SPNFAC JORB,OORB[*] ',7E13.5,
+     &         ' STEP(ICM)',E13.5,' NPERT',I5,
      &         ' NB(ICM)',I5,' M0(1:2) M(1:2) MC(1:2)[*]',6E13.5,
      &         ' RI,VI[NB]=',2E13.5,
      &         ' SEP[*]',1E13.5,' RAD(1:2) ROL(1:2)[*]=',4E13.5,
@@ -1303,7 +1305,7 @@
      &            NAME(I),KW1,KW2,KSTAR(I),
      &            IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
      &            ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
-     &            SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,
+     &            SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
      &            STEP(I),LIST(1,J1),LIST(1,I),
      &            MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
      &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
@@ -1311,7 +1313,7 @@
      &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
      &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
      &            Mdot_RLOF,bmag(1),bmag(2)
-  62  FORMAT(A12,1P,E17.9,3I10,16E17.9,2I6,38E17.9)
+  62  FORMAT(A12,1P,E17.9,3I10,4I4,18E17.9,2I6,38E17.9)
           END IF
 
           CALL coal(IPAIR,KW1,MASS)
@@ -1735,14 +1737,14 @@
           if(rank.eq.0) THEN
              WRITE (6,76) WHICH,TTOT,NAME(J1),NAME(J2),
      &           NAME(I),KW1,KW2,KSTAR(I),
-     &           IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &           IPAIR,DTAU(IPAIR),TPHYS,BODY(J1),BODY(J2),R(IPAIR),
      &           ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &           STEP(I),LIST(1,J1),LIST(1,I),
      &           MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
      &           RAD(1:2),ROL(1:2),DM1,DM2,DTM
   76        FORMAT (A12,'  TIME[NB]',1P,E17.10,' NM1,2,S=',
      &           3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
-     &           ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &           ' T[Myr] ',E13.5,' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &           ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &           ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
      &           ' NB(ICM)',I5,' M0(1:2) M(1:2) MC(1:2)[*]',6E13.5,
@@ -1760,7 +1762,7 @@
      &            NAME(I),KW1,KW2,KSTAR(I),
      &            IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
      &            ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
-     &            SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,
+     &            SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
      &            STEP(I),LIST(1,J1),LIST(1,I),
      &            MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
      &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
@@ -1768,7 +1770,7 @@
      &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
      &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
      &            Mdot_RLOF,bmag(1),bmag(2)
-  63  FORMAT(A12,1P,E17.9,3I10,16E17.9,2I6,38E17.9)
+  63  FORMAT(A12,1P,E17.9,3I10,4I4,18E17.9,2I6,38E17.9)
           END IF
 *       Check optional diagnostics for degenerate objects.
           IF(MAX(KSTAR(J1),KSTAR(J2)).GE.10)THEN
