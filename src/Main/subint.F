@@ -34,10 +34,6 @@ c$$$      COMMON/KSSTAT/ISTEPP,ISTEPU,IBINP,IBINU
 *      Local variables for event output RSp July 2025.
       LOGICAL LPROUT
       PARAMETER(TOL=1.0D-10)
-      REAL*8 XMOLD(NMAX)
-      INTEGER KWOLD(NMAX)
-      DATA KWOLD /NMAX*-1/
-      DATA XMOLD /NMAX*-1.D0/
 *
 *       Determine correct index after restart (NNTB = 0 initially).
       IF (IRUN.EQ.0) THEN

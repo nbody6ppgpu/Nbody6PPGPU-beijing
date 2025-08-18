@@ -76,6 +76,9 @@
      &               FP0(4,KMAX),FD0(4,KMAX),KBLIST(10*KMAX),
      &               KSLOW(KMAX),DTGW(KMAX),TBLIST
 
+*     Event tracking arrays for stellar evolution
+      COMMON/EVEVT/  XMOLD(NMAX),KWOLD(NMAX)
+
 *     Not dump common variables
       COMMON/LISTS/  ILIST(NMAX),JLIST(NMAX),JPERT(5*LMAX)
 *
