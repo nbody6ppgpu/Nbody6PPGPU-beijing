@@ -50,10 +50,10 @@
       DATA IWARN /0/
 *      Local variables for event output RSp July 2025.
       LOGICAL LPROUT
-      REAL*8 XMOLD1(NMAX),XMOLD2(NMAX)
-      INTEGER KWOLD1(NMAX),KWOLD2(NMAX)
-      DATA KWOLD1,KWOLD2 /NMAX*0,NMAX*0/
-      DATA XMOLD1,XMOLD2 /NMAX*0.D0,NMAX*0.D0/
+      REAL*8 XMOLDA(NMAX)
+      INTEGER KWOLDA(NMAX)
+      DATA KWOLDA /NMAX*-1/
+      DATA XMOLDA /NMAX*-1.D0/
 *       Set variables with different names in common (RSp Mar23).
       K3 = XK3
       BETA = XBETA
@@ -1536,9 +1536,11 @@ c$$$#endif
 *
 *    Prepare output for event data bank, RSp July 2025.
          IF(I.LE.N)THEN
-                  DEB1 = DABS(BODY(I) - XMOLD1(NAME(I)))/BODY(I)
+                  DEB1 = DABS(BODY(I) - XMOLDA(NAME(I)))/BODY(I)
+                  IF(XMOLDA(NAME(I1)).LT.0.0) DEB1 = 0.D0 ! first change, no old value
                   DEB2 = 0.D0
-                  IKW1 = IABS(KSTAR(I) - KWOLD1(NAME(I)))
+                  IKW1 = IABS(KSTAR(I) - KWOLDA(NAME(I)))
+                  IF(KWOLDA(NAME(I1)).LT.0) IKW1 = 0 ! first change, no old value
                   IKW2 = 0
                   ICM = I
          ELSE IF(I.GT.N)THEN
@@ -1546,13 +1548,15 @@ c$$$#endif
                   ICM = N + IPAIR
                   I1 = 2*IPAIR - 1
                   I2 = I1 + 1
-                  DEB1 = DABS(BODY(I1) - XMOLD1(NAME(I1)))/BODY(I1)
-                  DEB2 = DABS(BODY(I2) - XMOLD2(NAME(I2)))/BODY(I2)
-                  IKW1 = IABS(KSTAR(I1) - KWOLD1(NAME(I1)))
-                  IKW2 = IABS(KSTAR(I2) - KWOLD2(NAME(I2)))
+                  DEB1 = DABS(BODY(I1) - XMOLDA(NAME(I1)))/BODY(I1)
+                  DEB2 = DABS(BODY(I2) - XMOLDA(NAME(I2)))/BODY(I2)
+                  IF(XMOLDA(NAME(I1)).LT.0.0) DEB1 = 0.D0 ! first change, no old value
+                  IF(XMOLDA(NAME(I2)).LT.0.0) DEB2 = 0.D0 ! first change, no old value
+                  IKW1 = IABS(KSTAR(I1) - KWOLDA(NAME(I1)))
+                  IKW2 = IABS(KSTAR(I2) - KWOLDA(NAME(I2)))
+                  IF(KWOLDA(NAME(I1)).LT.0) IKW1 = 0 ! first change, no old value
+                  IF(KWOLDA(NAME(I2)).LT.0) IKW2 = 0 ! first change, no old value
          END IF
-                  IF(DABS(DEB1-1.D0).LT.TOL)DEB1 = 0.D0
-                  IF(DABS(DEB2-1.D0).LT.TOL)DEB2 = 0.D0
 *
          LPROUT = DEB1.GT.0.05D0.OR.DEB2.GT.0.05D0.OR.
      &                     IKW1.GT.0.OR.IKW2.GT.0
@@ -1567,10 +1571,10 @@ c$$$#endif
      &             KSTAR(I),BODY(I),LIST(1,I),BODY(I)*ZMBAR,
      &             RADIUS(I)*SU,RI,VII
  62      FORMAT(' SING MDOT ',1P,E17.9,2E13.5,2I4,3I10,E17.9,I10,4E17.9)
-                 XMOLD1(NAME(I)) = BODY(I)
-                 KWOLD1(NAME(I)) = KSTAR(I)
-                 XMOLD2(NAME(I)) = 0.D0
-                 KWOLD2(NAME(I)) = 0
+                 XMOLDA(NAME(I)) = BODY(I)
+                 KWOLDA(NAME(I)) = KSTAR(I)
+                 XMOLDA(NAME(I)) = 0.D0
+                 KWOLDA(NAME(I)) = -1
              ELSE IF(I.GT.N)THEN
                  SEMI = -0.5*BODY(ICM)/H(IPAIR)
           ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
@@ -1587,10 +1591,10 @@ c$$$#endif
  61       FORMAT('  BIN MDOT ',1P,E17.9,2E13.5,2I4,4I10,3I4,I9,
      &                         11E17.9,2I5,13E17.9)
 *
-             XMOLD1(NAME(I1)) = BODY(I1)
-             XMOLD2(NAME(I2)) = BODY(I2)
-             KWOLD1(NAME(I1)) = KSTAR(I1)
-             KWOLD2(NAME(I2)) = KSTAR(I2)
+             XMOLDA(NAME(I1)) = BODY(I1)
+             XMOLDA(NAME(I2)) = BODY(I2)
+             KWOLDA(NAME(I1)) = KSTAR(I1)
+             KWOLDA(NAME(I2)) = KSTAR(I2)
 * End event data bank output, RSp July 25
              END IF
          END IF
