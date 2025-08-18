@@ -13,6 +13,7 @@
       COMMON/XPRED/ TPRED(NMAX),TRES(KMAX),ipredall
       LOGICAL ipredall
       REAL*8 TPRED
+      PARAMETER(TOL=1.0D-10)
 *
 *
 *       Copy pair index from COMMON save and define KS components & c.m.
@@ -156,10 +157,12 @@ c$$$      END IF
           VI = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
 *
           R1XY=SQRT((X(1,I1)-RDENS(1))**2+(X(2,I1)-RDENS(2))**2)
+          R1XY=MAX(R1XY,TOL)
           R1INC = ATAN((X(3,I1)-RDENS(3))/R1XY)
           R1PHI = ACOS((X(1,I1)-RDENS(1))/R1XY)
 *
           R2XY=SQRT((X(1,I2)-RDENS(1))**2+(X(2,I2)-RDENS(2))**2)
+          R2XY=MAX(R2XY,TOL)
           R2INC = ATAN((X(3,I2)-RDENS(3))/R2XY)
           R2PHI = ACOS((X(1,I2)-RDENS(1))/R2XY)
 *

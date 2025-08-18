@@ -6,6 +6,7 @@
 *
       INCLUDE 'common6.h'
       REAL*8  Q(3),RDOT(3),UI(4),VI(4),A1(3,4)
+      PARAMETER(TOL=1.0D-10)
       SAVE  IPREV,EBPREV
       DATA  IPREV,EBPREV /0,-1.0D-06/
 *
@@ -205,10 +206,12 @@ c$$$      end if
           VII = SQRT(XDOT(1,NTOT)**2+XDOT(2,NTOT)**2+XDOT(3,NTOT)**2)
 *
           R1XY=SQRT((X(1,ICOMP)-RDENS(1))**2+(X(2,ICOMP)-RDENS(2))**2)
+          R1XY=MAX(R1XY,TOL)
           R1INC = ATAN((X(3,ICOMP)-RDENS(3))/R1XY)
           R1PHI = ACOS((X(1,ICOMP)-RDENS(1))/R1XY)
 *
           R2XY=SQRT((X(1,JCOMP)-RDENS(1))**2+(X(2,JCOMP)-RDENS(2))**2)
+          R2XY=MAX(R2XY,TOL)
           R2INC = ATAN((X(3,JCOMP)-RDENS(3))/R2XY)
           R2PHI = ACOS((X(1,JCOMP)-RDENS(1))/R2XY)
 *
