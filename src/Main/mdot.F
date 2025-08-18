@@ -50,10 +50,6 @@
       DATA IWARN /0/
 *      Local variables for event output RSp July 2025.
       LOGICAL LPROUT
-      REAL*8 XMOLDA(NMAX)
-      INTEGER KWOLDA(NMAX)
-      DATA KWOLDA /NMAX*-1/
-      DATA XMOLDA /NMAX*-1.D0/
 *       Set variables with different names in common (RSp Mar23).
       K3 = XK3
       BETA = XBETA

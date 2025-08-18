@@ -130,8 +130,10 @@
       NLSTDELAY(1) = 0
 
 *     For event bank
-      XMOLD(1:NMAX) = -1.0D0
-      KWOLD(1:NMAX) = -1
+      XMOLDA(1:NMAX) = -1.0D0
+      KWOLDA(1:NMAX) = -1
+      XMOLDB(1:NMAX) = -1.0D0
+      KWOLDB(1:NMAX) = -1
 
       RETURN
 *

@@ -169,14 +169,14 @@ c$$$                  END IF
                   ICM = N + IPAIR
                   I2 = I1 + 1
 *    Prepare output for event data bank, RSp July 2025.
-                  DEB1 = DABS(BODY(I1) - XMOLD(NAME(I1)))/BODY(I1)
-                  DEB2 = DABS(BODY(I2) - XMOLD(NAME(I2)))/BODY(I2)
-                  IF(XMOLD(NAME(I1)).LT.0.0) DEB1 = 0.D0 ! first change, no old value
-                  IF(XMOLD(NAME(I2)).LT.0.0) DEB2 = 0.D0 ! first change, no old value
-                  IKW1 = IABS(KSTAR(I1) - KWOLD(NAME(I1)))
-                  IKW2 = IABS(KSTAR(I2) - KWOLD(NAME(I2)))
-                  IF(KWOLD(NAME(I1)).LT.0) IKW1 = 0 ! first change, no old value
-                  IF(KWOLD(NAME(I2)).LT.0) IKW2 = 0 ! first change, no old value
+                  DEB1 = DABS(BODY(I1) - XMOLDB(NAME(I1)))/BODY(I1)
+                  DEB2 = DABS(BODY(I2) - XMOLDB(NAME(I2)))/BODY(I2)
+                  IF(XMOLDB(NAME(I1)).LT.0.0) DEB1 = 0.D0 ! first change, no old value
+                  IF(XMOLDB(NAME(I2)).LT.0.0) DEB2 = 0.D0 ! first change, no old value
+                  IKW1 = IABS(KSTAR(I1) - KWOLDB(NAME(I1)))
+                  IKW2 = IABS(KSTAR(I2) - KWOLDB(NAME(I2)))
+                  IF(KWOLDB(NAME(I1)).LT.0) IKW1 = 0 ! first change, no old value
+                  IF(KWOLDB(NAME(I2)).LT.0) IKW2 = 0 ! first change, no old value
                   LPROUT = DEB1.GT.0.05D0.OR.DEB2.GT.0.05D0.OR.
      &                     IKW1.GT.0.OR.IKW2.GT.0
                IF (LPROUT) THEN
@@ -222,10 +222,10 @@ c$$$                  END IF
  61       FORMAT('     KSREG  ',1P,E17.9,2E13.5,2I4,3I10,3I4,I9,
      &                         11E17.9,2I5,19E17.9)
 *
-                  XMOLD(NAME(I1)) = BODY(I1)
-                  XMOLD(NAME(I2)) = BODY(I2)
-                  KWOLD(NAME(I1)) = KSTAR(I1)
-                  KWOLD(NAME(I2)) = KSTAR(I2)
+                  XMOLDB(NAME(I1)) = BODY(I1)
+                  XMOLDB(NAME(I2)) = BODY(I2)
+                  KWOLDB(NAME(I1)) = KSTAR(I1)
+                  KWOLDB(NAME(I2)) = KSTAR(I2)
 * End event data bank output, RSp July 25
                END IF
 *

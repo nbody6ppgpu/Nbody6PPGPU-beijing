@@ -56,9 +56,8 @@
      &               R(KMAX),R0(KMAX),GAMMA(KMAX),SF(7,KMAX),H0(KMAX),
      &               FP0(4,KMAX),FD0(4,KMAX),KBLIST(10*KMAX),
      &               KSLOW(KMAX),DTGW(KMAX),TBLIST
-
-*     Event tracking arrays for stellar evolution
-      COMMON/EVEVT/  XMOLD(NMAX),KWOLD(NMAX)
+*
+      COMMON/EVEVT/  XMOLDA(NMAX),KWOLDA(NMAX),XMOLDB(NMAX),KWOLDB(NMAX)
 *
 *
       REAL*8 CC(265)
@@ -165,7 +164,8 @@
 #endif
 *
 *     Write event tracking arrays
-        write (J) (XMOLD(i),i=1,ntot),(KWOLD(i),i=1,ntot)
+        write (J) (XMOLDA(i),i=1,ntot),(KWOLDA(i),i=1,ntot),
+     &            (XMOLDB(i),i=1,ntot),(KWOLDB(i),i=1,ntot)
 *
         END FILE J
         CLOSE (UNIT=J)
@@ -311,13 +311,17 @@
 #endif
 
 *     Read event tracking arrays (with backward compatibility)
-        READ (J,ERR=100,END=100) (XMOLD(i),i=1,ntot),(KWOLD(i),i=1,ntot)
+        READ (J,ERR=100,END=100) 
+     &       (XMOLDA(i),i=1,ntot),(KWOLDA(i),i=1,ntot),
+     &       (XMOLDB(i),i=1,ntot),(KWOLDB(i),i=1,ntot)
         GO TO 101
  100    CONTINUE
 *     Initialize to -1 if old format file without event tracking data
-        write(0,*) 'XMOLD and KWOLD not found in comm.1; init to -1'
-        XMOLD(1:NMAX) = -1.0D0
-        KWOLD(1:NMAX) = -1
+        write(0,*) 'XMOLD & KWOLD not found in comm.1; init to -1'
+        XMOLDA(1:NMAX) = -1.0D0
+        KWOLDA(1:NMAX) = -1
+        XMOLDB(1:NMAX) = -1.0D0
+        KWOLDB(1:NMAX) = -1
  101    CONTINUE
 
         end if
@@ -471,8 +475,10 @@
 #endif
 *
 *     Broadcast event tracking arrays
-       CALL MPI_BCAST(XMOLD(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
-       CALL MPI_BCAST(KWOLD(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(XMOLDA(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(KWOLDA(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(XMOLDB(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(KWOLDB(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 *
        call cputim(tt998)
        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
