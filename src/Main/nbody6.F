@@ -149,8 +149,7 @@
               CALL ZCNSTS(ZMET,ZPARS)
           END IF
 *
-*       Check reading modified restart parameters (KSTART = 3, 4 or 5).
-*       Or control output RSp March 2019 (KSTART = 2)
+*       Check reading modified restart parameters (KSTART = 2)
           CALL MODIFY
 *
 *       Open all other files.
