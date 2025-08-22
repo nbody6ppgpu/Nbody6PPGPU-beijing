@@ -27,7 +27,7 @@
       READ (NML=ININPUT, IOSTAT=IIC, UNIT=5)
       IF (IIC.NE.0) WRITE (6, '("INPUT: invalid Namelist format")')
 *
-      IF(KSTART.eq.2) N = NCURR
+      IF(KSTART.EQ.2) N = NCURR
 *
 *       Read & print the main input parameters.
 *        READ (5,*)  N, NFIX, NCRIT, NRAND, NNBOPT, NRUN, NCOMM
