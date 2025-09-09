@@ -2,13 +2,8 @@
 //#include <iostream>
 #include <cstdio>
 // #include <cutil.h>
-#if 1
-#  include <helper_cuda.h.hip>
-#  include "checkHipError.hip"
-
-#else
-#  include <cutil.h.hip>
-#endif
+#include <helper_cuda.h.hip>
+#include "checkHipError.hip"
 #include "cuda_pointer.h.hip"
 #include "cuda_share.h.hip"
 #define NTHREAD 128

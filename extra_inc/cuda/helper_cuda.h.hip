@@ -91,14 +91,14 @@ static const char *_cudaGetErrorEnum(hipError_t error)
         case hipErrorInvalidDevicePointer:
             return "hipErrorInvalidDevicePointer";
 
-        case cudaErrorInvalidTexture:
-            return "cudaErrorInvalidTexture";
+        case hipErrorInvalidTexture:
+            return "hipErrorInvalidTexture";
 
         case cudaErrorInvalidTextureBinding:
             return "cudaErrorInvalidTextureBinding";
 
-        case cudaErrorInvalidChannelDescriptor:
-            return "cudaErrorInvalidChannelDescriptor";
+        case hipErrorInvalidChannelDescriptor:
+            return "hipErrorInvalidChannelDescriptor";
 
         case hipErrorInvalidMemcpyDirection:
             return "hipErrorInvalidMemcpyDirection";
