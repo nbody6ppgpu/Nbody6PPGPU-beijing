@@ -344,14 +344,24 @@ AC_ARG_WITH([par],
      [par_size=$withval],
      [par_size=b1m])
 
-AS_IF([test "x$par_size" == x10m],
+AS_IF([test "x$par_size" == x16m],
+      [NMAX=16777216
+       KMAX=131072
+       LMAX=600
+       MMAX=1024],
+      [test "x$par_size" == xb16m],
+      [NMAX=25165824
+       KMAX=8388608
+       LMAX=600
+       MMAX=2048],
+      [test "x$par_size" == x10m],
       [NMAX=11048576
        KMAX=131072
        LMAX=600
        MMAX=1024],
       [test "x$par_size" == xb10m],
-      [NMAX=15107200
-       KMAX=5120000
+      [NMAX=16572864
+       KMAX=5524288
        LMAX=600
        MMAX=2048],
       [test "x$par_size" == x8m],
@@ -360,8 +370,8 @@ AS_IF([test "x$par_size" == x10m],
        LMAX=600
        MMAX=1024],
       [test "x$par_size" == xb8m],
-      [NMAX=6291456
-       KMAX=2097152
+      [NMAX=12582912
+       KMAX=4194304
        LMAX=600
        MMAX=2048],
       [test "x$par_size" == x4m],
@@ -370,8 +380,8 @@ AS_IF([test "x$par_size" == x10m],
        LMAX=600
        MMAX=1024],
       [test "x$par_size" == xb4m],
-      [NMAX=15107200
-       KMAX=1048576
+      [NMAX=6291456
+       KMAX=2097152
        LMAX=600
        MMAX=2048],
       [test "x$par_size" == x1m],
