@@ -36,8 +36,8 @@
       IF (N.LE.0.OR.NNBMAX.LE.0.OR.ETAI.LE.0.0.OR.ETAR.LE.0.0) THEN
           if(rank.eq.0)
      &    WRITE (6,40)  N, NNBMAX, ETAI, ETAR
-   40     FORMAT (/,5X,'FATAL ERROR!   BAD INPUT   N =',I5,
-     &                  '  NNBMAX =',I4,'  ETAI =',F6.2,'  ETAR =',F6.2)
+   40     FORMAT (/,5X,'FATAL ERROR!   BAD INPUT   N =',I10,
+     &                  '  NNBMAX =',I6,'  ETAI =',F6.2,'  ETAR =',F6.2)
           STOP
       END IF
 *

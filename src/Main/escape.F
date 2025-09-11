@@ -150,7 +150,7 @@
      &WRITE (6,18) TTOT, NCORR, N, NSESC, NBESC, ZMASS*ZMBAR, BE(3),
      &       CMR(4),DSQRT(RESC2), ZMASS/FLOAT(N)*ZMBAR, NCRIT1, 
      &       (JLIST(J),J=1,NCORR)
-   18 FORMAT (/,' ESCAPE T,NESC =',1P,E13.5,I6,' total N,NSESC,NBESC =',
+   18 FORMAT (/,' ESCAPE T,NESC =',1P,E13.5,I10,' total N,NSESC,NBESC =',
      & I10,I8,I6,' M* ',1P,E13.5,' total E, RCM, RESC, <m*>, NCRIT1 =',
      &    4E13.5,I10,' JLIST: ',1000I10)
 *
@@ -555,7 +555,7 @@
      &          BODY(2*IPAIR-1)*ZMBAR,BODY(2*IPAIR)*ZMBAR,
      &          SEMI,ECC,EB,PB,RATIO,VI,RI,
      &          EI,RADIUS(I1)*SU,RADIUS(I2)*SU
-  200     FORMAT (/,' BINARY ESCAPE  IP,N,NCORR =',I5,I10,I5,
+  200     FORMAT (/,' BINARY ESCAPE  IP,N,NCORR =',3I10,
      &                '  NM1,2,S=',3I10,'  KW1,2,S,LS=',4I4,
      &                '  M1,2* =',1P,2E13.5,
      &                '  a,e,eb,pb =',4E13.5,' R*/PM =',E13.5,

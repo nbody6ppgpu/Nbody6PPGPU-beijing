@@ -29,7 +29,7 @@
     2     CONTINUE
           if(rank.eq.0)
      &    WRITE (87,3)  NPAIRS, NRUN, N, NC, NMERGE, MULT, NEWHI, TTOT
-    3     FORMAT (/,I6,I4,I6,3I4,I6,F9.1)
+    3     FORMAT (/,I6,I4,I10,3I4,I6,F9.1)
       END IF
 *      
       WRITE (87,1)

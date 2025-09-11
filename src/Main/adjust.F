@@ -269,7 +269,7 @@ C     New (Aug.1998) by P.Kroupa: (time also in Myr)
          if(nblckr.gt.0)xnpred = xnpred/dble(nblckr)     
          if(nblock.gt.0)xnirff = xnirrf/dble(nblock)
          WRITE(6,55)
- 55      FORMAT('  rank   PE   N        Total     Inti.    Intgrt',
+ 55      FORMAT('  rank   PE   N          Total     Inti.    Intgrt',
      &      '      Reg.      Irr.   Predall     Pred.   Init.B.',
      &      '      Mdot      Move   Comm.I.   Comm.R.   Send.I.',
      &      '   Send.R.        KS    Adjust       OUT     Barr.',
@@ -288,7 +288,7 @@ C     New (Aug.1998) by P.Kroupa: (time also in Myr)
      &      ttshk,ttksblist,ttksints,ttksintp,ttkssub,ttksbar,ttkscp,
      &      ttkscmb,ttksins,ttksinit,ttksterm,tttq,ttup,tttp,
      &      tttides3,ttgrrad,xtsub1,xtsub2,xnirrf,xnpred,itides3,igrrad
- 56      FORMAT(1X,2I3,I8,F13.5,44F10.2,1P,2E13.5,2E10.2,2I10)
+ 56      FORMAT(1X,2I3,I10,F13.5,44F10.2,1P,2E13.5,2E10.2,2I10)
          CALL FLUSH(6)
          xnpred = 0.d0
          xnirrf = 0.d0
