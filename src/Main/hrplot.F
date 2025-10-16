@@ -45,10 +45,11 @@
     2         CONTINUE
 *       Skip any ghosts associated with chain regularization.
               IF (IM.EQ.0) THEN
-                  if(rank.eq.0)
-     &            WRITE (6,3)  I, NAME(I), BODY(I), M0, M1, NCH
-    3     FORMAT (' WARNING! HRPLOT I NM M M0 M1 NCH ',2I8,1P,3E15.7,I3)
-                  GO TO 20
+                if(rank.eq.0)
+     &            WRITE (0,3)  TTOT, I, NAME(I), BODY(I), M0, M1, NCH
+    3             FORMAT (' WARNING! HRPLOT TTOT I NM M M0 M1 NCH ',
+     &                    1P,E15.7,2I8,3E15.7,I3)      
+                GO TO 20
               END IF
               M1 = CM(2,IM)*ZMBAR
           END IF
