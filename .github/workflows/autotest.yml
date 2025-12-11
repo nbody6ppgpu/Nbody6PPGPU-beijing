@@ -30,7 +30,7 @@ jobs:
         cp -p ./examples/input_files/N100k.inp ./autotest/;
         cp -p ./examples/input_files/dat.10 ./autotest/;
         cd autotest;
-        sed -r 's/\bN=[0-9]*/N=10000/g' N100k.inp | sed -r 's/\bTCRIT=[0-9]*/TCRIT=1/g' > N10k_1nbtime.inp ;
+        sed -r 's/\bN=[0-9]*/N=15000/g' N100k.inp | sed -r 's/\bTCRIT=[0-9]*/TCRIT=1/g' > N10k_1nbtime.inp ;
         pwd; ls -alh;
 
     - name: simulation
