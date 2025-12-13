@@ -155,13 +155,19 @@ c$$$      END IF
      &              (X(3,ICM) - RDENS(3))**2)
           VI = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
           TOL = 1.D-10
-*
+*       With fixed central black hole RDENS should not be used (RSp Dec 25).
+      IF (CMBH.GT.0.D0) THEN
+          R1XY2 = X(1,I1)**2+X(2,I1)**2
+          R2XY2 = X(1,I2)**2+X(2,I2)**2
+      ELSE
           R1XY2 = (X(1,I1)-RDENS(1))**2+(X(2,I1)-RDENS(2))**2
+          R2XY2 = (X(1,I2)-RDENS(1))**2+(X(2,I2)-RDENS(2))**2
+      END IF
+*
           R1XY = SQRT(R1XY2)+TOL
           R1INC = ATAN((X(3,I1)-RDENS(3))/R1XY)
           R1PHI = ACOS((X(1,I1)-RDENS(1))/R1XY)
 *
-          R2XY2 = (X(1,I2)-RDENS(1))**2+(X(2,I2)-RDENS(2))**2
           R2XY = SQRT(R2XY2)+TOL
           R2INC = ATAN((X(3,I2)-RDENS(3))/R2XY)
           R2PHI = ACOS((X(1,I2)-RDENS(1))/R2XY)
