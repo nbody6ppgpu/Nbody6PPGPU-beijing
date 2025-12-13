@@ -203,20 +203,25 @@ c$$$      end if
      &              (X(2,NTOT) - RDENS(2))**2 +
      &              (X(3,NTOT) - RDENS(3))**2)
           VII = SQRT(XDOT(1,NTOT)**2+XDOT(2,NTOT)**2+XDOT(3,NTOT)**2)
+          TOL= 1.D-10
 *
-          R1XY=SQRT((X(1,ICOMP)-RDENS(1))**2+(X(2,ICOMP)-RDENS(2))**2)
+          R1XY2 = (X(1,ICOMP)-RDENS(1))**2+(X(2,ICOMP)-RDENS(2))**2
+          R1XY = SQRT(R1XY2)+TOL
           R1INC = ATAN((X(3,ICOMP)-RDENS(3))/R1XY)
           R1PHI = ACOS((X(1,ICOMP)-RDENS(1))/R1XY)
 *
-          R2XY=SQRT((X(1,JCOMP)-RDENS(1))**2+(X(2,JCOMP)-RDENS(2))**2)
+          R2XY2 = (X(1,JCOMP)-RDENS(1))**2+(X(2,JCOMP)-RDENS(2))**2
+          R2XY = SQRT(R2XY2)+TOL
           R2INC = ATAN((X(3,JCOMP)-RDENS(3))/R2XY)
           R2PHI = ACOS((X(1,JCOMP)-RDENS(1))/R2XY)
 *
-          V1XY = SQRT(XDOT(1,ICOMP)**2+XDOT(2,ICOMP)**2)
+          V1XY2 = XDOT(1,ICOMP)**2+XDOT(2,ICOMP)**2
+          V1XY = SQRT(V1XY2)+TOL
           V1INC = ATAN(XDOT(3,ICOMP)/V1XY)
           V1PHI = ACOS(XDOT(1,ICOMP)/V1XY)
 *
-          V2XY = SQRT(XDOT(1,JCOMP)**2+XDOT(2,JCOMP)**2)
+          V2XY2 = XDOT(1,JCOMP)**2+XDOT(2,JCOMP)**2
+          V2XY = SQRT(V2XY2)+TOL
           V2INC = ATAN(XDOT(3,JCOMP)/V2XY)
           V2PHI = ACOS(XDOT(1,JCOMP)/V2XY)
 *
