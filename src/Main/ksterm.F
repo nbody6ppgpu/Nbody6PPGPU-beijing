@@ -154,20 +154,25 @@ c$$$      END IF
      &              (X(2,ICM) - RDENS(2))**2 +
      &              (X(3,ICM) - RDENS(3))**2)
           VI = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
+          TOL = 1.D-10
 *
-          R1XY=SQRT((X(1,I1)-RDENS(1))**2+(X(2,I1)-RDENS(2))**2)
+          R1XY2 = (X(1,I1)-RDENS(1))**2+(X(2,I1)-RDENS(2))**2
+          R1XY = SQRT(R1XY2)+TOL
           R1INC = ATAN((X(3,I1)-RDENS(3))/R1XY)
           R1PHI = ACOS((X(1,I1)-RDENS(1))/R1XY)
 *
-          R2XY=SQRT((X(1,I2)-RDENS(1))**2+(X(2,I2)-RDENS(2))**2)
+          R2XY2 = (X(1,I2)-RDENS(1))**2+(X(2,I2)-RDENS(2))**2
+          R2XY = SQRT(R2XY2)+TOL
           R2INC = ATAN((X(3,I2)-RDENS(3))/R2XY)
           R2PHI = ACOS((X(1,I2)-RDENS(1))/R2XY)
 *
-          V1XY = SQRT(XDOT(1,I1)**2+XDOT(2,I1)**2)
+          V1XY2 = XDOT(1,I1)**2+XDOT(2,I1)**2
+          V1XY = SQRT(V1XY2)+TOL
           V1INC = ATAN(XDOT(3,I1)/V1XY)
           V1PHI = ACOS(XDOT(1,I1)/V1XY)
 *
-          V2XY = SQRT(XDOT(1,I2)**2+XDOT(2,I2)**2)
+          V2XY2 = XDOT(1,I2)**2+XDOT(2,I2)**2
+          V2XY = SQRT(V2XY2)+TOL
           V2INC = ATAN(XDOT(3,I2)/V2XY)
           V2PHI = ACOS(XDOT(1,I2)/V2XY)
 *
