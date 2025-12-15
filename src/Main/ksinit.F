@@ -204,7 +204,6 @@ c$$$      end if
      &              (X(2,NTOT) - RDENS(2))**2 +
      &              (X(3,NTOT) - RDENS(3))**2)
           VII = SQRT(XDOT(1,NTOT)**2+XDOT(2,NTOT)**2+XDOT(3,NTOT)**2)
-          TOL= 1.D-10
 *
           R1XY2 = (X(1,ICOMP)-RDENS(1))**2+(X(2,ICOMP)-RDENS(2))**2
           R1XY = SQRT(R1XY2)+TOL
