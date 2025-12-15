@@ -1,4 +1,4 @@
-file modified time information in Berlin time recorded at Fri Aug 22 14:13:37 CEST 2025
+file modified time information in Berlin time recorded at Thu Dec 4 08:58:18 CET 2025
 Nbody6PPGPU-beijing/  
 2020-06-29 23:35:57 extra_inc
 2020-07-09 23:24:04 src
@@ -13,7 +13,7 @@ Nbody6PPGPU-beijing/
 2025-01-20 19:26:43 config.examples
 2025-02-18 11:45:49 README.md
 2025-02-28 15:41:00 build
-2025-08-22 14:13:37 timeList
+2025-12-04 08:58:18 timeList
 
 Nbody6PPGPU-beijing/build/  
 2020-09-25 22:53:55 Makefile.debug
@@ -470,22 +470,9 @@ Nbody6PPGPU-beijing/src/Main/
 2025-06-06 08:53:45 events.f
 2025-06-06 08:58:12 chmod_chain.f
 2025-07-15 17:43:38 coal.f
-2025-07-17 01:25:05 Lx.f90
-2025-08-01 10:32:01 impact.f
-2025-08-01 10:43:40 chterm.f
-2025-08-01 10:43:40 chain.f
-2025-08-05 14:38:34 file_init.F
-2025-08-05 14:55:59 kickGW.f
-2025-08-14 19:24:45 kspinit.f
-2025-08-14 19:24:45 kick.F
-2025-08-14 19:36:05 mdot.F
-2025-08-15 16:12:12 roche.f
-2025-08-18 10:58:17 subint.F
-2025-08-18 10:58:17 ksterm.F
-2025-08-18 10:58:17 ksinit.F
-2025-08-18 20:30:02 nbody6.F
-2025-08-18 20:30:02 input.F
-2025-08-18 20:30:02 bhplot.f
+2025-08-05 13:55:56 kick.F
+2025-08-05 14:57:19 kickGW.f
+2025-12-04 08:57:36 roche.f
 
 Nbody6PPGPU-beijing/src/Tools/  
 2025-02-18 15:59:30 MWpotential.f

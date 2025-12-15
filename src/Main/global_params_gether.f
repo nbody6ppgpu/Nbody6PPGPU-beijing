@@ -30,16 +30,16 @@
 *       Employ general expression sum {m*r*F} for virial energy.
          CALL XTRNLV(1,N)
 *       Form tidal energy with Plummer potential (note EPL use for #14=3).
-         IF (KZ(14).EQ.3.OR.KZ(14).EQ.4) THEN
-            EPL = 0.0
-            DO 50 I = 1,N
-               RI2 = AP2
-               DO 45 K = 1,3
-                  RI2 = RI2 + X(K,I)**2
- 45            CONTINUE
-               EPL = EPL - BODY(I)*MP/SQRT(RI2)
- 50         CONTINUE
-         END IF
+*        IF (KZ(14).EQ.3.OR.KZ(14).EQ.4) THEN
+*           EPL = 0.0
+*           DO 50 I = 1,N
+*              RI2 = AP2
+*              DO 45 K = 1,3
+*                 RI2 = RI2 + X(K,I)**2
+*45            CONTINUE
+*              EPL = EPL - BODY(I)*MP/SQRT(RI2)
+*50         CONTINUE
+*        END IF
       END IF
       EPARS(5) = REAL(EPL)
       IF(KZ(14).NE.3.and.KZ(14).NE.9) EPARS(5) = EPARS(5) + REAL(ETIDE)

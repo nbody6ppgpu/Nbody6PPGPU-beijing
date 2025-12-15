@@ -114,6 +114,18 @@
           END IF
 *       Form the differential potential energy due to tides.
           ET = BODY(I)*ET
+*       Treat external Plummer potential as tidal energy (RS Dec 2025).
+      ELSE IF (KZ(14).EQ.4) THEN
+*
+        DO I = I1,I2
+          RI2 = AP2
+          DO 60 K = 1,3
+              RI2 = RI2 + XI(K)**2
+   60     CONTINUE
+          ET = ET - MP/DSQRT(RI2)
+        END DO
+        ET = BODY(I)*ET
+*
       ELSE IF (KZ(14).EQ.5) THEN
 *     MW potential 
          TMASS = 0.0D0
