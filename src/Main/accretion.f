@@ -38,7 +38,8 @@
        E_kin = 0.0D0
        E_pot_bh = 0.0D0
 *
-       R_TIDAL = 0.22*RACCR
+*      No factor of 0.22 here, see warning in input.F (RSp Dec25).
+       R_TIDAL = RACCR
 *
       iaccr = 0
 *	   
