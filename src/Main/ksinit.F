@@ -8,6 +8,7 @@
       REAL*8  Q(3),RDOT(3),UI(4),VI(4),A1(3,4)
       SAVE  IPREV,EBPREV
       DATA  IPREV,EBPREV /0,-1.0D-06/
+      PARAMETER (TOL = 1.D-10)
 *
 *
 *       Set new global indices of the components and current pair index.
@@ -203,7 +204,6 @@ c$$$      end if
      &              (X(2,NTOT) - RDENS(2))**2 +
      &              (X(3,NTOT) - RDENS(3))**2)
           VII = SQRT(XDOT(1,NTOT)**2+XDOT(2,NTOT)**2+XDOT(3,NTOT)**2)
-          TOL= 1.D-10
 *       With fixed central black hole RDENS should not be used (RSp Dec 25).
       IF (CMBH.GT.0.D0) THEN
           R1XY2 = X(1,ICOMP)**2+X(2,ICOMP)**2
