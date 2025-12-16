@@ -8,17 +8,13 @@
 #
 # The general outline goes as follows:
 # 1. Make sure the dev and stardisk branches are up to date, respectively
-#    git checkout dev
-#    git pull
-#    git checkout stardisk
-#    git pull
+#    git switch dev && git pull && git switch stardisk-dev && git pull
 # 2. Merge dev into stardisk (make sure you are on the stardisk branch first)
-#    git checkout stardisk
-#    git merge dev
+#    git switch stardisk-dev; git merge dev
 # 3. Merge conflicts should appear. Fix conflict in a way of your choice, e.g.,
 #    git mergetool --tool=vimdiff
 # 4. commit and push your changes to the upstream stardisk branch
-#    git push origin stardisk
+#    git push
 
 name: Synchronise stardisk-dev with dev branch
 
