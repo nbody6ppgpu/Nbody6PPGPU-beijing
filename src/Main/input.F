@@ -441,8 +441,12 @@ C      end if
 *      OPEN(15,FILE='cmbh.inp.new',STATUS='OLD',ERR=60)
       READ (NML=DRAGINPUT, IOSTAT=IIC, UNIT=5)
       IF (IIC.NE.0) WRITE (6, '("INPUT: invalid Namelist format drag")')
-	WRITE (6, *) IIC
-
+	    WRITE (6, *) IIC
+		WRITE(6, *) '---------------------------------------------'
+    	WRITE (6, *) ' This version uses the input parameter raccr directly ',
+     *  ' as tidal radius of the reference star (solar mass)  - ',
+     *  ' no factor 0.22 applied anymore !!!  '
+		WRITE(6, *) '---------------------------------------------'
 *
       if (CMBH.gt.0.0) then
         write(6,"(/,' Stardisk - Drag ',/)")
