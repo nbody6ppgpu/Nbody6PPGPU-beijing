@@ -5,31 +5,32 @@
 [![Paper](https://badgen.net/badge/NASA%20ads/2012MNRAS.424..545N/blue?icon=https://ui.adsabs.harvard.edu/styles/img/transparent_logo.svg)](https://ui.adsabs.harvard.edu/abs/2012MNRAS.424..545N/abstract)
 [![Paper](https://badgen.net/badge/NASA%20ads/2015MNRAS.450.4070W/blue?icon=https://ui.adsabs.harvard.edu/styles/img/transparent_logo.svg)](https://ui.adsabs.harvard.edu/abs/2015MNRAS.450.4070W/abstract)
 [![Paper](https://badgen.net/badge/NASA%20ads/2022MNRAS.511.4060K/blue?icon=https://ui.adsabs.harvard.edu/styles/img/transparent_logo.svg)](https://ui.adsabs.harvard.edu/abs/2022MNRAS.511.4060K/abstract)
+[![Paper](https://badgen.net/badge/NASA%20ads/2023LRCA....9....3S/blue?icon=https://ui.adsabs.harvard.edu/styles/img/transparent_logo.svg)](https://ui.adsabs.harvard.edu/abs/2023LRCA....9....3S/abstract)
+
+
 <!-- [![Paper](https://badgen.net/badge/arXiv/0000.0000/green?icon=https://static.arxiv.org/static/browse/0.3.4/images/arxiv-logo-one-color-white.svg )](https://arxiv.org/abs/xxxxx) -->
 
-This is Nbody6++GPU - Beijing version, an N-body star cluster simulation code, maintained by Rainer Spurzem (spurzem@nao.cas.cn) and team. 
+This is Nbody6++GPU - Beijing version, an N-body star cluster simulation code, maintained by Rainer Spurzem (spurzem@nao.cas.cn) and team, main developers Kai Wu (kaiwu.astro@gmail.com) and Francesco Flammni Dotti (ff2415@nyu.edu). 
 
 The code is an offspring of [Sverre Aarseth's direct N-body codes](https://people.ast.cam.ac.uk/~sverre/web/pages/nbody.htm).
+
+For a regularly updated "live" manual see https://www.overleaf.com/read/hcmxcyffjkzq#89d2bb . Please report any issues for the manual here in this github server under https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/issues . Any important messages from our side to the community (e.g. updates which change downward compatibility or other major issues) see in our discussion section: https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions
 
 This is the code suitable for parallel and GPU accelerated runs on supercomputers and workstations. Before we give some more practical help, please read the following disambiguation; there is another github of Nbody6++GPU:
 
 LW: https://github.com/nbodyx/  - if interested please contact and collaborate
 with Long Wang longwang.astro@live.com
 RS: https://github.com/nbody6ppgpu - if interested please contact and
-collaborate with Rainer Spurzem spurzem@ari.uni-heidelberg.de spurzem@nao.cas.cn
+collaborate with Rainer Spurzem spurzem@nao.cas.cn
 
 Here is an example of current differences between the code version (May 2023), more changes and differences may occur in the future, if in doubt, ask the authors.
 
-1. LW: implementation of Milky Way potential following the MWPotential2014 in
-Galpy (Bovy 2015). Note: on Feb 2025, with Long's help, MWPotential2014 becomes available also in RS's version, with KZ(14)=5.
-2. RS: implementation of spin and mass dependent recoil kicks after GW merger
-(Arca Sedda et al. 2023 subm. MNRAS)
-3. LW:  implementation of python data reading interface for PeTar analysis tool.
-4. RS: use of HDF5 output files with python data reading interfaces
-5. RS: Namelist based input format, allowing also to read all stellar evolution
-and binary / collision parameters.
-6. LW and RS: Some bug fixes related to Roche and GR radiation, in both versions
-slightly different ways.
+1. LW: implementation of python data reading interface for PeTar analysis tool.
+2. RS: implementation of spin and mass dependent recoil kicks after GW merger (Arca Sedda et al. 2023 subm. MNRAS)
+3. RS: use of HDF5 output files with python data reading interfaces
+4. RS: namelist based input format, allowing also to read all stellar evolution and binary / collision parameters.
+5. LW and RS: implementation of Milky Way potential following the MWPotential2014 in Galpy (Bovy 2015). 
+6. LW and RS: Some bug fixes related to Roche and GR radiation, in both versions slightly different ways.
 7. LW and RS: implementation of BSE from Banerjee et al. 2019
 
 -------------------
