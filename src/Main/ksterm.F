@@ -12,7 +12,7 @@
       REAL*8  DSAVE(17)
       COMMON/XPRED/ TPRED(NMAX),TRES(KMAX),ipredall
       LOGICAL ipredall
-      REAL*8 TPRED
+      PARAMETER (TOL = 1.D-10)
 *
 *
 *       Copy pair index from COMMON save and define KS components & c.m.
@@ -154,7 +154,6 @@ c$$$      END IF
      &              (X(2,ICM) - RDENS(2))**2 +
      &              (X(3,ICM) - RDENS(3))**2)
           VI = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
-          TOL = 1.D-10
 *       With fixed central black hole RDENS should not be used (RSp Dec 25).
       IF (CMBH.GT.0.D0) THEN
           R1XY2 = X(1,I1)**2+X(2,I1)**2
