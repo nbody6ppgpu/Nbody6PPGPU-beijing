@@ -79,6 +79,7 @@
           J = I2
     5 CONTINUE
 *
+      RTOL = 1.D-02
 *       Determine indices for primary & secondary star (donor & accretor).
       IF (RAD(1)/ROL(1).GE.RAD(2)/ROL(2)) THEN
           J1 = I1
@@ -100,7 +101,7 @@
       END IF
 *
 *       Exit if physical radius is smaller than Roche radius.
-      IF (RAD(1).LE.RL1) THEN
+      IF (RAD(1)*(1.D0-RTOL).LE.RL1) THEN
           TEV(I) = TIME + STEP(I)
           GO TO 200
       ELSE
@@ -1681,7 +1682,7 @@
 *
 * See whether the primary still fills its Roche lobe.
 *
-      IF(RAD(1).GT.ROL(1))THEN
+      IF(RAD(1)*(1.D0-RTOL).GT.ROL(1))THEN
 *
 * Test for a contact system.
 *
@@ -1730,7 +1731,7 @@
           ITER = ITER + 1
           IF(TEV0(I).LT.TIME) GOTO 10
           IF (ITER.EQ.1.AND.GAMMA(IPAIR).LT.GMIN) GO TO 10
-      ELSE
+      ELSE IF (RAD(1)*(1.D0+RTOL).LT.ROL(1)) THEN
           TPHYS = TTOT*TSTAR
           AGE = TPHYS - EPOCH(I)
           WHICH = ' END ROCHE  '
