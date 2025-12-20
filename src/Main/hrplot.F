@@ -9,7 +9,7 @@
      &                HM(MMAX),UM(4,MMAX),UMDOT(4,MMAX),TMDIS(MMAX),
      &                NAMEM(MMAX),NAMEG(MMAX),KSTARM(MMAX),IFLAG(MMAX)
       REAL*8  LUMS(10),TSCLS(20),GB(10)
-      REAL*8  M0,M1,M2,LUM,LUM2,MC,ME,K2
+      REAL*8  M0,M1,M2,LUM,LUM2,MC,MC2,ME,ME2,K2
       CHARACTER*27 FILE(2)
       CHARACTER*20 TCHAR
 *
@@ -123,10 +123,12 @@
               M0 = BODY0(J2)*ZMBAR
               KW2 = KSTAR(J2)
               AGE = MAX(TPLOT,TEV0(J2))*TSTAR - EPOCH(J2)
-              CALL STAR(KW2,M0,M2,TM,TN,TSCLS,LUMS,GB,ZPARS)
+              CALL STAR(KW2,M0,M2,TM2,TN,TSCLS,LUMS,GB,ZPARS)
               CALL HRDIAG(M0,AGE,M2,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &                    RM2,LUM2,KW2,MC,RCC,ME,RE,K2)
-              RI = SQRT(RI)/RC
+     &                    RM2,LUM2,KW2,MC2,RCC2,ME2,RE2,K2)
+*       Changed to output in physical units [pc] (RSp Dec25).
+               RI = SQRT(RI)*RBAR
+*              RI = SQRT(RI)/RC
 *       Specify relevant binary mass.
               IF (BODY(J1).GT.0.0D0) THEN
                   BODYI = (M1 + M2)/ZMBAR
@@ -160,16 +162,18 @@
               AGE2 = MAX(TPLOT,TEV0(J2))*TSTAR - EPOCH(J2)
               if(rank.eq.0)
      &        WRITE (82,5)  TTOT, J1, J2, NAME(J1), NAME(J2), KW, KW2, 
-     &          KSTAR(ICM),
-     &          RI, ECC, PB, SEMI, M1, M2, ZL1, ZL2, R1, R2, TE1, TE2,
-     &          AGE1, AGE2, EPOCH(J1), EPOCH(J2)
-    5         FORMAT (1X,1P,E13.5,4I8,2I3,I4,6E13.5,10E13.5)
+     &          KSTAR(ICM), RI, ECC, PB, SEMI, M1, M2, ZL1, ZL2,
+     &          R1, R2, TE1, TE2, AGE1, AGE2, EPOCH(J1), EPOCH(J2),
+     &          TM, TM2, MC, MC2, RCC, RCC2, RE, RE2
+    5         FORMAT (1X,1P,E13.5,4I8,2I3,I4,6E13.5,18E13.5)
           ELSE
 *       Create output file for single stars (skip chain subsystem or ghost).
               IF (NAME(I).EQ.0.OR.BODY(I).EQ.0.0D0) GO TO 20
               RI = (X(1,I) - RDENS(1))**2 + (X(2,I) - RDENS(2))**2 +
      &                                      (X(3,I) - RDENS(3))**2
-              RI = SQRT(RI)/RC
+*       Changed to output in physical units [pc] (RSp Dec25).
+               RI = SQRT(RI)*RBAR
+*              RI = SQRT(RI)/RC
               R1 = LOG10(RM)
               ZL1 = LOG10(LUM)
 *       Form LOG(Te) using L = 4*pi*R**2*\sigma*T**4 and solar value 3.7.
@@ -181,8 +185,8 @@ ccc              TE = 0.25*(ZL1 - 2.0*R1) + 3.7
               AGE = MAX(TPLOT,TEV0(I))*TSTAR - EPOCH(I)
               if(rank.eq.0)
      &        WRITE (83,10)  TTOT, I, NAME(I), KW, RI, M1, ZL1, R1, TE,
-     &        AGE, EPOCH(I)
-   10         FORMAT (1X,1P,E13.5,2I8,I3,7E13.5)
+     &        AGE, EPOCH(I), TM, MC, RCC, RE
+   10         FORMAT (1X,1P,E13.5,2I8,I3,10E13.5)
           END IF
    20 CONTINUE
 *
