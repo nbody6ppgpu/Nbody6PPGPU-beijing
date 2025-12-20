@@ -25,16 +25,12 @@ collaborate with Rainer Spurzem spurzem@nao.cas.cn
 
 Here is an example of current differences between the code version (May 2023), more changes and differences may occur in the future, if in doubt, ask the authors.
 
-1. LW: implementation of Milky Way potential following the MWPotential2014 in
-Galpy (Bovy 2015). Note: on Feb 2025, with Long's help, MWPotential2014 becomes available also in RS's version, with KZ(14)=5.
-2. RS: implementation of spin and mass dependent recoil kicks after GW merger
-(Arca Sedda et al. 2023 subm. MNRAS)
-3. LW:  implementation of python data reading interface for PeTar analysis tool.
-4. RS: use of HDF5 output files with python data reading interfaces
-5. RS: Namelist based input format, allowing also to read all stellar evolution
-and binary / collision parameters.
-6. LW and RS: Some bug fixes related to Roche and GR radiation, in both versions
-slightly different ways.
+1. LW: implementation of python data reading interface for PeTar analysis tool.
+2. RS: implementation of spin and mass dependent recoil kicks after GW merger (Arca Sedda et al. 2023 subm. MNRAS)
+3. RS: use of HDF5 output files with python data reading interfaces
+4. RS: namelist based input format, allowing also to read all stellar evolution and binary / collision parameters.
+5. LW and RS: implementation of Milky Way potential following the MWPotential2014 in Galpy (Bovy 2015). 
+6. LW and RS: Some bug fixes related to Roche and GR radiation, in both versions slightly different ways.
 7. LW and RS: implementation of BSE from Banerjee et al. 2019
 
 -------------------
