@@ -186,7 +186,7 @@ ccc              TE = 0.25*(ZL1 - 2.0*R1) + 3.7
               if(rank.eq.0)
      &        WRITE (83,10)  TTOT, I, NAME(I), KW, RI, M1, ZL1, R1, TE,
      &        AGE, EPOCH(I), TM, MC, RCC, RE
-   10         FORMAT (1X,1P,E13.5,2I8,I3,10E13.5)
+   10         FORMAT (1X,1P,E13.5,2I8,I3,11E13.5)
           END IF
    20 CONTINUE
 *
