@@ -126,7 +126,9 @@ void gpupot(
 			const v8sf  r2 = dx*dx + dy*dy + dz*dz;
 			const v8sf mask = __builtin_ia32_cmpps256((v8sf)REP8(0.0), r2, 17);
 			                                    // 17 : less-than ordered quiet
-			v8sf rinv = v8sf_rsqrt(r2);
+			// Add small epsilon to avoid division by zero in rsqrt
+			const v8sf r2_safe = __builtin_ia32_maxps256(r2, (v8sf)REP8(1.0e-30f));
+			v8sf rinv = v8sf_rsqrt(r2_safe);
 			rinv = __builtin_ia32_andps256(rinv, mask);
 			rinv *= mj;
 
