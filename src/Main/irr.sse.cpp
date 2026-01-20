@@ -286,7 +286,7 @@ struct Force{
 		const v4sf r2 = dx*dx  + dy*dy  + dz*dz;
 		const v4sf rv = dx*dvx + dy*dvy + dz*dvz;
 		// Add small epsilon to avoid division by zero in rsqrt
-		const v4sf r2_safe = __builtin_ia32_maxps(r2, REP4(1.0e-30f));
+		const v4sf r2_safe = __builtin_ia32_maxps(r2, (v4sf)REP4(1.0e-30f));
 		const v4sf rinv   = rsqrt_NR(r2_safe);
 		const v4sf rinv2  = rinv * rinv;
 		const v4sf c1     = REP4(-3.0f);
