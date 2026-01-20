@@ -19,7 +19,7 @@
           IF (I.LE.N.OR.NAME(ICM).GE.0) THEN
               if(rank.eq.0)
      &        WRITE (6,1)  I, NAME(I), IFIRST, N
-    1         FORMAT (' WARNING!    FINDJ    I NAM I* N ',4I6)
+    1         FORMAT (' WARNING!    FINDJ    I NAM I* N ',3I6,I10)
               GO TO 30
           END IF
       ELSE

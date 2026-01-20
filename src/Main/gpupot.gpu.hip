@@ -1,14 +1,11 @@
+#include "hip/hip_runtime.h"
 //#include <iostream>
 #include <cstdio>
 // #include <cutil.h>
-#ifdef CUDA_5
-#  include <helper_cuda.h>
-#  define CUDA_SAFE_CALL checkCudaErrors
-#else
-#  include <cutil.h>
-#endif
-#include "cuda_pointer.h"
-#include "cuda_share.h"
+#include <helper_cuda.h.hip>
+#include "checkHipError.hip"
+#include "cuda_pointer.h.hip"
+#include "cuda_share.h.hip"
 #define NTHREAD 128
 
 
@@ -88,7 +85,7 @@ void gpupot(
 		ptcl[i] = Particle(0);
 	}
 
-	// cudaMemcpy(ptcl_d, ptcl_h, ng * sizeof(Particle), cudaMemcpyHostToDevice);
+	// hipMemcpy(ptcl_d, ptcl_h, ng * sizeof(Particle), hipMemcpyHostToDevice);
 	ptcl.htod(ntg);
 	
 	dim3 grid(ng/NTHREAD, 1, 1);
@@ -97,7 +94,7 @@ void gpupot(
 	// pot_kernel <<<grid, threads, sharedMemSize >>> (n, ptcl_d, phi_d);
 	pot_kernel <<<grid, threads, sharedMemSize >>> (n, istart, ptcl, phi);
 
-	// cudaMemcpy(phi_h, phi_d, n * sizeof(float2), cudaMemcpyDeviceToHost);
+	// hipMemcpy(phi_h, phi_d, n * sizeof(float2), hipMemcpyDeviceToHost);
 	phi.dtoh(ni);
 	for(int i=0; i<ni; i++){
 		// pot[i] = (double)phi_h[i].x + (double)phi_h[i].y;

@@ -1,17 +1,15 @@
+#include "hip/hip_runtime.h"
 // #include <iostream>
 #include <stdio.h>
 #include <unistd.h>
 // #include <vector>
 #include <cmath>
 #include <cassert>
-#ifdef CUDA_5
-#include <helper_cuda.h>
-#define CUDA_SAFE_CALL checkCudaErrors
-#else
-#include <cutil.h>
-#endif
-#include "cuda_pointer.h"
-#include "cuda_share.h"
+// #include <helper_cuda.h.hip>
+#include <hip/hip_runtime_api.h>
+#include "checkHipError.hip"
+#include "cuda_pointer.h.hip"
+#include "cuda_share.h.hip"
 
 #define NTHREAD 64 // 64, 96, 128 or 192
 #define NJBLOCK 28 // 8800GTS/512 has 16
@@ -121,7 +119,7 @@ struct Force{
           nnb = -abs(nnb) - abs(rhs.nnb);
 		}
 	}
-#if __CUDA_ARCH__ >= 4000000
+#if 0
 	__device__ void reduce_with(const int mask){
 		acc.x += __shfl_xor(acc.x, mask);
 		acc.y += __shfl_xor(acc.y, mask);
@@ -258,7 +256,7 @@ __global__ void h4_gravity(
   Force fo;
   fo.clear();
   uint16 *nblist = nbbuf[iaddr][jbid];
-#if __CUDA_ARCH__ >= 4000000 // just some trial
+#if 0 // just some trial
 	for(int j=jstart; j<jend; j+=32){
 		__shared__ Jparticle jpshare[32];
 		__syncthreads();
@@ -331,7 +329,7 @@ __global__ void h4_gravity_m(
   Force fo;
   fo.clear();
   uint16 *nblist = nbbuf[iaddr][jbid];
-#if __CUDA_ARCH__ >= 4000000 // just some trial
+#if 0 // just some trial
 	for(int j=jstart; j<jend; j+=32){
 		__shared__ Jparticle jpshare[32];
 		__syncthreads();
@@ -386,7 +384,7 @@ __global__ void h4_gravity_m(
   fobuf[iaddr][jbid] = fo;
 }
 
-#if __CUDA_ARCH__ >= 4000000
+#if 0
 __device__ void warp_reduce_int(int inp, int *out){
 	inp += __shfl_xor(inp, 1);
 	inp += __shfl_xor(inp, 2);
@@ -437,7 +435,7 @@ __global__ void force_reduce_kernel(
 	const int bid = blockIdx.x;
 	const int iaddr = yid + blockDim.y * bid;
 
-#if __CUDA_ARCH__ >= 4000000
+#if 0
 	Force f;
 	if(xid < NJBLOCK){
 		f = fpart[iaddr][xid];
@@ -505,7 +503,7 @@ __global__ void gather_nb_kernel(
 	                                  : 0;
 
 	// now performe prefix sum
-#if __CUDA_ARCH__ >= 4000000
+#if 0
 	int ix = mynnb;
 #pragma unroll
 	for(int ioff=1; ioff<NXREDUCE; ioff*=2){
@@ -558,7 +556,7 @@ static bool devinit = false;
 void GPUNB_devinit(int irank){
   if(devinit) return;
   
-  cudaGetDeviceCount(&numGPU);
+  hipGetDeviceCount(&numGPU);
   assert(numGPU > 0);
   char *gpu_list = getenv("GPU_LIST");
   if(gpu_list)
@@ -573,13 +571,13 @@ void GPUNB_devinit(int irank){
   }else{
     devid=irank%numGPU;
   }
-  cudaSetDevice(devid);
+  hipSetDevice(devid);
 
 #ifdef PROFILE
   //  if(!irank)fprintf(stderr, "***********************\n");
   //  if(!irank)fprintf(stderr, "Initializing NBODY6/GPU library\n");
-  cudaDeviceProp prop;
-  cudaGetDeviceProperties(&prop, devid);
+  hipDeviceProp_t prop;
+  hipGetDeviceProperties(&prop, devid);
   //  char *hostname = getenv("HOSTNAME");
   char hostname[150];
   memset(hostname,0,150);
@@ -609,13 +607,13 @@ void GPUNB_open(int nbmax,int irank){
 	// size_t jpsize = nbmax * sizeof(Jparticle);
 	// size_t ipsize = NIMAX * sizeof(Iparticle);
 	// size_t fosize = NIBLOCK * NJBLOCK * NTHREAD * sizeof(Force);
-	// cudaMallocHost((void **)&jp_host, jpsize);
+	// hipHostMalloc((void **)&jp_host, jpsize);
 	// jpsize += NTHREAD * sizeof(Jparticle);
-	// cudaMalloc    ((void **)&jp_dev , jpsize);
-	// cudaMallocHost((void **)&ip_host, ipsize);
-	// cudaMalloc    ((void **)&ip_dev , ipsize);
-	// cudaMallocHost((void **)&fo_host, fosize);
-	// cudaMalloc    ((void **)&fo_dev , fosize);
+	// hipMalloc    ((void **)&jp_dev , jpsize);
+	// hipHostMalloc((void **)&ip_host, ipsize);
+	// hipMalloc    ((void **)&ip_dev , ipsize);
+	// hipHostMalloc((void **)&fo_host, fosize);
+	// hipMalloc    ((void **)&fo_dev , fosize);
 	jpbuf.allocate(nbmax + NTHREAD);
 	ipbuf.allocate(NIMAX);
     fopart.allocate(NIMAX);
@@ -641,12 +639,12 @@ void GPUNB_close(){
 	}
 	is_open = false;
     
-	// cudaFreeHost(jp_host);
-	// cudaFree    (jp_dev);
-	// cudaFreeHost(ip_host);
-	// cudaFree    (ip_dev);
-	// cudaFreeHost(fo_host);
-	// cudaFree    (fo_dev);
+	// hipHostFree(jp_host);
+	// hipFree    (jp_dev);
+	// hipHostFree(ip_host);
+	// hipFree    (ip_dev);
+	// hipHostFree(fo_host);
+	// hipFree    (fo_dev);
 	jpbuf.free();
 	ipbuf.free();
     fopart.free();
@@ -683,7 +681,7 @@ void GPUNB_send(
       jpbuf[j] = Jparticle(mj[j], xj[j], vj[j]);
 	}
 	// size_t jpsize = nj * sizeof(Jparticle);
-	// cudaMemcpy(jp_dev, jp_host, jpsize, cudaMemcpyHostToDevice);
+	// hipMemcpy(jp_dev, jp_host, jpsize, hipMemcpyHostToDevice);
 	jpbuf.htod(nj);
 	time_send += get_wtime();
 }
@@ -716,7 +714,7 @@ void GPUNB_regf(
   }
   // set i-particles
   // size_t ipsize = ni * sizeof(Iparticle);
-  // cudaMemcpy(ip_dev, ip_host, ipsize, cudaMemcpyHostToDevice);
+  // hipMemcpy(ip_dev, ip_host, ipsize, hipMemcpyHostToDevice);
   ipbuf.htod(ni);
   
   // gravity kernel
@@ -743,7 +741,7 @@ void GPUNB_regf(
   //  CUDA_SAFE_THREAD_SYNC();
   // recieve force
   // size_t fosize = ni * NJBLOCK * sizeof(Force);
-  // cudaMemcpy(fo_host, fo_dev, fosize, cudaMemcpyDeviceToHost);
+  // hipMemcpy(fo_host, fo_dev, fosize, hipMemcpyDeviceToHost);
   fobuf.dtoh(ni);
 
   double wt = get_wtime();

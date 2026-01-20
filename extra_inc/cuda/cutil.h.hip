@@ -737,23 +737,23 @@ extern "C" {
     //! Macros
 
 #if CUDART_VERSION >= 4000
-#define CUT_DEVICE_SYNCHRONIZE( )   cudaDeviceSynchronize();
+#define CUT_DEVICE_SYNCHRONIZE( )   hipDeviceSynchronize();
 #else
-#define CUT_DEVICE_SYNCHRONIZE( )   cudaThreadSynchronize();
+#define CUT_DEVICE_SYNCHRONIZE( )   hipDeviceSynchronize();
 #endif
 
 #if CUDART_VERSION >= 4000
-#define CUT_DEVICE_RESET( )   cudaDeviceReset();
+#define CUT_DEVICE_RESET( )   hipDeviceReset();
 #else
-#define CUT_DEVICE_RESET( )   cudaThreadExit();
+#define CUT_DEVICE_RESET( )   hipDeviceReset();
 #endif
 
 // This is for the CUTIL bank checker
 #define CUT_BANK_CHECKER( array, index)  array[index]
 
 #  define CU_SAFE_CALL_NO_SYNC( call ) {                                     \
-    CUresult err = call;                                                     \
-    if( CUDA_SUCCESS != err) {                                               \
+    hipError_t err = call;                                                     \
+    if( hipSuccess != err) {                                               \
         fprintf(stderr, "Cuda driver error %x in file '%s' in line %i.\n",   \
                 err, __FILE__, __LINE__ );                                   \
         exit(EXIT_FAILURE);                                                  \
@@ -762,33 +762,33 @@ extern "C" {
 #  define CU_SAFE_CALL( call )       CU_SAFE_CALL_NO_SYNC(call);
 
 #  define CU_SAFE_CTX_SYNC( ) {                                              \
-    CUresult err = cuCtxSynchronize();                                       \
-    if( CUDA_SUCCESS != err) {                                               \
+    hipError_t err = hipCtxSynchronize();                                       \
+    if( hipSuccess != err) {                                               \
         fprintf(stderr, "Cuda driver error %x in file '%s' in line %i.\n",   \
                 err, __FILE__, __LINE__ );                                   \
         exit(EXIT_FAILURE);                                                  \
     } }
 
 #  define CUDA_SAFE_CALL_NO_SYNC( call) {                                    \
-    cudaError err = call;                                                    \
-    if( cudaSuccess != err) {                                                \
+    hipError_t err = call;                                                    \
+    if( hipSuccess != err) {                                                \
         fprintf(stderr, "Cuda error in file '%s' in line %i : %s.\n",        \
-                __FILE__, __LINE__, cudaGetErrorString( err) );              \
+                __FILE__, __LINE__, hipGetErrorString( err) );              \
         exit(EXIT_FAILURE);                                                  \
     } }
 
 #  define CUDA_SAFE_CALL( call)     CUDA_SAFE_CALL_NO_SYNC(call);                                            \
 
 #  define CUDA_SAFE_THREAD_SYNC( ) {                                         \
-    cudaError err = CUT_DEVICE_SYNCHRONIZE();                                 \
-    if ( cudaSuccess != err) {                                               \
+    hipError_t err = CUT_DEVICE_SYNCHRONIZE();                                 \
+    if ( hipSuccess != err) {                                               \
         fprintf(stderr, "Cuda error in file '%s' in line %i : %s.\n",        \
-                __FILE__, __LINE__, cudaGetErrorString( err) );              \
+                __FILE__, __LINE__, hipGetErrorString( err) );              \
     } }
 
 #  define CUFFT_SAFE_CALL( call) {                                           \
-    cufftResult err = call;                                                  \
-    if( CUFFT_SUCCESS != err) {                                              \
+    hipfftResult err = call;                                                  \
+    if( HIPFFT_SUCCESS != err) {                                              \
         fprintf(stderr, "CUFFT error in file '%s' in line %i.\n",            \
                 __FILE__, __LINE__);                                         \
         exit(EXIT_FAILURE);                                                  \
@@ -804,25 +804,25 @@ extern "C" {
     //! Check for CUDA error
 #ifdef _DEBUG
 #  define CUT_CHECK_ERROR(errorMessage) {                                    \
-    cudaError_t err = cudaGetLastError();                                    \
-    if( cudaSuccess != err) {                                                \
+    hipError_t err = hipGetLastError();                                    \
+    if( hipSuccess != err) {                                                \
         fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
-                errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
+                errorMessage, __FILE__, __LINE__, hipGetErrorString( err) );\
         exit(EXIT_FAILURE);                                                  \
     }                                                                        \
     err = CUT_DEVICE_SYNCHRONIZE();                                           \
-    if( cudaSuccess != err) {                                                \
+    if( hipSuccess != err) {                                                \
         fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
-                errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
+                errorMessage, __FILE__, __LINE__, hipGetErrorString( err) );\
         exit(EXIT_FAILURE);                                                  \
     }                                                                        \
     }
 #else
 #  define CUT_CHECK_ERROR(errorMessage) {                                    \
-    cudaError_t err = cudaGetLastError();                                    \
-    if( cudaSuccess != err) {                                                \
+    hipError_t err = hipGetLastError();                                    \
+    if( hipSuccess != err) {                                                \
         fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
-                errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
+                errorMessage, __FILE__, __LINE__, hipGetErrorString( err) );\
         exit(EXIT_FAILURE);                                                  \
     }                                                                        \
     }
@@ -844,7 +844,7 @@ extern "C" {
 
 #  define CUT_DEVICE_INIT(ARGC, ARGV) {                                      \
     int deviceCount;                                                         \
-    CUDA_SAFE_CALL_NO_SYNC(cudaGetDeviceCount(&deviceCount));                \
+    CUDA_SAFE_CALL_NO_SYNC(hipGetDeviceCount(&deviceCount));                \
     if (deviceCount == 0) {                                                  \
         fprintf(stderr, "cutil error: no devices supporting CUDA.\n");       \
         exit(EXIT_FAILURE);                                                  \
@@ -853,50 +853,50 @@ extern "C" {
     cutGetCmdLineArgumenti(ARGC, (const char **) ARGV, "device", &dev);      \
 	if (dev < 0) dev = 0;                                                    \
     if (dev > deviceCount-1) dev = deviceCount - 1;                          \
-    cudaDeviceProp deviceProp;                                               \
-    CUDA_SAFE_CALL_NO_SYNC(cudaGetDeviceProperties(&deviceProp, dev));       \
+    hipDeviceProp_t deviceProp;                                               \
+    CUDA_SAFE_CALL_NO_SYNC(hipGetDeviceProperties(&deviceProp, dev));       \
     if (cutCheckCmdLineFlag(ARGC, (const char **) ARGV, "quiet") == CUTFalse) \
         fprintf(stderr, "Using device %d: %s\n", dev, deviceProp.name);       \
-    CUDA_SAFE_CALL(cudaSetDevice(dev));                                      \
+    CUDA_SAFE_CALL(hipSetDevice(dev));                                      \
 }
 
 
     //! Check for CUDA context lost
 #  define CUDA_CHECK_CTX_LOST(errorMessage) {                                \
-    cudaError_t err = cudaGetLastError();                                    \
-    if( cudaSuccess != err) {                                                \
+    hipError_t err = hipGetLastError();                                    \
+    if( hipSuccess != err) {                                                \
         fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
-                errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
+                errorMessage, __FILE__, __LINE__, hipGetErrorString( err) );\
         exit(EXIT_FAILURE);                                                  \
     }                                                                        \
     err = CUT_DEVICE_SYNCHRONIZE();                                           \
-    if( cudaSuccess != err) {                                                \
+    if( hipSuccess != err) {                                                \
         fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
-                errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
+                errorMessage, __FILE__, __LINE__, hipGetErrorString( err) );\
         exit(EXIT_FAILURE);                                                  \
     } }
 
 //! Check for CUDA context lost
 #  define CU_CHECK_CTX_LOST(errorMessage) {                                  \
-    cudaError_t err = cudaGetLastError();                                    \
-    if( CUDA_ERROR_INVALID_CONTEXT != err) {                                 \
+    hipError_t err = hipGetLastError();                                    \
+    if( hipErrorInvalidContext != err) {                                 \
         fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
-                errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
+                errorMessage, __FILE__, __LINE__, hipGetErrorString( err) );\
         exit(EXIT_FAILURE);                                                  \
     }                                                                        \
     err = CUT_DEVICE_SYNCHRONIZE();                                           \
-    if( cudaSuccess != err) {                                                \
+    if( hipSuccess != err) {                                                \
         fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
-                errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
+                errorMessage, __FILE__, __LINE__, hipGetErrorString( err) );\
         exit(EXIT_FAILURE);                                                  \
     } }
 
 #  define CUT_DEVICE_INIT_DRV(cuDevice, ARGC, ARGV) {                        \
     cuDevice = 0;                                                            \
     int deviceCount = 0;                                                     \
-    CUresult err = cuInit(0);                                                \
-    if (CUDA_SUCCESS == err)                                                 \
-        CU_SAFE_CALL_NO_SYNC(cuDeviceGetCount(&deviceCount));                \
+    hipError_t err = hipInit(0);                                                \
+    if (hipSuccess == err)                                                 \
+        CU_SAFE_CALL_NO_SYNC(hipGetDeviceCount(&deviceCount));                \
     if (deviceCount == 0) {                                                  \
         fprintf(stderr, "cutil error: no devices supporting CUDA\n");        \
         exit(EXIT_FAILURE);                                                  \
@@ -905,9 +905,9 @@ extern "C" {
     cutGetCmdLineArgumenti(ARGC, (const char **) ARGV, "device", &dev);      \
 	if (dev < 0) dev = 0;                                                    \
     if (dev > deviceCount-1) dev = deviceCount - 1;                          \
-    CU_SAFE_CALL_NO_SYNC(cuDeviceGet(&cuDevice, dev));                       \
+    CU_SAFE_CALL_NO_SYNC(hipDeviceGet(&cuDevice, dev));                       \
     char name[100];                                                          \
-    cuDeviceGetName(name, 100, cuDevice);                                    \
+    hipDeviceGetName(name, 100, cuDevice);                                    \
     if (cutCheckCmdLineFlag(ARGC, (const char **) ARGV, "quiet") == CUTFalse) \
         fprintf(stderr, "Using device %d: %s\n", dev, name);                  \
 }

@@ -1,17 +1,14 @@
+#include "hip/hip_runtime.h"
 #include <cmath>
 #include <stdio.h>
 #include <unistd.h>
 #include <cassert>
 #include <cstdlib>
 #include <omp.h>
-#ifdef CUDA_5
-#  include <helper_cuda.h>
-#  define CUDA_SAFE_CALL checkCudaErrors
-#else
-#  include <cutil.h>
-#endif
-#include "cuda_pointer.h"
-//#include "cuda_share.h"
+#include <hip/hip_runtime_api.h>
+#include "checkHipError.hip"
+#include "cuda_pointer.h.hip"
+//#include "cuda_share.h.hip"
 
 #ifndef POTENTIAL
 #define POTENTIAL
@@ -60,8 +57,8 @@ struct Jparticle{
 	float  mass;
 	float3 vel;
 	float  pad;
-	Jparticle() {}
-	Jparticle(double mj, double xj[3], double vj[3]){
+	__host__ __device__ Jparticle() {}
+	__host__ __device__ Jparticle(double mj, double xj[3], double vj[3]){
 		pos.x = xj[0];
 		pos.y = xj[1];
 		pos.z = xj[2];
@@ -79,7 +76,7 @@ struct Jparticle{
 		NAN_CHECK(vj[2]);
 	}
 	__device__
-	Jparticle(const float4 *buf){
+	__host__ __device__ Jparticle(const float4 *buf){
 		float4 tmp1 = buf[0];
 		float4 tmp2 = buf[1];
 		pos.x = tmp1.x;
@@ -141,7 +138,7 @@ struct Force{
           nnb = -abs(nnb) - abs(rhs.nnb);
 		}
 	}
-#if __CUDA_ARCH__ >= 4000000
+#if 0
 	__device__ void reduce_with(const int mask){
 		acc.x += __shfl_xor(acc.x, mask);
 		acc.y += __shfl_xor(acc.y, mask);
@@ -274,7 +271,7 @@ __global__ void gravity_kernel(
 	Force fo;
 	fo.clear();
 	uint16 *nblist = nbbuf[iaddr][jbid];
-#if __CUDA_ARCH__ >= 4000000 // just some trial
+#if 0 // just some trial
 	for(int j=jstart; j<jend; j+=32){
 		__shared__ Jparticle jpshare[32];
 		__syncthreads();
@@ -345,7 +342,7 @@ __global__ void gravity_kernel_m(
 	Force fo;
 	fo.clear();
 	uint16 *nblist = nbbuf[iaddr][jbid];
-#if __CUDA_ARCH__ >= 4000000 // just some trial
+#if 0 // just some trial
 	for(int j=jstart; j<jend; j+=32){
 		__shared__ Jparticle jpshare[32];
 		__syncthreads();
@@ -398,7 +395,7 @@ __global__ void gravity_kernel_m(
 	fobuf[iaddr][jbid] = fo;
 }
 
-#if __CUDA_ARCH__ >= 4000000
+#if 0
 __device__ void warp_reduce_int(int inp, int *out){
 	inp += __shfl_xor(inp, 1);
 	inp += __shfl_xor(inp, 2);
@@ -448,7 +445,7 @@ __global__ void force_reduce_kernel(
 	const int bid = blockIdx.x;
 	const int iaddr = yid + blockDim.y * bid;
 
-#if __CUDA_ARCH__ >= 4000000
+#if 0
 	Force f;
 	if(xid < NJBLOCK){
 		f = fpart[iaddr][xid];
@@ -517,7 +514,7 @@ __global__ void gather_nb_kernel(
 	                                  : 0;
 
 	// now performe prefix sum
-#if __CUDA_ARCH__ >= 4000000
+#if 0
 	int ix = mynnb;
 #pragma unroll
 	for(int ioff=1; ioff<NXREDUCE; ioff*=2){
@@ -578,7 +575,7 @@ void GPUNB_devinit(int irank){
 	assert(NXREDUCE >= NJBLOCK);
 	assert(NXREDUCE <= 32);
 
-	cudaGetDeviceCount(&numGPU);
+	hipGetDeviceCount(&numGPU);
 	assert(numGPU <= MAX_GPU);
 	char *gpu_list = getenv("GPU_LIST");
 	if(gpu_list){
@@ -609,7 +606,7 @@ void GPUNB_devinit(int irank){
 	{
 		int tid = omp_get_thread_num();
 		if(tid < numGPU){
-			cudaSetDevice(devid[tid]);
+			hipSetDevice(devid[tid]);
 		}
 	}
 
@@ -618,8 +615,8 @@ void GPUNB_devinit(int irank){
     memset(hostname,0,150);
     gethostname(hostname,150);
 	for(int i=0; i<numGPU; i++){
-      cudaDeviceProp prop;
-      cudaGetDeviceProperties(&prop, devid[i]);
+      hipDeviceProp_t prop;
+      hipGetDeviceProperties(&prop, devid[i]);
       fprintf(stderr, "# GPU initialization - rank: %d; HOST %s; NGPU %d; device: %d %s\n", irank, hostname, numGPU, devid[i], prop.name);
 	}
 #endif
@@ -650,7 +647,7 @@ void GPUNB_open(int nbmax,int irank){
 	{
 		int tid = omp_get_thread_num();
 		if(tid < numGPU){
-			cudaSetDevice(devid[tid]);
+			hipSetDevice(devid[tid]);
 			int nj = joff[tid+1] - joff[tid];
 			jpbuf [tid].allocate(nj + NTHREAD);
 			ipbuf [tid].allocate(NIMAX);
@@ -755,7 +752,7 @@ void GPUNB_regf(
 	{
 		int tid = omp_get_thread_num();
 		if(tid < numGPU){
-			// cudaSetDevice(device_id[tid]);
+			// hipSetDevice(device_id[tid]);
 			for(int i=0; i<ni; i++){
 				ipbuf[tid][i] = Iparticle(h2[i], dtr[i], xi[i], vi[i]);
 			}

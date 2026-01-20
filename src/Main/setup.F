@@ -406,7 +406,7 @@
       NTOT = N
       IF (N.GE.NMAX-10) THEN
           if(rank.eq.0) WRITE (6,150)  N, NMAX
-  150     FORMAT (' DANGER!    LIMIT EXCEEDED   N =',I6,'  NMAX =',I6)
+  150     FORMAT (' DANGER!    LIMIT EXCEEDED   N =',I10,'  NMAX =',I10)
           STOP
       END IF
 *

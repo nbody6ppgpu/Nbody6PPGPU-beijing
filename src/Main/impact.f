@@ -966,7 +966,7 @@ C     &         'ANGLE',ANGLE,'BODY1',BODY(I1),'BODY(I2)',BJ
               WRITE (6,48)  TTOT, Q, ECC, ECC1, SEMI, PMIN, PCRIT,
      &                      YFAC, SP
               WRITE (6,47) I,JCOMP,N,I1,I2,RIJ,SEMI1
-   47         FORMAT (' I JCOMP N I1 I2 RIJ A1   ',5I6,1P,2E11.3)
+   47         FORMAT (' I JCOMP N I1 I2 RIJ A1   ',5I10,1P,2E11.3)
               CALL FLUSH(7)
               WRITE (6,48)  TTOT, Q, ECC, ECC1, SEMI, PMIN, PCRIT,
      &                      YFAC, SP

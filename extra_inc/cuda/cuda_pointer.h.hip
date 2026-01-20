@@ -17,28 +17,28 @@ struct cudaPointer{
   void allocate(int _size){
     size = _size;
     void *p;
-    CUDA_SAFE_CALL(cudaMalloc(&p, size * sizeof(T)));
+    checkHipErrors(hipMalloc(&p, size * sizeof(T)));
     assert(p);
     dev_pointer = (T*)p;
-    CUDA_SAFE_CALL(cudaMallocHost(&p, size * sizeof(T)));
+    checkHipErrors(hipHostMalloc(&p, size * sizeof(T)));
     assert(p);
     host_pointer = (T*)p;
   }
   void free(){
-    CUDA_SAFE_CALL(cudaFree(dev_pointer));
-    CUDA_SAFE_CALL(cudaFreeHost(host_pointer));
+    checkHipErrors(hipFree(dev_pointer));
+    checkHipErrors(hipHostFree(host_pointer));
     dev_pointer = NULL;
     host_pointer = NULL;
     size = 0;
   }
   void htod(int count){
-    CUDA_SAFE_CALL(cudaMemcpy(dev_pointer, host_pointer, count * sizeof(T), cudaMemcpyHostToDevice));
+    checkHipErrors(hipMemcpy(dev_pointer, host_pointer, count * sizeof(T), hipMemcpyHostToDevice));
   }
   void htod(){
     this->htod(size);
   }
   void dtoh(int count){
-    CUDA_SAFE_CALL(cudaMemcpy(host_pointer, dev_pointer, count * sizeof(T), cudaMemcpyDeviceToHost));
+    checkHipErrors(hipMemcpy(host_pointer, dev_pointer, count * sizeof(T), hipMemcpyDeviceToHost));
   }
   void dtoh(){
     this->dtoh(size);

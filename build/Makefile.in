@@ -5,16 +5,11 @@
 #    make
 #    make install
 #
-# Extra Tools
-#    dump_btoa   (A small routine for transfering between unformatted 
-#                fort.1/2 and formatted dump.dat. dump.dat is very 
-#                useful when you want to restart the simulation in a
-#                different system)
 
 FC = @FC@
 CXX = @CXX@
 CC = @CC@
-NVCC = @NVCC@
+HIPCC = hipcc
 
 RESULT = nbody6++@RESULT@
 #FFLAGS = -O3 -fbounds-check -fbacktrace -fno-automatic -fmax-stack-var-size=0 -fPIC -mcmodel=large -Wall
@@ -29,7 +24,7 @@ INTEL_FLAGS= -D __USE_INTEL -no-wrap-margin
 
 FFLAGS = @FCFLAGS@
 CXXFLAGS = @CXXFLAGS@
-CUFLAGS = @CUFLAGS@
+HIPFLAGS = @HIPFLAGS@
 LDFLAGS = -o $(RESULT)
 
 MPI_FSOURCES= energy_mpi.f fpoly1_mpi.f fpoly2_mpi.f
@@ -41,21 +36,13 @@ IRRAVX_OBJECTS=irr.avx.o
 IRRSSE_OBJECTS=irr.sse.o
 AVX_OBJECTS=reg.avx.o pot.avx.o irr.avx.o
 SSE_OBJECTS=reg.sse.o pot.sse.o irr.sse.o
-CUDA_OBJECTS = gpunb.velocity.o gpupot.gpu.o
-CUDA_OBJECTS_SINGLE = gpunb.gpu.o gpupot.gpu.o
-#CUDAOBJECTS = gpunb.gpu.o gpupot.gpu.o gpupot.mdot.o
-#CUDAOBJECTS = gpunb.velocity.o gpupot.gpu.o gpupot.mdot.o
-#CUDAOBJECTS = gpunb.gpu.o gpupot.gpu.o
-EXTRATOOLS=nb6++dumpb2a libinitial.so libnb6out3.so nb6++snapshot
+HIP_OBJECTS = gpunb.velocity.o gpupot.gpu.o
+HIP_OBJECTS_SINGLE = gpunb.gpu.o gpupot.gpu.o
 
 EXTRASRC=@EXTRASRC@
 EXTRAOBJ=@EXTRAOBJ@
 
-#VISITFLAGS = -DVISIT
-#VISITLD = -L ./lvisit -llvisit_nbody -L/work/Tuc/spurzem/visit/visit/lvisit/lib -llvisit -L/work/Tuc/spurzem/visit/visit/visit20/lib -lvisit
-
-#VPATH= ../src/Chain:../src/Nchain:../src/Init:../src/Main:../src/Cloud:../src/GPU:../src/SE:../src/SIMD:../src/Tidal:../src/Tlist:../src/Tools:../src/Ellan:../src/KS:../src/Output:../src/HIR:../include
-VPATH= ../src/Main:../src/Tools:../include
+VPATH= ../src/Main:../include
 
 INC = params.h common6.h timing.h commonc.h common2.h kspars.h
 
@@ -115,22 +102,10 @@ global_output.f global_params_gether.f
 
 OBJECTS = $(SOURCE:.f=.o)
 
-TARGET: $(RESULT) @EXTRARESULT@
+TARGET: $(RESULT)
 
 $(RESULT): $(OBJECTS) $(EXTRAOBJ)
-	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)  @LIBS@
-
-libinitial.so: initial.h initial.cpp
-	$(CXX) -shared $(CXXFLAGS) ../src/Tools/initial.cpp -o libinitial.so
-
-libnb6out3.so: nb6out3.h nb6out3.cxx
-	$(CXX) -shared $(CXXFLAGS) ../src/Tools/nb6out3.cxx -o libnb6out3.so
-
-nb6++dumpb2a: dump_btoa.F 
-	$(FC) $(FFLAGS) $^ -o nb6++dumpb2a
-
-nb6++snapshot: libinitial.so libnb6out3.so snapshot.cpp
-	$(CXX) $(CXXFLAGS) ../src/Tools/snapshot.cpp -L./ -lnb6out3 -linitial -o nb6++snapshot
+	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ) @LIBS@
 
 $(OBJECTS): $(INC)
 
@@ -152,15 +127,15 @@ reg.sse.o: reg.sse.cpp
 pot.sse.o: pot.sse.cpp
 	$(CXX) $(CXXFLAGS) $^ -c -o $@
 
-gpunb.velocity.o: gpunb.velocity.cu
-	$(NVCC) -c $(CUFLAGS) -Xcompiler "$(CXXFLAGS)"  $^
+gpunb.velocity.o: gpunb.velocity.hip
+	$(HIPCC) -c $(HIPFLAGS) $(CXXFLAGS)  $^
 
-gpunb.gpu.o: gpunb.gpu.cu
-	$(NVCC) -c $(CUFLAGS) -Xcompiler "$(CXXFLAGS)"  $^
+gpunb.gpu.o: gpunb.gpu.hip
+	$(HIPCC) -c $(HIPFLAGS) $(CXXFLAGS)  $^
 
-gpupot.gpu.o: gpupot.gpu.cu
-	$(NVCC) -c $(CUFLAGS) -Xcompiler "$(CXXFLAGS)"  $^
+gpupot.gpu.o: gpupot.gpu.hip
+	$(HIPCC) -c $(HIPFLAGS) $(CXXFLAGS)  $^
 
-gpupot.mdot.o: gpupot.mdot.cu
-	$(NVCC) -c $(CUFLAGS) -Xcompiler "$(CXXFLAGS)"  $^
+gpupot.mdot.o: gpupot.mdot.hip
+	$(HIPCC) -c $(HIPFLAGS) $(CXXFLAGS)  $^
 

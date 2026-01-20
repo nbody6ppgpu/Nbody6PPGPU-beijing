@@ -143,8 +143,8 @@
       IF(rank.EQ.0)THEN
       WRITE (6,40) TTOT, N, NNB, NPAIRS, NMERGE, MULT, NS, NSTEPI,
      &         NSTEPB,NSTEPR, NSTEPU, ERROR, BE(3),ZMASS
-   40 FORMAT (//,' TIME[NB] ',1P,E15.6,0P,'  N ',I8,'  <NB> ',I5,
-     &     '  NPAIRS ',I7,'  NMERGE ',I5,' MULT ',I4,' NS ',I8,
+   40 FORMAT (//,' TIME[NB] ',1P,E15.6,0P,'  N ',I10,'  <NB> ',I5,
+     &     '  NPAIRS ',I8,'  NMERGE ',I5,' MULT ',I4,' NS ',I8,
      &     '  NSTEP(I,B,R,U) ',4I13,'  DE ',E15.6,'  E ',F17.6,
      &     ' M ',F12.8)
       END IF
@@ -260,7 +260,7 @@
       IF (KZ(14).EQ.4) THEN
           WRITE (6,79)  TTOT, N, RSCALE, ZMASS, MP, DETOT
    79     FORMAT (/,5X,'GAS EXPULSION    T N <R> M MP DETOT ',
-     &                                   F7.1,I7,3F7.3,1P,E10.2)
+     &                                   F7.1,I10,3F7.3,1P,E10.2)
       END IF
 *
 *       Reset minimum encounter distances & maximum apocentre separation.
