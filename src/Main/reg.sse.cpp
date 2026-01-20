@@ -256,7 +256,9 @@ void GPUNB_regf(
 				if (bits&8) nblist[tid][3].push_back(j);
 			}
 
-			v4sf rinv1 = v4sf_rsqrt(r2);
+			// Add small epsilon to avoid division by zero in rsqrt
+			v4sf r2_safe = __builtin_ia32_maxps(r2, (v4sf){1.0e-30f, 1.0e-30f, 1.0e-30f, 1.0e-30f});
+			v4sf rinv1 = v4sf_rsqrt(r2_safe);
 			rinv1 = __builtin_ia32_andnps(mask, rinv1);
 			// v4sf rinv1 = __builtin_ia32_rsqrtps(r2);
 			v4sf rinv2 = rinv1 * rinv1;
@@ -335,7 +337,8 @@ void GPUNB_profile(int irank) {
     // send: j particle sending time;
     // grav: force calculation time;
     // Perf: performance for gpu regular calculation
-    fprintf(stderr,"[R.%d SSE Reg.F ] Nsend %d  Ngrav %d  <Ni> %d   send(s) %f grav(s) %f  Perf.(Gflops) %f\n",irank,isend,icall,ini/isend,time_send,time_grav,60.e-9*numInter/time_grav);
+    int avg_ni = (isend > 0) ? ini/isend : 0;
+    fprintf(stderr,"[R.%d SSE Reg.F ] Nsend %d  Ngrav %d  <Ni> %d   send(s) %f grav(s) %f  Perf.(Gflops) %f\n",irank,isend,icall,avg_ni,time_send,time_grav,60.e-9*numInter/time_grav);
   }
   time_send = time_grav = 0.0;
   numInter = 0;
