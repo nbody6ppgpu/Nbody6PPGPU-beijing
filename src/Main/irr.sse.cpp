@@ -285,7 +285,9 @@ struct Force{
 
 		const v4sf r2 = dx*dx  + dy*dy  + dz*dz;
 		const v4sf rv = dx*dvx + dy*dvy + dz*dvz;
-		const v4sf rinv   = rsqrt_NR(r2);
+		// Add small epsilon to avoid division by zero in rsqrt
+		const v4sf r2_safe = __builtin_ia32_maxps(r2, REP4(1.0e-30f));
+		const v4sf rinv   = rsqrt_NR(r2_safe);
 		const v4sf rinv2  = rinv * rinv;
 		const v4sf c1     = REP4(-3.0f);
 		const v4sf alpha  = c1 * rinv2 * rv;
@@ -388,7 +390,7 @@ static void irr_simd_profile(
 	const double Gflops = 60.0 * double(num_inter) * 1.e-9 / time_grav;
 	const double usec_fcall    = 1.e6 * (time_grav / num_fcall);
 	const double nnb_avr = double(num_inter) / double(num_steps);
-    const int ni_avr = num_inter / num_fcall;
+    const int ni_avr = (num_fcall > 0) ? num_inter / num_fcall : 0;
 
 	fprintf(stderr, "[R.%d SSE Irr.F ] Ncall: %llu <NI>: %d <NB>: %f grav: %f s, %f Gflops, %f usec\n",
             rank, num_fcall, ni_avr, nnb_avr, time_grav, Gflops, usec_fcall);

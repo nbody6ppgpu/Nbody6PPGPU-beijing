@@ -107,7 +107,9 @@ void gpupot(
 			v4sf dz = (zjH - ziH) + (zjL - ziL);
 			v4sf r2 = dx*dx + dy*dy + dz*dz;
 			v4sf mask = (v4sf)__builtin_ia32_cmpltps((v4sf){0,0,0,0}, r2);
-			v4sf rinv = v4sf_rsqrt(r2);
+			// Add small epsilon to avoid division by zero in rsqrt
+			v4sf r2_safe = __builtin_ia32_maxps(r2, (v4sf){1.0e-30f, 1.0e-30f, 1.0e-30f, 1.0e-30f});
+			v4sf rinv = v4sf_rsqrt(r2_safe);
 			rinv = __builtin_ia32_andps(rinv, mask);
 			rinv *= mj;
 

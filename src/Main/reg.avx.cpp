@@ -288,7 +288,9 @@ void GPUNB_regf(
 			//}
 			}
 
-			v8sf rinv1 = v8sf_rsqrt(r2);
+			// Add small epsilon to avoid division by zero in rsqrt
+			const v8sf r2_safe = __builtin_ia32_maxps256(r2, (v8sf)REP8(1.0e-30f));
+			v8sf rinv1 = v8sf_rsqrt(r2_safe);
 			rinv1 = __builtin_ia32_andnps256(mask, rinv1);
 			const v8sf rinv2 = rinv1 * rinv1;
 			rinv1 *= mj;
@@ -340,7 +342,8 @@ void GPUNB_profile(int irank) {
     // send: j particle sending time;
     // grav: force calculation time;
     // Perf: performance for gpu regular calculation
-    fprintf(stderr,"[R.%d AVX Reg.F ] Nsend %d  Ngrav %d  <Ni> %d   send(s) %f grav(s) %f  Perf.(Gflops) %f\n",irank,isend,icall,ini/isend,time_send,time_grav,60.e-9*numInter/time_grav);
+    int avg_ni = (isend > 0) ? ini/isend : 0;
+    fprintf(stderr,"[R.%d AVX Reg.F ] Nsend %d  Ngrav %d  <Ni> %d   send(s) %f grav(s) %f  Perf.(Gflops) %f\n",irank,isend,icall,avg_ni,time_send,time_grav,60.e-9*numInter/time_grav);
   }
   time_send = time_grav = 0.0;
   numInter = 0;
