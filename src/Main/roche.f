@@ -41,6 +41,12 @@
       DATA FIRST /.TRUE./
       INTEGER IGR
       CHARACTER*12 WHICH
+        
+      ! new variables for event bank. 14 July 2025 | K.Wu & R.Sp
+      REAL*8 LUM_TMP(2), RCC_TMP(2), Mdot_RLOF, Lx, get_Lx
+      DATA LUM_TMP, RCC_TMP, Mdot_RLOF /2*0.0D0, 2*0.0D0, 0.0D0/
+      REAL*8 BMAG(NMAX)
+      data BMAG /NMAX*0.0D0/ ! temporary, before NS treatment by Robert finishes
 *
 *       Set variables with different names in common (RSp Mar23).
       K3 = XK3
@@ -73,6 +79,7 @@
           J = I2
     5 CONTINUE
 *
+      RTOL = 1.D-02
 *       Determine indices for primary & secondary star (donor & accretor).
       IF (RAD(1)/ROL(1).GE.RAD(2)/ROL(2)) THEN
           J1 = I1
@@ -94,7 +101,7 @@
       END IF
 *
 *       Exit if physical radius is smaller than Roche radius.
-      IF (RAD(1).LE.RL1) THEN
+      IF (RAD(1)*(1.D0-RTOL).LE.RL1) THEN
           TEV(I) = TIME + STEP(I)
           GO TO 200
       ELSE
@@ -139,6 +146,8 @@
              CALL star(KW,M01,M1,TM,TN,TSCLS,LUMS,GB,ZPARS)
              CALL hrdiag(M01,AGE,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
      &                   R1,LUM,KW,MC,RCC,M1CE,RCE,K2)
+             LUM_TMP(K) = LUM
+             RCC_TMP(K) = RCC
              MASSC(K) = MC
              AJ(K) = AGE
              MENV(K) = M1CE
@@ -247,16 +256,26 @@
           XOSPN2 = OSPIN(J2)/SPNFAC
           TPHYS = TTOT*TSTAR
           AGE = TPHYS - EPOCH(I)
+*
+            ! dev note: Mdot_RLOF calcs later in this file
+            ! If Mdot_RLOF from output is always zero, then may need re-calc here
+          if( (kstar(j2).GE.10 .AND. kstar(j2).LE.14).OR.
+     &            (kstar(j1).GE.10 .AND. kstar(j1).LE.14)    ) then
+                 Lx = get_Lx(kstar(j2),rad(j2),mass(2),Mdot_RLOF)
+          else
+                 Lx = 0.D0
+          end if
+*
           WHICH =' NEW ROCHE  '
-          if(rank.eq.0)
-     &        WRITE (6,8)WHICH,TTOT,NAME(J1),NAME(J2),
+          if(rank.eq.0) THEN
+              WRITE (6,8)WHICH,TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
      &         IPAIR,DTAU(IPAIR),TPHYS,AGE,BODY(J1),BODY(J2),
      &         SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
      &         R(IPAIR),ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
      &         STEP(I),LIST(1,J1),LIST(1,I),
      &         MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
-     &         RAD(1:2),ROL(1:2),SEP,RL1
+     &         RAD(1:2),ROL(1:2),SEP,RL1,Lx,Mdot_RLOF,BMAG(1:2)
   8           FORMAT (A12,'  TIME[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
      &         ' TIME,AGE[Myr] ',2E13.5,' M1,2[NB]',2E13.5,
@@ -267,8 +286,46 @@
      &         ' NB(ICM)',I5,' M0(1:2) M(1:2) MC(1:2)[*]',6E13.5,
      &         ' RI,VI[NB]=',2E13.5,
      &         ' SEP[*]',E13.5,' RAD(1:2) ROL(1:2)[*]=',4E13.5,
-     &         ' SEMI[*],RL1[*]=',2E13.5)
+     &         ' SEMI[*],RL1[*]=',2E13.5,
+     &         ' Lx Mdot_RLOF ',2E13.5,' BMAG12 ',2E13.5)
+    !         K.Wu & R.Sp | 14 July 2025
+    !         Using the same output sequence as MOCCA code detailed_outputs.f90 below
+    !         note that the meaning of some variables differs.
+    !         By comparing assignment statement in both code, found:
+    !          NBODY DMA = MOCCA DMT outside mlwind.f
+    !           inside mlwind is another thing; dmt is local var
+    !           mocca guys took same variable name which scratched my head for hours
+    !          NBODY DMR = MOCCA DMR
+    !                      MOCCA dmdt(k) = dmt(k) - dmr(k) 
+    !           same units of five variables above = return of mlwind.f
+    !          NBODY DMS = MOCCA DMS , unit = above * time
+    !          NBODY DM1 = MOCCA DM1
+    !          NBODY DM2 = MOCCA DM2
+    ! -------
+    !         MOCCA detailed_outputs.f90 excerpt here: 
+    !         write(fp, *) label, idbin, 
+    !           id1, id2, j1, j2, tphys, dtm, age, epoch(1), &
+    !           epoch(2), kstar(1), kstar(2), mass(1), mass(2), sep, ecc,&
+    !           rad(1), rad(2), lumin(1), lumin(2), massc(1), massc(2),&
+    !           radc(1), radc(2), menv(1), menv(2), renv(1), renv(2),& 
+    !           ospin(1), ospin(2), dmt(1), dmt(2), dmr(1), dmr(2), rol(1),&
+    !           rol(2),dmdt(1), dmdt(2), dm1, dm2, tb, Lx, Mdot_RLOF, Bi(1), Bi(2)
 *
+                 IF(KZ(50).EQ.1.and.rank.eq.0)
+     &           WRITE (203,61) WHICH,TTOT,NAME(J1),NAME(J2),
+     &            NAME(I),KW1,KW2,KSTAR(I),
+     &            IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &            ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
+     &            SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
+     &            STEP(I),LIST(1,J1),LIST(1,I),
+     &            MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
+     &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
+     &            RCC_TMP(1),RCC_TMP(2),MENV(1),MENV(2),RENV(1),RENV(2),
+     &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
+     &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
+     &            Mdot_RLOF,BMAG(1),BMAG(2)
+  61  FORMAT(A12,1P,E17.9,3I10,4I4,18E17.9,2I6,38E17.9)
+          END IF
               IF(rank.eq.0.and.KSTAR(I).EQ.50)THEN
                  WRITE(6,9)NAME(J1),NAME(J2),KW1,KW2
     9            FORMAT(' WARNING: TOO MUCH ROCHE  NAM K* ',2I6,2I3)
@@ -494,7 +551,7 @@
      &         RAD(1),RAD(2),ROL(1),ROL(2),SEP,RL1
  20      FORMAT (/,' NEW CE   TIME[NB]',1P,E17.10,' NM1,2,S=',
      &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
-     &         ' T[Myr] ',E13.5, ' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
+     &         ' T[Myr] ',E13.5,' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
      &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
      &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
      &         ' NB(ICM)',I5,' M0(1,2) M(1:2) MC(1:2) ',6E13.5,
@@ -644,6 +701,8 @@
 *
          DM1 = 3.0D-06*TB*(LOG(RAD(1)/ROL(1))**3)*
      &         MIN(MASS(1),5.D0)**2
+         ! relationship from MOCCA Mdot_RLOF assignment statement
+         Mdot_RLOF = DM1/TB 
          IF(KSTAR(J1).EQ.2)THEN
             MEW = (MASS(1) - MASSC(1))/MASS(1)
             DM1 = MAX(MEW,0.01D0)*DM1
@@ -1210,6 +1269,13 @@
      &                TPHYS,AJ(K),TK,MASS0(K),MASS0(3-K),
      &                MASS(K),TK,ZMET,ECC,TK,JSPIN(K),TK,CH5
 *
+            if( (kstar(j2).GE.10 .AND. kstar(j2).LE.14).OR.
+     &          (kstar(j1).GE.10 .AND. kstar(j1).LE.14)    ) then
+               Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF)
+            else
+               Lx = 0.D0
+            end if
+*
           AGE = TPHYS - EPOCH(I)
           WHICH = ' ROCHE COAL '
           if(rank.eq.0) THEN
@@ -1217,18 +1283,38 @@
      &         NAME(I),KW1,KW2,KSTAR(I),
      &         IPAIR,DTAU(IPAIR),TPHYS,BODY(J1),BODY(J2),R(IPAIR),
      &         ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
+     &         SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
      &         STEP(I),LIST(1,J1),LIST(1,I),
      &         MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
-     &         RAD(1:2),ROL(1:2),DM1,DM2,DTM,AGE,COALS,IXXX
+     &         RAD(1:2),ROL(1:2),DM1,DM2,DTM,
+     &         AGE,Lx,Mdot_RLOF,COALS,IXXX
   77        FORMAT (A12,'  TIME[NB]',1P,E17.10,' NM1,2,S=',
-     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU',E13.5,
+     &         3I10,' KW1,2,S=',3I4,' IPAIR',I9,' DTAU ',E13.5,
      &         ' T[Myr] ',E13.5,' M1,2[NB]',2E13.5,' R12[NB]',E13.5,
-     &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H',E13.5,
-     &         ' GAMMA',1P,E13.5,' STEP(ICM)',E13.5,' NPERT',I5,
+     &         ' e,a,eb[NB]=',3E13.5,' P[d]=',E13.5,' H ',E13.5,
+     &         ' GAMMA',E13.5,
+     &         ' SPIN12,OSPIN12[NB] SPNFAC JORB,OORB[*] ',7E13.5,
+     &         ' STEP(ICM)',E13.5,' NPERT',I5,
      &         ' NB(ICM)',I5,' M0(1:2) M(1:2) MC(1:2)[*]',6E13.5,
      &         ' RI,VI[NB]=',2E13.5,
      &         ' SEP[*]',1E13.5,' RAD(1:2) ROL(1:2)[*]=',4E13.5,
-     &         ' DM1/2,DT=',3E13.5,' AGE COALS, IXXX=',E13.5,L1,I3)
+     &         ' DM1/2,DT=',3E13.5,
+     &         ' AGE Lx Mdot_RLOF ',3E13.5,' COALS, IXXX=',L1,I3)
+*
+               IF(KZ(50).EQ.1.and.rank.eq.0)
+     &           WRITE (203,62) WHICH,TTOT,NAME(J1),NAME(J2),
+     &            NAME(I),KW1,KW2,KSTAR(I),
+     &            IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &            ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
+     &            SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
+     &            STEP(I),LIST(1,J1),LIST(1,I),
+     &            MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
+     &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
+     &            RCC_TMP(1),RCC_TMP(2),MENV(1),MENV(2),RENV(1),RENV(2),
+     &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
+     &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
+     &            Mdot_RLOF,bmag(1),bmag(2)
+  62  FORMAT(A12,1P,E17.9,3I10,4I4,18E17.9,2I6,38E17.9)
           END IF
 
           CALL coal(IPAIR,KW1,MASS)
@@ -1596,7 +1682,7 @@
 *
 * See whether the primary still fills its Roche lobe.
 *
-      IF(RAD(1).GT.ROL(1))THEN
+      IF(RAD(1)*(1.D0-RTOL).GT.ROL(1))THEN
 *
 * Test for a contact system.
 *
@@ -1645,7 +1731,7 @@
           ITER = ITER + 1
           IF(TEV0(I).LT.TIME) GOTO 10
           IF (ITER.EQ.1.AND.GAMMA(IPAIR).LT.GMIN) GO TO 10
-      ELSE
+      ELSE IF (RAD(1)*(1.D0+RTOL).LT.ROL(1)) THEN
           TPHYS = TTOT*TSTAR
           AGE = TPHYS - EPOCH(I)
           WHICH = ' END ROCHE  '
@@ -1666,6 +1752,26 @@
      &           ' RI,VI[NB]=',2E13.5,
      &           ' SEP[*]',1E13.5,' RAD(1:2) ROL(1:2)[*]=',4E13.5,
      &           ' DM1/2,DT=',3E13.5)
+            if( (kstar(j2).GE.10 .AND. kstar(j2).LE.14).OR.
+     &          (kstar(j1).GE.10 .AND. kstar(j1).LE.14)    ) then
+               Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF) 
+            else
+               Lx = 0.d0
+            end if
+               IF(KZ(50).EQ.1.and.rank.eq.0)
+     &           WRITE (203,63) WHICH,TTOT,NAME(J1),NAME(J2),
+     &            NAME(I),KW1,KW2,KSTAR(I),
+     &            IPAIR,DTAU(IPAIR),BODY(J1),BODY(J2),R(IPAIR),
+     &            ECC,SEMI,EB,TK,H(IPAIR),GAMMA(IPAIR),
+     &            SPIN(J1),SPIN(J2),XOSPN1,XOSPN2,SPNFAC,JORB,OORB,
+     &            STEP(I),LIST(1,J1),LIST(1,I),
+     &            MASS0(1:2),MASS(1:2),MASSC(1:2),RI,VI,R(IPAIR)*SU,
+     &            RAD(1),RAD(2),LUM_TMP(1),LUM_TMP(2),MASSC(1),MASSC(2),
+     &            RCC_TMP(1),RCC_TMP(2),MENV(1),MENV(2),RENV(1),RENV(2),
+     &            OSPIN(1),OSPIN(2),DMA(1),DMA(2),DMR(1),DMR(2),ROL(1),
+     &            ROL(2),DMA(1)-DMR(1),DMA(2)-DMR(2),DM1,DM2,TB,Lx,
+     &            Mdot_RLOF,bmag(1),bmag(2)
+  63  FORMAT(A12,1P,E17.9,3I10,4I4,18E17.9,2I6,38E17.9)
           END IF
 *       Check optional diagnostics for degenerate objects.
           IF(MAX(KSTAR(J1),KSTAR(J2)).GE.10)THEN
