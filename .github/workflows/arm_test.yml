@@ -1,0 +1,64 @@
+name: ARM64 simulation test
+
+on:
+  push:
+    branches: [ stable, dev ]
+  pull_request:
+    branches: [ stable, dev ]
+
+jobs:
+  arm64_qemu_1k:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up QEMU for ARM64 emulation
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: linux/arm64
+
+    - name: Build and test on ARM64
+      run: |
+        docker run --rm --platform linux/arm64 \
+          -v ${{ github.workspace }}:/workspace \
+          -w /workspace \
+          arm64v8/ubuntu:22.04 \
+          bash -c '
+            set -e
+            
+            echo "=== Installing dependencies ==="
+            apt-get update
+            apt-get install -y gfortran gcc g++ openmpi-bin openmpi-common libopenmpi-dev make
+
+            echo "=== Compiler versions ==="
+            gcc --version
+            g++ --version
+            gfortran --version
+            mpif77 --version
+            uname -m
+
+            echo "=== Configuring for ARM64 ==="
+            ./configure --with-par=b1m --disable-gpu
+
+            echo "=== Building ==="
+            make clean
+            make -j$(nproc)
+
+            echo "=== Preparing simulation ==="
+            mkdir -p autotest
+            cp -p ./build/nbody6++.mpi ./autotest/
+            cp -p ./examples/input_files/N1k_1Myr.inp ./autotest/
+            cd autotest
+            ls -alh
+
+            echo "=== Running 1k particle simulation ==="
+            ulimit -s unlimited
+            export OMP_NUM_THREADS=2
+            export OMP_STACKSIZE=512M
+            mpirun --allow-run-as-root --bind-to none -n 1 ./nbody6++.mpi < N1k_1Myr.inp | tee simulation.log
+
+            echo "=== Simulation completed ==="
+            grep -E "END RUN|TERMINATE" simulation.log || echo "Checking output files..."
+            ls -alh
+          '

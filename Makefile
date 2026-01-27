@@ -1,0 +1,30 @@
+#
+# Makefile for NBODY6++ June 2003 R.Sp., Changed by Long Wang on Aug 20, 2014
+#
+# Please use:
+#    make
+#    make install
+#
+
+RESULT = nbody6++.avx
+INSTALLDIR = /usr/local
+
+VPATH=./build
+
+$(RESULT) : 
+	$(MAKE) -C ./build
+
+clean: 
+	rm -f ./build/*.o ./build/*.so ./build/$(RESULT) 
+
+install: $(RESULT) $(EXTRAOBJS)
+	@[ -d $(INSTALLDIR)/bin ] || mkdir $(INSTALLDIR)/bin
+	@[ -d $(INSTALLDIR)/share ] || mkdir $(INSTALLDIR)/share
+	@[ -d $(INSTALLDIR)/share/doc ] || mkdir $(INSTALLDIR)/share/doc
+	cp ./build/$(RESULT)  $(INSTALLDIR)/bin
+	cp ./doc/nbody6++_manual.* $(INSTALLDIR)/share/doc/
+	ln -sf $(INSTALLDIR)/bin/$(RESULT) $(INSTALLDIR)/bin/nbody6++
+
+uninstall:
+	rm -f $(INSTALLDIR)/bin/$(RESULT)
+	rm -f $(INSTALLDIR)/share/doc/nbody6++_manual.*
