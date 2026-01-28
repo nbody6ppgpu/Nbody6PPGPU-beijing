@@ -1383,8 +1383,9 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-mpi           disable MPI support
   --enable-mcmodel=ARG    Use compiler option -mcmodel, avaiable arguments -->
-                          small; -->medium; -->large (default is large; medium
-                          not supported on ARM64)
+                          small; -->medium; -->large; -->no (default is large
+                          on x86, disabled on ARM64 where mcmodel is not
+                          supported)
   --enable-debug          Switch on debugging mode
   --disable-gpu           Disable GPU (CUDA) acceleration support for regular
                           force and potential
@@ -3105,10 +3106,16 @@ then :
        large) enable_mcmodel=large ;;
        medium) enable_mcmodel=medium ;;
        small) enable_mcmodel=small ;;
+       no) enable_mcmodel=no ;;
        *) as_fn_error $? "bad value ${enableval} for --enable-mcmodel" "$LINENO" 5 ;;
        esac
 else $as_nop
-  enable_mcmodel=large
+  case $host_cpu in #(
+  aarch64*|arm*) :
+    enable_mcmodel=no ;; #(
+  *) :
+    enable_mcmodel=large ;;
+esac
 fi
 
 
@@ -4036,7 +4043,9 @@ fi
 fi
 
 
-as_CACHEVAR=`printf "%s\n" "ax_cv_check_fcflags__-mcmodel=$enable_mcmodel" | $as_tr_sh`
+if test "x$enable_mcmodel" != xno
+then :
+  as_CACHEVAR=`printf "%s\n" "ax_cv_check_fcflags__-mcmodel=$enable_mcmodel" | $as_tr_sh`
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether Fortran compiler accepts -mcmodel=$enable_mcmodel" >&5
 printf %s "checking whether Fortran compiler accepts -mcmodel=$enable_mcmodel... " >&6; }
 if eval test \${$as_CACHEVAR+y}
@@ -4073,6 +4082,7 @@ as_fn_error $? "$FC compiler option -mcmodel=$enable_mcmodel is not avaiable
 See \`config.log' for more details" "$LINENO" 5; }
 fi
 
+fi
 
 
 if test -e penmp || test -e mp; then
@@ -5562,7 +5572,9 @@ fi
 fi
 
 
-as_CACHEVAR=`printf "%s\n" "ax_cv_check_cxxflags__-mcmodel=$enable_mcmodel" | $as_tr_sh`
+if test "x$enable_mcmodel" != xno
+then :
+  as_CACHEVAR=`printf "%s\n" "ax_cv_check_cxxflags__-mcmodel=$enable_mcmodel" | $as_tr_sh`
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C++ compiler accepts -mcmodel=$enable_mcmodel" >&5
 printf %s "checking whether C++ compiler accepts -mcmodel=$enable_mcmodel... " >&6; }
 if eval test \${$as_CACHEVAR+y}
@@ -5605,6 +5617,7 @@ as_fn_error $? "$CXX compiler option -mcmodel=$enable_mcmodel is not avaiable
 See \`config.log' for more details" "$LINENO" 5; }
 fi
 
+fi
 
 # SIMD part
 if test "x$OPENMP_CXXFLAGS" != x

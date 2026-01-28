@@ -42,15 +42,18 @@ AC_ARG_ENABLE([mpi],
 
 AC_ARG_ENABLE([mcmodel],
      [AS_HELP_STRING([--enable-mcmodel=ARG],
-         [Use compiler option -mcmodel, avaiable arguments --> small; -->medium; -->large
-          (default is large; medium not supported on ARM64)])],
+         [Use compiler option -mcmodel, avaiable arguments --> small; -->medium; -->large; -->no
+          (default is large on x86, disabled on ARM64 where mcmodel is not supported)])],
      [ case "${enableval}" in
        large) enable_mcmodel=large ;;
        medium) enable_mcmodel=medium ;;
        small) enable_mcmodel=small ;;
+       no) enable_mcmodel=no ;;
        *) AC_MSG_ERROR(bad value ${enableval} for --enable-mcmodel) ;;
        esac],
-     [enable_mcmodel=large])
+     [AS_CASE([$host_cpu],
+       [aarch64*|arm*], [enable_mcmodel=no],
+       [enable_mcmodel=large])])
 
 AC_ARG_ENABLE([debug],
      [AS_HELP_STRING([--enable-debug],
@@ -133,10 +136,11 @@ AX_CHECK_COMPILE_FLAG([-fPIC],
           [compiler option -fPIC/-fpic not avaiable, please use GNU or Intel Fortran compiler])]
          )])
 
-AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
-   [FCFLAGS=$FCFLAGS" -mcmodel="$enable_mcmodel],
-   [AC_MSG_FAILURE(
-       [$FC compiler option -mcmodel=$enable_mcmodel is not avaiable])])
+AS_IF([test "x$enable_mcmodel" != xno],
+   [AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
+      [FCFLAGS=$FCFLAGS" -mcmodel="$enable_mcmodel],
+      [AC_MSG_FAILURE(
+          [$FC compiler option -mcmodel=$enable_mcmodel is not avaiable])])])
 
 
 AC_OPENMP
@@ -193,10 +197,11 @@ AX_CHECK_COMPILE_FLAG([-fPIC],
           [compiler option -fPIC/-fpic not avaiable, please use GNU or Intel C++ compiler])]
          )])
 
-AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
-   [CXXFLAGS=$CXXFLAGS" -mcmodel="$enable_mcmodel],
-   [AC_MSG_FAILURE(
-       [$CXX compiler option -mcmodel=$enable_mcmodel is not avaiable])])
+AS_IF([test "x$enable_mcmodel" != xno],
+   [AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
+      [CXXFLAGS=$CXXFLAGS" -mcmodel="$enable_mcmodel],
+      [AC_MSG_FAILURE(
+          [$CXX compiler option -mcmodel=$enable_mcmodel is not avaiable])])])
 
 # SIMD part
 AS_IF([test "x$OPENMP_CXXFLAGS" != x],
