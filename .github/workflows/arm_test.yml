@@ -12,6 +12,7 @@ permissions:
 jobs:
   arm64_qemu_1k:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
     - uses: actions/checkout@v3
@@ -28,7 +29,7 @@ jobs:
           -w /workspace \
           arm64v8/ubuntu:latest \
           bash -c '
-            set -e
+            set -euo pipefail
             
             echo "=== Installing dependencies ==="
             apt-get update
@@ -70,3 +71,17 @@ jobs:
             grep -Eq "END RUN|TERMINATE" simulation.log || { echo "Simulation did not finish correctly"; exit 1; }
             ls -alh
           '
+    - name: Upload autotest artifacts on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: arm64-autotest-debug
+        path: |
+          autotest/simulation.log
+
+    - name: Start tmate on failure
+      if: failure()
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: true
+        
