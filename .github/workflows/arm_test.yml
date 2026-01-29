@@ -26,7 +26,7 @@ jobs:
         docker run --rm --platform linux/arm64 \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
-          arm64v8/ubuntu:22.04 \
+          arm64v8/ubuntu:latest \
           bash -c '
             set -e
             
