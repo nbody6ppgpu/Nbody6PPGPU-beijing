@@ -50,10 +50,11 @@ jobs:
 
             echo "=== Preparing simulation ==="
             mkdir -p autotest
-            cp -p ./build/nbody6++.mpi ./autotest/
-            cp -p ./examples/input_files/N1k_1Myr.inp ./autotest/
-            cd autotest
-            ls -alh
+            cp -p ./examples/input_files/N100k.inp ./autotest/;
+            cp -p ./examples/input_files/dat.10 ./autotest/;
+            cd autotest;
+            sed -r 's/\bN=[0-9]*/N=15000/g' N100k.inp | sed -r 's/\bTCRIT=[0-9]*/TCRIT=1/g' > N10k_1nbtime.inp ;
+            pwd; ls -alh;
 
             echo "=== Running 1k particle simulation ==="
             ulimit -s unlimited
