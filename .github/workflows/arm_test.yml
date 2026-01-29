@@ -50,20 +50,23 @@ jobs:
 
             echo "=== Preparing simulation ==="
             mkdir -p autotest
-            cp -p ./examples/input_files/N100k.inp ./autotest/;
-            cp -p ./examples/input_files/dat.10 ./autotest/;
-            cd autotest;
-            sed -r 's/\bN=[0-9]*/N=15000/g' N100k.inp | sed -r 's/\bTCRIT=[0-9]*/TCRIT=1/g' > N10k_1nbtime.inp ;
-            pwd; ls -alh;
+            cp -p ./build/nbody6++.* ./autotest/
+            cp -p ./examples/input_files/N100k.inp ./autotest/
+            cp -p ./examples/input_files/dat.10 ./autotest/
+            cd autotest
+            sed -r 's/\bN=[0-9]*/N=15000/g' N100k.inp | sed -r 's/\bTCRIT=[0-9]*/TCRIT=1/g' > N10k_1nbtime.inp
+            pwd
+            ls -alh
 
             echo "=== Running 1k particle simulation ==="
             ulimit -s unlimited
             export OMP_NUM_THREADS=2
             export OMP_STACKSIZE=512M
+            export execname=`ls nbody6++*`
             # --allow-run-as-root is safe in containerized CI environment
-            mpirun --allow-run-as-root --bind-to none -n 1 ./nbody6++.mpi < N1k_1Myr.inp | tee simulation.log
+            mpirun --allow-run-as-root --bind-to none -n 1 $execname < N10k_1nbtime.inp | tee simulation.log
 
             echo "=== Simulation completed ==="
-            grep -E "END RUN|TERMINATE" simulation.log || echo "Checking output files..."
+            grep -Eq "END RUN|TERMINATE" simulation.log || { echo "Simulation did not finish correctly"; exit 1; }
             ls -alh
           '
