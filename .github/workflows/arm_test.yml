@@ -12,7 +12,7 @@ permissions:
 jobs:
   arm64_qemu_1k:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
     - uses: actions/checkout@v3
