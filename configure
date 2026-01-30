@@ -5771,13 +5771,17 @@ then :
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SIMDe support" >&5
 printf %s "checking for SIMDe support... " >&6; }
     # Check if simde path was provided
-    if test "x$with_simde" != xyes
+    if test "x$with_simde" != xyes && test "x$with_simde" != x
 then :
   SIMDE_CXXFLAGS="-I$with_simde"
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: using path: $with_simde" >&5
 printf "%s\n" "using path: $with_simde" >&6; }
 else case e in #(
   e) SIMDE_CXXFLAGS=""
+        if test "x$with_simde" = x
+then :
+  with_simde=yes
+fi
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: using system include paths" >&5
 printf "%s\n" "using system include paths" >&6; } ;;
 esac
@@ -7590,37 +7594,37 @@ then :
   NMAX=4096
        KMAX=1024
        LMAX=400
-       MMAX=256
+       MMAX=128
 elif test "x$par_size" == xb4k
 then :
   NMAX=6144
        KMAX=2048
        LMAX=400
-       MMAX=512
+       MMAX=256
 elif test "x$par_size" == x2k
 then :
   NMAX=2048
        KMAX=512
        LMAX=400
-       MMAX=256
+       MMAX=128
 elif test "x$par_size" == xb2k
 then :
   NMAX=3072
        KMAX=1024
        LMAX=400
-       MMAX=512
+       MMAX=256
 elif test "x$par_size" == x1k
 then :
   NMAX=1024
        KMAX=256
        LMAX=400
-       MMAX=256
+       MMAX=128
 elif test "x$par_size" == xb1k
 then :
   NMAX=1536
        KMAX=512
        LMAX=400
-       MMAX=512
+       MMAX=256
 elif test "x$par_size" == xcustom
 then :
   flag_input_par=yes
@@ -7725,8 +7729,15 @@ printf "%s\n" "$as_me:      CUDA version:   $CUDA_VERSION" >&6;}
 printf "%s\n" "$as_me:      Using SIMD:     $enable_simd" >&6;}
 if test "x$with_simde" != xno
 then :
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Using SIMDe:    yes (path: $with_simde)" >&5
-printf "%s\n" "$as_me:      Using SIMDe:    yes (path: $with_simde)" >&6;}
+  if test "x$with_simde" = xyes
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Using SIMDe:    yes (system path)" >&5
+printf "%s\n" "$as_me:      Using SIMDe:    yes (system path)" >&6;}
+else case e in #(
+  e) { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Using SIMDe:    yes (path: $with_simde)" >&5
+printf "%s\n" "$as_me:      Using SIMDe:    yes (path: $with_simde)" >&6;} ;;
+esac
+fi
 else case e in #(
   e) { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Using SIMDe:    no" >&5
 printf "%s\n" "$as_me:      Using SIMDe:    no" >&6;} ;;

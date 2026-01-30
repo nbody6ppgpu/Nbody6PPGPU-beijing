@@ -215,10 +215,11 @@ AS_IF([test "x$enable_mcmodel" != xno],
 AS_IF([test "x$with_simde" != xno],
    [AC_MSG_CHECKING([for SIMDe support])
     # Check if simde path was provided
-    AS_IF([test "x$with_simde" != xyes],
+    AS_IF([test "x$with_simde" != xyes && test "x$with_simde" != x],
        [SIMDE_CXXFLAGS="-I$with_simde"
         AC_MSG_RESULT([using path: $with_simde])],
        [SIMDE_CXXFLAGS=""
+        AS_IF([test "x$with_simde" = x], [with_simde=yes])
         AC_MSG_RESULT([using system include paths])])
     
     # Add SIMDe flags
@@ -624,22 +625,22 @@ AS_IF([test "x$par_size" == x128m],
       [test "x$par_size" == x2k],
       [NMAX=2048
        KMAX=512
-       LMAX=200
+       LMAX=400
        MMAX=128],
       [test "x$par_size" == xb2k],
       [NMAX=3072
        KMAX=1024
-       LMAX=200
+       LMAX=400
        MMAX=256],
       [test "x$par_size" == x1k],
       [NMAX=1024
        KMAX=256
-       LMAX=100
+       LMAX=400
        MMAX=128],
       [test "x$par_size" == xb1k],
       [NMAX=1536
        KMAX=512
-       LMAX=100
+       LMAX=400
        MMAX=256],
       [test "x$par_size" == xcustom],
       [flag_input_par=yes],
@@ -704,7 +705,9 @@ AC_MSG_NOTICE([     Using GPU:      $enable_gpu])
 AC_MSG_NOTICE([     CUDA version:   $CUDA_VERSION])
 AC_MSG_NOTICE([     Using SIMD:     $enable_simd])
 AS_IF([test "x$with_simde" != xno],
-   [AC_MSG_NOTICE([     Using SIMDe:    yes (path: $with_simde)])],
+   [AS_IF([test "x$with_simde" = xyes],
+      [AC_MSG_NOTICE([     Using SIMDe:    yes (system path)])],
+      [AC_MSG_NOTICE([     Using SIMDe:    yes (path: $with_simde)])])],
    [AC_MSG_NOTICE([     Using SIMDe:    no])])
 AS_IF([test "x$enable_simd" != xno],
   [AS_IF([test "$SIMD_CHECK" == -1],
