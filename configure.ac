@@ -457,11 +457,51 @@ AS_IF([test "x$enable_debug" != xno],
 # params.h
 AC_ARG_WITH([par], 
      [AS_HELP_STRING([--with-par=size],
-         [Size of basic parameters (NMAX, KMAX, LMAX, MMAX) in params.h. Avaiable values: 1m, 512k, 256k, 128k, 64k, 32k, 16k, 8k, custom. The value of this size is NMAX, with prefix 'b' the K.S. binary size KMAX is half of NMAX and NMAX is set to 1.5*NMAX. LMAX is 600 above 64k, 500 above 16k. MMAX is 1024 above 64k, 512 above 16k. MMAX is doubled with prefix 'b'. Defaultsize is b16k])],
+         [Size of basic parameters (NMAX, KMAX, LMAX, MMAX) in params.h. Available values: 128m, 64m, 32m, 16m, 1m, 512k, 256k, 128k, 64k, 32k, 16k, 8k, 4k, 2k, 1k, custom. The value of this size is NMAX, with prefix 'b' the K.S. binary size KMAX is half of NMAX and NMAX is set to 1.5*NMAX. LMAX is 600 above 64k, 500 above 16k. MMAX is 1024 above 64k, 512 above 16k. MMAX is doubled with prefix 'b'. Defaultsize is b16k])],
      [par_size=$withval],
      [par_size=b16k])
 
-AS_IF([test "x$par_size" == x10m],
+AS_IF([test "x$par_size" == x128m],
+      [NMAX=134217728
+       KMAX=131072
+       LMAX=600
+       MMAX=1024],
+      [test "x$par_size" == xb128m],
+      [NMAX=201326592
+       KMAX=67108864
+       LMAX=600
+       MMAX=2048],
+      [test "x$par_size" == x64m],
+      [NMAX=67108864
+       KMAX=131072
+       LMAX=600
+       MMAX=1024],
+      [test "x$par_size" == xb64m],
+      [NMAX=100663296
+       KMAX=33554432
+       LMAX=600
+       MMAX=2048],
+      [test "x$par_size" == x32m],
+      [NMAX=33554432
+       KMAX=131072
+       LMAX=600
+       MMAX=1024],
+      [test "x$par_size" == xb32m],
+      [NMAX=50331648
+       KMAX=16777216
+       LMAX=600
+       MMAX=2048],
+      [test "x$par_size" == x16m],
+      [NMAX=16777216
+       KMAX=131072
+       LMAX=600
+       MMAX=1024],
+      [test "x$par_size" == xb16m],
+      [NMAX=25165824
+       KMAX=8388608
+       LMAX=600
+       MMAX=2048],
+      [test "x$par_size" == x10m],
       [NMAX=11048576
        KMAX=131072
        LMAX=600
@@ -571,6 +611,36 @@ AS_IF([test "x$par_size" == x10m],
        KMAX=4096
        LMAX=400
        MMAX=512],
+      [test "x$par_size" == x4k],
+      [NMAX=4096
+       KMAX=1024
+       LMAX=400
+       MMAX=128],
+      [test "x$par_size" == xb4k],
+      [NMAX=6144
+       KMAX=2048
+       LMAX=400
+       MMAX=256],
+      [test "x$par_size" == x2k],
+      [NMAX=2048
+       KMAX=512
+       LMAX=200
+       MMAX=128],
+      [test "x$par_size" == xb2k],
+      [NMAX=3072
+       KMAX=1024
+       LMAX=200
+       MMAX=256],
+      [test "x$par_size" == x1k],
+      [NMAX=1024
+       KMAX=256
+       LMAX=100
+       MMAX=128],
+      [test "x$par_size" == xb1k],
+      [NMAX=1536
+       KMAX=512
+       LMAX=100
+       MMAX=256],
       [test "x$par_size" == xcustom],
       [flag_input_par=yes],
       [NMAX=24576
