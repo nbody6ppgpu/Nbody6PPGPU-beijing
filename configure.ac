@@ -69,7 +69,7 @@ AC_ARG_ENABLE([gpu],
 
 AC_ARG_ENABLE([simd],
      [AS_HELP_STRING([--enable-simd=ARG],
-         [SIMD instruction set acceleration for force and potential, avaiable arguments --> sse: Streaming SIMD Extensions (also works on ARM with SIMDe); --> avx: Advanced Vector Extensions (x86 only); --> no: switch off SIMD; (default is autodetecting on x86, disabled on ARM64 unless --with-simde is specified)])],
+         [SIMD instruction set acceleration for force and potential, available arguments --> sse: Streaming SIMD Extensions (also works on ARM with SIMDe); --> avx: Advanced Vector Extensions (x86 only); --> no: switch off SIMD; (default is autodetecting on x86, disabled on ARM64 unless --with-simde is specified)])],
      [ case "${enableval}" in
        avx) enable_simd=avx ;;
        sse) enable_simd=sse ;;
@@ -228,17 +228,16 @@ AS_IF([test "x$with_simde" != xno],
     AS_CASE([$host_cpu],
        [aarch64*|arm*], [
           # On ARM, if SIMD is not explicitly set or is 'test', default to SSE with SIMDe
-          AS_IF([test "x$enable_simd" == xno -o "x$enable_simd" == xtest],
+          AS_IF([test "x$enable_simd" = xno -o "x$enable_simd" = xtest],
              [enable_simd=sse])
-          AS_IF([test "x$enable_simd" == xavx],
+          AS_IF([test "x$enable_simd" = xavx],
              [AC_MSG_WARN([AVX is not supported on ARM, falling back to SSE with SIMDe])
               enable_simd=sse])
-          RESULT=$RESULT".sse"
           SIMD_CHECK=1])
    ])
 
 AS_IF([test "x$OPENMP_CXXFLAGS" != x],
-   [AS_IF([test "x$enable_simd" == xtest],
+   [AS_IF([test "x$enable_simd" = xtest],
        [c_simd_check="avx"]
        [AC_CHECK_FILE(["/proc/cpuinfo"],
          [AC_PROG_GREP
@@ -277,8 +276,9 @@ AS_IF([test "x$OPENMP_CXXFLAGS" != x],
                 AS_IF([test "x$with_simde" != xno],
                    [AS_CASE([$host_cpu],
                       [aarch64*|arm*], [
-                         # SIMDe on ARM - don't need -msse flag
+                         # SIMDe on ARM - don't need -msse flag, RESULT set here
                          AC_MSG_NOTICE([Using SIMDe for SIMD support on ARM])
+                         RESULT=$RESULT".sse"
                          SIMD_CHECK=1],
                       [# SIMDe on x86 - still check for SSE support
                        AC_CHECK_FILE(["/proc/cpuinfo"],
@@ -296,7 +296,7 @@ AS_IF([test "x$OPENMP_CXXFLAGS" != x],
                            RESULT=$RESULT"."$enable_simd
                           ],
                           [AC_MSG_FAILURE(
-                             [$CXX compiler option -m$enable_simd is not avaiable])])])],
+                             [$CXX compiler option -m$enable_simd is not available])])])],
                    [# No SIMDe - regular x86 SIMD
                     AC_CHECK_FILE(["/proc/cpuinfo"],
                        [AC_PROG_GREP
@@ -313,8 +313,8 @@ AS_IF([test "x$OPENMP_CXXFLAGS" != x],
                         RESULT=$RESULT"."$enable_simd
                        ],
                        [AC_MSG_FAILURE(
-                          [$CXX compiler option -m$enable_simd is not avaiable])])])])])],
-     [AS_IF([test "x$with_simde" == xno],
+                          [$CXX compiler option -m$enable_simd is not available])])])])])],
+     [AS_IF([test "x$with_simde" = xno],
         [enable_simd=no
          SIMD_CHECK=-2])])
 

@@ -23,9 +23,9 @@
 typedef __m128d v2df;
 typedef __m128  v4sf;
 typedef __m128i v4si;
-/* AVX types - not available in SSE-only SIMDe mode */
-typedef __m128d v4df;  /* Placeholder for compatibility */
-typedef __m128  v8sf;  /* Placeholder for compatibility */
+/* Note: AVX types (v4df, v8sf) are not defined in SIMDe SSE mode.
+   AVX is not supported on ARM with SIMDe - only SSE mode is available.
+   Code using AVX types will need to be compiled separately for x86. */
 
 /* SSE operator overloads */
 inline v2df operator + (const v2df& a, const v2df& b) { return _mm_add_pd(a,b); }
