@@ -5,7 +5,7 @@ on:
     paths:
       - "ci/Dockerfile.deps"
   schedule:
-    - cron: "0 3 * * 1"  # 每周一 03:00 UTC 重新构建，吃安全更新
+    - cron: "0 3 * * 1"
 
 permissions:
   contents: read
