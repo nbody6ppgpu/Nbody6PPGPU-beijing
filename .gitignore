@@ -68,3 +68,12 @@ dkms.conf
 examples/example_1k/*
 examples/.ipynb_checkpoints
 !examples/example_1k/1k.inp
+
+# Autoconf/Automake generated files
+autom4te.cache/
+config.log
+config.status
+configure~
+Makefile
+build/Makefile
+include/params.h

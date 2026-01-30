@@ -1,0 +1,87 @@
+name: ARM64 simulation test
+
+on:
+  push:
+    branches: [ stable, dev ]
+  pull_request:
+    branches: [ stable, dev ]
+
+permissions:
+  contents: read
+
+jobs:
+  arm64_qemu_1k:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up QEMU for ARM64 emulation
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: linux/arm64
+
+    - name: Build and test on ARM64
+      run: |
+        docker run --rm --platform linux/arm64 \
+          -v ${{ github.workspace }}:/workspace \
+          -w /workspace \
+          arm64v8/ubuntu:latest \
+          bash -c '
+            set -euo pipefail
+            
+            echo "=== Installing dependencies ==="
+            apt-get update
+            apt-get install -y gfortran gcc g++ openmpi-bin openmpi-common libopenmpi-dev make
+
+            echo "=== Compiler versions ==="
+            gcc --version
+            g++ --version
+            gfortran --version
+            mpif77 --version
+            uname -m
+
+            echo "=== Configuring for ARM64 ==="
+            ./configure --with-par=b1m --disable-gpu
+
+            echo "=== Building ==="
+            make clean
+            make -j$(nproc)
+
+            echo "=== Preparing simulation ==="
+            mkdir -p autotest
+            cp -p ./build/nbody6++.* ./autotest/
+            cp -p ./examples/input_files/N100k.inp ./autotest/
+            cp -p ./examples/input_files/dat.10 ./autotest/
+            cd autotest
+            sed -r 's/\bN=[0-9]*/N=15000/g' N100k.inp | sed -r 's/\bTCRIT=[0-9]*/TCRIT=1/g' > N10k_1nbtime.inp
+            pwd
+            ls -alh
+
+            echo "=== Running 1k particle simulation ==="
+            ulimit -s unlimited
+            export OMP_NUM_THREADS=2
+            export OMP_STACKSIZE=512M
+            export execname=`ls nbody6++*`
+            # --allow-run-as-root is safe in containerized CI environment
+            mpirun --allow-run-as-root --bind-to none -n 1 $execname < N10k_1nbtime.inp | tee simulation.log
+
+            echo "=== Simulation completed ==="
+            grep -Eq "END RUN|TERMINATE" simulation.log || { echo "Simulation did not finish correctly"; exit 1; }
+            ls -alh
+          '
+    - name: Upload autotest artifacts on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: arm64-autotest-debug
+        path: |
+          autotest/simulation.log
+
+    - name: Start tmate on failure
+      if: failure()
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: true
+        

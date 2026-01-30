@@ -5,6 +5,10 @@ AC_PREREQ([2.69])
 
 AC_INIT([Nbody6++], [1.0], [longwang.astro@gmail.com])
 #AC_CONFIG_MACRO_DIR([./macro])
+
+# Detect host architecture for platform-specific settings
+AC_CANONICAL_HOST
+
 m4_include([macro/ax_check_compile_flag.m4])
 m4_include([macro/ax_fc_check_bounds.m4])
 #m4_include([macro/ax_check_cuda.m4])
@@ -38,15 +42,18 @@ AC_ARG_ENABLE([mpi],
 
 AC_ARG_ENABLE([mcmodel],
      [AS_HELP_STRING([--enable-mcmodel=ARG],
-         [Use compiler option -mcmodel, avaiable arguments --> small; -->medium; -->large
-          (defalut is medium)])],
+         [Use compiler option -mcmodel, avaiable arguments --> small; -->medium; -->large; -->no
+          (default is large on x86, disabled on ARM64 where mcmodel is not supported)])],
      [ case "${enableval}" in
        large) enable_mcmodel=large ;;
        medium) enable_mcmodel=medium ;;
        small) enable_mcmodel=small ;;
+       no) enable_mcmodel=no ;;
        *) AC_MSG_ERROR(bad value ${enableval} for --enable-mcmodel) ;;
        esac],
-     [enable_mcmodel=medium])
+     [AS_CASE([$host_cpu],
+       [aarch64*|arm*], [enable_mcmodel=no],
+       [enable_mcmodel=large])])
 
 AC_ARG_ENABLE([debug],
      [AS_HELP_STRING([--enable-debug],
@@ -62,14 +69,16 @@ AC_ARG_ENABLE([gpu],
 
 AC_ARG_ENABLE([simd],
      [AS_HELP_STRING([--enable-simd=ARG],
-         [Intel CPU SIMD instruction set acceleration for force and potential, avaiable arguments --> sse: Streaming SIMD Extensions; --> avx: Advanced Vector Extensions; --> no: switch off SIMD; (default is autodetecting)])],
+         [Intel CPU SIMD instruction set acceleration for force and potential, avaiable arguments --> sse: Streaming SIMD Extensions; --> avx: Advanced Vector Extensions; --> no: switch off SIMD; (default is autodetecting on x86, disabled on ARM64)])],
      [ case "${enableval}" in
        avx) enable_simd=avx ;;
        sse) enable_simd=sse ;;
        no) enable_simd=no  ;;
        *) AC_MSG_ERROR(bad value ${enableval} for --enable-simd) ;;
        esac],
-     [enable_simd=test])
+     [AS_CASE([$host_cpu],
+       [aarch64*|arm*], [enable_simd=no],
+       [enable_simd=test])])
 
 AC_ARG_ENABLE([hdf5],
      [AS_HELP_STRING([--enable-hdf5],
@@ -127,10 +136,11 @@ AX_CHECK_COMPILE_FLAG([-fPIC],
           [compiler option -fPIC/-fpic not avaiable, please use GNU or Intel Fortran compiler])]
          )])
 
-AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
-   [FCFLAGS=$FCFLAGS" -mcmodel="$enable_mcmodel],
-   [AC_MSG_FAILURE(
-       [$FC compiler option -mcmodel=$enable_mcmodel is not avaiable])])
+AS_IF([test "x$enable_mcmodel" != xno],
+   [AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
+      [FCFLAGS=$FCFLAGS" -mcmodel="$enable_mcmodel],
+      [AC_MSG_FAILURE(
+          [$FC compiler option -mcmodel=$enable_mcmodel is not avaiable])])])
 
 
 AC_OPENMP
@@ -187,10 +197,11 @@ AX_CHECK_COMPILE_FLAG([-fPIC],
           [compiler option -fPIC/-fpic not avaiable, please use GNU or Intel C++ compiler])]
          )])
 
-AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
-   [CXXFLAGS=$CXXFLAGS" -mcmodel="$enable_mcmodel],
-   [AC_MSG_FAILURE(
-       [$CXX compiler option -mcmodel=$enable_mcmodel is not avaiable])])
+AS_IF([test "x$enable_mcmodel" != xno],
+   [AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
+      [CXXFLAGS=$CXXFLAGS" -mcmodel="$enable_mcmodel],
+      [AC_MSG_FAILURE(
+          [$CXX compiler option -mcmodel=$enable_mcmodel is not avaiable])])])
 
 # SIMD part
 AS_IF([test "x$OPENMP_CXXFLAGS" != x],
