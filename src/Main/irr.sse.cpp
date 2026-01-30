@@ -1,4 +1,4 @@
-#define __USE_GNU
+/* SSE version of irregular force calculation */
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -7,6 +7,15 @@
 #include <omp.h>
 #include "vector3.h"
 #include "simd_define.h"
+
+/* Include SSE intrinsics if using SIMDe or native x86 */
+#ifdef NBODY_USE_SIMDE
+/* SIMDe headers already included via simd_define.h */
+#elif !defined(__USE_INTEL)
+#include <xmmintrin.h>  /* SSE */
+#include <emmintrin.h>  /* SSE2 */
+#include <pmmintrin.h>  /* SSE3 */
+#endif
 
 #define NNBMAX 600
 
@@ -32,9 +41,9 @@ static double get_wtime(){
 //#define REP4(x) {x,x,x,x}
 
 static inline v4sf rsqrt_NR(const v4sf x){
-	const v4sf y = __builtin_ia32_rsqrtps(x);
-	const v4sf c1 = REP4(-0.5f);
-	const v4sf c2 = REP4(-3.0f);
+	const v4sf y = _mm_rsqrt_ps(x);
+	const v4sf c1 = _mm_set1_ps(-0.5f);
+	const v4sf c2 = _mm_set1_ps(-3.0f);
 	return (c1 * y) * (x*y*y + c2);
 }
 
@@ -47,23 +56,23 @@ struct Particle{
 	v2df time; // 6 xmm words;
 
 	void make_pos(const double *x, const double *m){
-		v2df xy = {x[0], x[1]};
-		v2df zw = {x[2], m[0]};
-		v4sf xyH = __builtin_ia32_cvtpd2ps(xy);
-		v4sf xyL = __builtin_ia32_cvtpd2ps(xy - __builtin_ia32_cvtps2pd(xyH));
-		v4sf zwH = __builtin_ia32_cvtpd2ps(zw);
-		v4sf zwL = __builtin_ia32_cvtpd2ps(zw - __builtin_ia32_cvtps2pd(zwH));
+		v2df xy = _mm_set_pd(x[1], x[0]);
+		v2df zw = _mm_set_pd(m[0], x[2]);
+		v4sf xyH = _mm_cvtpd_ps(xy);
+		v4sf xyL = _mm_cvtpd_ps(xy - _mm_cvtps_pd(xyH));
+		v4sf zwH = _mm_cvtpd_ps(zw);
+		v4sf zwL = _mm_cvtpd_ps(zw - _mm_cvtps_pd(zwH));
 
-		posH = __builtin_ia32_movlhps(xyH, zwH);
-		posL = __builtin_ia32_movlhps(xyL, zwL);
+		posH = _mm_movelh_ps(xyH, zwH);
+		posL = _mm_movelh_ps(xyL, zwL);
 	}
 
     static v4sf make_v4sf(const double *x){
-      v2df xy = {x[0], x[1]};
-      v2df zw = {x[2],     };
-      return __builtin_ia32_movlhps(
-				__builtin_ia32_cvtpd2ps(xy),
-				__builtin_ia32_cvtpd2ps(zw));
+      v2df xy = _mm_set_pd(x[1], x[0]);
+      v2df zw = _mm_set_pd(0.0, x[2]);
+      return _mm_movelh_ps(
+				_mm_cvtpd_ps(xy),
+				_mm_cvtpd_ps(zw));
 	}
 
     Particle(
@@ -78,14 +87,14 @@ struct Particle{
 		vel  = make_v4sf(_vel);
 		acc2 = make_v4sf(_acc2);
 		jrk6 = make_v4sf(_jrk6);
-		time = (v2df){_time, _time};
+		time = _mm_set1_pd(_time);
 	}
 
 	Particle(int) // constructor for a dummy particle
 	{
-		posH = (v4sf){255.0f, 255.0f, 255.0f, 0.0f};
-		posL = vel = acc2 = jrk6 = (v4sf)REP4(0.0f);
-		time = (v2df){0.0, 0.0};
+		posH = _mm_set_ps(0.0f, 255.0f, 255.0f, 255.0f);
+		posL = vel = acc2 = jrk6 = _mm_set1_ps(0.0f);
+		time = _mm_set1_pd(0.0);
 	}
 
 	void prefetch(const int rw=0, const int locality=3) const {
@@ -120,12 +129,12 @@ struct Particle{
 		const v4sf xm4 = jrk6;
 		const v2df xm5 = time;
 		v4sf *dst = (v4sf *)pdst;
-		__builtin_ia32_movntps((float *)(dst + 0), xm0);
-		__builtin_ia32_movntps((float *)(dst + 1), xm1);
-		__builtin_ia32_movntps((float *)(dst + 2), xm2);
-		__builtin_ia32_movntps((float *)(dst + 3), xm3);
-		__builtin_ia32_movntps((float *)(dst + 4), xm4);
-		__builtin_ia32_movntps((float *)(dst + 5), (v4sf)xm5);
+		_mm_stream_ps((float *)(dst + 0), xm0);
+		_mm_stream_ps((float *)(dst + 1), xm1);
+		_mm_stream_ps((float *)(dst + 2), xm2);
+		_mm_stream_ps((float *)(dst + 3), xm3);
+		_mm_stream_ps((float *)(dst + 4), xm4);
+		_mm_stream_ps((float *)(dst + 5), (v4sf)xm5);
 	}
 };
 
@@ -136,10 +145,10 @@ struct Predictor{
 
     Predictor(const Particle &p, const v2df ti)
 	{
-        const v4sf dt = __builtin_ia32_cvtpd2ps(ti - v2df(p.time));
-		const v4sf s0 = __builtin_ia32_shufps(dt, dt, 0x00);
+        const v4sf dt = _mm_cvtpd_ps(ti - v2df(p.time));
+		const v4sf s0 = _mm_shuffle_ps(dt, dt, 0x00);
 		const v4sf s1 = s0 + s0;
-		const v4sf s2 = s0 * (v4sf)REP4(1.5f);
+		const v4sf s2 = s0 * _mm_set1_ps(1.5f);
 
 		this->posH = p.posH;
 		this->posL = v4sf(p.posL) + s0*(v4sf(p.vel) + s0*(v4sf(p.acc2) + s0*(v4sf(p.jrk6))));
@@ -153,31 +162,30 @@ struct Pred4{
 	v4sf vx, vy, vz;
 
 	static v4sf bcast(const float f){
-		v4sf v = {f, f, f, f};
-		return v;
+		return _mm_set1_ps(f);
 	}
 	static v4sf bcast0(const v4sf v){
-		return __builtin_ia32_shufps(v, v, 0);
+		return _mm_shuffle_ps(v, v, 0);
 	}
 	static v4sf bcast1(const v4sf v){
-		return __builtin_ia32_shufps(v, v, 0x55);
+		return _mm_shuffle_ps(v, v, 0x55);
 	}
 	static v4sf bcast2(const v4sf v){
-		return __builtin_ia32_shufps(v, v, 0xaa);
+		return _mm_shuffle_ps(v, v, 0xaa);
 	}
 	static v4sf bcast3(const v4sf v){
-		return __builtin_ia32_shufps(v, v, 0xff);
+		return _mm_shuffle_ps(v, v, 0xff);
 	}
 	static void transpose(v4sf &v0, v4sf &v1, v4sf &v2, v4sf &v3){
-		const v4sf t0 = __builtin_ia32_unpcklps(v0, v2);
-		const v4sf t1 = __builtin_ia32_unpckhps(v0, v2);
-		const v4sf t2 = __builtin_ia32_unpcklps(v1, v3);
-		const v4sf t3 = __builtin_ia32_unpckhps(v1, v3);
+		const v4sf t0 = _mm_unpacklo_ps(v0, v2);
+		const v4sf t1 = _mm_unpackhi_ps(v0, v2);
+		const v4sf t2 = _mm_unpacklo_ps(v1, v3);
+		const v4sf t3 = _mm_unpackhi_ps(v1, v3);
 
-		v0 = __builtin_ia32_unpcklps(t0, t2);
-		v1 = __builtin_ia32_unpckhps(t0, t2);
-		v2 = __builtin_ia32_unpcklps(t1, t3);
-		v3 = __builtin_ia32_unpckhps(t1, t3);
+		v0 = _mm_unpacklo_ps(t0, t2);
+		v1 = _mm_unpackhi_ps(t0, t2);
+		v2 = _mm_unpacklo_ps(t1, t3);
+		v3 = _mm_unpackhi_ps(t1, t3);
 	}
 
     Pred4(){}
@@ -224,33 +232,33 @@ struct Force{
     v4sf vnnb;
 
 	void clear(){
-		const v4sf zero = REP4(0.0f);
+		const v4sf zero = _mm_setzero_ps();
 		ax = ay = az = zero;
 		jx = jy = jz = zero;
 
         double HHUGE = 3.4E+38;
 
 //        v2df tmp = {HUGE,HUGE};
-        v2df tmp = {HHUGE,HHUGE};
+        v2df tmp = _mm_set1_pd(HHUGE);
 
         vnnb = (v4sf)tmp;
 	}
  
 	static double reduce(const v4sf v){
-        const v2df lo = __builtin_ia32_cvtps2pd(v);
-        const v2df hi =  __builtin_ia32_cvtps2pd(__builtin_ia32_movhlps(v, v));
+        const v2df lo = _mm_cvtps_pd(v);
+        const v2df hi =  _mm_cvtps_pd(_mm_movehl_ps(v, v));
 		const v2df tmpd = lo + hi;
-		const v2df sum  = __builtin_ia32_haddpd(tmpd, tmpd);
-		return __builtin_ia32_vec_ext_v2df(sum , 0);
+		const v2df sum  = _mm_hadd_pd(tmpd, tmpd);
+		return _mm_cvtsd_f64(sum);
 	}
 
     int reduce_nnb() const{
         // min( [i1|r1|i2|r2] , [i2|r2|i2|r2] )
-        v2df min = __builtin_ia32_minpd((v2df)vnnb,
-                         __builtin_ia32_unpckhpd((v2df)vnnb, (v2df)vnnb));
+        v2df min = _mm_min_pd((v2df)vnnb,
+                         _mm_unpackhi_pd((v2df)vnnb, (v2df)vnnb));
         // [i1|r1] <-> [i|]
         union{
-            v2df v;
+            __m128d v;  /* Use underlying type for union compatibility */
             int  i;
         } mem;
         mem.v = min;
@@ -286,20 +294,20 @@ struct Force{
 		const v4sf r2 = dx*dx  + dy*dy  + dz*dz;
 		const v4sf rv = dx*dvx + dy*dvy + dz*dvz;
 		// Add small epsilon to avoid division by zero in rsqrt
-		const v4sf r2_safe = __builtin_ia32_maxps(r2, (v4sf)REP4(1.0e-30f));
+		const v4sf r2_safe = _mm_max_ps(r2, _mm_set1_ps(1.0e-30f));
 		const v4sf rinv   = rsqrt_NR(r2_safe);
 		const v4sf rinv2  = rinv * rinv;
-		const v4sf c1     = REP4(-3.0f);
+		const v4sf c1     = _mm_set1_ps(-3.0f);
 		const v4sf alpha  = c1 * rinv2 * rv;
 		const v4sf mrinv3 = pj.mass * rinv * rinv2;
 
         // idx     = [i1|i2|i3|i4]; r2      = [r1|r2|r3|r4]
         // r2_idx0 = [i1|r1|i2|r2]; r2_idx1 = [i3|r3|i4|r4]
-        const v4sf r2_idx0 = __builtin_ia32_unpcklps(idx, r2);
-        const v4sf r2_idx1 = __builtin_ia32_unpckhps(idx, r2);
+        const v4sf r2_idx0 = _mm_unpacklo_ps(idx, r2);
+        const v4sf r2_idx1 = _mm_unpackhi_ps(idx, r2);
         // Find minimum distance
-        vnnb = (v4sf)__builtin_ia32_minpd((v2df)vnnb, (v2df)r2_idx0);
-        vnnb = (v4sf)__builtin_ia32_minpd((v2df)vnnb, (v2df)r2_idx1);
+        vnnb = (v4sf)_mm_min_pd((v2df)vnnb, (v2df)r2_idx0);
+        vnnb = (v4sf)_mm_min_pd((v2df)vnnb, (v2df)r2_idx1);
 
 		ax += mrinv3 * dx;
 		ay += mrinv3 * dy;
@@ -453,11 +461,9 @@ static void irr_simd_set_list(
     for(int k=0; k<nnb; k+=4){
 
     // assert((unsigned long)dst %16 == 0);
-	 	typedef int       v4si __attribute__((vector_size(16)));
-	 	typedef long long v2di __attribute__ ((__vector_size__ (16)));
-	 	const v4si one = REP4(1);
-	 	const v4si idx0 = (v4si)__builtin_ia32_loaddqu((const char *)(src+k+0));
-	 	__builtin_ia32_movntdq((v2di *)(dst+k+0), (v2di)(idx0-one));
+	 	const __m128i one = _mm_set1_epi32(1);
+	 	const __m128i idx0 = _mm_loadu_si128((const __m128i *)(src+k+0));
+	 	_mm_stream_si128((__m128i *)(dst+k+0), _mm_sub_epi32(idx0, one));
 	}
     
 	// fill dummy
@@ -516,7 +522,7 @@ static void irr_simd_firr_vec(
 {
   //  printf("NI %d TIME %f FIRST %d",ni,ti,addr[0]);
 	const double t0 = get_wtime();
-    ::vec_tnow = (v2df){ti, ti};
+    ::vec_tnow = _mm_set1_pd(ti);
 	int ninter = 0;
 
 #pragma omp parallel for reduction(+: ninter) schedule(guided)
