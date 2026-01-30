@@ -29,8 +29,6 @@ jobs:
           -w /workspace \
           ghcr.io/${{ github.repository }}:deps-arm64-latest \
           bash -c '
-            set -euo pipefail
-
             echo "=== Compiler versions ==="
             gcc --version
             g++ --version
