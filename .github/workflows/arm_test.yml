@@ -43,7 +43,7 @@ jobs:
             uname -m
 
             echo "=== Configuring for ARM64 ==="
-            ./configure --with-par=b16k --disable-gpu
+            ./configure --with-par=8k --disable-gpu
 
             echo "=== Building ==="
             make clean
@@ -52,15 +52,16 @@ jobs:
             echo "=== Preparing simulation ==="
 
             mkdir -p autotest
-            cp -p ./examples/input_files/@input-transform ./autotest/;
+            cp -p ./examples/input_files/@input-transform ./autotest/
             cp -p ./examples/example_1k/1k.inp ./autotest/
             cd autotest;
             sed -i -r "s/\bTCRIT=[0-9]*/TCRIT=2/g" 1k.inp
-            ulimit -s unlimited; 
-            export OMP_NUM_THREADS=2
+            ulimit -s unlimited
+            export OMP_NUM_THREADS=1
             ln -sf ../build/nbody6++.* ./
-            pwd; ls -alh;
-            export execname=`ls nbody6++*`; 
+            pwd
+            ls -alh
+            export execname=`ls nbody6++*`
             mpirun --allow-run-as-root --bind-to none -n 2 ./$execname < 1k.inp | tee errout
             ls -lhSr
 
