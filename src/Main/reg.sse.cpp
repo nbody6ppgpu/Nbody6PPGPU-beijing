@@ -287,7 +287,7 @@ void GPUNB_regf(
 		} // for(j)
 		union {
 			struct{
-				v4sf Ax, Ay, Az, Jx, Jy, Jz, Pot;
+				__m128 Ax, Ay, Az, Jx, Jy, Jz, Pot;  /* Use underlying type for union compatibility */
 			};
 			struct{
 				float acc[3][4], jrk[3][4], pot[4];

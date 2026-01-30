@@ -19,10 +19,44 @@
 #include <simde/x86/sse3.h>
 #include <simde/x86/sse4.1.h>
 
-/* SSE types */
-typedef __m128d v2df;
-typedef __m128  v4sf;
-typedef __m128i v4si;
+/*
+ * Wrapper structs for SIMD types to enable operator overloading.
+ * SIMDe types are unions, not classes, so we cannot overload operators directly.
+ * These wrappers provide implicit conversion to/from the underlying SIMDe types
+ * and support bitcast conversions between different SIMD types.
+ */
+struct v4sf;
+struct v2df;
+struct v4si;
+
+struct v2df {
+    __m128d v;
+    v2df() : v(_mm_setzero_pd()) {}
+    v2df(__m128d x) : v(x) {}
+    operator __m128d() const { return v; }
+    /* Bitcast from v4sf - reinterprets bits as double */
+    explicit v2df(const v4sf& x);
+};
+
+struct v4sf {
+    __m128 v;
+    v4sf() : v(_mm_setzero_ps()) {}
+    v4sf(__m128 x) : v(x) {}
+    operator __m128() const { return v; }
+    /* Bitcast from v2df - reinterprets bits as float */
+    explicit v4sf(const v2df& x) : v(_mm_castpd_ps(x.v)) {}
+};
+
+/* Deferred implementation of v2df constructor from v4sf */
+inline v2df::v2df(const v4sf& x) : v(_mm_castps_pd(x.v)) {}
+
+struct v4si {
+    __m128i v;
+    v4si() : v(_mm_setzero_si128()) {}
+    v4si(__m128i x) : v(x) {}
+    operator __m128i() const { return v; }
+};
+
 /* Note: AVX types (v4df, v8sf) are not defined in SIMDe SSE mode.
    AVX is not supported on ARM with SIMDe - only SSE mode is available.
    Code using AVX types will need to be compiled separately for x86. */
@@ -37,6 +71,14 @@ inline v4sf operator - (const v4sf& a, const v4sf& b) { return _mm_sub_ps(a,b); 
 inline v4sf operator * (const v4sf& a, const v4sf& b) { return _mm_mul_ps(a,b); }
 inline v4sf operator / (const v4sf& a, const v4sf& b) { return _mm_div_ps(a,b); }
 inline v4si operator - (const v4si& a, const v4si& b) { return _mm_sub_epi32(a,b); }
+
+/* Compound assignment operators */
+inline v4sf& operator += (v4sf& a, const v4sf& b) { a = a + b; return a; }
+inline v4sf& operator -= (v4sf& a, const v4sf& b) { a = a - b; return a; }
+inline v4sf& operator *= (v4sf& a, const v4sf& b) { a = a * b; return a; }
+inline v2df& operator += (v2df& a, const v2df& b) { a = a + b; return a; }
+inline v2df& operator -= (v2df& a, const v2df& b) { a = a - b; return a; }
+inline v2df& operator *= (v2df& a, const v2df& b) { a = a * b; return a; }
 
 /* Prefetch - use GCC builtin or platform-specific */
 #ifndef __builtin_prefetch

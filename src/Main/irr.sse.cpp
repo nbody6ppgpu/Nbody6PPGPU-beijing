@@ -162,8 +162,7 @@ struct Pred4{
 	v4sf vx, vy, vz;
 
 	static v4sf bcast(const float f){
-		v4sf v = {f, f, f, f};
-		return v;
+		return _mm_set1_ps(f);
 	}
 	static v4sf bcast0(const v4sf v){
 		return _mm_shuffle_ps(v, v, 0);
@@ -259,7 +258,7 @@ struct Force{
                          _mm_unpackhi_pd((v2df)vnnb, (v2df)vnnb));
         // [i1|r1] <-> [i|]
         union{
-            v2df v;
+            __m128d v;  /* Use underlying type for union compatibility */
             int  i;
         } mem;
         mem.v = min;

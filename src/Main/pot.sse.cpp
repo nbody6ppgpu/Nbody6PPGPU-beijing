@@ -35,7 +35,7 @@ static inline v4sf v4sf_rsqrt(v4sf x){
 /* Helper function to extract float from v4sf at specific index */
 static inline float extract_ps(v4sf v, int index){
 	/* Use union to access vector elements by index */
-	union { v4sf v; float f[4]; } u;
+	union { __m128 v; float f[4]; } u;
 	u.v = v;
 	return u.f[index];
 }
