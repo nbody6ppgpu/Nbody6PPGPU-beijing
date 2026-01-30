@@ -30,10 +30,6 @@ jobs:
           ghcr.io/${{ github.repository }}:deps-arm64-latest \
           bash -c '
             set -euo pipefail
-            
-            echo "=== Installing dependencies ==="
-            apt-get update
-            apt-get install -y gfortran gcc g++ openmpi-bin openmpi-common libopenmpi-dev make git
 
             echo "=== Compiler versions ==="
             gcc --version
