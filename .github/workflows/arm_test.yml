@@ -22,12 +22,22 @@ jobs:
       with:
         platforms: linux/arm64
 
+    - name: Run tests in prebuilt deps image
+      run: |
+          
+          docker run --rm --platform linux/arm64 \
+          -v ${{ github.workspace }}:/workspace -w /workspace \
+          ghcr.io/${{ github.repository }}:deps-arm64-latest \
+          bash -lc 'mpirun -n 1 ./your_exec < your.inp'
+
+
     - name: Build and test on ARM64
       run: |
+        docker pull ghcr.io/${{ github.repository }}:deps-arm64-latest
         docker run --rm --platform linux/arm64 \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
-          arm64v8/ubuntu:latest \
+          ghcr.io/${{ github.repository }}:deps-arm64-latest \
           bash -c '
             set -euo pipefail
             
@@ -50,26 +60,22 @@ jobs:
             make -j$(nproc)
 
             echo "=== Preparing simulation ==="
-            mkdir -p autotest
-            cp -p ./build/nbody6++.* ./autotest/
-            cp -p ./examples/input_files/N100k.inp ./autotest/
-            cp -p ./examples/input_files/dat.10 ./autotest/
-            cd autotest
-            sed -r 's/\bN=[0-9]*/N=15000/g' N100k.inp | sed -r 's/\bTCRIT=[0-9]*/TCRIT=1/g' > N10k_1nbtime.inp
-            pwd
-            ls -alh
 
-            echo "=== Running 1k particle simulation ==="
-            ulimit -s unlimited
-            export OMP_NUM_THREADS=2
-            export OMP_STACKSIZE=512M
-            export execname=`ls nbody6++*`
-            # --allow-run-as-root is safe in containerized CI environment
-            mpirun --allow-run-as-root --bind-to none -n 1 $execname < N10k_1nbtime.inp | tee simulation.log
+            mkdir -p autotest
+            cp -p ./examples/input_files/@input-transform ./autotest/;
+            cp -p ./examples/example_1k/1k.inp ./autotest/
+            cd autotest;
+            sed -ir "s/\bTCRIT=[0-9]*/TCRIT=2/g" 1k.inp
+            ulimit -s unlimited; 
+            export OMP_NUM_THREADS=1
+            ln -sf ../build/nbody6++.* ./
+            pwd; ls -alh;
+            export execname=`ls nbody6++*`; 
+            mpirun --allow-run-as-root --bind-to none -n 2 ./$execname < 1k.inp | tee errout
+            ls -lhSr
 
             echo "=== Simulation completed ==="
-            grep -Eq "END RUN|TERMINATE" simulation.log || { echo "Simulation did not finish correctly"; exit 1; }
-            ls -alh
+            grep -Eq "END RUN|TERMINATE" errout || { echo "Simulation did not finish correctly"; exit 1; }
           '
     - name: Upload autotest artifacts on failure
       if: failure()
