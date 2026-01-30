@@ -47,7 +47,7 @@ jobs:
 
             echo "=== Building ==="
             make clean
-            make -j$(nproc)
+            make -j 4
 
             echo "=== Preparing simulation ==="
 
@@ -55,9 +55,9 @@ jobs:
             cp -p ./examples/input_files/@input-transform ./autotest/;
             cp -p ./examples/example_1k/1k.inp ./autotest/
             cd autotest;
-            sed -r "s/\bTCRIT=[0-9]*/TCRIT=2/g" 1k.inp > 1k.inp
+            sed -i -r "s/\bTCRIT=[0-9]*/TCRIT=2/g" 1k.inp
             ulimit -s unlimited; 
-            export OMP_NUM_THREADS=1
+            export OMP_NUM_THREADS=2
             ln -sf ../build/nbody6++.* ./
             pwd; ls -alh;
             export execname=`ls nbody6++*`; 
