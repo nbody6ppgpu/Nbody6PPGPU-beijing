@@ -22,15 +22,6 @@ jobs:
       with:
         platforms: linux/arm64
 
-    - name: Run tests in prebuilt deps image
-      run: |
-          
-          docker run --rm --platform linux/arm64 \
-          -v ${{ github.workspace }}:/workspace -w /workspace \
-          ghcr.io/${{ github.repository }}:deps-arm64-latest \
-          bash -lc 'mpirun -n 1 ./your_exec < your.inp'
-
-
     - name: Build and test on ARM64
       run: |
         docker pull ghcr.io/${{ github.repository }}:deps-arm64-latest
