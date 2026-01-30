@@ -33,7 +33,7 @@ jobs:
             
             echo "=== Installing dependencies ==="
             apt-get update
-            apt-get install -y gfortran gcc g++ openmpi-bin openmpi-common libopenmpi-dev make
+            apt-get install -y gfortran gcc g++ openmpi-bin openmpi-common libopenmpi-dev make git
 
             echo "=== Compiler versions ==="
             gcc --version
@@ -42,8 +42,12 @@ jobs:
             mpif77 --version
             uname -m
 
-            echo "=== Configuring for ARM64 ==="
-            ./configure --with-par=8k --disable-gpu
+            echo "=== Downloading SIMDe headers ==="
+            git clone --depth 1 https://github.com/simd-everywhere/simde.git /tmp/simde
+            SIMDE_PATH=/tmp/simde
+
+            echo "=== Configuring for ARM64 with SIMDe ==="
+            ./configure --with-par=8k --disable-gpu --with-simde=$SIMDE_PATH --enable-simd=sse
 
             echo "=== Building ==="
             make clean

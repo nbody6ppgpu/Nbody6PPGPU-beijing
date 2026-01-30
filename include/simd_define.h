@@ -1,20 +1,59 @@
 #ifndef SIMD_DEFINE
 #define SIMD_DEFINE
 
-#ifndef __USE_GNU
-#define __USE_GNU
+/*
+ * SIMD type definitions and intrinsics compatibility layer.
+ * 
+ * Three paths are supported:
+ * 1. NBODY_USE_SIMDE: Use SIMDe (SIMD Everywhere) for ARM/cross-platform compatibility
+ * 2. __USE_INTEL: Use Intel intrinsics directly (requires Intel compiler or compatible)
+ * 3. __USE_GNU (default): Use GCC vector extensions (x86 GCC only)
+ */
+
+/* SIMDe path - for ARM and cross-platform compatibility */
+#ifdef NBODY_USE_SIMDE
+
+#define SIMDE_ENABLE_NATIVE_ALIASES
+#include <simde/x86/sse.h>
+#include <simde/x86/sse2.h>
+#include <simde/x86/sse3.h>
+#include <simde/x86/sse4.1.h>
+
+/* SSE types */
+typedef __m128d v2df;
+typedef __m128  v4sf;
+typedef __m128i v4si;
+/* AVX types - not available in SSE-only SIMDe mode */
+typedef __m128d v4df;  /* Placeholder for compatibility */
+typedef __m128  v8sf;  /* Placeholder for compatibility */
+
+/* SSE operator overloads */
+inline v2df operator + (const v2df& a, const v2df& b) { return _mm_add_pd(a,b); }
+inline v2df operator - (const v2df& a, const v2df& b) { return _mm_sub_pd(a,b); }
+inline v2df operator * (const v2df& a, const v2df& b) { return _mm_mul_pd(a,b); }
+inline v2df operator / (const v2df& a, const v2df& b) { return _mm_div_pd(a,b); }
+inline v4sf operator + (const v4sf& a, const v4sf& b) { return _mm_add_ps(a,b); }
+inline v4sf operator - (const v4sf& a, const v4sf& b) { return _mm_sub_ps(a,b); }
+inline v4sf operator * (const v4sf& a, const v4sf& b) { return _mm_mul_ps(a,b); }
+inline v4sf operator / (const v4sf& a, const v4sf& b) { return _mm_div_ps(a,b); }
+inline v4si operator - (const v4si& a, const v4si& b) { return _mm_sub_epi32(a,b); }
+
+/* Prefetch - use GCC builtin or platform-specific */
+#ifndef __builtin_prefetch
+#define __builtin_prefetch(p,rw,i) ((void)0)
 #endif
 
-#ifdef __USE_INTEL
-#undef __USE_GNU
+#define REP4(x) _mm_set1_ps(x)
+
+/* Intel intrinsics path */
+#elif defined(__USE_INTEL)
+
 #include "immintrin.h"
 #include "xmmintrin.h"
 #include "emmintrin.h"
 #include "pmmintrin.h"
 #include "smmintrin.h"
-#endif
 
-#ifdef __USE_INTEL
 typedef __m256d v4df;
 typedef __m256  v8sf;
 typedef __m128d v2df;
@@ -45,32 +84,38 @@ typedef __m128i v4si;
 //#define __builtin_ia32_movntdq(mem_addr,a)         _mm_stream_si128(mem_addr,a)
 
 // SSE
-v2df operator + (const v2df& a, const v2df& b) { return _mm_add_pd(a,b); }
-v2df operator - (const v2df& a, const v2df& b) { return _mm_sub_pd(a,b); }
-v2df operator * (const v2df& a, const v2df& b) { return _mm_mul_pd(a,b); }
-v2df operator / (const v2df& a, const v2df& b) { return _mm_div_pd(a,b); }
-v4sf operator + (const v4sf& a, const v4sf& b) { return _mm_add_ps(a,b); }
-v4sf operator - (const v4sf& a, const v4sf& b) { return _mm_sub_ps(a,b); }
-v4sf operator * (const v4sf& a, const v4sf& b) { return _mm_mul_ps(a,b); }
-v4sf operator / (const v4sf& a, const v4sf& b) { return _mm_div_ps(a,b); }
-v4si operator - (const v4si& a, const v4si& b) { return _mm_sub_epi32(a,b); }
+inline v2df operator + (const v2df& a, const v2df& b) { return _mm_add_pd(a,b); }
+inline v2df operator - (const v2df& a, const v2df& b) { return _mm_sub_pd(a,b); }
+inline v2df operator * (const v2df& a, const v2df& b) { return _mm_mul_pd(a,b); }
+inline v2df operator / (const v2df& a, const v2df& b) { return _mm_div_pd(a,b); }
+inline v4sf operator + (const v4sf& a, const v4sf& b) { return _mm_add_ps(a,b); }
+inline v4sf operator - (const v4sf& a, const v4sf& b) { return _mm_sub_ps(a,b); }
+inline v4sf operator * (const v4sf& a, const v4sf& b) { return _mm_mul_ps(a,b); }
+inline v4sf operator / (const v4sf& a, const v4sf& b) { return _mm_div_ps(a,b); }
+inline v4si operator - (const v4si& a, const v4si& b) { return _mm_sub_epi32(a,b); }
 
 // AVX
-v4df operator + (const v4df& a, const v4df& b) { return _mm256_add_pd(a,b); }
-v4df operator - (const v4df& a, const v4df& b) { return _mm256_sub_pd(a,b); }
-v4df operator * (const v4df& a, const v4df& b) { return _mm256_mul_pd(a,b); }
-v4df operator / (const v4df& a, const v4df& b) { return _mm256_div_pd(a,b); }
-v4df& operator += (v4df &a, const v4df& b) { a = _mm256_add_pd(a,b); }
-v8sf operator + (const v8sf& a, const v8sf& b) { return _mm256_add_ps(a,b); }
-v8sf operator - (const v8sf& a, const v8sf& b) { return _mm256_sub_ps(a,b); }
-v8sf operator * (const v8sf& a, const v8sf& b) { return _mm256_mul_ps(a,b); }
-v8sf operator / (const v8sf& a, const v8sf& b) { return _mm256_div_ps(a,b); }
-v8sf& operator += (v8sf &a, const v8sf& b) { a = _mm256_add_ps(a,b); }
+inline v4df operator + (const v4df& a, const v4df& b) { return _mm256_add_pd(a,b); }
+inline v4df operator - (const v4df& a, const v4df& b) { return _mm256_sub_pd(a,b); }
+inline v4df operator * (const v4df& a, const v4df& b) { return _mm256_mul_pd(a,b); }
+inline v4df operator / (const v4df& a, const v4df& b) { return _mm256_div_pd(a,b); }
+inline v4df& operator += (v4df &a, const v4df& b) { a = _mm256_add_pd(a,b); return a; }
+inline v8sf operator + (const v8sf& a, const v8sf& b) { return _mm256_add_ps(a,b); }
+inline v8sf operator - (const v8sf& a, const v8sf& b) { return _mm256_sub_ps(a,b); }
+inline v8sf operator * (const v8sf& a, const v8sf& b) { return _mm256_mul_ps(a,b); }
+inline v8sf operator / (const v8sf& a, const v8sf& b) { return _mm256_div_ps(a,b); }
+inline v8sf& operator += (v8sf &a, const v8sf& b) { a = _mm256_add_ps(a,b); return a; }
 
+#define REP4(x) {x,x,x,x}
+#define REP8(x) {x,x,x,x,x,x,x,x}
 
+/* GCC path - default for x86 GCC */
+#else
+
+#ifndef __USE_GNU
+#define __USE_GNU
 #endif
 
-#ifdef __USE_GNU
 // SSE
 typedef float  v4sf __attribute__((vector_size(16)));
 typedef double v2df __attribute__((vector_size(16)));
@@ -79,10 +124,10 @@ typedef double v2df __attribute__((vector_size(16)));
 // AVX
 typedef float  v8sf __attribute__((vector_size(32)));
 typedef double v4df __attribute__((vector_size(32)));
-#endif
-
 
 #define REP4(x) {x,x,x,x}
 #define REP8(x) {x,x,x,x,x,x,x,x}
 
-#endif
+#endif /* NBODY_USE_SIMDE / __USE_INTEL / __USE_GNU */
+
+#endif /* SIMD_DEFINE */
