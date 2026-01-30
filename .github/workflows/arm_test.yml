@@ -43,7 +43,7 @@ jobs:
             SIMDE_PATH=/tmp/simde
 
             echo "=== Configuring for ARM64 with SIMDe ==="
-            ./configure --with-par=8k --disable-gpu --with-simde=$SIMDE_PATH --enable-simd=sse
+            ./configure --with-par=1k --disable-gpu --with-simde=$SIMDE_PATH --enable-simd=sse
 
             echo "=== Building ==="
             make clean
