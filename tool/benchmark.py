@@ -216,7 +216,7 @@ def modify_input_file(
     
     # Format in Fortran-compatible scientific notation
     def fortran_exp(val: float) -> str:
-        """Format number in Fortran scientific notation."""
+        """Format number in Fortran scientific notation (e.g., 6.0E-07)."""
         if val == 0:
             return "0.0E+00"
         exp = 0
@@ -229,8 +229,8 @@ def modify_input_file(
             while abs(mantissa) < 1:
                 mantissa *= 10
                 exp -= 1
-        sign = '+' if exp >= 0 else ''
-        return f"{mantissa:.1f}E{sign}{exp}"
+        sign = '+' if exp >= 0 else '-'
+        return f"{mantissa:.1f}E{sign}{abs(exp):02d}"
     
     dtmin_str = fortran_exp(dtmin)
     rmin_str = fortran_exp(rmin)

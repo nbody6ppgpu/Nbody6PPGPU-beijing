@@ -2,6 +2,11 @@
 *.swp
 *.swo
 
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
 # macos ds store
 .DS_Store
 **/.DS_Store
