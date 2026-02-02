@@ -7,7 +7,8 @@ This script enables:
 1. Running benchmark simulations with various parameter combinations
 2. Collecting and aggregating benchmark results
 
-Author: NBODY6++GPU Team
+Kai Wu planned + GitHub Copilot (Opus 4.5) implemented
+2026 Feb 01
 """
 
 import argparse
@@ -18,6 +19,7 @@ import re
 import shutil
 import subprocess
 import sys
+import resource
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -75,23 +77,6 @@ def parse_comma_separated_particles(value: str) -> List[int]:
     if not value:
         return []
     return [parse_particle_number(x.strip()) for x in value.split(',')]
-
-
-def parse_openmp_threads(value: str, mpi_per_node: int) -> List[Union[int, str]]:
-    """
-    Parse OpenMP thread specification.
-    
-    Args:
-        value: String like "2,4" or "max"
-        mpi_per_node: MPI processes per node (used for 'max' calculation)
-        
-    Returns:
-        List of thread counts or ['max']
-    """
-    value = value.strip().lower()
-    if value == 'max':
-        return ['max']
-    return [int(x.strip()) for x in value.split(',')]
 
 
 def get_physical_cores() -> int:
@@ -504,33 +489,55 @@ def run_simulation_local(
     out_file = f"{basename}.{timestamp}.out"
     err_file = f"{basename}.{timestamp}.err"
     
-    # Set environment
-    env = os.environ.copy()
-    env['OMP_NUM_THREADS'] = str(openmp_threads)
-    env['OMP_STACKSIZE'] = '10G'
-    env['OMP_PROC_BIND'] = 'true'
+    # # Set environment
+    # env = os.environ.copy()
+    # env['OMP_NUM_THREADS'] = str(openmp_threads)
+    # env['OMP_STACKSIZE'] = '10G'
+    # env['OMP_PROC_BIND'] = 'true'
+
+    shell_cmd = f'''
+cd {run_dir}
+export OMP_NUM_THREADS={openmp_threads}
+export OMP_STACKSIZE=10G
+export OMP_PROC_BIND=true
+ulimit -s unlimited
+'''
     
     # Build command
     if use_mpi and '.mpi' in str(exec_path):
         cmd = ['mpirun', '-n', str(mpi_procs), '--bind-to', 'none', str(exec_path)]
     else:
         cmd = [str(exec_path)]
+    shell_cmd += f'{ ' '.join(cmd) } < {input_file} 1> {out_file} 2> {err_file}\n'
     
     logger.info(f"Running: {' '.join(cmd)} in {run_dir}")
+    logger.debug(f"Full shell command:\n{shell_cmd}")
     logger.info(f"OMP_NUM_THREADS={openmp_threads}")
+
+    # def set_limits():
+    #     """Set stack size to unlimited (ulimit -s unlimited) before execution."""
+    #     try:
+    #         # RLIM_INFINITY represents 'unlimited'
+    #         resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+    #     except (ImportError, ValueError, Exception) as e:
+    #         logger.warning(f"Could not set ulimit -s unlimited: {e}")
     
     try:
         with open(run_dir / input_file, 'r') as stdin_file:
             with open(run_dir / out_file, 'w') as stdout_file:
                 with open(run_dir / err_file, 'w') as stderr_file:
+                    # result = subprocess.run(
+                    #     cmd,
+                    #     cwd=run_dir,
+                    #     stdin=stdin_file,
+                    #     stdout=stdout_file,
+                    #     stderr=stderr_file,
+                    #     env=env,
+                    #     preexec_fn=set_limits
+                    # )
+                    # change to directly run shell_cmd
                     result = subprocess.run(
-                        cmd,
-                        cwd=run_dir,
-                        stdin=stdin_file,
-                        stdout=stdout_file,
-                        stderr=stderr_file,
-                        env=env
-                    )
+                        shell_cmd, shell=True)
         
         # Check for successful completion
         with open(run_dir / out_file, 'r') as f:
@@ -691,7 +698,7 @@ def collect_benchmark_results(run_dir: Path) -> Optional['pd.DataFrame']:
                         # Add configuration from directory name
                         row.update(config)
                         results.append(row)
-                        break
+                        # break
                         
             except Exception as e:
                 logger.warning(f"Error processing {out_file}: {e}")
@@ -717,10 +724,10 @@ def parse_directory_name(dir_name: str) -> Dict[str, Any]:
     """
     config = {
         'node': 1,
-        'mpi_per_node': 1,
-        'gpu_per_node': 1,
-        'openmp_thread_per_mpi': 1,
-        'particle_number': 0,
+        'mpi_per_node': 2,
+        'gpu_per_node': 2,
+        'openmp_thread_per_mpi': 4,
+        'particle_number': '10k',
         'nbody_time': 1,
     }
     
@@ -871,31 +878,31 @@ Examples:
     parser.add_argument(
         '--node',
         type=str,
-        default='1',
+        default=None,
         help='Comma-separated node counts (e.g., 1,2). Default: 1'
     )
     parser.add_argument(
         '--mpi-per-node',
         type=str,
-        default='1',
+        default=None,
         help='Comma-separated MPI processes per node (e.g., 1,2,4). Default: 1'
     )
     parser.add_argument(
         '--gpu-per-node',
         type=str,
-        default='4',
+        default=None,
         help='Comma-separated GPUs per node (e.g., 4). Only effective in SLURM mode. Default: 4'
     )
     parser.add_argument(
         '--openmp-thread-per-mpi',
         type=str,
-        default='1',
+        default=None,
         help='Comma-separated OpenMP threads per MPI, or "max" for auto-detection. Default: 1'
     )
     parser.add_argument(
         '--nbody-time',
         type=str,
-        default='1',
+        default=None,
         help='Comma-separated N-body simulation times (e.g., 1). Default: 1'
     )
     parser.add_argument(
@@ -965,7 +972,21 @@ def merge_config(args: argparse.Namespace, yaml_config: Dict[str, Any]) -> Dict[
     Returns:
         Merged configuration dictionary
     """
-    config = yaml_config.copy()
+    # Define default values for optional parameters
+    defaults = {
+        'particle_number': '50k',
+        'node': '1',
+        'mpi_per_node': '1',
+        'gpu_per_node': '4',
+        'openmp_thread_per_mpi': '1',
+        'nbody_time': '1',
+        'disable_mpi': False,
+        'expert': False,
+    }
+
+    # Initialize with default values, then update with YAML configuration
+    config = defaults.copy()
+    config.update(yaml_config)
     
     # Map argument names to config keys
     arg_mapping = {
@@ -987,7 +1008,13 @@ def merge_config(args: argparse.Namespace, yaml_config: Dict[str, Any]) -> Dict[
     for arg_name, config_key in arg_mapping.items():
         arg_value = getattr(args, arg_name, None)
         if arg_value is not None:
-            config[config_key] = arg_value
+            # For boolean flags (store_true), argparse defaults to False.
+            # Only override configuration if the flag is explicitly set to True.
+            if isinstance(arg_value, bool):
+                if arg_value:
+                    config[config_key] = arg_value
+            else:
+                config[config_key] = arg_value
     
     return config
 
@@ -1135,13 +1162,17 @@ def main():
     
     logger.info(f"Prepared {len(prepared_dirs)} benchmark directories in {run_dir}")
     
+    print("\nBenchmark configuration:")
+    print(f"  Run directory: {run_dir}")
+    print(f"  Executable: {exec_path}")
+    print(f"  Parameter combinations: {len(combinations)}")
+    print(f"  SLURM mode: {slurm_mode}")
+    print("  Parameters sweep:")
+    for k in config.keys():
+        print(f"    {k}: {config.get(k)}")
+
     # Confirm before running
     if not config.get('expert', False):
-        print("\nBenchmark configuration:")
-        print(f"  Run directory: {run_dir}")
-        print(f"  Executable: {exec_path}")
-        print(f"  Parameter combinations: {len(combinations)}")
-        print(f"  SLURM mode: {slurm_mode}")
         if not user_confirm("Start simulations?"):
             logger.info("Aborted by user")
             return 0
