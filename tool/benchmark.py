@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# /// script
+# requires-python = ">=3.8"
+# dependencies = [
+#   "PyYAML>=5.0",
+#   "pandas>=1.0",
+# ]
+# [tool.benchmark]
+# timeout = 3600
+# ///
 """
 Benchmark tool for NBODY6++GPU simulations.
 
