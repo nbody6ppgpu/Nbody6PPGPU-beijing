@@ -28,7 +28,6 @@ import re
 import shutil
 import subprocess
 import sys
-import resource
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -534,29 +533,11 @@ ulimit -s unlimited
     logger.info(f"Running: {' '.join(cmd)} in {run_dir}")
     logger.debug(f"Full shell command:\n{shell_cmd}")
     logger.info(f"OMP_NUM_THREADS={openmp_threads}")
-
-    # def set_limits():
-    #     """Set stack size to unlimited (ulimit -s unlimited) before execution."""
-    #     try:
-    #         # RLIM_INFINITY represents 'unlimited'
-    #         resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
-    #     except (ImportError, ValueError, Exception) as e:
-    #         logger.warning(f"Could not set ulimit -s unlimited: {e}")
     
     try:
         with open(run_dir / input_file, 'r') as stdin_file:
             with open(run_dir / out_file, 'w') as stdout_file:
                 with open(run_dir / err_file, 'w') as stderr_file:
-                    # result = subprocess.run(
-                    #     cmd,
-                    #     cwd=run_dir,
-                    #     stdin=stdin_file,
-                    #     stdout=stdout_file,
-                    #     stderr=stderr_file,
-                    #     env=env,
-                    #     preexec_fn=set_limits
-                    # )
-                    # change to directly run shell_cmd
                     result = subprocess.run(
                         shell_cmd, shell=True)
         
