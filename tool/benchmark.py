@@ -1138,10 +1138,6 @@ def main():
     elif args.quiet:
         logger.setLevel(logging.ERROR)
 
-    # Determine script directory and default paths
-    script_dir = Path(__file__).resolve().parent
-    default_code_path = script_dir.parent
-
     # Handle --generate-example-param
     if args.generate_example_param:
         example_params = generate_example_params()
@@ -1160,14 +1156,33 @@ def main():
     config = merge_config(args, yaml_config)
 
     # Set default paths
+    script_dir = Path(__file__).resolve().parent
+    default_code_path = script_dir.parent
     code_path = Path(config.get('code_path', default_code_path)).resolve()
     config['code_path'] = str(code_path)
 
-    if not config.get('input_base_path'):
-        config['input_base_path'] = str(code_path / 'examples' / 'N1m_benchmark.inp')
-
     if not config.get('run_dir'):
         config['run_dir'] = str(code_path / 'benchmark_run')
+
+    # Handle --collect-only (early exit, no path validation needed)
+    if args.collect_only:
+        run_dir = Path(config['run_dir'])
+        if not run_dir.exists():
+            logger.error(f'Run directory does not exist: {run_dir}')
+            return 1
+
+        logger.info('Collecting benchmark results...')
+        df = collect_benchmark_results(run_dir)
+        if df is not None:
+            output_csv = run_dir / 'benchmark_results.csv'
+            df.to_csv(output_csv, index=False)
+            logger.info(f'Results saved to: {output_csv}')
+            logger.info(f'Collected {len(df)} result entries')
+        return 0
+
+    # From here on, validate paths needed for simulation runs
+    if not config.get('input_base_path'):
+        config['input_base_path'] = str(code_path / 'examples' / 'N1m_benchmark.inp')
 
     if not config.get('exec_path'):
         exec_path = find_executable(code_path)
@@ -1185,23 +1200,7 @@ def main():
     # Determine if SLURM mode
     slurm_mode = bool(config.get('sbatch_base_path'))
 
-    # Handle --collect-only
-    if args.collect_only:
-        run_dir = Path(config['run_dir'])
-        if not run_dir.exists():
-            logger.error(f'Run directory does not exist: {run_dir}')
-            return 1
-
-        logger.info('Collecting benchmark results...')
-        df = collect_benchmark_results(run_dir)
-        if df is not None:
-            output_csv = run_dir / 'benchmark_results.csv'
-            df.to_csv(output_csv, index=False)
-            logger.info(f'Results saved to: {output_csv}')
-            logger.info(f'Collected {len(df)} result entries')
-        return 0
-
-    # Validate configuration
+    # Validate configuration (for simulation runs)
     if not validate_config(config, slurm_mode):
         return 1
 
