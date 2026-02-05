@@ -553,7 +553,6 @@ def run_simulation_local(
 cd {run_dir}
 export OMP_NUM_THREADS={openmp_threads}
 export OMP_STACKSIZE=10G
-export OMP_PROC_BIND=true
 ulimit -s unlimited
 """
 
