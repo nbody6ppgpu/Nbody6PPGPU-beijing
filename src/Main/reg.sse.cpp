@@ -15,7 +15,7 @@
 #include <pmmintrin.h>  /* SSE3 */
 #endif
 
-#define TMAX 32 // maximum number of threads
+#define TMAX 1024 // maximum number of threads
 #if 1
 #include <omp.h>
 #else
