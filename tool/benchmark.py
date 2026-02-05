@@ -1127,6 +1127,20 @@ def merge_config(
     return config
 
 
+def generate_input_filename(particle_number: int, nbody_time: int) -> str:
+    """
+    Generate input filename based on particle number and nbody time.
+
+    Args:
+        particle_number: Number of particles
+        nbody_time: N-body simulation time
+
+    Returns:
+        Formatted filename like "N100k-1NBTime.inp"
+    """
+    return f'N{format_particle_number(particle_number)}-{nbody_time}NBTime.inp'
+
+
 def main():
     """Main entry point."""
     parser = setup_argument_parser()
@@ -1240,8 +1254,11 @@ def main():
         sub_dir = run_dir / dir_name
         sub_dir.mkdir(parents=True, exist_ok=True)
 
-        # Copy and modify input file
-        input_file = sub_dir / input_base_path.name
+        # Copy and modify input file with new naming scheme
+        input_filename = generate_input_filename(
+            params['particle_number'], params['nbody_time']
+        )
+        input_file = sub_dir / input_filename
         modify_input_file(
             input_base_path,
             input_file,
@@ -1267,7 +1284,7 @@ def main():
             {
                 'dir': sub_dir,
                 'params': params,
-                'input_file': input_file.name,
+                'input_file': input_filename,
                 'sbatch_file': sbatch_base_path.name if slurm_mode else None,
             }
         )
