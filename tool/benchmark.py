@@ -160,19 +160,27 @@ def save_yaml_config(filepath: str, config: Dict[str, Any]) -> None:
 def find_executable(code_path: Path) -> Optional[Path]:
     """
     Find the NBODY6++ executable.
-    
+
+    If multiple matching executables are found, return the one with the most recent
+    modification time.
+
     Args:
         code_path: Path to the code repository
-        
+
     Returns:
         Path to executable or None if not found
     """
     build_dir = code_path / 'build'
     pattern = str(build_dir / 'nbody6++.*')
-    executables = sorted(glob.glob(pattern))
-    if executables:
-        return Path(executables[0])
-    return None
+    candidates = [Path(p) for p in glob.glob(pattern) if Path(p).is_file()]
+    if not candidates:
+        return None
+    try:
+        latest = max(candidates, key=lambda p: p.stat().st_mtime)
+    except Exception:
+        candidates.sort()
+        return candidates[-1]
+    return latest
 
 
 def modify_input_file(
@@ -242,6 +250,7 @@ def modify_input_file(
 def modify_sbatch_file(
     sbatch_path: Path,
     output_path: Path,
+    particle_number: int,
     nodes: int,
     gpu_per_node: int,
     mpi_per_node: int,
@@ -254,6 +263,7 @@ def modify_sbatch_file(
     Args:
         sbatch_path: Path to base sbatch file
         output_path: Path to write modified file
+        particle_number: Number of particles
         nodes: Number of nodes
         gpu_per_node: GPUs per node
         mpi_per_node: MPI processes per node
@@ -264,6 +274,8 @@ def modify_sbatch_file(
         content = f.read()
     
     # Replace SBATCH parameters
+    
+    content = re.sub(r'#SBATCH --job-name=.+', f'#SBATCH --job-name={particle_number}N{nodes}node{mpi_per_node}mpi{gpu_per_node}gpu{openmp_threads}omp', content)
     content = re.sub(r'#SBATCH --nodes=\d+', f'#SBATCH --nodes={nodes}', content)
     content = re.sub(r'#SBATCH --gres=gpu:\d+', f'#SBATCH --gres=gpu:{gpu_per_node}', content)
     content = re.sub(r'#SBATCH --ntasks-per-node=\d+', f'#SBATCH --ntasks-per-node={mpi_per_node}', content)
@@ -554,6 +566,118 @@ ulimit -s unlimited
         return False, str(e)
 
 
+def extract_time_from_out_file(out_file: Path) -> Optional[Dict[str, Any]]:
+    """
+    Extract timing data from .out file.
+    
+    Args:
+        out_file: Path to .out file
+    Returns:
+    """
+    with open(out_file, 'r') as f:
+        content = f.read()
+    
+    # Look for ADJUST block with timing data
+    # adjust_matches = re.findall(
+    #     r'ADJUST.*?TIME\s+([\d.DE+-]+).*?\n.*?(\d+)\s+(\d+)\s+(\d+)\s+([\d.]+).*?0\.00E\+00\s+0\.00E\+00',
+    #     content,
+    #     re.DOTALL
+    # )
+    
+    # Parse directory name for configuration
+    dir_name = out_file.parent.name
+    config = parse_directory_name(dir_name)
+    
+    # Find the main timing line
+    # Looking for pattern like: rank PE N Total ...
+    num_part = r'([-?[\d.E+-]+)'
+    s = r'\s+'
+    timing_pattern = (
+        r'^\s*' + 
+        s.join([r'(\d+)'] * 3) + s + 
+        s.join([num_part] * 45) + s + 
+        s.join([num_part] * 4) + s + 
+        s.join([r'(\d+)'] * 2) + 
+        r'\s*$'
+    )
+
+    results = []
+
+    content_lines = content.split('\n')
+    for i, line in enumerate(content_lines):
+        match = re.match(timing_pattern, line.strip())
+        if match:
+            # Extract TIME value from nearby ADJUST line
+            nb_time_val = -1.0
+            time_search = re.search(r'TIME\s+([\d.DE+-]+)', '\n'.join(content_lines[max(0, i-5):i+1]))
+            if time_search:
+                nb_time_val = float(time_search.group(1).replace('D', 'E'))
+            
+            row = {
+                'run_dir': dir_name,
+                'NBTime': nb_time_val,
+                'rank': int(match.group(1)),
+                'PE': int(match.group(2)),
+                'N': int(match.group(3)),
+                'Total': float(match.group(4)),
+                'Inti.': float(match.group(5)),
+                'Intgrt': float(match.group(6)),
+                'Reg.': float(match.group(7)),
+                'Irr.': float(match.group(8)),
+                'Predall': float(match.group(9)),
+                'Pred.': float(match.group(10)),
+                'Init.B.': float(match.group(11)),
+                'Mdot': float(match.group(12)),
+                'Move': float(match.group(13)),
+                'Comm.I.': float(match.group(14)),
+                'Comm.R.': float(match.group(15)),
+                'Send.I.': float(match.group(16)),
+                'Send.R.': float(match.group(17)),
+                'KS': float(match.group(18)),
+                'Adjust': float(match.group(19)),
+                'OUT': float(match.group(20)),
+                'Barr.': float(match.group(21)),
+                'Barr.P.': float(match.group(22)),
+                'Barr.I.': float(match.group(23)),
+                'Barr.R.': float(match.group(24)),
+                'Reg.GPU.S': float(match.group(25)),
+                'Reg.GPU.P': float(match.group(26)),
+                'Comm.Adj.': float(match.group(27)),
+                'Mdot.Fic.': float(match.group(28)),
+                'Mdot.Fc.': float(match.group(29)),
+                'Mdot.Pot.': float(match.group(30)),
+                'Mdot.EC.': float(match.group(31)),
+                'Sort.B.': float(match.group(32)),
+                'HighV': float(match.group(33)),
+                'KS.Init.B': float(match.group(34)),
+                'KS.Int.S': float(match.group(35)),
+                'KS.Int.P': float(match.group(36)),
+                'KS.Comm.': float(match.group(37)),
+                'KS.Barr.': float(match.group(38)),
+                'KS.Move': float(match.group(39)),
+                'KS.Cmb.': float(match.group(40)),
+                'KS.Insert': float(match.group(41)),
+                'KS.Init.': float(match.group(42)),
+                'KS.Term.': float(match.group(43)),
+                'Hiar.': float(match.group(44)),
+                'KS.UP': float(match.group(45)),
+                'KS.TP': float(match.group(46)),
+                'TIDES3': float(match.group(47)),
+                'GRRAD': float(match.group(48)),
+                'xtsub1': float(match.group(49).replace('E', 'e')),
+                'xtsub2': float(match.group(50).replace('E', 'e')),
+                'xnirrf': float(match.group(51).replace('E', 'e')),
+                'xnpred': float(match.group(52).replace('E', 'e')),
+                'itides3': int(match.group(53)),
+                'igrrad': int(match.group(54)),
+            }
+            
+            # Add configuration from directory name
+            row.update(config)
+            results.append(row.copy())
+
+    return results
+
 def collect_benchmark_results(run_dir: Path) -> Optional['pd.DataFrame']:
     """
     Collect benchmark results from output files.
@@ -599,107 +723,7 @@ def collect_benchmark_results(run_dir: Path) -> Optional['pd.DataFrame']:
         
         for out_file in out_files:
             try:
-                with open(out_file, 'r') as f:
-                    content = f.read()
-                
-                # Look for ADJUST block with timing data
-                # Pattern based on get_profile_time_csv
-                adjust_matches = re.findall(
-                    r'ADJUST.*?TIME\s+([\d.DE+-]+).*?\n.*?(\d+)\s+(\d+)\s+(\d+)\s+([\d.]+).*?0\.00E\+00\s+0\.00E\+00',
-                    content,
-                    re.DOTALL
-                )
-                
-                if not adjust_matches:
-                    # Try simpler pattern for benchmark data
-                    # Look for lines with timing information
-                    time_match = re.search(r'TIME\s+([\d.DE+-]+)', content)
-                    if time_match:
-                        nb_time = time_match.group(1).replace('D', 'E')
-                    else:
-                        continue
-                
-                # Parse directory name for configuration
-                dir_name = subdir.name
-                config = parse_directory_name(dir_name)
-                
-                # Find the main timing line
-                # Looking for pattern like: rank PE N Total ...
-                timing_pattern = r'^\s*(\d+)\s+(\d+)\s+(\d+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.E+-]+)\s+([\d.E+-]+)\s+([\d.E+-]+)\s+([\d.E+-]+)\s+(\d+)\s+(\d+)'
-                
-                for line in content.split('\n'):
-                    match = re.match(timing_pattern, line.strip())
-                    if match:
-                        # Extract TIME value from nearby ADJUST line
-                        nb_time_val = 0.0
-                        time_search = re.search(r'TIME\s+([\d.DE+-]+)', content)
-                        if time_search:
-                            nb_time_val = float(time_search.group(1).replace('D', 'E'))
-                        
-                        row = {
-                            'run_dir': dir_name,
-                            'NBTime': nb_time_val,
-                            'rank': int(match.group(1)),
-                            'PE': int(match.group(2)),
-                            'N': int(match.group(3)),
-                            'Total': float(match.group(4)),
-                            'Inti.': float(match.group(5)),
-                            'Intgrt': float(match.group(6)),
-                            'Reg.': float(match.group(7)),
-                            'Irr.': float(match.group(8)),
-                            'Predall': float(match.group(9)),
-                            'Pred.': float(match.group(10)),
-                            'Init.B.': float(match.group(11)),
-                            'Mdot': float(match.group(12)),
-                            'Move': float(match.group(13)),
-                            'Comm.I.': float(match.group(14)),
-                            'Comm.R.': float(match.group(15)),
-                            'Send.I.': float(match.group(16)),
-                            'Send.R.': float(match.group(17)),
-                            'KS': float(match.group(18)),
-                            'Adjust': float(match.group(19)),
-                            'OUT': float(match.group(20)),
-                            'Barr.': float(match.group(21)),
-                            'Barr.P.': float(match.group(22)),
-                            'Barr.I.': float(match.group(23)),
-                            'Barr.R.': float(match.group(24)),
-                            'Reg.GPU.S': float(match.group(25)),
-                            'Reg.GPU.P': float(match.group(26)),
-                            'Comm.Adj.': float(match.group(27)),
-                            'Mdot.Fic.': float(match.group(28)),
-                            'Mdot.Fc.': float(match.group(29)),
-                            'Mdot.Pot.': float(match.group(30)),
-                            'Mdot.EC.': float(match.group(31)),
-                            'Sort.B.': float(match.group(32)),
-                            'HighV': float(match.group(33)),
-                            'KS.Init.B': float(match.group(34)),
-                            'KS.Int.S': float(match.group(35)),
-                            'KS.Int.P': float(match.group(36)),
-                            'KS.Comm.': float(match.group(37)),
-                            'KS.Barr.': float(match.group(38)),
-                            'KS.Move': float(match.group(39)),
-                            'KS.Cmb.': float(match.group(40)),
-                            'KS.Insert': float(match.group(41)),
-                            'KS.Init.': float(match.group(42)),
-                            'KS.Term.': float(match.group(43)),
-                            'Hiar.': float(match.group(44)),
-                            'KS.UP': float(match.group(45)),
-                            'KS.TP': float(match.group(46)),
-                            'TIDES3': float(match.group(47)),
-                            'GRRAD': float(match.group(48)),
-                            'xtsub1': float(match.group(49).replace('E', 'e')),
-                            'xtsub2': float(match.group(50).replace('E', 'e')),
-                            'xnirrf': float(match.group(51).replace('E', 'e')),
-                            'xnpred': float(match.group(52).replace('E', 'e')),
-                            'itides3': int(match.group(53)),
-                            'igrrad': int(match.group(54)),
-                        }
-                        
-                        # Add configuration from directory name
-                        row.update(config)
-                        results.append(row)
-                        # break
-                        
+                results += extract_time_from_out_file(out_file)
             except Exception as e:
                 logger.warning(f"Error processing {out_file}: {e}")
                 continue
@@ -1144,6 +1168,7 @@ def main():
             modify_sbatch_file(
                 sbatch_base_path,
                 sbatch_file,
+                params['particle_number'],
                 params['node'],
                 params['gpu_per_node'],
                 params['mpi_per_node'],
