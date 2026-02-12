@@ -22,14 +22,17 @@ OMP_FLAGS= -D OMP
 MPI_FLAGS = -D PARALLEL -D PUREMPI
 GPU_FLAGS = -D GPU
 SIMD_FLAGS = -D SIMD
-HDF5_FLAGS = -D H5OUTPUT -I$(HDF5_DIR)/include/ -L$(HDF5_DIR)/lib/ -lhdf5_fortran
+HDF5_FLAGS = -D H5OUTPUT -I/usr/include/openmpi-x86_64/ -L/usr/lib64/openmpi/lib/ -lhdf5_fortran
+#HDF5_FLAGS = -D H5OUTPUT -I$(HDF5_DIR)/include/ -L$(HDF5_DIR)/lib/ -lhdf5_fortran
 DEBUG_FLAGS= -D DEBUG
 TT_FLAGS= -D TT
 INTEL_FLAGS= -D __USE_INTEL -no-wrap-margin
 
-FFLAGS = -g -fbounds-check -fbacktrace -O3 -fPIC -mcmodel=large -fopenmp -I../include $(GPU_FLAGS) $(MPI_FLAGS) ${SIMD_FLAGS} ${OMP_FLAGS} ${HDF5_FLAGS}
+FFLAGS =  -g -fbounds-check -fbacktrace -O3 -fPIC -mcmodel=large -fopenmp -I../include $(GPU_FLAGS) $(MPI_FLAGS) ${SIMD_FLAGS} ${OMP_FLAGS} ${HDF5_FLAGS}
+#FFLAGS =  -g -fbounds-check -fbacktrace -O3 -fPIC -fallow-argument-mismatch -mcmodel=large -fopenmp -I../include $(GPU_FLAGS) $(MPI_FLAGS) ${SIMD_FLAGS} ${OMP_FLAGS} ${HDF5_FLAGS}
 CXXFLAGS =  -O3 -fopenmp -I../include -march=native -fPIC -mcmodel=large -msse ${OMP_FLAGS}
-CUFLAGS =  -O3 -I ../extra_inc/cuda
+#CUFLAGS =  -O3 -I ../extra_inc/cuda
+CUFLAGS =  -O3 -D CUDA_5 -I /usr/local/cuda-7.5/samples/common/inc
 LDFLAGS = -o $(RESULT)
 
 MPI_FSOURCES= energy_mpi.f fpoly1_mpi.f fpoly2_mpi.f
@@ -37,8 +40,8 @@ GPU_FSOURCES= phicor.f
 HDF5_FSOURCES= 
 TT_FSOURCES= ttforce.f ttgalaxy.f ttinit.f ttcal.f jacobi_transform.f 
 
-IRRAVX_OBJECTS=irr.avx.o
-IRRSSE_OBJECTS=irr.sse.o
+IRRAVX_OBJECTS=irr.avx.o empfuncs.o phasefuncs.o
+IRRSSE_OBJECTS=irr.sse.o empfuncs.o phasefuncs.o
 AVX_OBJECTS=reg.avx.o pot.avx.o irr.avx.o
 SSE_OBJECTS=reg.sse.o pot.sse.o irr.sse.o
 CUDA_OBJECTS = gpunb.velocity.o gpupot.gpu.o
@@ -55,7 +58,7 @@ EXTRAOBJ= $(CUDA_OBJECTS) ${IRRSSE_OBJECTS}
 #VISITLD = -L ./lvisit -llvisit_nbody -L/work/Tuc/spurzem/visit/visit/lvisit/lib -llvisit -L/work/Tuc/spurzem/visit/visit/visit20/lib -lvisit
 
 #VPATH= ../src/Chain:../src/Nchain:../src/Init:../src/Main:../src/Cloud:../src/GPU:../src/SE:../src/SIMD:../src/Tidal:../src/Tlist:../src/Tools:../src/Ellan:../src/KS:../src/Output:../src/HIR:../include
-VPATH= ../src/Main:../src/Tools:../include
+VPATH= ../src/MainEmp:../src/Tools:../include
 
 INC = params.h common6.h timing.h commonc.h common2.h kspars.h
 
@@ -77,7 +80,7 @@ impact.f induce.f input.f insert.f instar.f intgrt.f \
 jacobi.f kick.f kick2.f ksapo.f kscorr.f \
 ksin2.f ksinit.f ksint.f kslist.f ksmod.f ksperi.f kspert.f \
 kspoly.f kspred.f ksrect.f ksreg.f ksres.f ksres2.f ksterm.f \
-kstide.f lagr.f levels.f magbrk.f matrix.f mdot.f merge.f \
+kstide.f lagr.f lagr2.f levels.f magbrk.f matrix.f mdot.f merge.f \
 merge2.f mix.f mloss.f mlwind.f modify.f mrenv.f mydump.f \
 nbint.f nblist.f nbpot.f nbrem.f nbrest.f \
 newtev.f nstab.f offset.f orbit.f output.f peri.f permit.f \
@@ -109,7 +112,7 @@ delay_add_tlist.f delay_remove_tlist.f rmesc_tlist.f shift_tlist.f k_step.f \
 imbhinit.f bhplot.f energy.f kspinit.f kspreg.f counter_reset.f util_gpu.f \
 regcor_gpu.f fpoly0.f tail0.f ntint.f xtrnlt.f fbulge.f steps2.f tstep2.f \
 custom_output.f custom_output_facility.f ksres_op.f kstran.f \
-global_output.f global_params_gether.f
+global_output.f global_params_gether.f kickGW.f
 
 .SUFFIXES : .o .F
 
@@ -118,7 +121,7 @@ OBJECTS = $(SOURCE:.f=.o)
 TARGET: $(RESULT) 
 
 $(RESULT): $(OBJECTS) $(EXTRAOBJ)
-	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++ -lcudart
+	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++ -L/usr/local/cuda-7.5/lib64 -lcudart
 
 libinitial.so: initial.h initial.cpp
 	$(CXX) -shared $(CXXFLAGS) ../src/Tools/initial.cpp -o libinitial.so
@@ -150,6 +153,12 @@ reg.sse.o: reg.sse.cpp
 	$(CXX) $(CXXFLAGS) $^ -c -o $@
 
 pot.sse.o: pot.sse.cpp
+	$(CXX) $(CXXFLAGS) $^ -c -o $@
+
+empfuncs.o: empfuncs.cpp
+	$(CXX) $(CXXFLAGS) $^ -c -o $@
+
+phasefuncs.o: phasefuncs.cpp
 	$(CXX) $(CXXFLAGS) $^ -c -o $@
 
 gpunb.velocity.o: gpunb.velocity.cu
