@@ -459,7 +459,7 @@ C     New (Aug. 1998): P.Kroupa
          if(rank.eq.0)ibarcount=ibarcount+1
          if(rank.eq.0)ttbar = ttbar + (tt999-tt998)*60.
 *         CALL MPI_ABORT(MPI_COMM_WORLD,ierr)
-         CALL MPI_FINALIZE
+         CALL MPI_FINALIZE(ierr)
 #endif
          STOP
 *     
