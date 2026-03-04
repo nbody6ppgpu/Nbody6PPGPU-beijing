@@ -1345,7 +1345,8 @@ Optional Features:
                           Streaming SIMD Extensions; --> avx: Advanced Vector
                           Extensions; --> no: switch off SIMD; (default is
                           autodetecting)
-  --enable-hdf5           Enable HDF5 output format support. (Ref: Cai,
+  --enable-hdf5           DISABLED, NOT supported!!! Use Makefile after configure.
+			  Enable HDF5 output format support. (Ref: Cai,
                           Maxwell, et al., 2015, submitted)
   --enable-tt             Enable tidal tensor and analytical potential
                           extension imported from NBODY6TT. (Ref: Renaud, F.,
@@ -2491,7 +2492,9 @@ fi
 
 # Check whether --enable-hdf5 was given.
 if test "${enable_hdf5+set}" = set; then :
-  enableval=$enable_hdf5;
+  enable_hdf5=no
+  echo "HDF5 NOT supported - see README.md"
+  exit
 else
   enable_hdf5=no
 fi
