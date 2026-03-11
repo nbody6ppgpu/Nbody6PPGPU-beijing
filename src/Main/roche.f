@@ -244,8 +244,8 @@
      &              (X(2,I) - RDENS(2))**2 +
      &              (X(3,I) - RDENS(3))**2)
           VI = SQRT(XDOT(1,I)**2+XDOT(2,I)**2+XDOT(3,I)**2)
-          XOSPN1 = OSPIN(J1)/SPNFAC
-          XOSPN2 = OSPIN(J2)/SPNFAC
+          XOSPN1 = OSPIN(1)/SPNFAC
+          XOSPN2 = OSPIN(2)/SPNFAC
           TPHYS = TTOT*TSTAR
           AGE = TPHYS - EPOCH(I)
           WHICH =' NEW ROCHE  '
