@@ -87,6 +87,13 @@ AC_ARG_WITH([simde],
      [with_simde=$withval],
      [with_simde=no])
 
+# Normalize relative path for SIMDe to an absolute path (build runs in ./build)
+AS_IF([test "x$with_simde" != xno && test "x$with_simde" != xyes && test "x$with_simde" != x],
+   [AS_CASE([$with_simde],
+      [/*], [],
+      [*], [AS_IF([test -d "$with_simde"],
+             [with_simde=`cd "$with_simde" && pwd`])])])
+
 AC_ARG_ENABLE([hdf5],
      [AS_HELP_STRING([--enable-hdf5],
          [Enable HDF5 output format support. (Ref: Cai, Maxwell, et al., 2015, submitted)])],
@@ -351,6 +358,16 @@ AC_ARG_WITH([cuda_sdk],
          [Prefix of your CUDA SDKinstallation])],
      [cuda_sdk_prefix=$withval],
      [cuda_sdk_prefix="/usr/local/cuda/samples"])
+
+# Normalize relative CUDA paths to absolute paths (build runs in ./build)
+AS_CASE([$cuda_prefix],
+   [/*], [],
+   [*], [AS_IF([test -d "$cuda_prefix"],
+          [cuda_prefix=`cd "$cuda_prefix" && pwd`])])
+AS_CASE([$cuda_sdk_prefix],
+   [/*], [],
+   [*], [AS_IF([test -d "$cuda_sdk_prefix"],
+          [cuda_sdk_prefix=`cd "$cuda_sdk_prefix" && pwd`])])
 
 AS_IF([test "x$enable_gpu" != xno],
      [AC_CHECK_PROG([NVCC], [nvcc], [nvcc], [none])
