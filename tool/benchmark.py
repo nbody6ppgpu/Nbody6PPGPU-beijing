@@ -92,31 +92,60 @@ def parse_comma_separated_particles(value: str) -> List[int]:
 def get_physical_cores() -> int:
     """Get the number of physical CPU cores."""
     try:
-        # Try to get physical cores (not hyperthreaded)
+        # macOS: sysctl reports physical core count.
+        if sys.platform == 'darwin':
+            result = subprocess.run(
+                ['sysctl', '-n', 'hw.physicalcpu'],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.returncode == 0:
+                val = result.stdout.strip()
+                if val.isdigit() and int(val) > 0:
+                    return int(val)
+    except Exception:
+        pass
+
+    try:
+        # Linux: Try to count unique (physical id, core id) pairs.
         with open('/proc/cpuinfo', 'r') as f:
             content = f.read()
-        # Count unique physical CPU cores
-        physical_ids = set()
-        core_ids = set()
+        physical_core_pairs = set()
         current_physical = None
         for line in content.split('\n'):
             if line.startswith('physical id'):
-                current_physical = line.split(':')[1].strip()
+                current_physical = line.split(':', 1)[1].strip()
             elif line.startswith('core id') and current_physical is not None:
-                core_id = line.split(':')[1].strip()
-                physical_ids.add((current_physical, core_id))
-        if physical_ids:
-            return len(physical_ids)
+                core_id = line.split(':', 1)[1].strip()
+                physical_core_pairs.add((current_physical, core_id))
+        if physical_core_pairs:
+            return len(physical_core_pairs)
     except Exception:
         pass
-    # Fallback to os.cpu_count()
+
+    # Fallback
     return os.cpu_count() or 1
 
 
-def calculate_openmp_threads(mpi_per_node: int) -> int:
-    """Calculate OpenMP threads when 'max' is specified."""
-    physical_cores = get_physical_cores()
-    return physical_cores // mpi_per_node
+def calculate_openmp_threads(
+    mpi_per_node: int, physical_cores_per_node: Optional[int] = None
+) -> int:
+    """Calculate OpenMP threads when 'max' is specified.
+
+    Notes:
+        On many HPC systems the login node CPU topology can differ from compute nodes.
+        If you know the compute-node physical core count, pass it via
+        physical_cores_per_node to avoid mis-detection.
+    """
+    physical_cores = (
+        int(physical_cores_per_node)
+        if physical_cores_per_node is not None
+        else get_physical_cores()
+    )
+    if mpi_per_node <= 0:
+        return 1
+    return max(1, physical_cores // mpi_per_node)
 
 
 def format_particle_number(n: int) -> str:
@@ -141,6 +170,7 @@ def generate_example_params() -> Dict[str, Any]:
         'mpi_per_node': '1,2,4',
         'gpu_per_node': '4',
         'openmp_thread_per_mpi': '2,4',
+        'physical_cores_per_node': 64,
         'nbody_time': '1',
         'disable_mpi': False,
         'expert': False,
@@ -353,6 +383,21 @@ def generate_parameter_combinations(config: Dict[str, Any]) -> List[Dict[str, An
     nbody_times = parse_comma_separated_ints(str(config.get('nbody_time', '1')))
 
     omp_spec = str(config.get('openmp_thread_per_mpi', '1'))
+    physical_cores_per_node = config.get('physical_cores_per_node', None)
+    if physical_cores_per_node is not None:
+        try:
+            physical_cores_per_node = int(str(physical_cores_per_node).strip())
+        except Exception:
+            logger.warning(
+                'Invalid physical_cores_per_node=%r; ignoring and auto-detecting from current host',
+                physical_cores_per_node,
+            )
+            physical_cores_per_node = None
+    elif omp_spec.strip().lower() == 'max':
+        logger.warning(
+            'openmp_thread_per_mpi=max but physical_cores_per_node is not set; '
+            'auto-detecting physical cores from current host (login node may differ from compute nodes).'
+        )
 
     combinations = []
 
@@ -363,7 +408,9 @@ def generate_parameter_combinations(config: Dict[str, Any]) -> List[Dict[str, An
                     for nbtime in nbody_times:
                         # Handle OpenMP threads
                         if omp_spec.strip().lower() == 'max':
-                            omp_threads = calculate_openmp_threads(mpi)
+                            omp_threads = calculate_openmp_threads(
+                                mpi, physical_cores_per_node=physical_cores_per_node
+                            )
                             omp_values = [omp_threads]
                         else:
                             omp_values = parse_comma_separated_ints(omp_spec)
@@ -1011,6 +1058,13 @@ Examples:
         help='Comma-separated OpenMP threads per MPI, or "max" for auto-detection. Default: 1',
     )
     parser.add_argument(
+        '--physical-cores-per-node',
+        type=int,
+        default=None,
+        help='Physical core count of a compute node (used only when --openmp-thread-per-mpi=max). '
+        'This avoids using login-node CPU topology for OMP auto-detection.',
+    )
+    parser.add_argument(
         '--nbody-time',
         type=str,
         default=None,
@@ -1086,6 +1140,7 @@ def merge_config(
         'mpi_per_node': '1',
         'gpu_per_node': '4',
         'openmp_thread_per_mpi': '1',
+        'physical_cores_per_node': None,
         'nbody_time': '1',
         'disable_mpi': False,
         'expert': False,
@@ -1103,6 +1158,7 @@ def merge_config(
         'mpi_per_node': 'mpi_per_node',
         'gpu_per_node': 'gpu_per_node',
         'openmp_thread_per_mpi': 'openmp_thread_per_mpi',
+        'physical_cores_per_node': 'physical_cores_per_node',
         'nbody_time': 'nbody_time',
         'disable_mpi': 'disable_mpi',
         'code_path': 'code_path',
