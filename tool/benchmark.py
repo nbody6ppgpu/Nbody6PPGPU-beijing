@@ -89,6 +89,26 @@ def parse_comma_separated_particles(value: str) -> List[int]:
     return [parse_particle_number(x.strip()) for x in value.split(',')]
 
 
+DEFAULT_DIRECTORY_CONFIG = {
+    'node': 1,
+    'mpi_per_node': 2,
+    'gpu_per_node': 2,
+    'openmp_thread_per_mpi': 4,
+    'particle_number': '10k',
+    'nbody_time': 1,
+}
+
+
+CONFIG_VALUE_PARSERS = {
+    'node': int,
+    'mpi_per_node': int,
+    'gpu_per_node': int,
+    'openmp_thread_per_mpi': int,
+    'particle_number': parse_particle_number,
+    'nbody_time': int,
+}
+
+
 def get_physical_cores() -> int:
     """Get the number of physical CPU cores."""
     try:
@@ -187,6 +207,40 @@ def load_yaml_config(filepath: str) -> Dict[str, Any]:
 
     with open(filepath, 'r') as f:
         return yaml.safe_load(f)
+
+
+def load_optional_yaml_config(filepath: Path) -> Optional[Dict[str, Any]]:
+    """Load a YAML config file if it exists, warning instead of failing."""
+    if not filepath.exists():
+        return None
+    if not YAML_AVAILABLE:
+        logger.warning(
+            'PyYAML is not installed; cannot read %s. Missing directory metadata '
+            'will fall back to defaults',
+            filepath,
+        )
+        return None
+
+    try:
+        with open(filepath, 'r') as f:
+            loaded = yaml.safe_load(f) or {}
+    except Exception as e:
+        logger.warning(
+            'Could not read %s: %s. Missing directory metadata will fall back to defaults',
+            filepath,
+            e,
+        )
+        return None
+
+    if not isinstance(loaded, dict):
+        logger.warning(
+            'Ignoring %s because it does not contain a YAML mapping; missing '
+            'directory metadata will fall back to defaults',
+            filepath,
+        )
+        return None
+
+    return loaded
 
 
 def save_yaml_config(filepath: str, config: Dict[str, Any]) -> None:
@@ -637,7 +691,9 @@ ulimit -s unlimited
         return False, str(e)
 
 
-def extract_time_from_out_file(out_file: Path) -> Optional[Dict[str, Any]]:
+def extract_time_from_out_file(
+    out_file: Path, benchmark_config: Optional[Dict[str, Any]] = None
+) -> Optional[Dict[str, Any]]:
     """
     Extract timing data from .out file.
 
@@ -657,7 +713,7 @@ def extract_time_from_out_file(out_file: Path) -> Optional[Dict[str, Any]]:
 
     # Parse directory name for configuration
     dir_name = out_file.parent.name
-    config = parse_directory_name(dir_name)
+    config = parse_directory_name(dir_name, benchmark_config)
 
     # Find the main timing line
     # Looking for pattern like: rank PE N Total ...
@@ -841,6 +897,7 @@ def collect_benchmark_results(run_dir: Path) -> Optional['pd.DataFrame']:
     ]
 
     results = []
+    benchmark_config = load_optional_yaml_config(run_dir / 'benchmark_config.yaml')
 
     # Find all subdirectories
     for subdir in run_dir.iterdir():
@@ -854,7 +911,7 @@ def collect_benchmark_results(run_dir: Path) -> Optional['pd.DataFrame']:
 
         for out_file in out_files:
             try:
-                results += extract_time_from_out_file(out_file)
+                results += extract_time_from_out_file(out_file, benchmark_config)
             except Exception as e:
                 logger.warning(f'Error processing {out_file}: {e}')
                 continue
@@ -867,7 +924,37 @@ def collect_benchmark_results(run_dir: Path) -> Optional['pd.DataFrame']:
     return df
 
 
-def parse_directory_name(dir_name: str) -> Dict[str, Any]:
+def get_single_config_value(
+    benchmark_config: Optional[Dict[str, Any]], key: str
+) -> Tuple[bool, Any, str]:
+    """Return a single parsed value from benchmark_config if it is unambiguous."""
+    if not benchmark_config:
+        return False, None, 'benchmark_config.yaml is unavailable'
+    if key not in benchmark_config:
+        return False, None, f'{key} is absent from benchmark_config.yaml'
+
+    raw_value = benchmark_config[key]
+    values = [x.strip() for x in str(raw_value).split(',') if x.strip()]
+    if len(values) != 1:
+        return (
+            False,
+            None,
+            f'{key}={raw_value!r} in benchmark_config.yaml is not a single value',
+        )
+
+    try:
+        return True, CONFIG_VALUE_PARSERS[key](values[0]), ''
+    except Exception as e:
+        return (
+            False,
+            None,
+            f'{key}={raw_value!r} in benchmark_config.yaml could not be parsed: {e}',
+        )
+
+
+def parse_directory_name(
+    dir_name: str, benchmark_config: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """
     Parse configuration from directory name.
 
@@ -877,14 +964,7 @@ def parse_directory_name(dir_name: str) -> Dict[str, Any]:
     Returns:
         Configuration dictionary
     """
-    config = {
-        'node': 1,
-        'mpi_per_node': 2,
-        'gpu_per_node': 2,
-        'openmp_thread_per_mpi': 4,
-        'particle_number': '10k',
-        'nbody_time': 1,
-    }
+    config = {}
 
     # Parse N (particle number)
     n_match = re.search(r'N([\d.]+[km]?)', dir_name, re.IGNORECASE)
@@ -915,6 +995,32 @@ def parse_directory_name(dir_name: str) -> Dict[str, Any]:
     time_match = re.search(r'(\d+)T', dir_name)
     if time_match:
         config['nbody_time'] = int(time_match.group(1))
+
+    for key, default_value in DEFAULT_DIRECTORY_CONFIG.items():
+        if key in config:
+            continue
+
+        found_config_value, config_value, reason = get_single_config_value(
+            benchmark_config, key
+        )
+        if found_config_value:
+            config[key] = config_value
+            logger.info(
+                'Directory "%s" does not include %s; using %s from benchmark_config.yaml',
+                dir_name,
+                key,
+                config_value,
+            )
+            continue
+
+        config[key] = default_value
+        logger.warning(
+            'Directory "%s" does not include %s and %s; using default %s',
+            dir_name,
+            key,
+            reason,
+            default_value,
+        )
 
     return config
 
