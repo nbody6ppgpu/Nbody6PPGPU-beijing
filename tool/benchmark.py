@@ -30,7 +30,7 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 try:
     import yaml
@@ -107,6 +107,9 @@ CONFIG_VALUE_PARSERS = {
     'particle_number': parse_particle_number,
     'nbody_time': int,
 }
+
+
+ARCHIVE_KEEP_SUFFIXES = ('.out', '.err', '.inp', '.sh', '.sbatch')
 
 
 def get_physical_cores() -> int:
@@ -1044,6 +1047,131 @@ def user_confirm(prompt: str) -> bool:
         print("Please enter 'y' or 'n'")
 
 
+def is_archive_keep_file(path: Path) -> bool:
+    """Return True if a file should be preserved for benchmark archiving."""
+    return path.name.lower().endswith(ARCHIVE_KEEP_SUFFIXES)
+
+
+def collect_archive_keep_files(run_dir: Path) -> List[Path]:
+    """Collect whitelisted files from every simulation subdirectory in run_dir."""
+    keep_files = []
+
+    for child in sorted(run_dir.iterdir(), key=lambda p: p.name):
+        if not child.is_dir() or child.is_symlink():
+            continue
+
+        for path in child.rglob('*'):
+            if path.is_dir() and not path.is_symlink():
+                continue
+            if is_archive_keep_file(path):
+                keep_files.append(path)
+
+    return sorted(keep_files, key=lambda p: p.relative_to(run_dir).parts)
+
+
+def build_archive_tree_preview(run_dir: Path, keep_files: List[Path]) -> str:
+    """Build a tree-like preview of files and folders that will remain."""
+    tree_entries: Set[Path] = set()
+    tree_entries.add(Path('.'))
+
+    for keep_file in keep_files:
+        relative_file = keep_file.relative_to(run_dir)
+        parents = list(relative_file.parents)
+        for parent in parents:
+            if str(parent) != '.':
+                tree_entries.add(parent)
+        tree_entries.add(relative_file)
+
+    lines = [f'{run_dir.name}/']
+    if len(tree_entries) == 1:
+        lines.append('  (no whitelisted files found in simulation subdirectories)')
+        return '\n'.join(lines)
+
+    def add_children(parent: Path, prefix: str) -> None:
+        children = sorted(
+            [
+                entry
+                for entry in tree_entries
+                if entry != Path('.') and entry.parent == parent
+            ],
+            key=lambda p: (keep_files_by_relative.get(p) is not None, p.name.lower()),
+        )
+
+        for index, child in enumerate(children):
+            connector = '`-- ' if index == len(children) - 1 else '|-- '
+            is_file = keep_files_by_relative.get(child) is not None
+            suffix = '' if is_file else '/'
+            lines.append(f'{prefix}{connector}{child.name}{suffix}')
+            if not is_file:
+                extension = '    ' if index == len(children) - 1 else '|   '
+                add_children(child, prefix + extension)
+
+    keep_files_by_relative = {
+        keep_file.relative_to(run_dir): keep_file for keep_file in keep_files
+    }
+    add_children(Path('.'), '')
+    return '\n'.join(lines)
+
+
+def clean_for_archive(run_dir: Path) -> bool:
+    """
+    Remove non-whitelisted files from simulation subdirectories under run_dir.
+
+    Top-level files in run_dir are intentionally left untouched. Empty directories
+    left behind by file removal are removed unless they contain whitelisted files.
+    """
+    keep_files = collect_archive_keep_files(run_dir)
+    print('\nFiles and folders that will remain after archive cleanup:')
+    print(build_archive_tree_preview(run_dir, keep_files))
+    print(
+        '\nThis will delete all non-whitelisted files under simulation '
+        'subdirectories of:'
+    )
+    print(f'  {run_dir}')
+
+    if not user_confirm('Proceed with archive cleanup?'):
+        logger.info('Archive cleanup aborted by user')
+        return False
+
+    keep_file_set = {path.resolve() for path in keep_files}
+    deleted_files = 0
+    removed_dirs = 0
+
+    for child in sorted(run_dir.iterdir(), key=lambda p: p.name):
+        if not child.is_dir() or child.is_symlink():
+            continue
+
+        for path in sorted(child.rglob('*'), key=lambda p: len(p.parts), reverse=True):
+            if path.is_dir() and not path.is_symlink():
+                continue
+            if path.resolve() in keep_file_set:
+                continue
+            path.unlink()
+            deleted_files += 1
+
+        for path in sorted(child.rglob('*'), key=lambda p: len(p.parts), reverse=True):
+            if not path.is_dir() or path.is_symlink():
+                continue
+            try:
+                path.rmdir()
+                removed_dirs += 1
+            except OSError:
+                pass
+
+        try:
+            child.rmdir()
+            removed_dirs += 1
+        except OSError:
+            pass
+
+    logger.info(
+        'Archive cleanup complete: deleted %d files, removed %d empty directories',
+        deleted_files,
+        removed_dirs,
+    )
+    return True
+
+
 def validate_config(config: Dict[str, Any], slurm_mode: bool) -> bool:
     """
     Validate configuration.
@@ -1109,6 +1237,9 @@ Examples:
   
   # Collect results only
   %(prog)s --collect-only --param-file-path=benchmark_params.yaml
+
+  # Clean simulation subdirectories before archiving
+  %(prog)s --clean-for-archive --run-dir=/path/to/benchmark_run
         """,
     )
 
@@ -1209,6 +1340,12 @@ Examples:
         '--collect-only',
         action='store_true',
         help='Only collect results without running simulations',
+    )
+    parser.add_argument(
+        '--clean-for-archive',
+        action='store_true',
+        help='Preview and remove non-essential simulation outputs from run-dir subdirectories. '
+        'Keeps only *.out, *.err, *.inp, *.sh, and *.sbatch files.',
     )
     parser.add_argument(
         '--expert', action='store_true', help='Skip confirmation prompts'
@@ -1338,6 +1475,19 @@ def main():
 
     if not config.get('run_dir'):
         config['run_dir'] = str(code_path / 'benchmark_run')
+
+    # Handle --clean-for-archive (early exit, no simulation path validation needed)
+    if args.clean_for_archive:
+        run_dir = Path(config['run_dir'])
+        if not run_dir.exists():
+            logger.error(f'Run directory does not exist: {run_dir}')
+            return 1
+        if not run_dir.is_dir():
+            logger.error(f'Run directory is not a directory: {run_dir}')
+            return 1
+
+        clean_for_archive(run_dir)
+        return 0
 
     # Handle --collect-only (early exit, no path validation needed)
     if args.collect_only:
