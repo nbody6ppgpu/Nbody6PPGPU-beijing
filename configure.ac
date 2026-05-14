@@ -511,7 +511,7 @@ AS_IF([test "x$par_size" == x128m],
        MMAX=2048],
       [test "x$par_size" == x16m],
       [NMAX=16777216
-       KMAX=131072
+       KMAX=2097152
        LMAX=600
        MMAX=1024],
       [test "x$par_size" == xb16m],
@@ -541,12 +541,12 @@ AS_IF([test "x$par_size" == x128m],
        MMAX=2048],
       [test "x$par_size" == x4m],
       [NMAX=4194304
-       KMAX=131072
+       KMAX=524288
        LMAX=600
        MMAX=1024],
       [test "x$par_size" == xb4m],
-      [NMAX=15107200
-       KMAX=1048576
+      [NMAX=6291456
+       KMAX=2097152
        LMAX=600
        MMAX=2048],
       [test "x$par_size" == x1m],
