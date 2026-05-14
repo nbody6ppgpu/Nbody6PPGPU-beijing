@@ -835,6 +835,12 @@ def collect_benchmark_results(run_dir: Path) -> Optional['pd.DataFrame']:
 
     # Headers based on get_profile_time_csv
     columns = [
+        'particle_number',
+        'node',
+        'mpi_per_node',
+        'gpu_per_node',
+        'openmp_thread_per_mpi',
+        'total_simulate_nbody_time',
         'run_dir',
         'NBTime',
         'rank',
@@ -891,12 +897,6 @@ def collect_benchmark_results(run_dir: Path) -> Optional['pd.DataFrame']:
         'xnpred',
         'itides3',
         'igrrad',
-        'node',
-        'mpi_per_node',
-        'gpu_per_node',
-        'openmp_thread_per_mpi',
-        'particle_number',
-        'nbody_time',
     ]
 
     results = []
@@ -924,7 +924,11 @@ def collect_benchmark_results(run_dir: Path) -> Optional['pd.DataFrame']:
         return None
 
     df = pd.DataFrame(results)
-    return df
+    extra_columns = [col for col in df.columns if col not in columns]
+    df = df.reindex(columns=columns + extra_columns)
+    return df.sort_values(by=columns[:6], ascending=True, kind='mergesort').reset_index(
+        drop=True
+    )
 
 
 def get_single_config_value(
@@ -997,17 +1001,18 @@ def parse_directory_name(
     # Parse nbody time
     time_match = re.search(r'(\d+)T', dir_name)
     if time_match:
-        config['nbody_time'] = int(time_match.group(1))
+        config['total_simulate_nbody_time'] = int(time_match.group(1))
 
     for key, default_value in DEFAULT_DIRECTORY_CONFIG.items():
-        if key in config:
+        config_key = 'total_simulate_nbody_time' if key == 'nbody_time' else key
+        if config_key in config:
             continue
 
         found_config_value, config_value, reason = get_single_config_value(
             benchmark_config, key
         )
         if found_config_value:
-            config[key] = config_value
+            config[config_key] = config_value
             logger.info(
                 'Directory "%s" does not include %s; using %s from benchmark_config.yaml',
                 dir_name,
@@ -1016,7 +1021,7 @@ def parse_directory_name(
             )
             continue
 
-        config[key] = default_value
+        config[config_key] = default_value
         logger.warning(
             'Directory "%s" does not include %s and %s; using default %s',
             dir_name,
