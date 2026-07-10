@@ -10,7 +10,7 @@
 
 <!-- [![Paper](https://badgen.net/badge/arXiv/0000.0000/green?icon=https://static.arxiv.org/static/browse/0.3.4/images/arxiv-logo-one-color-white.svg )](https://arxiv.org/abs/xxxxx) -->
 
-This is Nbody6++GPU - Beijing version, an N-body star cluster simulation code, maintained by Rainer Spurzem (spurzem@nao.cas.cn) and team, main developers Kai Wu (kaiwu.astro@gmail.com) and Francesco Flammni Dotti (ff2415@nyu.edu). 
+This is Nbody6++GPU - Beijing version, an N-body star cluster simulation code, maintained by Rainer Spurzem (spurzem@nao.cas.cn) and team, main developers Kai Wu (kaiwu.astro@gmail.com) and Francesco Flammni Dotti (ff2415@nyu.edu).
 
 The code is an offspring of [Sverre Aarseth's direct N-body codes](https://people.ast.cam.ac.uk/~sverre/web/pages/nbody.htm).
 
@@ -29,7 +29,7 @@ Here is an example of current differences between the code version (May 2023), m
 2. RS: implementation of spin and mass dependent recoil kicks after GW merger (Arca Sedda et al. 2023 subm. MNRAS)
 3. RS: use of HDF5 output files with python data reading interfaces
 4. RS: namelist based input format, allowing also to read all stellar evolution and binary / collision parameters.
-5. LW and RS: implementation of Milky Way potential following the MWPotential2014 in Galpy (Bovy 2015). 
+5. LW and RS: implementation of Milky Way potential following the MWPotential2014 in Galpy (Bovy 2015).
 6. LW and RS: Some bug fixes related to Roche and GR radiation, in both versions slightly different ways.
 7. LW and RS: implementation of BSE from Banerjee et al. 2019
 
@@ -40,11 +40,11 @@ Here is an example of current differences between the code version (May 2023), m
 git clone https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing
 ```
 1. This downloads the `stable` branch. The `stable` branch include major versions, and the `dev` branch include the most recent updates and bugfix. Changes in `dev` branch are merged to `stable` regularly.
-2. If you want the most recent version, use 
+2. If you want the most recent version, use
 ``` bash
 git clone -b dev https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing
 ```
-or run `git switch dev` after you `clone` without `-b dev` param. 
+or run `git switch dev` after you `clone` without `-b dev` param.
 
 ## Configure for compile
 
@@ -52,10 +52,10 @@ or run `git switch dev` after you `clone` without `-b dev` param.
 ./configure [options]
 ```
 0. TL;DR: to quickly start on your personal computer, you may use `./configure --enable-mcmodel=large --with-par=b1m --disable-gpu`, and jump to the next section [Compile the code](#Compile-the-code)
-1. We recommend using `--enable-mcmodel=large` to allows the program to use much resources. 
+1. We recommend using `--enable-mcmodel=large` to allows the program to use much resources.
 2. `--with-par=b1m` allows up to 1 million particle simulation. In case that your computer has very small memory (<4GB) and your star cluster has a small particle number, you may use smaller value (check ./configure --help for possible value for `--with-par`)
 3. MPI should always be used during compilation. In case your computer does not have it, you can install with `sudo apt-get install openmpi-bin openmpi-common libopenmpi-dev` in Debian based Linux. The option `--disable-mpi` should only be used for debug purpose, and not for any production run.
-4. In the following cases, you may need to append `--disable-gpu` 
+4. In the following cases, you may need to append `--disable-gpu`
 - Your simulation has relatively small particle number (<50000). The code is for up to one million bodies with many initial binaries. In the case of small particle number, GPU can hardly boost the simulation and can sometimes slow it down.
 - The computer has no NVIDIA GPU
 - The computer has NVIDIA GPU but did not install CUDA compiler (Test: type `nvcc --version` in your terminal. If you see errors like `nvcc: command not found` then it is not installed)
@@ -63,10 +63,22 @@ or run `git switch dev` after you `clone` without `-b dev` param.
 6. HDF5 is an efficient storage scheme, which is useful during large-scale or long-time simulations to boost the simulation and save disk spaces. Once enabled, the basic particle data (mass, position, velocity) and stellar evolution data will be stored in `.h5part` files, which may need extra tools to read. HDF5 is recommended but not necessary. You need to install additional libraries to use HDF5. For example, in Debian based Linux `sudo apt-get install libhdf5-openmpi-dev libhdf5-dev`. Note that `--enable-hdf5` in configure command is NOT working well. You have to configure first without it, then edit build/Makefile (see example in Makefile.save.hdf5 , HDF5_DIR has to be defined by you or by system). Then make.
 7. The configure script written by Long Wang has a multitude of further options, check with `./configure --help` or feel free to ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions).
 
+### ARM64 and SIMDe
+
+ARM64 builds use [SIMDe](https://github.com/simd-everywhere/simde) to run the SSE force kernels without changing the simulation format. SIMDe v0.8.2 is the version exercised by CI. Install or clone its headers, then configure with their parent include directory:
+
+```bash
+git clone --branch v0.8.2 --depth 1 https://github.com/simd-everywhere/simde.git "$HOME/src/simde"
+./configure --with-simde="$HOME/src/simde" --enable-simd=sse --disable-gpu
+make clean && make -j
+```
+
+On ARM, `--with-simde` selects the SSE implementation automatically. An explicit `--enable-simd=avx` is downgraded to SSE because AVX is x86-only. The ARM default also disables `-mcmodel`; do not force an x86 `mcmodel` setting there. Relative and absolute SIMDe paths are supported, and `--with-simde` without a path uses system include directories.
+
 ## Compile the code
 
 ```bash
-make clean; make -j 
+make clean; make -j
 ```
 
 After `make` you can find the executable in `build/`, named `nbody6++.[configure-options]`, where the suffix depends on your configure option (MPI, GPU, HDF5, SIMD, etc), for example `nbody6++.avx.mpi.gpu`
@@ -81,7 +93,7 @@ If you have specified `--prefix=[install path]` during configure, you may want `
     cp `ls build/nbody6++*` [your_simulation_dir]
     ```
 
-2. Prepare an initial condition file. For a test run, you can find example initial conditions in `examples/input_files`. 
+2. Prepare an initial condition file. For a test run, you can find example initial conditions in `examples/input_files`.
 
     ```bash
     cp examples/input_files/N10k_noDat10.inp [your_simulation_dir]
@@ -93,13 +105,13 @@ If you have specified `--prefix=[install path]` during configure, you may want `
 
 3. CPU and memory
 
-    In simulations with large particle number, segmentation fault may happen. To avoid this, we recommend setting a large `OMP_STACKSIZE` and disable the memory limitation. 
+    In simulations with large particle number, segmentation fault may happen. To avoid this, we recommend setting a large `OMP_STACKSIZE` and disable the memory limitation.
     ```bash
     export OMP_STACKSIZE=4096M
     ulimit -s unlimited
     ```
 
-    By default, the program uses all CPU threads (which is usually 2 × number of CPU cores). For better performance, `OMP_NUM_THREADS` should not be too large, and cannot go beyond 32. In case you want to use fewer threads, especially when your computer has more than 32 cores (per node), you need to restrict `OMP_NUM_THREADS` 
+    By default, the program uses all CPU threads (which is usually 2 × number of CPU cores). The implementation supports up to 1024 OpenMP threads, but values above 32 are rarely efficient. Benchmark the physical cores on your node and avoid using extra hyperthreads unless measurements show a benefit.
     ```bash
     export OMP_NUM_THREADS=[N_threads]
     ```
@@ -122,6 +134,18 @@ If you have specified `--prefix=[install path]` during configure, you may want `
     ./[your executable filename] < N10k_noDat10.inp
     ```
 
+# Benchmark tool
+
+`tool/benchmark.py` prepares local or Slurm benchmark matrices and collects timing results. It requires Python 3.8 or newer; YAML configuration and CSV collection additionally use PyYAML and pandas as listed in the script metadata.
+
+```bash
+python3 tool/benchmark.py --help
+python3 tool/benchmark.py --generate-example-param
+python3 tool/benchmark.py -N 50k,100k --mpi-per-node=1,2 --expert
+```
+
+The default input is `examples/N1m_benchmark.inp`. For Slurm, copy `examples/example.sbatch`, add site-specific account, partition, modules, and GPU options, then pass it with `--sbatch-base-path`. Local runs are successful only when the process exits with status zero and its output contains `END RUN`.
+
 # Documentation
 To understand the diagnostic information and columns of each output file, please read the documentations at
 https://www.overleaf.com/read/hcmxcyffjkzq
@@ -132,12 +156,12 @@ You are also welcomed to ask any question in [our discussion](https://github.com
 Some Jupyter notebooks for simple data analysis are provided in [examples/](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/tree/stable/examples). You can check [the readme file there](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/tree/stable/examples) to get started.
 
 # Tips
- - Before a simulation, it is always recommended to set `ulimit -s unlimited` before the simulation to avoid segmentation fault. 
+ - Before a simulation, it is always recommended to set `ulimit -s unlimited` before the simulation to avoid segmentation fault.
 
  - The environment variable OMP_NUM_THREADS has to be set to the desired value of OpenMP threads per MPI process. (Maybe your system has it predefined.) We also recommend to set OMP_STACKSIZE=4096M the shell where you run the code.
 
  - It is inefficient (and even more error prone) for particle numbers below about 50k-100k particles (depending on hardware). For smaller N you are advised to disable GPU, or use Nbody6 and Nbody6GPU for single node/process.
- 
+
  - It is recommended to provide a `dat.10` file in N-body input format (see manual). Such file can be produced by other programs, like [McLuster](https://github.com/agostinolev/mcluster).
 
 # Seleted References:
@@ -151,23 +175,25 @@ Some Jupyter notebooks for simple data analysis are provided in [examples/](http
 # For contributors
 ```git clone -b dev git@github.com:nbody6ppgpu/Nbody6PPGPU-beijing```
 
-Sources are in `src/Main/`. 
+Sources are in `src/Main/`.
+
+`include/params.h`, the top-level and build `Makefile` files, `config.log`, and `config.status` are generated by `./configure` and are intentionally ignored. Change particle-size mappings in `configure.ac`, regenerate `configure` with Autoconf 2.71, and never commit local configuration output.
 
 Git system does not preserve the modification time of files, but the modification time of some ancient files (created before this project was brought to Git) may be valuable information for developers. If you need this info, run `python3 restore_mtime.py` after `git clone` and each `git pull`. It will `touch` each file with their real last modification time.
 
 # Known Problems:
- 1. For systems with more than one GPU on one node the association of MPI rank id and GPU bus id is not 
+ 1. For systems with more than one GPU on one node the association of MPI rank id and GPU bus id is not
       well defined, will be improved in next version.
 
  2. Runs with a million or more bodies and huge numbers of binaries (5% or more) use extreme amounts of
-      computing time for the KS binaries (much much more than should be expected). We work on this. 
+      computing time for the KS binaries (much much more than should be expected). We work on this.
 
  3. Currently using standard OpenMP WITHOUT sse or avx does not work. (it means for configure --disable-simd , but --enable-omp). It uses routines nbint.F instead of special sse or avx routines for neighbour force. We are working on that.
- 
+
  4. Many stellar evolution and other parameters are still compiled into the code (see Table A1 in Kamlah et al. 2022, and parameter FctorCl in Rizzuto et al. 2021), mxns0,1 masses of neutron stars; it is the responsibility of the user to keep them all consistent at compile time (for example  mxns and FctorCl are defined in two routines independently, see hrplot, coal, mix). We are working to prepare a nice Fortran NAMELIST style input for ALL parameters (the ones from the current input file, and the ones currently compiled in). That will work like in the style of an .ini file with "key=value" pairs and default values.
 
  5. Currently the use of KZ(7) ge 4 is not working; it produces wrong SIGR2, SIGT2, VROT both in output file and lagr.7. KZ(7) le 3 is ok.
-    
+
  <!-- 5. Using much more than one million particles (up to ten million) is still not fully supported. configure already allows --with-par=4m  , 8m, 10m, b4m, b8m, b10m . Runs of that size may still fail, depending on your hardware and software environment; also the code may still have some glitches (wrong printout, insufficient vector space allocation);  test and work is ongoing. -->
  <!-- 3. On some systems heap and stack management when using OpenMP and MPI together seem to produce very
       strange errors and segmentation faults. The exact reason is not known; we work on this. -->
