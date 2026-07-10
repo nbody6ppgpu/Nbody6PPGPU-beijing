@@ -87,3 +87,4 @@ ltmain.sh
 
 # CodeQL artifacts
 _codeql_detected_source_root
+implementation-notes.html
