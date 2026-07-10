@@ -1,8 +1,6 @@
-# AGENTS.md - NBODY6++GPU 开发指南
+# AGENTS.md
 
-本文档为 AI 代理和开发者提供 NBODY6++GPU 项目的全面概述，帮助理解代码结构、开发流程和最佳实践。
-
----
+This document is delibrately written in Chinese language to save token consumptions of AI agents.
 
 ## 1. 项目概述
 
@@ -145,7 +143,7 @@ nbody-fork/
 | 选项 | 说明 | 建议值 |
 |------|------|--------|
 | `--enable-mcmodel=ARG` | 内存模型 (small/medium/large) | `large` |
-| `--with-par=ARG` | 最大粒子数 (1k/10k/100k/1m/b1m/b4m/b10m) | `b1m` (100万) |
+| `--with-par=ARG` | 最大粒子数 (1k/10k/100k/1m/b1m/b4m/b10m) | `b1m` (1000万) |
 | `--disable-gpu` | 禁用 GPU | 仅当 N<50k 或无 GPU 时 |
 | `--enable-simd=ARG` | SIMD 优化 (sse/avx/no) | `avx` (如支持) |
 | `--with-simde[=PATH]` | 使用 SIMDe 头文件（ARM64 必需） | ARM64 使用 `v0.8.2` |
@@ -406,47 +404,11 @@ cp examples/input_files/N10k_noDat10.inp ./
 | 问题 | 状态 | 解决方案 |
 |------|------|----------|
 | 多 GPU 节点 GPU 分配 | 进行中 | 手动绑定 GPU bus ID |
-| 双星比例 >5% 性能差 | 研究中 | 减少双星数量或使用更大硬件 |
+| 双星比例 >20% 性能差 | 研究中 | 减少双星数量或使用更大硬件 |
 | `--disable-simd` + `--enable-omp` 不工作 | 进行中 | 使用 SSE/AVX |
 | 许多参数编译时硬编码 | 改进中 | 将来使用完整 Namelist 输入 |
 | `KZ(7) >= 4` 输出错误 | 已知 | 使用 `KZ(7) <= 3` |
 | HDF5 配置选项失效 | 已知 | 手动编辑 `build/Makefile` |
-
----
-
-## 附录 A: 快速参考
-
-### 环境变量
-
-```bash
-export OMP_STACKSIZE=4096M       # OpenMP 栈大小
-export OMP_NUM_THREADS=16        # 实现上限1024；性能通常在 <=32 更好
-ulimit -s unlimited              # 栈大小无限制
-```
-
-### 常用命令
-
-```bash
-# 配置
-./configure --enable-mcmodel=large --with-par=b1m --enable-simd=avx
-
-# 编译
-make clean && make -j
-
-# 运行
-./build/nbody6++.avx.mpi.gpu < input.inp
-
-# 安装
-make install
-```
-
-### 重要文件路径
-
-- 主程序: `src/Main/nbody6.F`
-- 参数配置源: `configure.ac`（生成 `include/params.h`）
-- 公共块: `include/common6.h`
-- GPU 代码: `src/Main/gpunb.gpu.cu`, `gpupot.gpu.cu`
-- 示例输入: `examples/input_files/`
 
 ---
 
