@@ -1392,10 +1392,10 @@ Optional Features:
                           force and potential
   --enable-simd=ARG       SIMD instruction set acceleration for force and
                           potential, available arguments --> sse: Streaming
-                          SIMD Extensions (also works on ARM with SIMDe); -->
-                          avx: Advanced Vector Extensions (x86 only); --> no:
-                          switch off SIMD; (default is autodetecting on x86,
-                          disabled on ARM64 unless --with-simde is specified)
+                          SIMD Extensions (required on ARM64 with SIMDe); -->
+                          avx: Advanced Vector Extensions (x86_64 only); -->
+                          no: switch off SIMD (x86_64 only); (default is
+                          autodetecting on x86_64 and sse on ARM64)
   --enable-hdf5           Enable HDF5 output format support. (Ref: Cai,
                           Maxwell, et al., 2015, submitted)
   --enable-tt             Enable tidal tensor and analytical potential
@@ -1409,11 +1409,9 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-simde[=PATH]     Use SIMDe (SIMD Everywhere) library for
-                          ARM/cross-platform SIMD support. PATH is the
-                          directory containing the simde headers (e.g.,
-                          /usr/local/include). If PATH is not specified,
-                          default system include paths are used.
+  --with-simde[=PATH]     Use SIMDe headers. On ARM64, the default PATH is the
+                          source sibling ../simde; a bare --with-simde uses
+                          system include paths; --without-simde is invalid.
   --with-cuda=PREFIX      Prefix of your CUDA installation
   --with-cuda-sdk=PREFIX  Prefix of your CUDA SDKinstallation
   --with-par=size         Size of basic parameters (NMAX, KMAX, LMAX, MMAX) in
@@ -3007,6 +3005,36 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
 
 
+source_root=`cd "$srcdir" && pwd`
+source_parent=`cd "$source_root/.." && pwd`
+simde_default_path=${source_parent%/}/simde
+arm_configure_example="./configure --with-par=b1m --with-simde=\"$simde_default_path\" --enable-simd=sse --disable-gpu"
+x86_configure_example='./configure --with-par=b1m --enable-mcmodel=large --disable-gpu'
+
+case $host_cpu in #(
+  x86_64|amd64) :
+    target_architecture=x86_64 ;; #(
+  aarch64|arm64) :
+    target_architecture=ARM64 ;; #(
+  *) :
+    as_fn_error $? "unsupported target architecture '$host_cpu' (canonical host: $host).
+Supported target architectures: x86_64 and ARM64/aarch64.
+x86_64 example: $x86_configure_example
+ARM64 example: $arm_configure_example" "$LINENO" 5 ;;
+esac
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: target architecture: $target_architecture" >&5
+printf "%s\n" "$as_me: target architecture: $target_architecture" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: canonical host: $host" >&5
+printf "%s\n" "$as_me: canonical host: $host" >&6;}
+if test "x$build" != "x$host"
+then :
+
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: cross compilation: build=$build, host=$host" >&5
+printf "%s\n" "$as_me: cross compilation: build=$build, host=$host" >&6;}
+
+fi
+
 # ===========================================================================
 #  https://www.gnu.org/software/autoconf-archive/ax_check_compile_flag.html
 # ===========================================================================
@@ -3109,7 +3137,8 @@ fi
 # Check whether --enable-mcmodel was given.
 if test ${enable_mcmodel+y}
 then :
-  enableval=$enable_mcmodel;  case "${enableval}" in
+  enableval=$enable_mcmodel;  mcmodel_was_specified=yes
+       case "${enableval}" in
        large) enable_mcmodel=large ;;
        medium) enable_mcmodel=medium ;;
        small) enable_mcmodel=small ;;
@@ -3117,8 +3146,9 @@ then :
        *) as_fn_error $? "bad value ${enableval} for --enable-mcmodel" "$LINENO" 5 ;;
        esac
 else $as_nop
-  case $host_cpu in #(
-  aarch64*|arm*) :
+  mcmodel_was_specified=no
+      case $target_architecture in #(
+  ARM64) :
     enable_mcmodel=no ;; #(
   *) :
     enable_mcmodel=large ;;
@@ -3147,16 +3177,18 @@ fi
 # Check whether --enable-simd was given.
 if test ${enable_simd+y}
 then :
-  enableval=$enable_simd;  case "${enableval}" in
+  enableval=$enable_simd;  simd_was_specified=yes
+       case "${enableval}" in
        avx) enable_simd=avx ;;
        sse) enable_simd=sse ;;
        no) enable_simd=no  ;;
        *) as_fn_error $? "bad value ${enableval} for --enable-simd" "$LINENO" 5 ;;
        esac
 else $as_nop
-  case $host_cpu in #(
-  aarch64*|arm*) :
-    enable_simd=no ;; #(
+  simd_was_specified=no
+      case $target_architecture in #(
+  ARM64) :
+    enable_simd=sse ;; #(
   *) :
     enable_simd=test ;;
 esac
@@ -3168,11 +3200,44 @@ fi
 # Check whether --with-simde was given.
 if test ${with_simde+y}
 then :
-  withval=$with_simde; with_simde=$withval
+  withval=$with_simde; simde_was_specified=yes
+      with_simde=$withval
+else $as_nop
+  simde_was_specified=no
+      if test "x$target_architecture" = xARM64
+then :
+  with_simde=$simde_default_path
 else $as_nop
   with_simde=no
 fi
+fi
 
+
+if test "x$target_architecture" = xARM64
+then :
+
+  if test "x$enable_simd" = xavx
+then :
+  as_fn_error $? "option --enable-simd=avx conflicts with target architecture ARM64; AVX is x86_64-only.
+ARM64 example: $arm_configure_example" "$LINENO" 5
+fi
+  if test "x$enable_simd" = xno
+then :
+  as_fn_error $? "option --enable-simd=no conflicts with target architecture ARM64; the SSE kernels through SIMDe are required.
+ARM64 example: $arm_configure_example" "$LINENO" 5
+fi
+  if test "x$enable_mcmodel" != xno
+then :
+  as_fn_error $? "option --enable-mcmodel=$enable_mcmodel conflicts with target architecture ARM64; use --enable-mcmodel=no or omit the option.
+ARM64 example: $arm_configure_example" "$LINENO" 5
+fi
+  if test "x$with_simde" = xno
+then :
+  as_fn_error $? "option --without-simde conflicts with target architecture ARM64; SIMDe is required.
+ARM64 example: $arm_configure_example" "$LINENO" 5
+fi
+
+fi
 
 # Normalize relative path for SIMDe to an absolute path (build runs in ./build)
 if test "x$with_simde" != xno && test "x$with_simde" != xyes && test "x$with_simde" != x
@@ -3184,6 +3249,8 @@ then :
     if test -d "$with_simde"
 then :
   with_simde=`cd "$with_simde" && pwd`
+else $as_nop
+  with_simde="$source_root/$with_simde"
 fi ;; #(
   *) :
      ;;
@@ -5662,7 +5729,30 @@ printf %s "checking for SIMDe support... " >&6; }
     # Check if simde path was provided
     if test "x$with_simde" != xyes && test "x$with_simde" != x
 then :
-  SIMDE_CXXFLAGS="-I$with_simde"
+  if test ! -d "$with_simde"
+then :
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "SIMDe include location does not exist: $with_simde
+Install SIMDe v0.8.2 with:
+  git clone --branch v0.8.2 --depth 1 https://github.com/simd-everywhere/simde.git \"$simde_default_path\"
+ARM64 example: $arm_configure_example
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+        for simde_header in sse.h sse2.h sse3.h sse4.1.h; do
+          if test ! -f "$with_simde/simde/x86/$simde_header"
+then :
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "SIMDe header is missing: $with_simde/simde/x86/$simde_header
+Expected include location: $with_simde
+Install SIMDe v0.8.2 with:
+  git clone --branch v0.8.2 --depth 1 https://github.com/simd-everywhere/simde.git \"$simde_default_path\"
+ARM64 example: $arm_configure_example
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+        done
+        SIMDE_CXXFLAGS="-I$with_simde"
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: using path: $with_simde" >&5
 printf "%s\n" "using path: $with_simde" >&6; }
 else $as_nop
@@ -5678,21 +5768,45 @@ fi
     # Add SIMDe flags
     CXXFLAGS=$CXXFLAGS" -DNBODY_USE_SIMDE $SIMDE_CXXFLAGS"
 
-    # Allow SSE on ARM with SIMDe
-    case $host_cpu in #(
-  aarch64*|arm*) :
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the required SIMDe headers compile" >&5
+printf %s "checking whether the required SIMDe headers compile... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-          # On ARM, if SIMD is not explicitly set or is 'test', default to SSE with SIMDe
-          if test "x$enable_simd" = xno -o "x$enable_simd" = xtest
+#include <simde/x86/sse.h>
+#include <simde/x86/sse2.h>
+#include <simde/x86/sse3.h>
+#include <simde/x86/sse4.1.h>
+
+int
+main (void)
+{
+simde__m128 value = simde_mm_setzero_ps(); (void) value;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
 then :
-  enable_simd=sse
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+else $as_nop
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "the required SIMDe headers are not compilable.
+Checked include location: ${with_simde:-system compiler include paths}
+Required headers: simde/x86/sse.h, sse2.h, sse3.h, sse4.1.h
+Install SIMDe v0.8.2 with:
+  git clone --branch v0.8.2 --depth 1 https://github.com/simd-everywhere/simde.git \"$simde_default_path\"
+ARM64 example: $arm_configure_example
+See \`config.log' for more details" "$LINENO" 5; }
 fi
-          if test "x$enable_simd" = xavx
-then :
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: AVX is not supported on ARM, falling back to SSE with SIMDe" >&5
-printf "%s\n" "$as_me: WARNING: AVX is not supported on ARM, falling back to SSE with SIMDe" >&2;}
-              enable_simd=sse
-fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+
+    # Allow SSE on ARM with SIMDe
+    case $target_architecture in #(
+  ARM64) :
+
           SIMD_CHECK=1 ;; #(
   *) :
      ;;
@@ -6013,8 +6127,8 @@ then :
   # Skip -msse/-mavx flag check for SIMDe on ARM
                 if test "x$with_simde" != xno
 then :
-  case $host_cpu in #(
-  aarch64*|arm*) :
+  case $target_architecture in #(
+  ARM64) :
 
                          # SIMDe on ARM - don't need -msse flag, RESULT set here
                          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using SIMDe for SIMD support on ARM" >&5
@@ -7590,6 +7704,17 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: ----------------------Configure Summary--------------------" >&5
 printf "%s\n" "$as_me: ----------------------Configure Summary--------------------" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Target architecture: $target_architecture" >&5
+printf "%s\n" "$as_me:      Target architecture: $target_architecture" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Canonical host:      $host" >&5
+printf "%s\n" "$as_me:      Canonical host:      $host" >&6;}
+if test "x$build" != "x$host"
+then :
+
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Canonical build:     $build" >&5
+printf "%s\n" "$as_me:      Canonical build:     $build" >&6;}
+
+fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: --Features:" >&5
 printf "%s\n" "$as_me: --Features:" >&6;}
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Using MPI:      $enable_mpi" >&5
@@ -8839,4 +8964,5 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 printf "%s\n" "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
+
 

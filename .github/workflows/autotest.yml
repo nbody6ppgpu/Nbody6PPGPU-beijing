@@ -8,13 +8,33 @@ on:
 
 jobs:
   new_namelist_input_10k:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v3
 
     - name: install dependencies
-      run: sudo apt update && sudo apt install -y wget gfortran gcc g++; gcc --version; g++ --version; gfortran --version;
+      run: sudo apt update && sudo apt install -y autoconf=2.71-2 wget gfortran gcc g++; gcc --version; g++ --version; gfortran --version;
+
+    - name: configure architecture regressions
+      run: |
+        test "$(autoconf --version | sed -n '1s/.* //p')" = 2.71
+        cp configure configure.committed
+        autoconf
+        diff -u configure.committed configure
+
+        ./configure --with-par=1k --disable-mpi --disable-gpu > x86-configure.log
+        grep -Fq "target architecture: x86_64" x86-configure.log
+        grep -Fq "Canonical host:      x86_64" x86-configure.log
+        grep -Fq "mcmodel:        large" x86-configure.log
+
+        if ./configure --host=riscv64-linux-gnu > unsupported.log 2>&1; then
+          echo "unsupported host unexpectedly succeeded"
+          exit 1
+        fi
+        grep -Fq "Supported target architectures: x86_64 and ARM64/aarch64" unsupported.log
+        grep -Fq "x86_64 example:" unsupported.log
+        grep -Fq "ARM64 example:" unsupported.log
 
     - name: configure
       run: >
@@ -136,4 +156,3 @@ jobs:
         export OMP_NUM_THREADS=$((`grep -c processor /proc/cpuinfo` < 32 ? `grep -c processor /proc/cpuinfo` : 32)); 
         export execname=`ls nbody6++*`; 
         ./$execname < 1k.inp.new;
-

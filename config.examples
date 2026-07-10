@@ -1,2 +1,5 @@
-./configure --with-par=b1m --enable-mcmodel=large 
+# x86_64: large memory model with native SIMD auto-detection
+./configure --with-par=b1m --enable-mcmodel=large --disable-gpu
 
+# ARM64/aarch64: clone SIMDe v0.8.2 beside this repository as ../simde
+./configure --with-par=b1m --with-simde="../simde" --enable-simd=sse --disable-gpu

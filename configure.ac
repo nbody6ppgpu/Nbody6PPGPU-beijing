@@ -9,6 +9,26 @@ AC_INIT([Nbody6++], [1.0], [longwang.astro@gmail.com])
 # Detect host architecture for platform-specific settings
 AC_CANONICAL_HOST
 
+source_root=`cd "$srcdir" && pwd`
+source_parent=`cd "$source_root/.." && pwd`
+simde_default_path=${source_parent%/}/simde
+arm_configure_example="./configure --with-par=b1m --with-simde=\"$simde_default_path\" --enable-simd=sse --disable-gpu"
+x86_configure_example='./configure --with-par=b1m --enable-mcmodel=large --disable-gpu'
+
+AS_CASE([$host_cpu],
+  [x86_64|amd64], [target_architecture=x86_64],
+  [aarch64|arm64], [target_architecture=ARM64],
+  [AC_MSG_ERROR([unsupported target architecture '$host_cpu' (canonical host: $host).
+Supported target architectures: x86_64 and ARM64/aarch64.
+x86_64 example: $x86_configure_example
+ARM64 example: $arm_configure_example])])
+
+AC_MSG_NOTICE([target architecture: $target_architecture])
+AC_MSG_NOTICE([canonical host: $host])
+AS_IF([test "x$build" != "x$host"], [
+  AC_MSG_NOTICE([cross compilation: build=$build, host=$host])
+])
+
 m4_include([macro/ax_check_compile_flag.m4])
 m4_include([macro/ax_fc_check_bounds.m4])
 #m4_include([macro/ax_check_cuda.m4])
@@ -44,15 +64,17 @@ AC_ARG_ENABLE([mcmodel],
      [AS_HELP_STRING([--enable-mcmodel=ARG],
          [Use compiler option -mcmodel, avaiable arguments --> small; -->medium; -->large; -->no
           (default is large on x86, disabled on ARM64 where mcmodel is not supported)])],
-     [ case "${enableval}" in
+     [ mcmodel_was_specified=yes
+       case "${enableval}" in
        large) enable_mcmodel=large ;;
        medium) enable_mcmodel=medium ;;
        small) enable_mcmodel=small ;;
        no) enable_mcmodel=no ;;
        *) AC_MSG_ERROR(bad value ${enableval} for --enable-mcmodel) ;;
        esac],
-     [AS_CASE([$host_cpu],
-       [aarch64*|arm*], [enable_mcmodel=no],
+     [mcmodel_was_specified=no
+      AS_CASE([$target_architecture],
+       [ARM64], [enable_mcmodel=no],
        [enable_mcmodel=large])])
 
 AC_ARG_ENABLE([debug],
@@ -69,30 +91,52 @@ AC_ARG_ENABLE([gpu],
 
 AC_ARG_ENABLE([simd],
      [AS_HELP_STRING([--enable-simd=ARG],
-         [SIMD instruction set acceleration for force and potential, available arguments --> sse: Streaming SIMD Extensions (also works on ARM with SIMDe); --> avx: Advanced Vector Extensions (x86 only); --> no: switch off SIMD; (default is autodetecting on x86, disabled on ARM64 unless --with-simde is specified)])],
-     [ case "${enableval}" in
+         [SIMD instruction set acceleration for force and potential, available arguments --> sse: Streaming SIMD Extensions (required on ARM64 with SIMDe); --> avx: Advanced Vector Extensions (x86_64 only); --> no: switch off SIMD (x86_64 only); (default is autodetecting on x86_64 and sse on ARM64)])],
+     [ simd_was_specified=yes
+       case "${enableval}" in
        avx) enable_simd=avx ;;
        sse) enable_simd=sse ;;
        no) enable_simd=no  ;;
        *) AC_MSG_ERROR(bad value ${enableval} for --enable-simd) ;;
        esac],
-     [AS_CASE([$host_cpu],
-       [aarch64*|arm*], [enable_simd=no],
+     [simd_was_specified=no
+      AS_CASE([$target_architecture],
+       [ARM64], [enable_simd=sse],
        [enable_simd=test])])
 
 # SIMDe support for ARM and cross-platform SIMD
 AC_ARG_WITH([simde],
      [AS_HELP_STRING([--with-simde@<:@=PATH@:>@],
-         [Use SIMDe (SIMD Everywhere) library for ARM/cross-platform SIMD support. PATH is the directory containing the simde headers (e.g., /usr/local/include). If PATH is not specified, default system include paths are used.])],
-     [with_simde=$withval],
-     [with_simde=no])
+         [Use SIMDe headers. On ARM64, the default PATH is the source sibling ../simde; a bare --with-simde uses system include paths; --without-simde is invalid.])],
+     [simde_was_specified=yes
+      with_simde=$withval],
+     [simde_was_specified=no
+      AS_IF([test "x$target_architecture" = xARM64],
+        [with_simde=$simde_default_path],
+        [with_simde=no])])
+
+AS_IF([test "x$target_architecture" = xARM64], [
+  AS_IF([test "x$enable_simd" = xavx],
+    [AC_MSG_ERROR([option --enable-simd=avx conflicts with target architecture ARM64; AVX is x86_64-only.
+ARM64 example: $arm_configure_example])])
+  AS_IF([test "x$enable_simd" = xno],
+    [AC_MSG_ERROR([option --enable-simd=no conflicts with target architecture ARM64; the SSE kernels through SIMDe are required.
+ARM64 example: $arm_configure_example])])
+  AS_IF([test "x$enable_mcmodel" != xno],
+    [AC_MSG_ERROR([option --enable-mcmodel=$enable_mcmodel conflicts with target architecture ARM64; use --enable-mcmodel=no or omit the option.
+ARM64 example: $arm_configure_example])])
+  AS_IF([test "x$with_simde" = xno],
+    [AC_MSG_ERROR([option --without-simde conflicts with target architecture ARM64; SIMDe is required.
+ARM64 example: $arm_configure_example])])
+])
 
 # Normalize relative path for SIMDe to an absolute path (build runs in ./build)
 AS_IF([test "x$with_simde" != xno && test "x$with_simde" != xyes && test "x$with_simde" != x],
    [AS_CASE([$with_simde],
       [/*], [],
       [*], [AS_IF([test -d "$with_simde"],
-             [with_simde=`cd "$with_simde" && pwd`])])])
+             [with_simde=`cd "$with_simde" && pwd`],
+             [with_simde="$source_root/$with_simde"])])])
 
 AC_ARG_ENABLE([hdf5],
      [AS_HELP_STRING([--enable-hdf5],
@@ -223,7 +267,20 @@ AS_IF([test "x$with_simde" != xno],
    [AC_MSG_CHECKING([for SIMDe support])
     # Check if simde path was provided
     AS_IF([test "x$with_simde" != xyes && test "x$with_simde" != x],
-       [SIMDE_CXXFLAGS="-I$with_simde"
+       [AS_IF([test ! -d "$with_simde"],
+          [AC_MSG_FAILURE([SIMDe include location does not exist: $with_simde
+Install SIMDe v0.8.2 with:
+  git clone --branch v0.8.2 --depth 1 https://github.com/simd-everywhere/simde.git "$simde_default_path"
+ARM64 example: $arm_configure_example])])
+        for simde_header in sse.h sse2.h sse3.h sse4.1.h; do
+          AS_IF([test ! -f "$with_simde/simde/x86/$simde_header"],
+            [AC_MSG_FAILURE([SIMDe header is missing: $with_simde/simde/x86/$simde_header
+Expected include location: $with_simde
+Install SIMDe v0.8.2 with:
+  git clone --branch v0.8.2 --depth 1 https://github.com/simd-everywhere/simde.git "$simde_default_path"
+ARM64 example: $arm_configure_example])])
+        done
+        SIMDE_CXXFLAGS="-I$with_simde"
         AC_MSG_RESULT([using path: $with_simde])],
        [SIMDE_CXXFLAGS=""
         AS_IF([test "x$with_simde" = x], [with_simde=yes])
@@ -232,15 +289,24 @@ AS_IF([test "x$with_simde" != xno],
     # Add SIMDe flags
     CXXFLAGS=$CXXFLAGS" -DNBODY_USE_SIMDE $SIMDE_CXXFLAGS"
 
+    AC_MSG_CHECKING([whether the required SIMDe headers compile])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <simde/x86/sse.h>
+#include <simde/x86/sse2.h>
+#include <simde/x86/sse3.h>
+#include <simde/x86/sse4.1.h>
+]], [[simde__m128 value = simde_mm_setzero_ps(); (void) value;]])],
+      [AC_MSG_RESULT([yes])],
+      [AC_MSG_FAILURE([the required SIMDe headers are not compilable.
+Checked include location: ${with_simde:-system compiler include paths}
+Required headers: simde/x86/sse.h, sse2.h, sse3.h, sse4.1.h
+Install SIMDe v0.8.2 with:
+  git clone --branch v0.8.2 --depth 1 https://github.com/simd-everywhere/simde.git "$simde_default_path"
+ARM64 example: $arm_configure_example])])
+
     # Allow SSE on ARM with SIMDe
-    AS_CASE([$host_cpu],
-       [aarch64*|arm*], [
-          # On ARM, if SIMD is not explicitly set or is 'test', default to SSE with SIMDe
-          AS_IF([test "x$enable_simd" = xno -o "x$enable_simd" = xtest],
-             [enable_simd=sse])
-          AS_IF([test "x$enable_simd" = xavx],
-             [AC_MSG_WARN([AVX is not supported on ARM, falling back to SSE with SIMDe])
-              enable_simd=sse])
+    AS_CASE([$target_architecture],
+       [ARM64], [
           SIMD_CHECK=1])
    ])
 
@@ -282,8 +348,8 @@ AS_IF([test "x$OPENMP_CXXFLAGS" != x],
         [AS_IF([test "x$enable_simd" != xno],
                [# Skip -msse/-mavx flag check for SIMDe on ARM
                 AS_IF([test "x$with_simde" != xno],
-                   [AS_CASE([$host_cpu],
-                      [aarch64*|arm*], [
+                   [AS_CASE([$target_architecture],
+                      [ARM64], [
                          # SIMDe on ARM - don't need -msse flag, RESULT set here
                          AC_MSG_NOTICE([Using SIMDe for SIMD support on ARM])
                          RESULT=$RESULT".sse"
@@ -716,6 +782,11 @@ AC_SUBST([LMAX])
 AC_SUBST([MMAX])
 
 AC_MSG_NOTICE([----------------------Configure Summary--------------------])
+AC_MSG_NOTICE([     Target architecture: $target_architecture])
+AC_MSG_NOTICE([     Canonical host:      $host])
+AS_IF([test "x$build" != "x$host"], [
+  AC_MSG_NOTICE([     Canonical build:     $build])
+])
 AC_MSG_NOTICE([--Features:])
 AC_MSG_NOTICE([     Using MPI:      $enable_mpi])
 AC_MSG_NOTICE([     Using GPU:      $enable_gpu])
