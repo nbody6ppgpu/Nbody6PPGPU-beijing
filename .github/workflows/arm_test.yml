@@ -1,0 +1,84 @@
+name: ARM64 simulation test
+
+on:
+  push:
+    branches: [stable, dev]
+  pull_request:
+    branches: [stable, dev]
+
+permissions:
+  contents: read
+
+jobs:
+  arm64_qemu_1k:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU for ARM64 emulation
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build ARM64 dependencies
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ci/Dockerfile.deps
+          platforms: linux/arm64
+          load: true
+          push: false
+          tags: nbody6ppgpu-arm-deps:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and test on ARM64
+        run: |
+          docker run --rm --platform linux/arm64 \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            nbody6ppgpu-arm-deps:test \
+            bash -o pipefail -c '
+              autoconf --version | head -1
+              test "$(autoconf --version | sed -n "1s/.* //p")" = 2.71
+              uname -m
+
+              git clone --branch v0.8.2 --depth 1 \
+                https://github.com/simd-everywhere/simde.git /tmp/simde
+
+              ./configure --with-par=1k --disable-gpu \
+                --with-simde=/tmp/simde --enable-simd=sse
+              make clean
+              make -j 4
+
+              mkdir -p autotest
+              cp -p examples/example_1k/1k.inp autotest/
+              cd autotest
+              sed -i -E "s/\bTCRIT=[0-9]+/TCRIT=2/g" 1k.inp
+              ulimit -s unlimited
+              export OMP_NUM_THREADS=1
+              execname=$(find ../build -maxdepth 1 -type f -name "nbody6++*" -perm -111 -print -quit)
+              test -n "$execname"
+              mpirun --allow-run-as-root --bind-to none -n 2 \
+                "$execname" < 1k.inp 2>&1 | tee errout
+              grep -Fq "END RUN" errout
+              ! grep -Eiq "(^|[^[:alpha:]])nan([^[:alpha:]]|$)|segmentation fault" errout
+            '
+
+      - name: Upload ARM64 simulation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arm64-autotest-output
+          if-no-files-found: warn
+          path: |
+            autotest/errout
+            autotest/OUT*
+            autotest/*.7
+            autotest/*.82
+            autotest/*.83*

@@ -5,6 +5,10 @@ AC_PREREQ([2.69])
 
 AC_INIT([Nbody6++], [1.0], [longwang.astro@gmail.com])
 #AC_CONFIG_MACRO_DIR([./macro])
+
+# Detect host architecture for platform-specific settings
+AC_CANONICAL_HOST
+
 m4_include([macro/ax_check_compile_flag.m4])
 m4_include([macro/ax_fc_check_bounds.m4])
 #m4_include([macro/ax_check_cuda.m4])
@@ -38,15 +42,18 @@ AC_ARG_ENABLE([mpi],
 
 AC_ARG_ENABLE([mcmodel],
      [AS_HELP_STRING([--enable-mcmodel=ARG],
-         [Use compiler option -mcmodel, avaiable arguments --> small; -->medium; -->large
-          (defalut is medium)])],
+         [Use compiler option -mcmodel, avaiable arguments --> small; -->medium; -->large; -->no
+          (default is large on x86, disabled on ARM64 where mcmodel is not supported)])],
      [ case "${enableval}" in
        large) enable_mcmodel=large ;;
        medium) enable_mcmodel=medium ;;
        small) enable_mcmodel=small ;;
+       no) enable_mcmodel=no ;;
        *) AC_MSG_ERROR(bad value ${enableval} for --enable-mcmodel) ;;
        esac],
-     [enable_mcmodel=medium])
+     [AS_CASE([$host_cpu],
+       [aarch64*|arm*], [enable_mcmodel=no],
+       [enable_mcmodel=large])])
 
 AC_ARG_ENABLE([debug],
      [AS_HELP_STRING([--enable-debug],
@@ -62,14 +69,30 @@ AC_ARG_ENABLE([gpu],
 
 AC_ARG_ENABLE([simd],
      [AS_HELP_STRING([--enable-simd=ARG],
-         [Intel CPU SIMD instruction set acceleration for force and potential, avaiable arguments --> sse: Streaming SIMD Extensions; --> avx: Advanced Vector Extensions; --> no: switch off SIMD; (default is autodetecting)])],
+         [SIMD instruction set acceleration for force and potential, available arguments --> sse: Streaming SIMD Extensions (also works on ARM with SIMDe); --> avx: Advanced Vector Extensions (x86 only); --> no: switch off SIMD; (default is autodetecting on x86, disabled on ARM64 unless --with-simde is specified)])],
      [ case "${enableval}" in
        avx) enable_simd=avx ;;
        sse) enable_simd=sse ;;
        no) enable_simd=no  ;;
        *) AC_MSG_ERROR(bad value ${enableval} for --enable-simd) ;;
        esac],
-     [enable_simd=test])
+     [AS_CASE([$host_cpu],
+       [aarch64*|arm*], [enable_simd=no],
+       [enable_simd=test])])
+
+# SIMDe support for ARM and cross-platform SIMD
+AC_ARG_WITH([simde],
+     [AS_HELP_STRING([--with-simde@<:@=PATH@:>@],
+         [Use SIMDe (SIMD Everywhere) library for ARM/cross-platform SIMD support. PATH is the directory containing the simde headers (e.g., /usr/local/include). If PATH is not specified, default system include paths are used.])],
+     [with_simde=$withval],
+     [with_simde=no])
+
+# Normalize relative path for SIMDe to an absolute path (build runs in ./build)
+AS_IF([test "x$with_simde" != xno && test "x$with_simde" != xyes && test "x$with_simde" != x],
+   [AS_CASE([$with_simde],
+      [/*], [],
+      [*], [AS_IF([test -d "$with_simde"],
+             [with_simde=`cd "$with_simde" && pwd`])])])
 
 AC_ARG_ENABLE([hdf5],
      [AS_HELP_STRING([--enable-hdf5],
@@ -127,10 +150,11 @@ AX_CHECK_COMPILE_FLAG([-fPIC],
           [compiler option -fPIC/-fpic not avaiable, please use GNU or Intel Fortran compiler])]
          )])
 
-AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
-   [FCFLAGS=$FCFLAGS" -mcmodel="$enable_mcmodel],
-   [AC_MSG_FAILURE(
-       [$FC compiler option -mcmodel=$enable_mcmodel is not avaiable])])
+AS_IF([test "x$enable_mcmodel" != xno],
+   [AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
+      [FCFLAGS=$FCFLAGS" -mcmodel="$enable_mcmodel],
+      [AC_MSG_FAILURE(
+          [$FC compiler option -mcmodel=$enable_mcmodel is not avaiable])])])
 
 
 AC_OPENMP
@@ -178,7 +202,7 @@ CXXFLAGS=$CXXFLAGS' -I../include'
 AX_CHECK_COMPILE_FLAG([-march=native],
     [CXXFLAGS=$CXXFLAGS" -march=native"],[])
 
-	 
+
 AX_CHECK_COMPILE_FLAG([-fPIC],
      CXXFLAGS=$CXXFLAGS" -fPIC",
      [AX_CHECK_COMPILE_FLAG([-fpic],
@@ -187,14 +211,41 @@ AX_CHECK_COMPILE_FLAG([-fPIC],
           [compiler option -fPIC/-fpic not avaiable, please use GNU or Intel C++ compiler])]
          )])
 
-AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
-   [CXXFLAGS=$CXXFLAGS" -mcmodel="$enable_mcmodel],
-   [AC_MSG_FAILURE(
-       [$CXX compiler option -mcmodel=$enable_mcmodel is not avaiable])])
+AS_IF([test "x$enable_mcmodel" != xno],
+   [AX_CHECK_COMPILE_FLAG([-mcmodel=$enable_mcmodel],
+      [CXXFLAGS=$CXXFLAGS" -mcmodel="$enable_mcmodel],
+      [AC_MSG_FAILURE(
+          [$CXX compiler option -mcmodel=$enable_mcmodel is not avaiable])])])
 
 # SIMD part
+# Handle SIMDe for ARM/cross-platform SIMD support
+AS_IF([test "x$with_simde" != xno],
+   [AC_MSG_CHECKING([for SIMDe support])
+    # Check if simde path was provided
+    AS_IF([test "x$with_simde" != xyes && test "x$with_simde" != x],
+       [SIMDE_CXXFLAGS="-I$with_simde"
+        AC_MSG_RESULT([using path: $with_simde])],
+       [SIMDE_CXXFLAGS=""
+        AS_IF([test "x$with_simde" = x], [with_simde=yes])
+        AC_MSG_RESULT([using system include paths])])
+
+    # Add SIMDe flags
+    CXXFLAGS=$CXXFLAGS" -DNBODY_USE_SIMDE $SIMDE_CXXFLAGS"
+
+    # Allow SSE on ARM with SIMDe
+    AS_CASE([$host_cpu],
+       [aarch64*|arm*], [
+          # On ARM, if SIMD is not explicitly set or is 'test', default to SSE with SIMDe
+          AS_IF([test "x$enable_simd" = xno -o "x$enable_simd" = xtest],
+             [enable_simd=sse])
+          AS_IF([test "x$enable_simd" = xavx],
+             [AC_MSG_WARN([AVX is not supported on ARM, falling back to SSE with SIMDe])
+              enable_simd=sse])
+          SIMD_CHECK=1])
+   ])
+
 AS_IF([test "x$OPENMP_CXXFLAGS" != x],
-   [AS_IF([test "x$enable_simd" == xtest],
+   [AS_IF([test "x$enable_simd" = xtest],
        [c_simd_check="avx"]
        [AC_CHECK_FILE(["/proc/cpuinfo"],
          [AC_PROG_GREP
@@ -229,24 +280,51 @@ AS_IF([test "x$OPENMP_CXXFLAGS" != x],
               ],
               [enable_simd=no])])],
         [AS_IF([test "x$enable_simd" != xno],
-               [AC_CHECK_FILE(["/proc/cpuinfo"],
-                  [AC_PROG_GREP
-                   SIMD_CHECK=`grep -c $enable_simd /proc/cpuinfo`],
-                   SIMD_CHECK=-1)
-                AC_MSG_CHECKING([whether current CPU support $enable_simd])
-                AS_IF([test "$SIMD_CHECK" -lt 0],
-                      [AC_MSG_RESULT([unknown])],
-                      [test "$SIMD_CHECK" -gt 0],
-                      [AC_MSG_RESULT([yes])],
-                      [AC_MSG_RESULT([no])])
-                AX_CHECK_COMPILE_FLAG([-m$enable_simd],
-                  [CXXFLAGS=$CXXFLAGS" -m"$enable_simd
-                   RESULT=$RESULT"."$enable_simd
-                  ],
-                  [AC_MSG_FAILURE(
-                     [$CXX compiler option -m$enable_simd is not avaiable])])])])],
-     enable_simd=no
-     SIMD_CHECK=-2)
+               [# Skip -msse/-mavx flag check for SIMDe on ARM
+                AS_IF([test "x$with_simde" != xno],
+                   [AS_CASE([$host_cpu],
+                      [aarch64*|arm*], [
+                         # SIMDe on ARM - don't need -msse flag, RESULT set here
+                         AC_MSG_NOTICE([Using SIMDe for SIMD support on ARM])
+                         RESULT=$RESULT".sse"
+                         SIMD_CHECK=1],
+                      [# SIMDe on x86 - still check for SSE support
+                       AC_CHECK_FILE(["/proc/cpuinfo"],
+                          [AC_PROG_GREP
+                           SIMD_CHECK=`grep -c $enable_simd /proc/cpuinfo`],
+                           SIMD_CHECK=-1)
+                        AC_MSG_CHECKING([whether current CPU support $enable_simd])
+                        AS_IF([test "$SIMD_CHECK" -lt 0],
+                              [AC_MSG_RESULT([unknown])],
+                              [test "$SIMD_CHECK" -gt 0],
+                              [AC_MSG_RESULT([yes])],
+                              [AC_MSG_RESULT([no])])
+                        AX_CHECK_COMPILE_FLAG([-m$enable_simd],
+                          [CXXFLAGS=$CXXFLAGS" -m"$enable_simd
+                           RESULT=$RESULT"."$enable_simd
+                          ],
+                          [AC_MSG_FAILURE(
+                             [$CXX compiler option -m$enable_simd is not available])])])],
+                   [# No SIMDe - regular x86 SIMD
+                    AC_CHECK_FILE(["/proc/cpuinfo"],
+                       [AC_PROG_GREP
+                        SIMD_CHECK=`grep -c $enable_simd /proc/cpuinfo`],
+                        SIMD_CHECK=-1)
+                     AC_MSG_CHECKING([whether current CPU support $enable_simd])
+                     AS_IF([test "$SIMD_CHECK" -lt 0],
+                           [AC_MSG_RESULT([unknown])],
+                           [test "$SIMD_CHECK" -gt 0],
+                           [AC_MSG_RESULT([yes])],
+                           [AC_MSG_RESULT([no])])
+                     AX_CHECK_COMPILE_FLAG([-m$enable_simd],
+                       [CXXFLAGS=$CXXFLAGS" -m"$enable_simd
+                        RESULT=$RESULT"."$enable_simd
+                       ],
+                       [AC_MSG_FAILURE(
+                          [$CXX compiler option -m$enable_simd is not available])])])])])],
+     [AS_IF([test "x$with_simde" = xno],
+        [enable_simd=no
+         SIMD_CHECK=-2])])
 
 # FIXME: Replace `main' with a function in `-llvisit':
 # AC_CHECK_LIB([lvisit], [main])
@@ -269,7 +347,7 @@ AC_CHECK_FUNCS([gettimeofday memset sqrt strchr])
 
 #CUDA part
 # Checks for MPI support
-AC_ARG_WITH([cuda], 
+AC_ARG_WITH([cuda],
      [AS_HELP_STRING([--with-cuda=PREFIX],
          [Prefix of your CUDA installation])],
      [cuda_prefix=$withval],
@@ -281,16 +359,26 @@ AC_ARG_WITH([cuda_sdk],
      [cuda_sdk_prefix=$withval],
      [cuda_sdk_prefix="/usr/local/cuda/samples"])
 
+# Normalize relative CUDA paths to absolute paths (build runs in ./build)
+AS_CASE([$cuda_prefix],
+   [/*], [],
+   [*], [AS_IF([test -d "$cuda_prefix"],
+          [cuda_prefix=`cd "$cuda_prefix" && pwd`])])
+AS_CASE([$cuda_sdk_prefix],
+   [/*], [],
+   [*], [AS_IF([test -d "$cuda_sdk_prefix"],
+          [cuda_sdk_prefix=`cd "$cuda_sdk_prefix" && pwd`])])
+
 AS_IF([test "x$enable_gpu" != xno],
      [AC_CHECK_PROG([NVCC], [nvcc], [nvcc], [none])
-      AS_IF([test "x$NVCC" == xnone], 
+      AS_IF([test "x$NVCC" == xnone],
             [AC_CHECK_PROG([NVCC], [nvcc], [$cuda_prefix/bin/nvcc], [none], [$cuda_prefix/bin])
-             AS_IF([test "x$NVCC" == xnone], 
+             AS_IF([test "x$NVCC" == xnone],
                    [AC_MSG_FAILURE(
                        [Cannot find CUDA compiler nvcc, please check whether nvcc is in environment PATH or use --with-cuda=PREFIX to provide the PATH of CUDA installation])])],
             [AC_PROG_SED
              cuda_prefix=`which nvcc|sed 's:/bin/nvcc::'`])
-      AC_CHECK_LIB([cudart], [main], 
+      AC_CHECK_LIB([cudart], [main],
           [LIBS=$LIBS' -lcudart'],
           [AC_CHECK_FILE(["$cuda_prefix/lib64/libcudart.so"],
               LIBS=$LIBS" -L$cuda_prefix/lib64 -lcudart",
@@ -318,7 +406,7 @@ AS_IF([test "x$enable_gpu" != xno],
       FCFLAGS=$FCFLAGS' $(GPU_FLAGS)'
       EXTRASRC=$EXTRASRC' $(GPU_FSOURCES)'
       AS_IF([test "x$OPENMP_CXXFLAGS" != x ],
-           EXTRAOBJ=$EXTRAOBJ' $(CUDA_OBJECTS)', 
+           EXTRAOBJ=$EXTRAOBJ' $(CUDA_OBJECTS)',
            EXTRAOBJ=$EXTRAOBJ' $(CUDA_OBJECTS_SINGLE)')
       LDFLAGS=$LDFLAGS' -L'$CUDA_PREFIX
       dnl AX_CHECK_COMPILE_FLAG([-Xcompiler],[],
@@ -385,13 +473,53 @@ AS_IF([test "x$enable_debug" != xno],
 
 
 # params.h
-AC_ARG_WITH([par], 
+AC_ARG_WITH([par],
      [AS_HELP_STRING([--with-par=size],
-         [Size of basic parameters (NMAX, KMAX, LMAX, MMAX) in params.h. Avaiable values: 1m, 512k, 256k, 128k, 64k, 32k, 16k, 8k, custom. The value of this size is NMAX, with prefix 'b' the K.S. binary size KMAX is half of NMAX and NMAX is set to 1.5*NMAX. LMAX is 600 above 64k, 500 above 16k. MMAX is 1024 above 64k, 512 above 16k. MMAX is doubled with prefix 'b'. Defaultsize is b16k])],
+         [Size of basic parameters (NMAX, KMAX, LMAX, MMAX) in params.h. Available values: 128m, 64m, 32m, 16m, 1m, 512k, 256k, 128k, 64k, 32k, 16k, 8k, 4k, 2k, 1k, custom. The value of this size is NMAX, with prefix 'b' the K.S. binary size KMAX is half of NMAX and NMAX is set to 1.5*NMAX. LMAX is 600 above 64k, 500 above 16k. MMAX is 1024 above 64k, 512 above 16k. MMAX is doubled with prefix 'b'. Defaultsize is b16k])],
      [par_size=$withval],
      [par_size=b16k])
 
-AS_IF([test "x$par_size" == x10m],
+AS_IF([test "x$par_size" == x128m],
+      [NMAX=134217728
+       KMAX=131072
+       LMAX=600
+       MMAX=1024],
+      [test "x$par_size" == xb128m],
+      [NMAX=201326592
+       KMAX=67108864
+       LMAX=600
+       MMAX=2048],
+      [test "x$par_size" == x64m],
+      [NMAX=67108864
+       KMAX=131072
+       LMAX=600
+       MMAX=1024],
+      [test "x$par_size" == xb64m],
+      [NMAX=100663296
+       KMAX=33554432
+       LMAX=600
+       MMAX=2048],
+      [test "x$par_size" == x32m],
+      [NMAX=33554432
+       KMAX=131072
+       LMAX=600
+       MMAX=1024],
+      [test "x$par_size" == xb32m],
+      [NMAX=50331648
+       KMAX=16777216
+       LMAX=600
+       MMAX=2048],
+      [test "x$par_size" == x16m],
+      [NMAX=16777216
+       KMAX=2097152
+       LMAX=600
+       MMAX=1024],
+      [test "x$par_size" == xb16m],
+      [NMAX=25165824
+       KMAX=8388608
+       LMAX=600
+       MMAX=2048],
+      [test "x$par_size" == x10m],
       [NMAX=11048576
        KMAX=131072
        LMAX=600
@@ -413,12 +541,12 @@ AS_IF([test "x$par_size" == x10m],
        MMAX=2048],
       [test "x$par_size" == x4m],
       [NMAX=4194304
-       KMAX=131072
+       KMAX=524288
        LMAX=600
        MMAX=1024],
       [test "x$par_size" == xb4m],
-      [NMAX=15107200
-       KMAX=1048576
+      [NMAX=6291456
+       KMAX=2097152
        LMAX=600
        MMAX=2048],
       [test "x$par_size" == x1m],
@@ -501,6 +629,36 @@ AS_IF([test "x$par_size" == x10m],
        KMAX=4096
        LMAX=400
        MMAX=512],
+      [test "x$par_size" == x4k],
+      [NMAX=4096
+       KMAX=1024
+       LMAX=400
+       MMAX=128],
+      [test "x$par_size" == xb4k],
+      [NMAX=6144
+       KMAX=2048
+       LMAX=400
+       MMAX=256],
+      [test "x$par_size" == x2k],
+      [NMAX=2048
+       KMAX=512
+       LMAX=400
+       MMAX=128],
+      [test "x$par_size" == xb2k],
+      [NMAX=3072
+       KMAX=1024
+       LMAX=400
+       MMAX=256],
+      [test "x$par_size" == x1k],
+      [NMAX=1024
+       KMAX=256
+       LMAX=400
+       MMAX=128],
+      [test "x$par_size" == xb1k],
+      [NMAX=1536
+       KMAX=512
+       LMAX=400
+       MMAX=256],
       [test "x$par_size" == xcustom],
       [flag_input_par=yes],
       [NMAX=24576
@@ -508,25 +666,25 @@ AS_IF([test "x$par_size" == x10m],
        LMAX=400
        MMAX=512])
 
-AC_ARG_WITH([nmax], 
+AC_ARG_WITH([nmax],
      [AS_HELP_STRING([--with-nmax=size],
          [Set Maximum number of particles (will overwrite value set in --with-par)])],
      [NMAX=$withval],
      [flag_par_miss=yes])
 
-AC_ARG_WITH([kmax], 
+AC_ARG_WITH([kmax],
      [AS_HELP_STRING([--with-kmax=size],
          [Set Maximum number of K.S. particles (will overwrite value set in --with-par)])],
      [KMAX=$withval],
      [flag_par_miss=yes])
 
-AC_ARG_WITH([lmax], 
+AC_ARG_WITH([lmax],
      [AS_HELP_STRING([--with-lmax=size],
          [Set Maximum number of neighbor list particles (will overwrite value set in --with-par)])],
      [LMAX=$withval],
      [flag_par_miss=yes])
 
-AC_ARG_WITH([mmax], 
+AC_ARG_WITH([mmax],
      [AS_HELP_STRING([--with-mmax=size],
          [Set Maximum number of merger (stable triple) particles (will overwrite value set in --with-par)])],
      [MMAX=$withval],
@@ -536,14 +694,14 @@ AS_IF([test "x$flag_input_par" == xyes],
   [AS_IF([test "x$flag_par_miss" == xyes],
         [AC_MSG_FAILURE(
              [Parameters are not completely set, please make sure that all four option (--with-nmax, --with-kmax, --with-lmax, --with-mmax) are set])])])
-      
+
 
 # Extral tools
 AS_IF([test "x$enable_tools" != xno],
    [EXTRARESULT=' $(EXTRATOOLS)'],
    [EXTRARESULT=''])
 
-AC_SUBST([CUFLAGS])	
+AC_SUBST([CUFLAGS])
 AC_SUBST([FCFLAGS])
 AC_SUBST([CXXFLAGS])
 AC_SUBST([RESULT])
@@ -563,6 +721,11 @@ AC_MSG_NOTICE([     Using MPI:      $enable_mpi])
 AC_MSG_NOTICE([     Using GPU:      $enable_gpu])
 AC_MSG_NOTICE([     CUDA version:   $CUDA_VERSION])
 AC_MSG_NOTICE([     Using SIMD:     $enable_simd])
+AS_IF([test "x$with_simde" != xno],
+   [AS_IF([test "x$with_simde" = xyes],
+      [AC_MSG_NOTICE([     Using SIMDe:    yes (system path)])],
+      [AC_MSG_NOTICE([     Using SIMDe:    yes (path: $with_simde)])])],
+   [AC_MSG_NOTICE([     Using SIMDe:    no])])
 AS_IF([test "x$enable_simd" != xno],
   [AS_IF([test "$SIMD_CHECK" == -1],
       [AC_MSG_WARN([      No /proc/cpuinfo found, cannot comfirm whether current CPU support SIMD])],
@@ -597,6 +760,5 @@ AS_IF([test "x$enable_tools" != xno],
 AC_MSG_NOTICE([Reference paper: Wang, L., et al., 2015, MNRAS, 450, 4070 (http://arxiv.org/abs/1504.03687)])
 AC_MSG_NOTICE([Email: Long Wang<longwang.astro@gmail.com>])
 AC_MSG_NOTICE([-----------------------------------------------------------])
-
 AC_CONFIG_FILES([Makefile build/Makefile include/params.h])
 AC_OUTPUT
