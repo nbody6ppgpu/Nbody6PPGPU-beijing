@@ -51,8 +51,10 @@ or run `git switch dev` after you `clone` without `-b dev` param.
 ```bash
 ./configure [options]
 ```
-0. TL;DR: to quickly start on your personal computer, you may use `./configure --enable-mcmodel=large --with-par=b1m --disable-gpu`, and jump to the next section [Compile the code](#Compile-the-code)
-1. We recommend using `--enable-mcmodel=large` to allows the program to use much resources.
+0. TL;DR: choose the command for your target architecture, then jump to [Compile the code](#Compile-the-code):
+   - x86_64: `./configure --with-par=b1m --enable-mcmodel=large --disable-gpu`
+   - ARM64/aarch64: clone SIMDe as shown below, then use `./configure --with-par=b1m --with-simde="../simde" --enable-simd=sse --disable-gpu`
+1. On x86_64, we recommend `--enable-mcmodel=large` to allow the program to use more resources. ARM64 does not support this option and defaults to `mcmodel=no`.
 2. `--with-par=b1m` allows up to 1 million particle simulation. In case that your computer has very small memory (<4GB) and your star cluster has a small particle number, you may use smaller value (check ./configure --help for possible value for `--with-par`)
 3. MPI should always be used during compilation. In case your computer does not have it, you can install with `sudo apt-get install openmpi-bin openmpi-common libopenmpi-dev` in Debian based Linux. The option `--disable-mpi` should only be used for debug purpose, and not for any production run.
 4. In the following cases, you may need to append `--disable-gpu`
@@ -66,15 +68,15 @@ GPU builds default to `--with-gpu-backend=auto`, which selects `nvcc` before `hi
 
 ### ARM64 and SIMDe
 
-ARM64 builds use [SIMDe](https://github.com/simd-everywhere/simde) to run the SSE force kernels without changing the simulation format. SIMDe v0.8.2 is the version exercised by CI. Install or clone its headers, then configure with their parent include directory:
+ARM64 builds use [SIMDe](https://github.com/simd-everywhere/simde) to run the SSE force kernels without changing the simulation format. SIMDe v0.8.2 is the version exercised by CI. Clone it next to this repository (not inside it):
 
 ```bash
-git clone --branch v0.8.2 --depth 1 https://github.com/simd-everywhere/simde.git "$HOME/src/simde"
-./configure --with-simde="$HOME/src/simde" --enable-simd=sse --disable-gpu
+git clone --branch v0.8.2 --depth 1 https://github.com/simd-everywhere/simde.git ../simde
+./configure --with-par=b1m --with-simde="../simde" --enable-simd=sse --disable-gpu
 make clean && make -j
 ```
 
-On ARM, `--with-simde` selects the SSE implementation automatically. An explicit `--enable-simd=avx` is downgraded to SSE because AVX is x86-only. The ARM default also disables `-mcmodel`; do not force an x86 `mcmodel` setting there. Relative and absolute SIMDe paths are supported, and `--with-simde` without a path uses system include directories.
+If `--with-simde` is omitted on ARM64, configure automatically looks for the absolute equivalent of `../simde`. Relative and absolute paths are accepted; bare `--with-simde` uses compiler system include directories. ARM64 requires SSE through SIMDe, so `--enable-simd=avx`, `--enable-simd=no`, `--without-simde`, and `--enable-mcmodel=small|medium|large` fail with a corrective example instead of being downgraded. Only x86_64 and 64-bit ARM targets are currently supported.
 
 ## Compile the code
 
