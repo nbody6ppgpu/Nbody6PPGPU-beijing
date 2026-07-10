@@ -8,7 +8,7 @@ This document is delibrately written in Chinese language to save token consumpti
 
 ### 核心特性
 - **直接 N 体积分**：使用 Hermite Scheme 和 Block time step
-- **GPU 加速**：利用 CUDA 进行规则力和势能计算
+- **GPU 加速**：利用 CUDA 或标准 AMD ROCm/HIP 进行规则力和势能计算
 - **混合并行化**：MPI + OpenMP + GPU + SIMD (SSE/AVX)
 - **恒星演化**：SSE/BSE 模型，包含质量损失、合并、潮汐效应
 - **双星物理**：KS 正则化、公共包层演化、引力波反冲
@@ -145,6 +145,8 @@ nbody-fork/
 | `--enable-mcmodel=ARG` | 内存模型 (small/medium/large) | `large` |
 | `--with-par=ARG` | 最大粒子数 (1k/10k/100k/1m/b1m/b4m/b10m) | `b1m` (1000万) |
 | `--disable-gpu` | 禁用 GPU | 仅当 N<50k 或无 GPU 时 |
+| `--with-gpu-backend=ARG` | 后端 (`auto/cuda/hip`，auto 优先 CUDA) | `auto` |
+| `--with-cuda=PREFIX` / `--with-hip=PREFIX` | CUDA / 标准 ROCm 根目录 | 按安装位置 |
 | `--enable-simd=ARG` | SIMD 优化 (sse/avx/no) | `avx` (如支持) |
 | `--with-simde[=PATH]` | 使用 SIMDe 头文件（ARM64 必需） | ARM64 使用 `v0.8.2` |
 | `--enable-hdf5` | HDF5 输出 | 推荐但需手动配置 |
@@ -180,6 +182,8 @@ nbody6++.[simd].[mpi].[gpu].[hdf5]
 ```
 
 例如：`nbody6++.avx.mpi.gpu`
+
+CUDA 产物后缀为 `.gpu`，HIP 产物后缀为 `.hip`。`NVCC`、`HIPCC` 可覆盖编译器；显式后端不回退，`--disable-gpu` 不得与显式 `cuda/hip` 同用。HIP 当前只面向标准 AMD ROCm，真实 CUDA/ROCm 硬件上的 N10k、单/多 GPU 与 `GPU_LIST` 尚待验证。
 
 ### 5.3 安装
 
@@ -409,6 +413,7 @@ cp examples/input_files/N10k_noDat10.inp ./
 | 许多参数编译时硬编码 | 改进中 | 将来使用完整 Namelist 输入 |
 | `KZ(7) >= 4` 输出错误 | 已知 | 使用 `KZ(7) <= 3` |
 | HDF5 配置选项失效 | 已知 | 手动编辑 `build/Makefile` |
+| CUDA/HIP 真实硬件验证 | 待验证 | 分别验证 N10k `END RUN`、无 NaN/runtime error、单/多 GPU 与 `GPU_LIST` |
 
 ---
 

@@ -57,8 +57,9 @@ or run `git switch dev` after you `clone` without `-b dev` param.
 3. MPI should always be used during compilation. In case your computer does not have it, you can install with `sudo apt-get install openmpi-bin openmpi-common libopenmpi-dev` in Debian based Linux. The option `--disable-mpi` should only be used for debug purpose, and not for any production run.
 4. In the following cases, you may need to append `--disable-gpu`
 - Your simulation has relatively small particle number (<50000). The code is for up to one million bodies with many initial binaries. In the case of small particle number, GPU can hardly boost the simulation and can sometimes slow it down.
-- The computer has no NVIDIA GPU
-- The computer has NVIDIA GPU but did not install CUDA compiler (Test: type `nvcc --version` in your terminal. If you see errors like `nvcc: command not found` then it is not installed)
+- The computer has no supported NVIDIA CUDA or AMD ROCm GPU/toolchain.
+
+GPU builds default to `--with-gpu-backend=auto`, which selects `nvcc` before `hipcc`. Use `--with-gpu-backend=cuda` or `--with-gpu-backend=hip` for a strict selection; an explicit backend never falls back. CUDA accepts `--with-cuda=PREFIX` and `NVCC=/path/to/nvcc`; standard AMD ROCm accepts `--with-hip=PREFIX` and `HIPCC=/path/to/hipcc`. If neither compiler and runtime can compile/link, configure stops and suggests `--disable-gpu`. Do not combine `--disable-gpu` with an explicit CUDA/HIP backend.
 5. You may set `--prefix=[install path]` to specify the location to install the executable.
 6. HDF5 is an efficient storage scheme, which is useful during large-scale or long-time simulations to boost the simulation and save disk spaces. Once enabled, the basic particle data (mass, position, velocity) and stellar evolution data will be stored in `.h5part` files, which may need extra tools to read. HDF5 is recommended but not necessary. You need to install additional libraries to use HDF5. For example, in Debian based Linux `sudo apt-get install libhdf5-openmpi-dev libhdf5-dev`. Note that `--enable-hdf5` in configure command is NOT working well. You have to configure first without it, then edit build/Makefile (see example in Makefile.save.hdf5 , HDF5_DIR has to be defined by you or by system). Then make.
 7. The configure script written by Long Wang has a multitude of further options, check with `./configure --help` or feel free to ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions).
@@ -81,7 +82,7 @@ On ARM, `--with-simde` selects the SSE implementation automatically. An explicit
 make clean; make -j
 ```
 
-After `make` you can find the executable in `build/`, named `nbody6++.[configure-options]`, where the suffix depends on your configure option (MPI, GPU, HDF5, SIMD, etc), for example `nbody6++.avx.mpi.gpu`
+After `make` you can find the executable in `build/`, named `nbody6++.[configure-options]`. CUDA keeps the `.gpu` suffix (for example `nbody6++.avx.mpi.gpu`); HIP uses `.hip`.
 
 If you have specified `--prefix=[install path]` during configure, you may want `make install`, and add the installation path to your `$PATH` environment variable.
 
@@ -182,6 +183,8 @@ Sources are in `src/Main/`.
 Git system does not preserve the modification time of files, but the modification time of some ancient files (created before this project was brought to Git) may be valuable information for developers. If you need this info, run `python3 restore_mtime.py` after `git clone` and each `git pull`. It will `touch` each file with their real last modification time.
 
 # Known Problems:
+ 0. CUDA and standard AMD ROCm compile/link configuration is covered without GPU hardware, but hardware validation is still pending for both backends: N10k reaching `END RUN` without NaN/runtime errors, single/multi-GPU execution, and `GPU_LIST`. These checks must be completed on real CUDA and ROCm systems before claiming production validation. DCU/DTK is not currently supported.
+
  1. For systems with more than one GPU on one node the association of MPI rank id and GPU bus id is not
       well defined, will be improved in next version.
 

@@ -658,9 +658,9 @@ EXTRARESULT
 EXTRAOBJ
 EXTRASRC
 RESULT
+HIPFLAGS
 CUFLAGS
-AWK
-SED
+HIPCC
 NVCC
 LIBOBJS
 GREP
@@ -733,6 +733,7 @@ enable_mpi
 enable_mcmodel
 enable_debug
 enable_gpu
+with_gpu_backend
 enable_simd
 with_simde
 enable_hdf5
@@ -740,6 +741,7 @@ enable_tt
 enable_tools
 enable_openmp
 with_cuda
+with_hip
 with_cuda_sdk
 with_par
 with_nmax
@@ -759,7 +761,9 @@ CXXFLAGS
 CPPFLAGS
 CCC
 CC
-CFLAGS'
+CFLAGS
+NVCC
+HIPCC'
 
 
 # Initialize some variables set by options.
@@ -1388,7 +1392,7 @@ Optional Features:
                           on x86, disabled on ARM64 where mcmodel is not
                           supported)
   --enable-debug          Switch on debugging mode
-  --disable-gpu           Disable GPU (CUDA) acceleration support for regular
+  --disable-gpu           Disable CUDA/HIP acceleration support for regular
                           force and potential
   --enable-simd=ARG       SIMD instruction set acceleration for force and
                           potential, available arguments --> sse: Streaming
@@ -1409,12 +1413,16 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-gpu-backend=auto|cuda|hip
+                          Select GPU backend (default: auto, preferring CUDA
+                          over HIP)
   --with-simde[=PATH]     Use SIMDe (SIMD Everywhere) library for
                           ARM/cross-platform SIMD support. PATH is the
                           directory containing the simde headers (e.g.,
                           /usr/local/include). If PATH is not specified,
                           default system include paths are used.
   --with-cuda=PREFIX      Prefix of your CUDA installation
+  --with-hip=PREFIX       Prefix of a standard AMD ROCm installation
   --with-cuda-sdk=PREFIX  Prefix of your CUDA SDKinstallation
   --with-par=size         Size of basic parameters (NMAX, KMAX, LMAX, MMAX) in
                           params.h. Available values: 128m, 64m, 32m, 16m, 1m,
@@ -1445,6 +1453,8 @@ Some influential environment variables:
               you have headers in a nonstandard directory <include dir>
   CC          C compiler command
   CFLAGS      C compiler flags
+  NVCC        CUDA compiler command
+  HIPCC       HIP compiler command
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -3143,6 +3153,26 @@ else $as_nop
   enable_gpu=yes
 fi
 
+
+
+# Check whether --with-gpu-backend was given.
+if test ${with_gpu_backend+y}
+then :
+  withval=$with_gpu_backend; gpu_backend=$withval; gpu_backend_explicit=yes
+else $as_nop
+  gpu_backend=auto; gpu_backend_explicit=no
+fi
+
+case $gpu_backend in #(
+  auto|cuda|hip) :
+     ;; #(
+  *) :
+    as_fn_error $? "bad value $gpu_backend for --with-gpu-backend" "$LINENO" 5 ;;
+esac
+if test "x$enable_gpu" = xno && test "x$gpu_backend_explicit" = xyes && test "x$gpu_backend" != xauto
+then :
+  as_fn_error $? "--disable-gpu conflicts with --with-gpu-backend=$gpu_backend" "$LINENO" 5
+fi
 
 # Check whether --enable-simd was given.
 if test ${enable_simd+y}
@@ -6696,15 +6726,26 @@ then :
 fi
 
 
-#CUDA part
-# Checks for MPI support
+# CUDA/HIP GPU backends
+
+
 
 # Check whether --with-cuda was given.
 if test ${with_cuda+y}
 then :
   withval=$with_cuda; cuda_prefix=$withval
 else $as_nop
-  cuda_prefix="/usr/local/cuda"
+  cuda_prefix=""
+fi
+
+
+
+# Check whether --with-hip was given.
+if test ${with_hip+y}
+then :
+  withval=$with_hip; hip_prefix=$withval
+else $as_nop
+  hip_prefix=""
 fi
 
 
@@ -6722,10 +6763,25 @@ fi
 case $cuda_prefix in #(
   /*) :
      ;; #(
+  "") :
+     ;; #(
   *) :
     if test -d "$cuda_prefix"
 then :
   cuda_prefix=`cd "$cuda_prefix" && pwd`
+fi ;; #(
+  *) :
+     ;;
+esac
+case $hip_prefix in #(
+  /*) :
+     ;; #(
+  "") :
+     ;; #(
+  *) :
+    if test -d "$hip_prefix"
+then :
+  hip_prefix=`cd "$hip_prefix" && pwd`
 fi ;; #(
   *) :
      ;;
@@ -6742,119 +6798,33 @@ fi ;; #(
      ;;
 esac
 
+GPU_BACKEND=none
+GPU_COMPILER=
+GPU_PREFIX=
+GPUFLAGS=""
 if test "x$enable_gpu" != xno
 then :
+
+  if test -z "$NVCC"
+then :
+
+    if test -n "$cuda_prefix" && test -x "$cuda_prefix/bin/nvcc"
+then :
+  NVCC="$cuda_prefix/bin/nvcc"
+else $as_nop
   # Extract the first word of "nvcc", so it can be a program name with args.
 set dummy nvcc; ac_word=$2
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 printf %s "checking for $ac_word... " >&6; }
-if test ${ac_cv_prog_NVCC+y}
+if test ${ac_cv_path_NVCC+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
-  if test -n "$NVCC"; then
-  ac_cv_prog_NVCC="$NVCC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  case $as_dir in #(((
-    '') as_dir=./ ;;
-    */) ;;
-    *) as_dir=$as_dir/ ;;
-  esac
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_prog_NVCC="nvcc"
-    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_NVCC" && ac_cv_prog_NVCC="none"
-fi
-fi
-NVCC=$ac_cv_prog_NVCC
-if test -n "$NVCC"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $NVCC" >&5
-printf "%s\n" "$NVCC" >&6; }
-else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-fi
-
-
-      if test "x$NVCC" == xnone
-then :
-  # Extract the first word of "nvcc", so it can be a program name with args.
-set dummy nvcc; ac_word=$2
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-printf %s "checking for $ac_word... " >&6; }
-if test ${ac_cv_prog_NVCC+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  if test -n "$NVCC"; then
-  ac_cv_prog_NVCC="$NVCC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $cuda_prefix/bin
-do
-  IFS=$as_save_IFS
-  case $as_dir in #(((
-    '') as_dir=./ ;;
-    */) ;;
-    *) as_dir=$as_dir/ ;;
-  esac
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_prog_NVCC="$cuda_prefix/bin/nvcc"
-    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_NVCC" && ac_cv_prog_NVCC="none"
-fi
-fi
-NVCC=$ac_cv_prog_NVCC
-if test -n "$NVCC"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $NVCC" >&5
-printf "%s\n" "$NVCC" >&6; }
-else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-fi
-
-
-             if test "x$NVCC" == xnone
-then :
-  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "Cannot find CUDA compiler nvcc, please check whether nvcc is in environment PATH or use --with-cuda=PREFIX to provide the PATH of CUDA installation
-See \`config.log' for more details" "$LINENO" 5; }
-fi
-else $as_nop
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a sed that does not truncate output" >&5
-printf %s "checking for a sed that does not truncate output... " >&6; }
-if test ${ac_cv_path_SED+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-            ac_script=s/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/
-     for ac_i in 1 2 3 4 5 6 7; do
-       ac_script="$ac_script$as_nl$ac_script"
-     done
-     echo "$ac_script" 2>/dev/null | sed 99q >conftest.sed
-     { ac_script=; unset ac_script;}
-     if test -z "$SED"; then
-  ac_path_SED_found=false
-  # Loop through the user's path and test for each of PROGNAME-LIST
+  case $NVCC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_NVCC="$NVCC" # Let the user override the test with a path.
+  ;;
+  *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
 do
@@ -6864,144 +6834,55 @@ do
     */) ;;
     *) as_dir=$as_dir/ ;;
   esac
-    for ac_prog in sed gsed
-   do
     for ac_exec_ext in '' $ac_executable_extensions; do
-      ac_path_SED="$as_dir$ac_prog$ac_exec_ext"
-      as_fn_executable_p "$ac_path_SED" || continue
-# Check for GNU ac_path_SED and select it if it is found.
-  # Check for GNU $ac_path_SED
-case `"$ac_path_SED" --version 2>&1` in
-*GNU*)
-  ac_cv_path_SED="$ac_path_SED" ac_path_SED_found=:;;
-*)
-  ac_count=0
-  printf %s 0123456789 >"conftest.in"
-  while :
-  do
-    cat "conftest.in" "conftest.in" >"conftest.tmp"
-    mv "conftest.tmp" "conftest.in"
-    cp "conftest.in" "conftest.nl"
-    printf "%s\n" '' >> "conftest.nl"
-    "$ac_path_SED" -f conftest.sed < "conftest.nl" >"conftest.out" 2>/dev/null || break
-    diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
-    as_fn_arith $ac_count + 1 && ac_count=$as_val
-    if test $ac_count -gt ${ac_path_SED_max-0}; then
-      # Best one so far, save it but keep looking for a better one
-      ac_cv_path_SED="$ac_path_SED"
-      ac_path_SED_max=$ac_count
-    fi
-    # 10*(2^10) chars as input seems more than enough
-    test $ac_count -gt 10 && break
-  done
-  rm -f conftest.in conftest.tmp conftest.nl conftest.out;;
-esac
-
-      $ac_path_SED_found && break 3
-    done
-  done
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_NVCC="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
   done
 IFS=$as_save_IFS
-  if test -z "$ac_cv_path_SED"; then
-    as_fn_error $? "no acceptable sed could be found in \$PATH" "$LINENO" 5
-  fi
+
+  ;;
+esac
+fi
+NVCC=$ac_cv_path_NVCC
+if test -n "$NVCC"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $NVCC" >&5
+printf "%s\n" "$NVCC" >&6; }
 else
-  ac_cv_path_SED=$SED
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
 fi
 
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_path_SED" >&5
-printf "%s\n" "$ac_cv_path_SED" >&6; }
- SED="$ac_cv_path_SED"
-  rm -f conftest.sed
-
-             cuda_prefix=`which nvcc|sed 's:/bin/nvcc::'`
-fi
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for main in -lcudart" >&5
-printf %s "checking for main in -lcudart... " >&6; }
-if test ${ac_cv_lib_cudart_main+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lcudart  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-namespace conftest {
-  extern "C" int main ();
-}
-int
-main (void)
-{
-return conftest::main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"
-then :
-  ac_cv_lib_cudart_main=yes
-else $as_nop
-  ac_cv_lib_cudart_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_cudart_main" >&5
-printf "%s\n" "$ac_cv_lib_cudart_main" >&6; }
-if test "x$ac_cv_lib_cudart_main" = xyes
-then :
-  LIBS=$LIBS' -lcudart'
-else $as_nop
-  as_ac_File=`printf "%s\n" "ac_cv_file_"$cuda_prefix/lib64/libcudart.so"" | $as_tr_sh`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for \"$cuda_prefix/lib64/libcudart.so\"" >&5
-printf %s "checking for \"$cuda_prefix/lib64/libcudart.so\"... " >&6; }
-if eval test \${$as_ac_File+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r ""$cuda_prefix/lib64/libcudart.so""; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"
-then :
-  LIBS=$LIBS" -L$cuda_prefix/lib64 -lcudart"
-else $as_nop
-  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "Cannot find CUDA library -lcudart, please provide correct cuda PREFIX by using --with-cuda=PREFIX
-See \`config.log' for more details" "$LINENO" 5; }
-fi
 
 fi
+fi
+  if test -z "$HIPCC"
+then :
 
-      CUFLAGS=" -O3"
-      RESULT=$RESULT".gpu"
-      for ac_prog in gawk mawk nawk awk
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
+    if test -n "$hip_prefix" && test -x "$hip_prefix/bin/hipcc"
+then :
+  HIPCC="$hip_prefix/bin/hipcc"
+else $as_nop
+
+      # Extract the first word of "hipcc", so it can be a program name with args.
+set dummy hipcc; ac_word=$2
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 printf %s "checking for $ac_word... " >&6; }
-if test ${ac_cv_prog_AWK+y}
+if test ${ac_cv_path_HIPCC+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
-  if test -n "$AWK"; then
-  ac_cv_prog_AWK="$AWK" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
+  case $HIPCC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_HIPCC="$HIPCC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="/opt/rocm/bin:/usr/local/rocm/bin:$PATH"
+for as_dir in $as_dummy
 do
   IFS=$as_save_IFS
   case $as_dir in #(((
@@ -7011,7 +6892,7 @@ do
   esac
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_prog_AWK="$ac_prog"
+    ac_cv_path_HIPCC="$as_dir$ac_word$ac_exec_ext"
     printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -7019,139 +6900,136 @@ done
   done
 IFS=$as_save_IFS
 
+  ;;
+esac
 fi
-fi
-AWK=$ac_cv_prog_AWK
-if test -n "$AWK"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $AWK" >&5
-printf "%s\n" "$AWK" >&6; }
+HIPCC=$ac_cv_path_HIPCC
+if test -n "$HIPCC"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $HIPCC" >&5
+printf "%s\n" "$HIPCC" >&6; }
 else
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 fi
 
 
-  test -n "$AWK" && break
-done
+fi
+fi
+  case $gpu_backend in #(
+  cuda) :
+    test -n "$NVCC" || { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "CUDA selected but nvcc was not found; set NVCC or use --with-cuda=PREFIX
+See \`config.log' for more details" "$LINENO" 5; }; GPU_BACKEND=cuda ;; #(
+  hip) :
+    test -n "$HIPCC" || { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "HIP selected but hipcc was not found; set HIPCC or use --with-hip=PREFIX
+See \`config.log' for more details" "$LINENO" 5; }; GPU_BACKEND=hip ;; #(
+  auto) :
+    if test -n "$NVCC"
+then :
+  GPU_BACKEND=cuda
+elif test -n "$HIPCC"
+then :
+  GPU_BACKEND=hip
+else $as_nop
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "No CUDA or HIP compiler found; install nvcc/hipcc or configure with --disable-gpu
+See \`config.log' for more details" "$LINENO" 5; }
+fi ;; #(
+  *) :
+     ;;
+esac
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for CUDA version" >&5
-printf %s "checking for CUDA version... " >&6; }
-      CUDA_VERSION=`$NVCC --version|awk -F ',' 'END{print $(NF-1)}'|awk '{print $2}'`
-      CUDA_VERSION_I=`echo $CUDA_VERSION|awk -F '.' '{print $1}'`
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $CUDA_VERSION" >&5
-printf "%s\n" "$CUDA_VERSION" >&6; }
-      if test "$CUDA_VERSION_I	" -gt 4
+  if test "x$GPU_BACKEND" = xcuda
 then :
-  CUFLAGS=$CUFLAGS" -D CUDA_5"
-         as_ac_File=`printf "%s\n" "ac_cv_file_"$cuda_prefix/samples/common/inc/helper_cuda.h"" | $as_tr_sh`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for \"$cuda_prefix/samples/common/inc/helper_cuda.h\"" >&5
-printf %s "checking for \"$cuda_prefix/samples/common/inc/helper_cuda.h\"... " >&6; }
-if eval test \${$as_ac_File+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r ""$cuda_prefix/samples/common/inc/helper_cuda.h""; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"
-then :
-  CUFLAGS=$CUFLAGS" -I $cuda_prefix/samples/common/inc"
-else $as_nop
-  as_ac_File=`printf "%s\n" "ac_cv_file_"$cuda_sdk_prefix/common/inc/helper_cuda.h"" | $as_tr_sh`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for \"$cuda_sdk_prefix/common/inc/helper_cuda.h\"" >&5
-printf %s "checking for \"$cuda_sdk_prefix/common/inc/helper_cuda.h\"... " >&6; }
-if eval test \${$as_ac_File+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r ""$cuda_sdk_prefix/common/inc/helper_cuda.h""; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"
-then :
-  CUFLAGS=$CUFLAGS" -I $cuda_sdk_prefix/common/inc"
-else $as_nop
-  CUFLAGS=$CUFLAGS" -I ../extra_inc/cuda"
-fi
 
-fi
-
-else $as_nop
-  as_ac_File=`printf "%s\n" "ac_cv_file_"$cuda_prefix/cuda_sdk/common/inc/cutil.h"" | $as_tr_sh`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for \"$cuda_prefix/cuda_sdk/common/inc/cutil.h\"" >&5
-printf %s "checking for \"$cuda_prefix/cuda_sdk/common/inc/cutil.h\"... " >&6; }
-if eval test \${$as_ac_File+y}
+    GPU_COMPILER=$NVCC
+    GPUFLAGS="-O3 -Xcompiler=-fPIC"
+    if test "x$OPENMP_CXXFLAGS" != x
 then :
-  printf %s "(cached) " >&6
-else $as_nop
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r ""$cuda_prefix/cuda_sdk/common/inc/cutil.h""; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
+  GPUFLAGS="$GPUFLAGS -Xcompiler=$OPENMP_CXXFLAGS"
 fi
-fi
-eval ac_res=\$$as_ac_File
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"
+    if test -z "$cuda_prefix"
 then :
-  CUFLAGS=$CUFLAGS" -I $cuda_prefix/cuda_sdk/common/inc"
-else $as_nop
-  as_ac_File=`printf "%s\n" "ac_cv_file_"$cuda_sdk_prefix/common/inc/cutil.h"" | $as_tr_sh`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for \"$cuda_sdk_prefix/common/inc/cutil.h\"" >&5
-printf %s "checking for \"$cuda_sdk_prefix/common/inc/cutil.h\"... " >&6; }
-if eval test \${$as_ac_File+y}
+  cuda_bindir=`dirname "$NVCC"`; cuda_prefix=`cd "$cuda_bindir/.." 2>/dev/null && pwd`
+fi
+    GPU_PREFIX=$cuda_prefix
+    GPU_LINK_FLAGS="-L$GPU_PREFIX/lib64 -lcudart"
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether CUDA compiler and runtime link" >&5
+printf %s "checking whether CUDA compiler and runtime link... " >&6; }
+    cat > conftest.cu <<'_ACEOF'
+#include <cuda_runtime.h>
+int main(void) { return cudaFree(0) == cudaSuccess ? 0 : 1; }
+_ACEOF
+    if "$NVCC" $GPUFLAGS conftest.cu $LDFLAGS $GPU_LINK_FLAGS -o conftest$ac_exeext >/dev/null 2>&1
 then :
-  printf %s "(cached) " >&6
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
 else $as_nop
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r ""$cuda_sdk_prefix/common/inc/cutil.h""; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }; rm -f conftest*; { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "CUDA compile/link test failed for $NVCC and $GPU_PREFIX
+See \`config.log' for more details" "$LINENO" 5; }
 fi
-fi
-eval ac_res=\$$as_ac_File
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"
-then :
-  CUFLAGS=$CUFLAGS" -I $cuda_prefix/common/inc"
-else $as_nop
-  CUFLAGS=$CUFLAGS" -I ../extra_inc/cuda"
-fi
-
-fi
-
-fi
-      FCFLAGS=$FCFLAGS' $(GPU_FLAGS)'
-      EXTRASRC=$EXTRASRC' $(GPU_FSOURCES)'
-      if test "x$OPENMP_CXXFLAGS" != x
+    rm -f conftest*
+    CUFLAGS="$GPUFLAGS -D CUDA_5 -I ../extra_inc/cuda"
+    if test "x$OPENMP_CXXFLAGS" != x
 then :
   EXTRAOBJ=$EXTRAOBJ' $(CUDA_OBJECTS)'
 else $as_nop
   EXTRAOBJ=$EXTRAOBJ' $(CUDA_OBJECTS_SINGLE)'
 fi
-      LDFLAGS=$LDFLAGS' -L'$CUDA_PREFIX
+    RESULT=$RESULT.gpu
+
+else $as_nop
+
+    GPU_COMPILER=$HIPCC
+    GPUFLAGS="-O3 -fPIC"
+    if test "x$OPENMP_CXXFLAGS" != x
+then :
+  GPUFLAGS="$GPUFLAGS $OPENMP_CXXFLAGS"
+fi
+    if test -z "$hip_prefix"
+then :
+  hip_bindir=`dirname "$HIPCC"`; hip_prefix=`cd "$hip_bindir/.." 2>/dev/null && pwd`
+fi
+    GPU_PREFIX=$hip_prefix
+    GPU_LINK_FLAGS="-L$GPU_PREFIX/lib -L$GPU_PREFIX/lib64 -lamdhip64"
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether HIP compiler and runtime link" >&5
+printf %s "checking whether HIP compiler and runtime link... " >&6; }
+    cat > conftest.hip <<'_ACEOF'
+#include <hip/hip_runtime.h>
+int main(void) { return hipFree(0) == hipSuccess ? 0 : 1; }
+_ACEOF
+    if "$HIPCC" $GPUFLAGS conftest.hip $LDFLAGS $GPU_LINK_FLAGS -o conftest$ac_exeext >/dev/null 2>&1
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }; rm -f conftest*; { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "HIP compile/link test failed for $HIPCC and $GPU_PREFIX
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+    rm -f conftest*
+    HIPFLAGS="$GPUFLAGS -I../src/Main"
+    if test "x$OPENMP_CXXFLAGS" != x
+then :
+  EXTRAOBJ=$EXTRAOBJ' $(HIP_OBJECTS)'
+else $as_nop
+  EXTRAOBJ=$EXTRAOBJ' $(HIP_OBJECTS_SINGLE)'
+fi
+    RESULT=$RESULT.hip
+
+fi
+  LIBS="$GPU_LINK_FLAGS $LIBS"
+  FCFLAGS=$FCFLAGS' $(GPU_FLAGS)'
+  EXTRASRC=$EXTRASRC' $(GPU_FSOURCES)'
 
 fi
 
@@ -7588,6 +7466,9 @@ fi
 
 
 
+
+
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: ----------------------Configure Summary--------------------" >&5
 printf "%s\n" "$as_me: ----------------------Configure Summary--------------------" >&6;}
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: --Features:" >&5
@@ -7596,8 +7477,12 @@ printf "%s\n" "$as_me: --Features:" >&6;}
 printf "%s\n" "$as_me:      Using MPI:      $enable_mpi" >&6;}
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Using GPU:      $enable_gpu" >&5
 printf "%s\n" "$as_me:      Using GPU:      $enable_gpu" >&6;}
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}:      CUDA version:   $CUDA_VERSION" >&5
-printf "%s\n" "$as_me:      CUDA version:   $CUDA_VERSION" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}:      GPU backend:    $GPU_BACKEND" >&5
+printf "%s\n" "$as_me:      GPU backend:    $GPU_BACKEND" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}:      GPU prefix:     $GPU_PREFIX" >&5
+printf "%s\n" "$as_me:      GPU prefix:     $GPU_PREFIX" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}:      GPU flags:      $GPUFLAGS" >&5
+printf "%s\n" "$as_me:      GPU flags:      $GPUFLAGS" >&6;}
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Using SIMD:     $enable_simd" >&5
 printf "%s\n" "$as_me:      Using SIMD:     $enable_simd" >&6;}
 if test "x$with_simde" != xno
@@ -7646,8 +7531,8 @@ printf "%s\n" "$as_me: --Compilers:" >&6;}
 printf "%s\n" "$as_me:      C++ compiler:      $CXX" >&6;}
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Fortran compiler:  $FC" >&5
 printf "%s\n" "$as_me:      Fortran compiler:  $FC" >&6;}
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}:      CUDA compiler:     $NVCC" >&5
-printf "%s\n" "$as_me:      CUDA compiler:     $NVCC" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}:      GPU compiler:      $GPU_COMPILER" >&5
+printf "%s\n" "$as_me:      GPU compiler:      $GPU_COMPILER" >&6;}
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: --Targets:" >&5
 printf "%s\n" "$as_me: --Targets:" >&6;}
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Program name:   nbody6++$RESULT" >&5
@@ -8287,7 +8172,6 @@ gives unlimited permission to copy, distribute and modify it."
 
 ac_pwd='$ac_pwd'
 srcdir='$srcdir'
-AWK='$AWK'
 test -n "\$AWK" || AWK=awk
 _ACEOF
 
@@ -8839,4 +8723,5 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 printf "%s\n" "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
+
 

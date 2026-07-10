@@ -15,6 +15,7 @@ FC = @FC@
 CXX = @CXX@
 CC = @CC@
 NVCC = @NVCC@
+HIPCC = @HIPCC@
 
 RESULT = nbody6++@RESULT@
 #FFLAGS = -O3 -fbounds-check -fbacktrace -fno-automatic -fmax-stack-var-size=0 -fPIC -mcmodel=large -Wall
@@ -30,7 +31,8 @@ INTEL_FLAGS= -D __USE_INTEL -no-wrap-margin
 FFLAGS = @FCFLAGS@
 CXXFLAGS = @CXXFLAGS@
 CUFLAGS = @CUFLAGS@
-LDFLAGS = -o $(RESULT)
+HIPFLAGS = @HIPFLAGS@
+LDFLAGS = @LDFLAGS@ -o $(RESULT)
 
 MPI_FSOURCES= energy_mpi.f fpoly1_mpi.f fpoly2_mpi.f
 GPU_FSOURCES= phicor.f
@@ -41,8 +43,10 @@ IRRAVX_OBJECTS=irr.avx.o
 IRRSSE_OBJECTS=irr.sse.o
 AVX_OBJECTS=reg.avx.o pot.avx.o irr.avx.o
 SSE_OBJECTS=reg.sse.o pot.sse.o irr.sse.o
-CUDA_OBJECTS = gpunb.velocity.o gpupot.gpu.o
-CUDA_OBJECTS_SINGLE = gpunb.gpu.o gpupot.gpu.o
+CUDA_OBJECTS = gpunb.velocity.cuda.o gpupot.cuda.o
+CUDA_OBJECTS_SINGLE = gpunb.gpu.cuda.o gpupot.cuda.o
+HIP_OBJECTS = gpunb.velocity.hip.o gpupot.hip.o
+HIP_OBJECTS_SINGLE = gpunb.gpu.hip.o gpupot.hip.o
 #CUDAOBJECTS = gpunb.gpu.o gpupot.gpu.o gpupot.mdot.o
 #CUDAOBJECTS = gpunb.velocity.o gpupot.gpu.o gpupot.mdot.o
 #CUDAOBJECTS = gpunb.gpu.o gpupot.gpu.o
@@ -156,15 +160,20 @@ reg.sse.o: reg.sse.cpp
 pot.sse.o: pot.sse.cpp
 	$(CXX) $(CXXFLAGS) $^ -c -o $@
 
-gpunb.velocity.o: gpunb.velocity.cu
-	$(NVCC) -c $(CUFLAGS) -Xcompiler "$(CXXFLAGS)"  $^
+gpunb.velocity.cuda.o: gpunb.velocity.cu
+	$(NVCC) -c $(CUFLAGS) $< -o $@
 
-gpunb.gpu.o: gpunb.gpu.cu
-	$(NVCC) -c $(CUFLAGS) -Xcompiler "$(CXXFLAGS)"  $^
+gpunb.gpu.cuda.o: gpunb.gpu.cu
+	$(NVCC) -c $(CUFLAGS) $< -o $@
 
-gpupot.gpu.o: gpupot.gpu.cu
-	$(NVCC) -c $(CUFLAGS) -Xcompiler "$(CXXFLAGS)"  $^
+gpupot.cuda.o: gpupot.gpu.cu
+	$(NVCC) -c $(CUFLAGS) $< -o $@
 
-gpupot.mdot.o: gpupot.mdot.cu
-	$(NVCC) -c $(CUFLAGS) -Xcompiler "$(CXXFLAGS)"  $^
+gpunb.velocity.hip.o: gpunb.velocity.hip
+	$(HIPCC) -c $(HIPFLAGS) $< -o $@
 
+gpunb.gpu.hip.o: gpunb.gpu.hip
+	$(HIPCC) -c $(HIPFLAGS) $< -o $@
+
+gpupot.hip.o: gpupot.gpu.hip
+	$(HIPCC) -c $(HIPFLAGS) $< -o $@
