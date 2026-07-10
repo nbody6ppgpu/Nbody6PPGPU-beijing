@@ -6,6 +6,15 @@
 #include <vector>
 #include "simd_define.h"
 
+/* Include SSE intrinsics if using SIMDe or native x86 */
+#ifdef NBODY_USE_SIMDE
+/* SIMDe headers already included via simd_define.h */
+#elif !defined(__USE_INTEL)
+#include <xmmintrin.h>  /* SSE */
+#include <emmintrin.h>  /* SSE2 */
+#include <pmmintrin.h>  /* SSE3 */
+#endif
+
 #define TMAX 32 // maximum number of threads
 #if 1
 #include <omp.h>
@@ -65,9 +74,9 @@ struct myvector{
 
 //typedef float v4sf __attribute__ ((vector_size(16)));
 static inline v4sf v4sf_rsqrt(v4sf x){
-	v4sf y = __builtin_ia32_rsqrtps(x);
-	return ((v4sf){-0.5f, -0.5f, -0.5f, -0.5f} * y) * 
-			(x*y*y + (v4sf){-3.f, -3.f, -3.f, -3.f});
+	v4sf y = _mm_rsqrt_ps(x);
+	return (_mm_set1_ps(-0.5f) * y) *
+			(x*y*y + _mm_set1_ps(-3.f));
 }
 // #include "v4sf.h"
 
@@ -186,41 +195,43 @@ void GPUNB_regf(
 		nblist[tid][3].clear();
 		int nii = std::min(4, ni-i);
 
-		v4sf xi  = {xid[i+0][0], xid[i+1][0], xid[i+2][0], xid[i+3][0]}; 
-		v4sf yi  = {xid[i+0][1], xid[i+1][1], xid[i+2][1], xid[i+3][1]}; 
-		v4sf zi  = {xid[i+0][2], xid[i+1][2], xid[i+2][2], xid[i+3][2]}; 
-		v4sf vxi = {vid[i+0][0], vid[i+1][0], vid[i+2][0], vid[i+3][0]}; 
-		v4sf vyi = {vid[i+0][1], vid[i+1][1], vid[i+2][1], vid[i+3][1]}; 
-		v4sf vzi = {vid[i+0][2], vid[i+1][2], vid[i+2][2], vid[i+3][2]}; 
-		v4sf h2i = {h2d[i+0], h2d[i+1], h2d[i+2], h2d[i+3]}; 
-		static const v4sf h2mask[5] = {
-			{0.0, 0.0, 0.0, 0.0},
-			{1.0, 0.0, 0.0, 0.0},
-			{1.0, 1.0, 0.0, 0.0},
-			{1.0, 1.0, 1.0, 0.0},
-			{1.0, 1.0, 1.0, 1.0},
-		};
-		h2i *= h2mask[nii];
-		v4sf dtri = {dtr[i+0], dtr[i+1], dtr[i+2], dtr[i+3]}; 
-		v4sf Ax = {0.f, 0.f, 0.f, 0.f};
-		v4sf Ay = {0.f, 0.f, 0.f, 0.f};
-		v4sf Az = {0.f, 0.f, 0.f, 0.f};
-		v4sf Jx = {0.f, 0.f, 0.f, 0.f};
-		v4sf Jy = {0.f, 0.f, 0.f, 0.f};
-		v4sf Jz = {0.f, 0.f, 0.f, 0.f};
-		v4sf poti = {0.f, 0.f, 0.f, 0.f};
+		v4sf xi  = _mm_set_ps((float)xid[i+3][0], (float)xid[i+2][0], (float)xid[i+1][0], (float)xid[i+0][0]);
+		v4sf yi  = _mm_set_ps((float)xid[i+3][1], (float)xid[i+2][1], (float)xid[i+1][1], (float)xid[i+0][1]);
+		v4sf zi  = _mm_set_ps((float)xid[i+3][2], (float)xid[i+2][2], (float)xid[i+1][2], (float)xid[i+0][2]);
+		v4sf vxi = _mm_set_ps((float)vid[i+3][0], (float)vid[i+2][0], (float)vid[i+1][0], (float)vid[i+0][0]);
+		v4sf vyi = _mm_set_ps((float)vid[i+3][1], (float)vid[i+2][1], (float)vid[i+1][1], (float)vid[i+0][1]);
+		v4sf vzi = _mm_set_ps((float)vid[i+3][2], (float)vid[i+2][2], (float)vid[i+1][2], (float)vid[i+0][2]);
+		v4sf h2i = _mm_set_ps((float)h2d[i+3], (float)h2d[i+2], (float)h2d[i+1], (float)h2d[i+0]);
+		/* Mask arrays for partial vector operations */
+		v4sf h2mask_val;
+		switch(nii) {
+			case 0: h2mask_val = _mm_set_ps(0.0f, 0.0f, 0.0f, 0.0f); break;
+			case 1: h2mask_val = _mm_set_ps(0.0f, 0.0f, 0.0f, 1.0f); break;
+			case 2: h2mask_val = _mm_set_ps(0.0f, 0.0f, 1.0f, 1.0f); break;
+			case 3: h2mask_val = _mm_set_ps(0.0f, 1.0f, 1.0f, 1.0f); break;
+			default: h2mask_val = _mm_set_ps(1.0f, 1.0f, 1.0f, 1.0f); break;
+		}
+		h2i = h2i * h2mask_val;
+		v4sf dtri = _mm_set_ps((float)dtr[i+3], (float)dtr[i+2], (float)dtr[i+1], (float)dtr[i+0]);
+		v4sf Ax = _mm_setzero_ps();
+		v4sf Ay = _mm_setzero_ps();
+		v4sf Az = _mm_setzero_ps();
+		v4sf Jx = _mm_setzero_ps();
+		v4sf Jy = _mm_setzero_ps();
+		v4sf Jz = _mm_setzero_ps();
+		v4sf poti = _mm_setzero_ps();
 		v4sf *jpp = (v4sf *)jp_host;
 		for(int j=0; j<nbody; j++, jpp+=2){
 			v4sf jp0 = jpp[0];
 			v4sf jp1 = jpp[1];
 
-			v4sf xj = __builtin_ia32_shufps(jp0, jp0, 0x00);
-			v4sf yj = __builtin_ia32_shufps(jp0, jp0, 0x55);
-			v4sf zj = __builtin_ia32_shufps(jp0, jp0, 0xaa);
-			v4sf mj = __builtin_ia32_shufps(jp0, jp0, 0xff);
-			v4sf vxj = __builtin_ia32_shufps(jp1, jp1, 0x00);
-			v4sf vyj = __builtin_ia32_shufps(jp1, jp1, 0x55);
-			v4sf vzj = __builtin_ia32_shufps(jp1, jp1, 0xaa);
+			v4sf xj = _mm_shuffle_ps(jp0, jp0, 0x00);
+			v4sf yj = _mm_shuffle_ps(jp0, jp0, 0x55);
+			v4sf zj = _mm_shuffle_ps(jp0, jp0, 0xaa);
+			v4sf mj = _mm_shuffle_ps(jp0, jp0, 0xff);
+			v4sf vxj = _mm_shuffle_ps(jp1, jp1, 0x00);
+			v4sf vyj = _mm_shuffle_ps(jp1, jp1, 0x55);
+			v4sf vzj = _mm_shuffle_ps(jp1, jp1, 0xaa);
 
 			v4sf dx = xj - xi;
 			v4sf dy = yj - yi;
@@ -237,18 +248,18 @@ void GPUNB_regf(
 			v4sf rv = dx*dvx + dy*dvy + dz*dvz;
 			v4sf r2p = dxp*dxp + dyp*dyp + dzp*dzp;
             v4sf mask;
-            //          v4sf mask = (v4sf)__builtin_ia32_cmpltps(r2, h2i);
+            //          v4sf mask = _mm_cmplt_ps(r2, h2i);
             if(m_flag) {
               v4sf mh2i = mj * h2i;
-              mask = (v4sf)__builtin_ia32_cmpltps(
-                       __builtin_ia32_minps(r2,r2p), mh2i);
+              mask = _mm_cmplt_ps(
+                       _mm_min_ps(r2,r2p), mh2i);
             }
             else {
-              mask = (v4sf)__builtin_ia32_cmpltps(
-                       __builtin_ia32_minps(r2,r2p), h2i);
+              mask = _mm_cmplt_ps(
+                       _mm_min_ps(r2,r2p), h2i);
             }
-			int bits = __builtin_ia32_movmskps(mask);
-			// mj = __builtin_ia32_andnps(mask, mj);
+			int bits = _mm_movemask_ps(mask);
+			// mj = _mm_andnot_ps(mask, mj);
 			if(bits){
 				if (bits&1) nblist[tid][0].push_back(j);
 				if (bits&2) nblist[tid][1].push_back(j);
@@ -257,26 +268,26 @@ void GPUNB_regf(
 			}
 
 			// Add small epsilon to avoid division by zero in rsqrt
-			v4sf r2_safe = __builtin_ia32_maxps(r2, (v4sf){1.0e-30f, 1.0e-30f, 1.0e-30f, 1.0e-30f});
+			v4sf r2_safe = _mm_max_ps(r2, _mm_set1_ps(1.0e-30f));
 			v4sf rinv1 = v4sf_rsqrt(r2_safe);
-			rinv1 = __builtin_ia32_andnps(mask, rinv1);
-			// v4sf rinv1 = __builtin_ia32_rsqrtps(r2);
+			rinv1 = _mm_andnot_ps(mask, rinv1);
+			// v4sf rinv1 = _mm_rsqrt_ps(r2);
 			v4sf rinv2 = rinv1 * rinv1;
-			rinv1 *= mj;
-			poti += rinv1;
+			rinv1 = rinv1 * mj;
+			poti = poti + rinv1;
 			v4sf rinv3 = rinv1 * rinv2;
-			rv *= (v4sf){-3.f, -3.f, -3.f, -3.f} * rinv2;
+			rv = rv * (_mm_set1_ps(-3.f) * rinv2);
 
-			Ax += rinv3 * dx;
-			Ay += rinv3 * dy;
-			Az += rinv3 * dz;
-			Jx += rinv3 * (dvx + rv * dx);
-			Jy += rinv3 * (dvy + rv * dy);
-			Jz += rinv3 * (dvz + rv * dz);
+			Ax = Ax + rinv3 * dx;
+			Ay = Ay + rinv3 * dy;
+			Az = Az + rinv3 * dz;
+			Jx = Jx + rinv3 * (dvx + rv * dx);
+			Jy = Jy + rinv3 * (dvy + rv * dy);
+			Jz = Jz + rinv3 * (dvz + rv * dz);
 		} // for(j)
 		union {
 			struct{
-				v4sf Ax, Ay, Az, Jx, Jy, Jz, Pot;
+				__m128 Ax, Ay, Az, Jx, Jy, Jz, Pot;  /* Use underlying type for union compatibility */
 			};
 			struct{
 				float acc[3][4], jrk[3][4], pot[4];
@@ -316,7 +327,7 @@ void GPUNB_regf(
 		for(int i=0; i<ni; i++){
 			int nnb =  listbase[i*lmax];
 			fprintf(fp, "%d %9.2e %9.2e %9.2e %9.2e %9.2e %9.2e %d\n",
-					i, acc[i][0], acc[i][1], acc[i][2], 
+					i, acc[i][0], acc[i][1], acc[i][2],
 					   jrk[i][0], jrk[i][1], jrk[i][2], nnb);
 		}
 		fprintf(fp, "\n");
