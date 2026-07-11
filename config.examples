@@ -1,5 +1,11 @@
 # x86_64: large memory model with native SIMD auto-detection
 ./configure --with-par=b1m --enable-mcmodel=large --disable-gpu
 
+# Strict CUDA or standard AMD ROCm selection (auto prefers CUDA):
+# ./configure --with-par=b1m --with-gpu-backend=cuda --with-cuda=/usr/local/cuda
+# ./configure --with-par=b1m --with-gpu-backend=hip --with-hip=/opt/rocm
+# NVCC=/custom/bin/nvcc ./configure --with-gpu-backend=cuda
+# HIPCC=/custom/bin/hipcc ./configure --with-gpu-backend=hip
+
 # ARM64/aarch64: clone SIMDe v0.8.2 beside this repository as ../simde
 ./configure --with-par=b1m --with-simde="../simde" --enable-simd=sse --disable-gpu

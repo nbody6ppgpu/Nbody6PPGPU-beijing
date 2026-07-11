@@ -85,9 +85,19 @@ AC_ARG_ENABLE([debug],
 
 AC_ARG_ENABLE([gpu],
      [AS_HELP_STRING([--disable-gpu],
-         [Disable GPU (CUDA) acceleration support for regular force and potential])],
+         [Disable CUDA/HIP acceleration support for regular force and potential])],
      [],
      [enable_gpu=yes])
+
+AC_ARG_WITH([gpu-backend],
+     [AS_HELP_STRING([--with-gpu-backend=auto|cuda|hip],
+         [Select GPU backend (default: auto, preferring CUDA over HIP)])],
+     [gpu_backend=$withval; gpu_backend_explicit=yes],
+     [gpu_backend=auto; gpu_backend_explicit=no])
+AS_CASE([$gpu_backend], [auto|cuda|hip], [],
+   [AC_MSG_ERROR([bad value $gpu_backend for --with-gpu-backend])])
+AS_IF([test "x$enable_gpu" = xno && test "x$gpu_backend_explicit" = xyes && test "x$gpu_backend" != xauto],
+   [AC_MSG_ERROR([--disable-gpu conflicts with --with-gpu-backend=$gpu_backend])])
 
 AC_ARG_ENABLE([simd],
      [AS_HELP_STRING([--enable-simd=ARG],
@@ -411,13 +421,20 @@ AC_TYPE_SIZE_T
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([gettimeofday memset sqrt strchr])
 
-#CUDA part
-# Checks for MPI support
+# CUDA/HIP GPU backends
+AC_ARG_VAR([NVCC], [CUDA compiler command])
+AC_ARG_VAR([HIPCC], [HIP compiler command])
 AC_ARG_WITH([cuda],
      [AS_HELP_STRING([--with-cuda=PREFIX],
          [Prefix of your CUDA installation])],
      [cuda_prefix=$withval],
-     [cuda_prefix="/usr/local/cuda"])
+     [cuda_prefix=""])
+
+AC_ARG_WITH([hip],
+     [AS_HELP_STRING([--with-hip=PREFIX],
+         [Prefix of a standard AMD ROCm installation])],
+     [hip_prefix=$withval],
+     [hip_prefix=""])
 
 AC_ARG_WITH([cuda_sdk],
      [AS_HELP_STRING([--with-cuda-sdk=PREFIX],
@@ -428,57 +445,81 @@ AC_ARG_WITH([cuda_sdk],
 # Normalize relative CUDA paths to absolute paths (build runs in ./build)
 AS_CASE([$cuda_prefix],
    [/*], [],
+   [""], [],
    [*], [AS_IF([test -d "$cuda_prefix"],
           [cuda_prefix=`cd "$cuda_prefix" && pwd`])])
+AS_CASE([$hip_prefix],
+   [/*], [],
+   [""], [],
+   [*], [AS_IF([test -d "$hip_prefix"],
+          [hip_prefix=`cd "$hip_prefix" && pwd`])])
 AS_CASE([$cuda_sdk_prefix],
    [/*], [],
    [*], [AS_IF([test -d "$cuda_sdk_prefix"],
           [cuda_sdk_prefix=`cd "$cuda_sdk_prefix" && pwd`])])
 
-AS_IF([test "x$enable_gpu" != xno],
-     [AC_CHECK_PROG([NVCC], [nvcc], [nvcc], [none])
-      AS_IF([test "x$NVCC" == xnone],
-            [AC_CHECK_PROG([NVCC], [nvcc], [$cuda_prefix/bin/nvcc], [none], [$cuda_prefix/bin])
-             AS_IF([test "x$NVCC" == xnone],
-                   [AC_MSG_FAILURE(
-                       [Cannot find CUDA compiler nvcc, please check whether nvcc is in environment PATH or use --with-cuda=PREFIX to provide the PATH of CUDA installation])])],
-            [AC_PROG_SED
-             cuda_prefix=`which nvcc|sed 's:/bin/nvcc::'`])
-      AC_CHECK_LIB([cudart], [main],
-          [LIBS=$LIBS' -lcudart'],
-          [AC_CHECK_FILE(["$cuda_prefix/lib64/libcudart.so"],
-              LIBS=$LIBS" -L$cuda_prefix/lib64 -lcudart",
-              [AC_MSG_FAILURE(
-                  [Cannot find CUDA library -lcudart, please provide correct cuda PREFIX by using --with-cuda=PREFIX])])])
-      CUFLAGS=" -O3"
-      RESULT=$RESULT".gpu"
-      AC_PROG_AWK
-      AC_MSG_CHECKING([for CUDA version])
-      CUDA_VERSION=`$NVCC --version|awk -F ',' 'END{print $(NF-1)}'|awk '{print $2}'`
-      CUDA_VERSION_I=`echo $CUDA_VERSION|awk -F '.' '{print $1}'`
-      AC_MSG_RESULT([$CUDA_VERSION])
-      AS_IF([test "$CUDA_VERSION_I	" -gt 4],
-         CUFLAGS=$CUFLAGS" -D CUDA_5"
-         [AC_CHECK_FILE(["$cuda_prefix/samples/common/inc/helper_cuda.h"],
-              [CUFLAGS=$CUFLAGS" -I $cuda_prefix/samples/common/inc"],
-              [AC_CHECK_FILE(["$cuda_sdk_prefix/common/inc/helper_cuda.h"],
-                    [CUFLAGS=$CUFLAGS" -I $cuda_sdk_prefix/common/inc"],
-                    [CUFLAGS=$CUFLAGS" -I ../extra_inc/cuda"])])],
-         [AC_CHECK_FILE(["$cuda_prefix/cuda_sdk/common/inc/cutil.h"],
-              [CUFLAGS=$CUFLAGS" -I $cuda_prefix/cuda_sdk/common/inc"],
-              [AC_CHECK_FILE(["$cuda_sdk_prefix/common/inc/cutil.h"],
-                    [CUFLAGS=$CUFLAGS" -I $cuda_prefix/common/inc"],
-                    [CUFLAGS=$CUFLAGS" -I ../extra_inc/cuda"])])])
-      FCFLAGS=$FCFLAGS' $(GPU_FLAGS)'
-      EXTRASRC=$EXTRASRC' $(GPU_FSOURCES)'
-      AS_IF([test "x$OPENMP_CXXFLAGS" != x ],
-           EXTRAOBJ=$EXTRAOBJ' $(CUDA_OBJECTS)',
-           EXTRAOBJ=$EXTRAOBJ' $(CUDA_OBJECTS_SINGLE)')
-      LDFLAGS=$LDFLAGS' -L'$CUDA_PREFIX
-      dnl AX_CHECK_COMPILE_FLAG([-Xcompiler],[],
-      dnl    [AC_MSG_FAILURE(
-      dnl       [Current nvcc do not support -Xcompiler])])
-     ])
+GPU_BACKEND=none
+GPU_COMPILER=
+GPU_PREFIX=
+GPUFLAGS=""
+AS_IF([test "x$enable_gpu" != xno], [
+  AS_IF([test -z "$NVCC"], [
+    AS_IF([test -n "$cuda_prefix" && test -x "$cuda_prefix/bin/nvcc"], [NVCC="$cuda_prefix/bin/nvcc"],
+      [AC_PATH_PROG([NVCC], [nvcc], [])])])
+  AS_IF([test -z "$HIPCC"], [
+    AS_IF([test -n "$hip_prefix" && test -x "$hip_prefix/bin/hipcc"], [HIPCC="$hip_prefix/bin/hipcc"], [
+      AC_PATH_PROG([HIPCC], [hipcc], [], [/opt/rocm/bin:/usr/local/rocm/bin:$PATH])])])
+  AS_CASE([$gpu_backend],
+    [cuda], [test -n "$NVCC" || AC_MSG_FAILURE([CUDA selected but nvcc was not found; set NVCC or use --with-cuda=PREFIX]); GPU_BACKEND=cuda],
+    [hip],  [test -n "$HIPCC" || AC_MSG_FAILURE([HIP selected but hipcc was not found; set HIPCC or use --with-hip=PREFIX]); GPU_BACKEND=hip],
+    [auto], [AS_IF([test -n "$NVCC"], [GPU_BACKEND=cuda], [test -n "$HIPCC"], [GPU_BACKEND=hip],
+                    [AC_MSG_FAILURE([No CUDA or HIP compiler found; install nvcc/hipcc or configure with --disable-gpu])])])
+
+  AS_IF([test "x$GPU_BACKEND" = xcuda], [
+    GPU_COMPILER=$NVCC
+    GPUFLAGS="-O3 -Xcompiler=-fPIC"
+    AS_IF([test "x$OPENMP_CXXFLAGS" != x], [GPUFLAGS="$GPUFLAGS -Xcompiler=$OPENMP_CXXFLAGS"])
+    AS_IF([test -z "$cuda_prefix"], [cuda_bindir=`dirname "$NVCC"`; cuda_prefix=`cd "$cuda_bindir/.." 2>/dev/null && pwd`])
+    GPU_PREFIX=$cuda_prefix
+    GPU_LINK_FLAGS="-L$GPU_PREFIX/lib64 -lcudart"
+    AC_MSG_CHECKING([whether CUDA compiler and runtime link])
+    cat > conftest.cu <<'_ACEOF'
+#include <cuda_runtime.h>
+int main(void) { return cudaFree(0) == cudaSuccess ? 0 : 1; }
+_ACEOF
+    AS_IF(["$NVCC" $GPUFLAGS conftest.cu $LDFLAGS $GPU_LINK_FLAGS -o conftest$ac_exeext >/dev/null 2>&1],
+      [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no]); rm -f conftest*; AC_MSG_FAILURE([CUDA compile/link test failed for $NVCC and $GPU_PREFIX])])
+    rm -f conftest*
+    CUFLAGS="$GPUFLAGS -D CUDA_5 -I ../extra_inc/cuda -I ../include"
+    AS_IF([test "x$OPENMP_CXXFLAGS" != x],
+      [EXTRAOBJ=$EXTRAOBJ' $(CUDA_OBJECTS)'],
+      [EXTRAOBJ=$EXTRAOBJ' $(CUDA_OBJECTS_SINGLE)'])
+    RESULT=$RESULT.gpu
+  ], [
+    GPU_COMPILER=$HIPCC
+    GPUFLAGS="-O3 -fPIC"
+    AS_IF([test "x$OPENMP_CXXFLAGS" != x], [GPUFLAGS="$GPUFLAGS $OPENMP_CXXFLAGS"])
+    AS_IF([test -z "$hip_prefix"], [hip_bindir=`dirname "$HIPCC"`; hip_prefix=`cd "$hip_bindir/.." 2>/dev/null && pwd`])
+    GPU_PREFIX=$hip_prefix
+    GPU_LINK_FLAGS="-L$GPU_PREFIX/lib -L$GPU_PREFIX/lib64 -lamdhip64"
+    AC_MSG_CHECKING([whether HIP compiler and runtime link])
+    cat > conftest.hip <<'_ACEOF'
+#include <hip/hip_runtime.h>
+int main(void) { return hipFree(0) == hipSuccess ? 0 : 1; }
+_ACEOF
+    AS_IF(["$HIPCC" $GPUFLAGS conftest.hip $LDFLAGS $GPU_LINK_FLAGS -o conftest$ac_exeext >/dev/null 2>&1],
+      [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no]); rm -f conftest*; AC_MSG_FAILURE([HIP compile/link test failed for $HIPCC and $GPU_PREFIX])])
+    rm -f conftest*
+    HIPFLAGS="$GPUFLAGS -I../src/Main"
+    AS_IF([test "x$OPENMP_CXXFLAGS" != x],
+      [EXTRAOBJ=$EXTRAOBJ' $(HIP_OBJECTS)'],
+      [EXTRAOBJ=$EXTRAOBJ' $(HIP_OBJECTS_SINGLE)'])
+    RESULT=$RESULT.hip
+  ])
+  LIBS="$GPU_LINK_FLAGS $LIBS"
+  FCFLAGS=$FCFLAGS' $(GPU_FLAGS)'
+  EXTRASRC=$EXTRASRC' $(GPU_FSOURCES)'
+])
 
 #FLAGS
 # MPI FLAGS
@@ -768,6 +809,9 @@ AS_IF([test "x$enable_tools" != xno],
    [EXTRARESULT=''])
 
 AC_SUBST([CUFLAGS])
+AC_SUBST([HIPFLAGS])
+AC_SUBST([NVCC])
+AC_SUBST([HIPCC])
 AC_SUBST([FCFLAGS])
 AC_SUBST([CXXFLAGS])
 AC_SUBST([RESULT])
@@ -790,7 +834,9 @@ AS_IF([test "x$build" != "x$host"], [
 AC_MSG_NOTICE([--Features:])
 AC_MSG_NOTICE([     Using MPI:      $enable_mpi])
 AC_MSG_NOTICE([     Using GPU:      $enable_gpu])
-AC_MSG_NOTICE([     CUDA version:   $CUDA_VERSION])
+AC_MSG_NOTICE([     GPU backend:    $GPU_BACKEND])
+AC_MSG_NOTICE([     GPU prefix:     $GPU_PREFIX])
+AC_MSG_NOTICE([     GPU flags:      $GPUFLAGS])
 AC_MSG_NOTICE([     Using SIMD:     $enable_simd])
 AS_IF([test "x$with_simde" != xno],
    [AS_IF([test "x$with_simde" = xyes],
@@ -812,7 +858,7 @@ AC_MSG_NOTICE([     TT package:     $enable_tt])
 AC_MSG_NOTICE([--Compilers:])
 AC_MSG_NOTICE([     C++ compiler:      $CXX])
 AC_MSG_NOTICE([     Fortran compiler:  $FC])
-AC_MSG_NOTICE([     CUDA compiler:     $NVCC])
+AC_MSG_NOTICE([     GPU compiler:      $GPU_COMPILER])
 AC_MSG_NOTICE([--Targets:])
 AC_MSG_NOTICE([     Program name:   nbody6++$RESULT])
 AC_MSG_NOTICE([     Extra tools:    $enable_tools])
