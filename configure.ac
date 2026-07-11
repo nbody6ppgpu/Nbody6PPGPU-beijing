@@ -490,7 +490,7 @@ _ACEOF
     AS_IF(["$NVCC" $GPUFLAGS conftest.cu $LDFLAGS $GPU_LINK_FLAGS -o conftest$ac_exeext >/dev/null 2>&1],
       [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no]); rm -f conftest*; AC_MSG_FAILURE([CUDA compile/link test failed for $NVCC and $GPU_PREFIX])])
     rm -f conftest*
-    CUFLAGS="$GPUFLAGS -D CUDA_5 -I ../extra_inc/cuda"
+    CUFLAGS="$GPUFLAGS -D CUDA_5 -I ../extra_inc/cuda -I ../include"
     AS_IF([test "x$OPENMP_CXXFLAGS" != x],
       [EXTRAOBJ=$EXTRAOBJ' $(CUDA_OBJECTS)'],
       [EXTRAOBJ=$EXTRAOBJ' $(CUDA_OBJECTS_SINGLE)'])

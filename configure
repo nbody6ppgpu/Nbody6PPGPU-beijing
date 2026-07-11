@@ -7090,7 +7090,7 @@ as_fn_error $? "CUDA compile/link test failed for $NVCC and $GPU_PREFIX
 See \`config.log' for more details" "$LINENO" 5; }
 fi
     rm -f conftest*
-    CUFLAGS="$GPUFLAGS -D CUDA_5 -I ../extra_inc/cuda"
+    CUFLAGS="$GPUFLAGS -D CUDA_5 -I ../extra_inc/cuda -I ../include"
     if test "x$OPENMP_CXXFLAGS" != x
 then :
   EXTRAOBJ=$EXTRAOBJ' $(CUDA_OBJECTS)'
