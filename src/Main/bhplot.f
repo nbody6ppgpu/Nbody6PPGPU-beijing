@@ -15,7 +15,7 @@
       DATA TBH,IBH/0.0,-1/
 *
 *     Reset TBH after restart.
-      IF (TBH.EQ.0.D0.AND.TIME+TOFF.NE.0.D0.AND.KSTART.GT.1) 
+      IF (TBH.EQ.0.D0.AND.TIME+TOFF.NE.0.D0.AND.KSTART.EQ.2) 
      &     TBH = INT(TIME/DTBH)*DTBH + TOFF
 *     --07/02/14 17:25-lwang-debug--------------------------------------*
 ***** Note:------------------------------------------------------------**

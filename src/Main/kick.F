@@ -484,7 +484,28 @@ c		Sambaran 2019.11.19.
 *
   30  CONTINUE
 *
+      IF(ICASE.EQ.0)THEN
+      IF(KZ(50).EQ.1.and.rank.eq.0)
+     &WRITE(231,61)WHICH,TTOT,I1,I2,NAME(I1),NAME(I2),KSTAR(I1),
+     &        KSTAR(I2),KW,KC,KMECH,ICASE,
+     &        BODY0(I1)*ZMBAR,BODY0(I2)*ZMBAR,
+     &        ZM1,ZM2,VESC,VDIS,R(IPAIR)/SEMI,EB,R(IPAIR),
+     &        ASPN(I1),ASPN(I2),QR,XJSPIN1,XJSPIN2,SPNFAC,
+     &         X(1:3,I1)*RBAR, XDOT(1:3,I1)*VSTAR,
+     &         X(1:3,I2)*RBAR, XDOT(1:3,I2)*VSTAR
+   61 FORMAT(A15,1P,E17.9,4I10,6I4,27E17.9)
+      ELSE
+      IF(KZ(50).EQ.1.and.rank.eq.0)
+     &WRITE(230,60)WHICH1,TTOT,I,NAME(I),KSTAR(I),KW,KC,
+     &         KMECH,ICASE,TTOT*TSTAR,BODY0(I)*ZMBAR,ZM,
+     &         ASPN(I),XJSPIN,SPNFAC,SQRT(VI2)*VSTAR,
+     &         VKICK*VSTAR, SQRT(VF2)*VSTAR, VK(4),FBFAC,FBTOT,
+     &         X(1:3,I)*RBAR, XDOT(1:3,I)*VSTAR
+   60 FORMAT(A20,1P,E17.9,2I10,5I4,18E17.9)
+      END IF
+*
       RETURN
+*
       END
 
 
