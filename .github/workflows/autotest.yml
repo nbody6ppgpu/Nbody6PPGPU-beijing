@@ -79,23 +79,11 @@ jobs:
 
     - name: patch hdf5
       run: |
-        cat << 'EOF' > hdf5.patch
-        25c25
-        < HDF5_FLAGS = -D H5OUTPUT
-        ---
-        > HDF5_FLAGS = -D H5OUTPUT -I/usr/include/hdf5/serial -L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5_fortran
-        30c30
-        < FFLAGS =  -O3 -fPIC -mcmodel=large -fopenmp -I../include $(MPI_FLAGS) ${SIMD_FLAGS} $(GPU_FLAGS) ${OMP_FLAGS}
-        ---
-        > FFLAGS =  -O3 -fPIC -mcmodel=large -fopenmp -I../include $(MPI_FLAGS) ${SIMD_FLAGS} $(GPU_FLAGS) ${OMP_FLAGS} ${HDF5_FLAGS}
-        122c122
-        < 	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++
-        ---
-        > 	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++ -lhdf5_fortran
-        EOF
-        cat hdf5.patch
+        sed -i '/^HDF5_FLAGS = -D H5OUTPUT/s|$| -I/usr/include/hdf5/serial -L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5_fortran|' build/Makefile
+        sed -i '/^FFLAGS = /s|$| ${HDF5_FLAGS}|' build/Makefile
+        sed -i '/-lstdc++$/s|$| -lhdf5_fortran|' build/Makefile
+        grep -n 'HDF5_FLAGS\|hdf5_fortran' build/Makefile
         cat build/Makefile
-        patch build/Makefile < hdf5.patch
 
     - name: make
       run: make clean && make -j

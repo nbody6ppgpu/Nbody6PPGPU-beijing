@@ -3,6 +3,8 @@
 *
 *       COMMON save or read.
 *       --------------------
+*       II = 0 for read, 1 for write
+*       JUNIT = unit number, usually 1 or 2 (comm.1 or comm.2)
 *
       IMPLICIT REAL*8  (A-H,O-Z)
       INCLUDE 'params.h'
@@ -54,6 +56,9 @@
      &               R(KMAX),R0(KMAX),GAMMA(KMAX),SF(7,KMAX),H0(KMAX),
      &               FP0(4,KMAX),FD0(4,KMAX),KBLIST(10*KMAX),
      &               KSLOW(KMAX),DTGW(KMAX),TBLIST
+*
+      COMMON/EVEVT/  XMOLDA(NMAX),KWOLDA(NMAX),XMOLDB(NMAX),KWOLDB(NMAX)
+*
 *
       REAL*8 CC(265)
       EQUIVALENCE (CC(1),C(1))
@@ -157,6 +162,11 @@
      &       ((tteigenv(k,i),k=1,3),i=1,3),(ttrtide(k),k=1,3)
 *** FRenaud
 #endif
+*
+*     Write event tracking arrays
+        write (J) (XMOLDA(i),i=1,ntot),(KWOLDA(i),i=1,ntot),
+     &            (XMOLDB(i),i=1,ntot),(KWOLDB(i),i=1,ntot)
+*
         END FILE J
         CLOSE (UNIT=J)
         END IF
@@ -299,6 +309,20 @@
      *       ((tteigenv(k,i),k=1,3),i=1,3),(ttrtide(k),k=1,3)
 
 #endif
+
+*     Read event tracking arrays (with backward compatibility)
+        READ (J,ERR=100,END=100) 
+     &       (XMOLDA(i),i=1,ntot),(KWOLDA(i),i=1,ntot),
+     &       (XMOLDB(i),i=1,ntot),(KWOLDB(i),i=1,ntot)
+        GO TO 101
+ 100    CONTINUE
+*     Initialize to -1 if old format file without event tracking data
+        write(0,*) 'XMOLD & KWOLD not found in comm.1; init to -1'
+        XMOLDA(1:NMAX) = -1.0D0
+        KWOLDA(1:NMAX) = -1
+        XMOLDB(1:NMAX) = -1.0D0
+        KWOLDB(1:NMAX) = -1
+ 101    CONTINUE
 
         end if
 
@@ -449,6 +473,13 @@
        CALL MPI_BCAST(tteigenv(1,1),9,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(ttrtide(1),3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
 #endif
+*
+*     Broadcast event tracking arrays
+       CALL MPI_BCAST(XMOLDA(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(KWOLDA(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(XMOLDB(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(KWOLDB(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+*
        call cputim(tt998)
        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
        call cputim(tt999)

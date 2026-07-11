@@ -5,7 +5,7 @@
 *
       INCLUDE 'common6.h'
 *
-      CHARACTER*10 FILE(100)
+      CHARACTER*10 FILE(500)
       CHARACTER*7 FILESTAT
       INTEGER STAT
       LOGICAL LSKIP
@@ -16,7 +16,7 @@
 #define MPIINIT 0
 #endif
 *
-      DO IFILE = 1,100
+      DO IFILE = 1,500
       FILE(IFILE) = '          '
       END DO
 *
@@ -85,6 +85,23 @@
       FILE(91) = 'bs.91     '
       FILE(95) = 'wdcirc.95 '
       FILE(96) = 'cirdiag.96'
+* Event data bank file units > 200; RSp KW July 2025.
+      IF(KZ(50).EQ.1) THEN
+    !   FILE(200) ='ulx.200   '
+    !   FILE(201) ='cv.201    '
+         FILE(203) ='roche.203 '
+         FILE(204) ='pulsar.204'
+         FILE(210) ='ks.210    '
+         FILE(211) ='wdnsbh.211'
+         FILE(212) ='compb.212 '
+         FILE(220) ='bmdot.220 '
+         FILE(221) ='smdot.221 '
+         FILE(230) ='gwkick.230'
+         FILE(231) ='bkick.231'
+         FILE(240) ='chain.240'
+         FILE(241) ='chain.241'
+      END IF
+
 #ifdef PARALLEL
       if(rank.eq.0) then
 #endif
@@ -92,7 +109,7 @@
 * read from or stdin, stdout (5,6,10,21) .
 * Beginning of run means TTOT=0 and KSTART=1, as a double check
       IF(TTOT.EQ.0.D0.AND.KSTART.EQ.1) THEN
-         DO IFILE = 1,100
+         DO IFILE = 1,500
          LSKIP = IFILE.EQ.5.OR.IFILE.EQ.6.OR.IFILE.EQ.10.OR.IFILE.EQ.21
          IF(LSKIP) GOTO 123
       OPEN(UNIT=IFILE,IOSTAT=STAT,FILE=FILE(IFILE),STATUS='OLD',ERR=123)
@@ -250,6 +267,36 @@
       IF (KZ(27).GT.0) 
      &OPEN (UNIT=96,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(96),
      &             ACCESS='APPEND')
+     
+* Event data bank file units > 200; RSp KW July 2025.
+      IF(KZ(50).EQ.1) THEN
+    !   OPEN (UNIT=200,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(200),
+    !  &             ACCESS='APPEND')
+    !   OPEN (UNIT=201,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(201),
+    !  &             ACCESS='APPEND')
+        OPEN (UNIT=203,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(203),
+     &             ACCESS='APPEND')
+        OPEN (UNIT=204,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(204),
+     &             ACCESS='APPEND')
+        OPEN (UNIT=210,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(210),
+     &             ACCESS='APPEND')
+        OPEN (UNIT=211,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(211),
+     &             ACCESS='APPEND')
+        OPEN (UNIT=212,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(212),
+     &             ACCESS='APPEND')
+        OPEN (UNIT=220,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(220),
+     &             ACCESS='APPEND')
+        OPEN (UNIT=221,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(221),
+     &             ACCESS='APPEND')
+        OPEN (UNIT=230,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(230),
+     &             ACCESS='APPEND')
+        OPEN (UNIT=231,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(231),
+     &             ACCESS='APPEND')
+        OPEN (UNIT=240,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(240),
+     &             ACCESS='APPEND')
+        OPEN (UNIT=241,STATUS=FILESTAT,FORM='FORMATTED',FILE=FILE(241),
+     &             ACCESS='APPEND')
+      END IF
 #ifdef PARALLEL
       end if
 #endif

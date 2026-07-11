@@ -31,6 +31,9 @@ c$$$      COMMON/KSSTAT/ISTEPP,ISTEPU,IBINP,IBINU
 *     EMPI: 1:EMERGE; 2:BE(3); 3:RMAX
       LOGICAL CMFLAG
 #endif
+*      Local variables for event output RSp July 2025.
+      LOGICAL LPROUT
+      PARAMETER(TOL=1.0D-10)
 *
 *       Determine correct index after restart (NNTB = 0 initially).
       IF (IRUN.EQ.0) THEN
@@ -163,79 +166,72 @@ c$$$                  END IF
                   IPAIR = KVEC(I1)
                   TIME = T0(I1) + STEP(I1)
                   IMULT = 0
-*     
- 10               continue
-*     --12/21/13 22:29-lwang-print------------------------------------------*
-***** Note:-----------------------------------------------------------------**
-c$$$  #ifdef PRINT
-c$$$  PRINT*,' L, I1, IPAIR, TIME=',L,I1,IPAIR,
-c$$$  &                    TIME,IMULT,STEP(I1)
-c$$$  CALL FLUSH(6)
-c$$$  #endif               
-*     --12/21/13 22:30-lwang-end----------------------------------------*
-*     
-c$$$*     --12/30/13 9:16-lwang-debug--------------------------------------*
-c$$$***** Note:------------------------------------------------------------**
-c$$$                  if(ipair.eq.1605.and.time.le.29.047283380920465) then
-c$$$                     print*,rank,'single ks t',time
-c$$$                  end if
-c$$$                  if(name(i1).eq.7173) then
-c$$$                  write(102+rank,*)'I1',I1,'IPAIR',ipair,'U',U(1,IPAIR),
-c$$$     &                 'U0',U0(1,IPAIR),'UDOT',UDOT(1,ipair),
-c$$$     &                 'FU',FU(1,ipair),'FT',FUDOT(1,ipair),
-c$$$     &                 'FT2',FUDOT2(1,ipair),'FT3',FUDOT3(1,ipair),
-c$$$     &                 'FP0',FP0(1,Ipair),'FD0',FD0(1,ipair),
-c$$$     &                 'H',H(ipair),'HT',HDOT(ipair),'HT2',HDOT2(ipair),
-c$$$     &                 'HT3',HDOT3(ipair),'HT4',HDOT4(ipair),
-c$$$     &                 'dt',DTAU(ipair),'TD2',TDOT2(ipair),
-c$$$     &                 'TD3',TDOT3(ipair),'R',R(ipair),'R0',r0(ipair),
-c$$$     &                 'Gamma',GAMMA(ipair),'H0',h0(ipair),
-c$$$     &                 'SF',sf(1,ipair),'kslow',kslow(ipair),
-c$$$     &                 'nnb',LIST(1,i1),'list',list(2,i1),
-c$$$     &                 'tblock',tblock,'ksb',ksb,'mass',body(i1),
-c$$$     *                 'r',radius(i1)
-c$$$                  call flush(102+rank)
-c$$$                  if(i1.eq.3327.and.tblock.ge.4.21E-3) then
-c$$$                     print*,rank,'SINGLE KSINT TBLOCK',tblock
-c$$$                     call flush(6)
-c$$$                  end if
-c$$$*     --12/30/13 9:16-lwang-end----------------------------------------*
-                  CALL KSINT(I1)
-*     
-*     --03/17/14 20:22-lwang-debug--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$               if(name(i1).eq.7173) then
-c$$$                  write(102+rank,*)'I1',I1,'IPAIR',ipair,'U',U(1,IPAIR),
-c$$$     &                 'U0',U0(1,IPAIR),'UDOT',UDOT(1,ipair),
-c$$$     &                 'FU',FU(1,ipair),'FT',FUDOT(1,ipair),
-c$$$     &                 'FT2',FUDOT2(1,ipair),'FT3',FUDOT3(1,ipair),
-c$$$     &                 'FP0',FP0(1,Ipair),'FD0',FD0(1,ipair),
-c$$$     &                 'H',H(ipair),'HT',HDOT(ipair),'HT2',HDOT2(ipair),
-c$$$     &                 'HT3',HDOT3(ipair),'HT4',HDOT4(ipair),
-c$$$     &                 'dt',DTAU(ipair),'TD2',TDOT2(ipair),
-c$$$     &                 'TD3',TDOT3(ipair),'R',R(ipair),'R0',r0(ipair),
-c$$$     &                 'Gamma',GAMMA(ipair),'H0',h0(ipair),
-c$$$     &                 'SF',sf(1,ipair),'kslow',kslow(ipair),
-c$$$     &                 'nnb',LIST(1,i1),'list',list(2,i1),
-c$$$     &                 'tblock',tblock,'ksb',ksb,'mass',body(i1),
-c$$$     *                 'r',radius(i1),'T',TIME
-c$$$                  call flush(102+rank)
-c$$$                  if(i1.eq.3327.and.tblock.ge.4.21E-3) then
-c$$$                     print*,rank,'SINGLE KSINT TBLOCK',tblock
-c$$$                     call flush(6)
-c$$$               end if
-c$$$               print*,rank,'sig iq',iq,'t',time
-c$$$               call flush(6)
-*     --03/17/14 20:22-lwang-end----------------------------------------*
-*     --12/21/13 22:49-lwang-print--------------------------------------*
-***** Note:------------------------------------------------------------**
-c$$$  #ifdef PRINT
-c$$$  PRINT*,' Ret KSINT T0+STEP STEP=',
-c$$$  &                    T0(I1)+STEP(I1),STEP(I1)
-c$$$  CALL FLUSH(6)
-c$$$  #endif               
-*     --12/21/13 22:49-lwang-end----------------------------------------*
+                  ICM = N + IPAIR
+                  I2 = I1 + 1
+*    Prepare output for event data bank, RSp July 2025.
+                  DEB1 = DABS(BODY(I1) - XMOLDB(NAME(I1)))/BODY(I1)
+                  DEB2 = DABS(BODY(I2) - XMOLDB(NAME(I2)))/BODY(I2)
+                  IF(XMOLDB(NAME(I1)).LT.0.0) DEB1 = 0.D0 ! first change, no old value
+                  IF(XMOLDB(NAME(I2)).LT.0.0) DEB2 = 0.D0 ! first change, no old value
+                  IKW1 = IABS(KSTAR(I1) - KWOLDB(NAME(I1)))
+                  IKW2 = IABS(KSTAR(I2) - KWOLDB(NAME(I2)))
+                  IF(KWOLDB(NAME(I1)).LT.0) IKW1 = 0 ! first change, no old value
+                  IF(KWOLDB(NAME(I2)).LT.0) IKW2 = 0 ! first change, no old value
+                  LPROUT = DEB1.GT.0.05D0.OR.DEB2.GT.0.05D0.OR.
+     &                     IKW1.GT.0.OR.IKW2.GT.0
+               IF (LPROUT) THEN
+                     RI = SQRT((X(1,ICM) - RDENS(1))**2 +
+     &                         (X(2,ICM) - RDENS(2))**2 +
+     &                         (X(3,ICM) - RDENS(3))**2)
+               VII = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
+*
+          R1XY=SQRT((X(1,I1)-RDENS(1))**2+(X(2,I1)-RDENS(2))**2)
+          R1XY=MAX(R1XY,TOL)
+          R1INC = ATAN((X(3,I1)-RDENS(3))/R1XY)
+          R1PHI = ACOS((X(1,I1)-RDENS(1))/R1XY)
+*
+          R2XY=SQRT((X(1,I2)-RDENS(1))**2+(X(2,I2)-RDENS(2))**2)
+          R2XY=MAX(R2XY,TOL)
+          R2INC = ATAN((X(3,I2)-RDENS(3))/R2XY)
+          R2PHI = ACOS((X(1,I2)-RDENS(1))/R2XY)
+*
+          V1XY = SQRT(XDOT(1,I1)**2+XDOT(2,I1)**2)
+          V1INC = ATAN(XDOT(3,I1)/V1XY)
+          V1PHI = ACOS(XDOT(1,I1)/V1XY)
+*
+          V2XY = SQRT(XDOT(1,I2)**2+XDOT(2,I2)**2)
+          V2INC = ATAN(XDOT(3,I2)/V2XY)
+          V2PHI = ACOS(XDOT(1,I2)/V2XY)
 
+               SEMI = -0.5*BODY(ICM)/H(IPAIR)
+          ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
+               EB = -0.5*BODY(I1)*BODY(I2)/SEMI
+               PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6 
+*
+               IF(KZ(50).EQ.1.and.rank.eq.0)
+     &         WRITE(210,61) TIME+TOFF,DEB1,DEB2,IKW1,IKW2,NAME(I1),
+     &             NAME(I2),NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
+     &             IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
+     &             R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+     &             STEP(ICM),LIST(1,I1),LIST(1,ICM),
+     &             BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
+     &             RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VII,
+     &             R1XY,R1INC,R1PHI,V1XY,V1INC,V1PHI,
+     &             R2XY,R2INC,R2PHI,V2XY,V2INC,V2PHI
+
+ 61       FORMAT('     KSREG  ',1P,E17.9,2E13.5,2I4,3I10,3I4,I9,
+     &                         11E17.9,2I5,19E17.9)
+*
+                  XMOLDB(NAME(I1)) = BODY(I1)
+                  XMOLDB(NAME(I2)) = BODY(I2)
+                  KWOLDB(NAME(I1)) = KSTAR(I1)
+                  KWOLDB(NAME(I2)) = KSTAR(I2)
+* End event data bank output, RSp July 25
+               END IF
+*
+ 10               continue
+                  CALL KSINT(I1)
+*
 *     Check for multiple calls of #I1 (saves using CALL INSERT).
                   IF (IPHASE.EQ.0) THEN
                      TI = TIME + STEP(I1)
@@ -690,7 +686,8 @@ c$$$            call mpi_barrier(MPI_COMM_WORLD,ierr)
                   GO TO 50
                END IF
                TIMENB = TTOT
-               CALL CHAIN(ISUB,TIMENB)
+               KZ50 = KZ(50)
+               CALL CHAIN(ISUB,TIMENB,KZ50)
                IF (ISUB.GT.0) THEN
                   IF(STEPS(ISUB).LT.0.0D0) THEN
                      STEPS(ISUB) = 1.0D-10
