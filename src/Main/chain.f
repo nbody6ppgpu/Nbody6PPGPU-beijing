@@ -1,4 +1,4 @@
-      SUBROUTINE CHAIN(ISUB,TIMENB)
+      SUBROUTINE CHAIN(ISUB,TIMENB,KZ50)
 *
 *
 *       Perturbed chain regularization. 
@@ -14,8 +14,9 @@
       REAL*8   RI(NMX),VI(NMX),RI2(NMX),VI2(NMX),SEMICH(NMX),ECCCH(NMX)
       REAL*8   RSEP(NMX),RSEP2(NMX),VSEP(NMX),VSEP2(NMX),RDOTV(NMX)
       REAL*8   TGRCH(NMX),A_EIN(NMX)
-      INTEGER  IJ(NMX),IOLD(NMX),IPRINT
+      INTEGER  IJ(NMX),IOLD(NMX),IPRINT,KZ50
       LOGICAL  CHECK,KSLOW,KCOLL,stopB,ICASE
+      CHARACTER*8 WHICH
       COMMON/SLOW1/   TK2(0:NMX),EJUMP,KSCH(NMX),KSLOW,KCOLL
       COMMON/SLOW2/   stepl,stopB
       COMMON/CHREG/  TIMEC,TMAX,RMAXC,CM(10),NAMEC(6),NSTEP1,KZ27,KZ30
@@ -678,7 +679,6 @@
           TIMEC = CHTIME
 * Temporary Output RSP Sep 2018
           IF (rank.eq.0.and.KZ30.GE.2) THEN
-*         IF (rank.eq.0.and.KZ30.GT.2) THEN
           DO 305 K = 1,N
           RI2(K) = 0.D0
           VI2(K) = 0.D0
@@ -737,7 +737,15 @@
      &    N,NAMEC(N),M(N),SIZE(N)
   302  FORMAT(' CHAIN T,TC[NB] K,N,M,R[*],R,V,a,e,tgr,aein[NB-CH]=',
      &          1P,E17.10,E14.5,10(I4,I10,8E14.5))
-          END IF
+*
+            WHICH = ' CHAIN: '
+            IF(KZ50.EQ.1)
+     &      WRITE(241,61)WHICH,NSTEP1,TIMENB,TIMEC,T0S(ISUB)+TIMEC,
+     &          TMAX-TIMEC,(K,NAMEC(K),M(K),SIZE(K),RSEP(K),
+     &           VSEP(K),SEMICH(K),ECCCH(K),TGRCH(K),A_EIN(K),K=1,N-1),
+     &           N,NAMEC(N),M(N),SIZE(N)
+  61        FORMAT(A8,I10,1P,4D17.9,10(I4,I10,8D17.9))
+        END IF
 *       Avoid checking after switch (just in case).
           IF (ISW.LE.1) THEN
               CALL CHMOD_CHAIN(ISUB,KCASE)

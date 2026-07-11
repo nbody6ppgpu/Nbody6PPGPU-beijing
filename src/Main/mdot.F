@@ -48,6 +48,8 @@
       LOGICAL ICORR,IKICK
       SAVE IWARN
       DATA IWARN /0/
+*      Local variables for event output RSp July 2025.
+      LOGICAL LPROUT
 *       Set variables with different names in common (RSp Mar23).
       K3 = XK3
       BETA = XBETA
@@ -867,7 +869,11 @@ c$$$            end if
      &        ' I,K,N,KW=',I10,I4,I10,2I4,
      &    ' AGE,AGE0=',2E13.5,' Body, Mass [*]=',1P,2E13.5,' M0/1[*]',
      &        2E13.5,' RAD[*]',E9.1,' R,V=',2E9.1,' RCC,MC=',2E9.1)
+      IF(KZ(50).EQ.1)
+     &WRITE (211,63)TIME+TOFF,I, K, NAME(I), KSTAR(I), KW, AGE,AGEOLD,
+     &      BODY(I)*ZMBAR,MASS(K), M0, M1, RADIUS(I)*SU, VI, RI, RCC, MC
             END IF
+ 63   FORMAT(' WD/NS/BH FORMATION ',1P,E17.9,3I10,2I4,12E13.5)
 *
          END IF
 *
@@ -1524,16 +1530,71 @@ c$$$#endif
          ENDIF
       ENDIF
 *
-*       Determine the time for next stellar evolution check.
-c$$$ 70   TMDOT = 1.0d+10
-c$$$      DO 80 J = 1,NTOT
-c$$$         IF(TEV(J).LE.TMDOT)THEN
-c$$$            TMDOT = TEV(J)
-c$$$         ENDIF
-c$$$   80 CONTINUE
+*    Prepare output for event data bank, RSp July 2025.
+         IF(I.LE.N)THEN
+                  DEB1 = DABS(BODY(I) - XMOLDA(NAME(I)))/BODY(I)
+                  IF(XMOLDA(NAME(I)).LT.0.0) DEB1 = 0.D0 ! first change, no old value
+                  DEB2 = 0.D0
+                  IKW1 = IABS(KSTAR(I) - KWOLDA(NAME(I)))
+                  IF(KWOLDA(NAME(I)).LT.0) IKW1 = 0 ! first change, no old value
+                  IKW2 = 0
+                  ICM = I
+         ELSE IF(I.GT.N)THEN
+                  IPAIR = I - N
+                  ICM = N + IPAIR
+                  I1 = 2*IPAIR - 1
+                  I2 = I1 + 1
+                  DEB1 = DABS(BODY(I1) - XMOLDA(NAME(I1)))/BODY(I1)
+                  DEB2 = DABS(BODY(I2) - XMOLDA(NAME(I2)))/BODY(I2)
+                  IF(XMOLDA(NAME(I1)).LT.0.0) DEB1 = 0.D0 ! first change, no old value
+                  IF(XMOLDA(NAME(I2)).LT.0.0) DEB2 = 0.D0 ! first change, no old value
+                  IKW1 = IABS(KSTAR(I1) - KWOLDA(NAME(I1)))
+                  IKW2 = IABS(KSTAR(I2) - KWOLDA(NAME(I2)))
+                  IF(KWOLDA(NAME(I1)).LT.0) IKW1 = 0 ! first change, no old value
+                  IF(KWOLDA(NAME(I2)).LT.0) IKW2 = 0 ! first change, no old value
+         END IF
 *
-*       See whether any other stars should be considered.
-c$$$      IF (TMDOT.LT.TIME) GO TO 1
+         LPROUT = DEB1.GT.0.05D0.OR.DEB2.GT.0.05D0.OR.
+     &                     IKW1.GT.0.OR.IKW2.GT.0
+         IF (LPROUT) THEN
+                     RI = SQRT((X(1,ICM) - RDENS(1))**2 +
+     &                         (X(2,ICM) - RDENS(2))**2 +
+     &                         (X(3,ICM) - RDENS(3))**2)
+               VII = SQRT(XDOT(1,ICM)**2+XDOT(2,ICM)**2+XDOT(3,ICM)**2)
+             IF(I.LE.N)THEN
+                 IF(KZ(50).EQ.1.and.rank.eq.0)
+     &           WRITE(221,62) TIME+TOFF,DEB1,DEB2,IKW1,IKW2,I,NAME(I),
+     &             KSTAR(I),BODY(I),LIST(1,I),BODY(I)*ZMBAR,
+     &             RADIUS(I)*SU,RI,VII
+ 62      FORMAT(' SING MDOT ',1P,E17.9,2E13.5,2I4,3I10,E17.9,I10,4E17.9)
+                 XMOLDA(NAME(I)) = BODY(I)
+                 KWOLDA(NAME(I)) = KSTAR(I)
+                 XMOLDA(NAME(I)) = 0.D0
+                 KWOLDA(NAME(I)) = -1
+             ELSE IF(I.GT.N)THEN
+                 SEMI = -0.5*BODY(ICM)/H(IPAIR)
+          ECC2 = (1.0-R(IPAIR)/SEMI)**2+TDOT2(IPAIR)**2/(BODY(ICM)*SEMI)
+                 EB = -0.5*BODY(I1)*BODY(I2)/SEMI
+               PD = TWOPI*SEMI*SQRT(DABS(SEMI)/BODY(ICM))*TSTAR*365.24D6
+                 IF(KZ(50).EQ.1.and.rank.eq.0)
+     &           WRITE(220,61) TIME+TOFF,DEB1,DEB2,IKW1,IKW2,I,NAME(I1),
+     &             NAME(I2),NAME(ICM),KSTAR(I1),KSTAR(I2),KSTAR(ICM),
+     &             IPAIR,DTAU(IPAIR),BODY(I1),BODY(I2),
+     &             R(IPAIR),SQRT(ECC2),SEMI,EB,PD,H(IPAIR),GAMMA(IPAIR),
+     &             STEP(ICM),LIST(1,I1),LIST(1,ICM),
+     &             BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,
+     &             RADIUS(I1)*SU,RADIUS(I2)*SU,R(IPAIR)*SU,RI,VII
+ 61       FORMAT('  BIN MDOT ',1P,E17.9,2E13.5,2I4,4I10,3I4,I9,
+     &                         11E17.9,2I5,13E17.9)
+*
+             XMOLDA(NAME(I1)) = BODY(I1)
+             XMOLDA(NAME(I2)) = BODY(I2)
+             KWOLDA(NAME(I1)) = KSTAR(I1)
+             KWOLDA(NAME(I2)) = KSTAR(I2)
+* End event data bank output, RSp July 25
+             END IF
+         END IF
+*       Determine the time for next stellar evolution check.
       IF (TEV(I).GT.TIME) THEN
          TMDOT = MIN(TMDOT,TEV(I))
       ELSE

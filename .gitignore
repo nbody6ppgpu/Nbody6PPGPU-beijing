@@ -1,6 +1,8 @@
 # junk and tmp files
 *.swp
 *.swo
+**/*.swp
+**/*.swo
 
 # Python cache
 __pycache__/

@@ -136,6 +136,12 @@
 *     For TLIST
       NLSTDELAY(1) = 0
 
+*     For event bank
+      XMOLDA(1:NMAX) = -1.0D0
+      KWOLDA(1:NMAX) = -1
+      XMOLDB(1:NMAX) = -1.0D0
+      KWOLDB(1:NMAX) = -1
+
       RETURN
 *
       END

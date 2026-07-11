@@ -114,7 +114,6 @@
       XJSPIN2 = ASPN(I2)*BODY(I2)**2/CLIGHT
 * multiply by SPNFAC to get Msun*Rsun**2/Myr
       IF(rank.eq.0) THEN
- 
          WRITE (6,310)WHICH,TTOT,I1,I2,NAME(I1),NAME(I2),
      &        KSTAR(I1),KSTAR(I2),ICASE,
      &        TTOT*TSTAR,ZM01,ZM02,ZM1,ZM2,
@@ -130,8 +129,18 @@
      &        ' VESC[km/s] VDIS[km/s] R/SEMI EB R ',5E13.5,
      &        ' X1(1:3)[pc] V1(1:3)[km/s] X2(1:3)[pc] V2(1:3)[km/s] ',
      &        12E13.5)
- 
+
          NBKICK = NBKICK + 1
+      IF(KZ(50).EQ.1)
+     &WRITE(231,61)WHICH,TTOT,I1,I2,NAME(I1),NAME(I2),
+     &        KSTAR(I1),KSTAR(I2),ICASE,
+     &        TTOT*TSTAR,ZM01,ZM02,ZM1,ZM2,
+     &        ASPN(I1),ASPN(I2),QR,XJSPIN1,XJSPIN2,SPNFAC,
+     &        VKICK, VK(1:3),
+     &        VESC,VDIS,R(IPAIR)/SEMI,EB,R(IPAIR),
+     &         X(1:3,I1)*RBAR, XDOT(1:3,I1)*VSTAR,
+     &         X(1:3,I2)*RBAR, XDOT(1:3,I2)*VSTAR
+   61 FORMAT(A15,1P,E17.9,4I10,3I4,32E17.9)
 
       ENDIF
 
