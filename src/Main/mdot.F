@@ -1533,10 +1533,10 @@ c$$$#endif
 *    Prepare output for event data bank, RSp July 2025.
          IF(I.LE.N)THEN
                   DEB1 = DABS(BODY(I) - XMOLDA(NAME(I)))/BODY(I)
-                  IF(XMOLDA(NAME(I1)).LT.0.0) DEB1 = 0.D0 ! first change, no old value
+                  IF(XMOLDA(NAME(I)).LT.0.0) DEB1 = 0.D0 ! first change, no old value
                   DEB2 = 0.D0
                   IKW1 = IABS(KSTAR(I) - KWOLDA(NAME(I)))
-                  IF(KWOLDA(NAME(I1)).LT.0) IKW1 = 0 ! first change, no old value
+                  IF(KWOLDA(NAME(I)).LT.0) IKW1 = 0 ! first change, no old value
                   IKW2 = 0
                   ICM = I
          ELSE IF(I.GT.N)THEN
