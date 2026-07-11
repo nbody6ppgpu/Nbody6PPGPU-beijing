@@ -6,10 +6,9 @@
 *
       INCLUDE 'common6.h'
       REAL*8  Q(3),RDOT(3),UI(4),VI(4),A1(3,4)
-      PARAMETER(TOL=1.0D-10)
+      PARAMETER (TOL = 1.D-10)
       SAVE  IPREV,EBPREV
       DATA  IPREV,EBPREV /0,-1.0D-06/
-      PARAMETER (TOL = 1.D-10)
 *
 *
 *       Set new global indices of the components and current pair index.
