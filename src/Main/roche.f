@@ -261,7 +261,7 @@
             ! If Mdot_RLOF from output is always zero, then may need re-calc here
           if( (kstar(j2).GE.10 .AND. kstar(j2).LE.14).OR.
      &            (kstar(j1).GE.10 .AND. kstar(j1).LE.14)    ) then
-                 Lx = get_Lx(kstar(j2),rad(j2),mass(2),Mdot_RLOF)
+                 Lx = get_Lx(kstar(j2),rad(2),mass(2),Mdot_RLOF)
           else
                  Lx = 0.D0
           end if
@@ -1271,7 +1271,7 @@
 *
             if( (kstar(j2).GE.10 .AND. kstar(j2).LE.14).OR.
      &          (kstar(j1).GE.10 .AND. kstar(j1).LE.14)    ) then
-               Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF)
+               Lx = get_Lx(kstar(j2),rad(2),mass(2),Mdot_RLOF)
             else
                Lx = 0.D0
             end if
@@ -1754,7 +1754,7 @@
      &           ' DM1/2,DT=',3E13.5)
             if( (kstar(j2).GE.10 .AND. kstar(j2).LE.14).OR.
      &          (kstar(j1).GE.10 .AND. kstar(j1).LE.14)    ) then
-               Lx = get_Lx(kstar(j2),rad(j2),mass(j2),Mdot_RLOF)
+               Lx = get_Lx(kstar(j2),rad(2),mass(2),Mdot_RLOF)
             else
                Lx = 0.d0
             end if
