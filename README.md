@@ -14,7 +14,7 @@ This is Nbody6++GPU - Beijing version, an N-body star cluster simulation code, m
 
 The code is an offspring of [Sverre Aarseth's direct N-body codes](https://people.ast.cam.ac.uk/~sverre/web/pages/nbody.htm).
 
-For a regularly updated "live" manual see https://www.overleaf.com/read/hcmxcyffjkzq#89d2bb . Please report any issues for the manual here in this github server under https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/issues . Any important messages from our side to the community (e.g. updates which change downward compatibility or other major issues) see in our discussion section: https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions
+Any important messages from our side to the community (e.g. updates which change downward compatibility or other major issues) see in our discussion section: https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions
 
 This is the code suitable for parallel and GPU accelerated runs on supercomputers and workstations. Before we give some more practical help, please read the following disambiguation; there is another github of Nbody6++GPU:
 
@@ -151,7 +151,11 @@ The default input is `examples/N1m_benchmark.inp`. For Slurm, copy `examples/exa
 
 # Documentation
 To understand the diagnostic information and columns of each output file, please read the documentations at
-https://www.overleaf.com/read/hcmxcyffjkzq
+https://nbody6ppgpu.github.io/nb6-manual-pdf/latest.pdf
+Which mirrors the results from the following overleaf 
+https://www.overleaf.com/read/hcmxcyffjkzq#89d2bb
+
+Please report any issues for the manual by opening an issue https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/issues . 
 
 You are also welcomed to ask any question in [our discussion](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions)
 
