@@ -152,6 +152,7 @@ The default input is `examples/N1m_benchmark.inp`. For Slurm, copy `examples/exa
 # Documentation
 To understand the diagnostic information and columns of each output file, please read the documentations at
 https://nbody6ppgpu.github.io/nb6-manual-pdf/latest.pdf
+
 Which mirrors the results from the following overleaf 
 https://www.overleaf.com/read/hcmxcyffjkzq#89d2bb
 
