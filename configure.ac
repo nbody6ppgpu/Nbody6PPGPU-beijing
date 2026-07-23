@@ -243,6 +243,7 @@ load a serial HDF5 module, or set H5FC=/path/to/h5fc.])])
   for hdf5_flag in $hdf5_wrapper_flags
   do
     AS_CASE([$hdf5_flag],
+      [-show], [],
       [-I*|-D*|-U*], [HDF5_FCFLAGS="$HDF5_FCFLAGS $hdf5_flag"],
       [HDF5_LIBS="$HDF5_LIBS $hdf5_flag"])
   done
@@ -275,10 +276,12 @@ h5fc -show: $hdf5_show])])
 
   hdf5_showconfig=`LC_ALL=C "$H5FC" -showconfig 2>/dev/null`
   hdf5_parallel_value=`printf '%s\n' "$hdf5_showconfig" |
-    sed -n 's/^[[	 ]]*Parallel HDF5:[[	 ]]*//p' | sed -n '1p'`
+    sed -n 's/^[[[:space:]]]*Parallel HDF5:[[[:space:]]]*//p' |
+    sed -n '1{s/[[[:space:]]]*$//;p;}' |
+    LC_ALL=C tr '[[:upper:]]' '[[:lower:]]'`
   AS_CASE([$hdf5_parallel_value],
-    [yes], [HDF5_PARALLEL=yes],
-    [no], [HDF5_PARALLEL=no],
+    [yes|on], [HDF5_PARALLEL=yes],
+    [no|off], [HDF5_PARALLEL=no],
     [HDF5_PARALLEL=unknown])
 
   AS_IF([test "x$HDF5_PARALLEL" = xyes],

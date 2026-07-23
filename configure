@@ -4307,6 +4307,8 @@ fi
   for hdf5_flag in $hdf5_wrapper_flags
   do
     case $hdf5_flag in #(
+  -show) :
+     ;; #(
   -I*|-D*|-U*) :
     HDF5_FCFLAGS="$HDF5_FCFLAGS $hdf5_flag" ;; #(
   *) :
@@ -4359,11 +4361,13 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
 
   hdf5_showconfig=`LC_ALL=C "$H5FC" -showconfig 2>/dev/null`
   hdf5_parallel_value=`printf '%s\n' "$hdf5_showconfig" |
-    sed -n 's/^[	 ]*Parallel HDF5:[	 ]*//p' | sed -n '1p'`
+    sed -n 's/^[[:space:]]*Parallel HDF5:[[:space:]]*//p' |
+    sed -n '1{s/[[:space:]]*$//;p;}' |
+    LC_ALL=C tr '[:upper:]' '[:lower:]'`
   case $hdf5_parallel_value in #(
-  yes) :
+  yes|on) :
     HDF5_PARALLEL=yes ;; #(
-  no) :
+  no|off) :
     HDF5_PARALLEL=no ;; #(
   *) :
     HDF5_PARALLEL=unknown ;;
@@ -8915,5 +8919,4 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 printf "%s\n" "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
-
 
