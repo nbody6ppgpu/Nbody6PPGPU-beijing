@@ -154,6 +154,8 @@ AC_ARG_ENABLE([hdf5],
      [],
      [enable_hdf5=no])
 
+AC_ARG_VAR([H5FC], [HDF5 Fortran wrapper used to discover the serial HDF5 installation])
+
 AC_ARG_ENABLE([tt],
      [AS_HELP_STRING([--enable-tt],
          [Enable tidal tensor and analytical potential extension imported from NBODY6TT. (Ref: Renaud, F., et al., 2011, MNRAS, 418, 759; Renaud, F. & Gieles, M., 2015, MNRAS, 448, 3416)])],
@@ -179,14 +181,11 @@ AC_PROG_FC
 fc_check=$FC
 FC=$local_fc
 
-# Checks for MPI and HDF5 support
+# Check the Fortran compiler used by the simulation.  HDF5 is discovered
+# separately below so an MPI build can link the serial HDF5 library.
 AS_IF([test "x$enable_mpi" != xno],
-     [AS_IF([test "x$enable_hdf5" != xno],
-       [AC_CHECK_PROG([FC], [h5pfc], [h5pfc], [none])],
-       [AC_CHECK_PROG([FC], [mpif77], [mpif77], [none])])],
-     [AS_IF([test "x$enable_hdf5" != xno],
-      [AC_CHECK_PROG([FC], [h5fc], [h5fc], [none])],
-      FC=$fc_check)
+     [AC_CHECK_PROG([FC], [mpif77], [mpif77], [none])],
+     [FC=$fc_check
       local_fcflags=$local_fcflags' -I../extra_inc/nompi'])
 
 AS_IF([test "x$enable_debug" != xno],
@@ -219,16 +218,78 @@ FCFLAGS=$FCFLAGS' -I../include'
 # Check FC
 AS_IF([test "x$FC" == xnone],
      [AS_IF([test "x$enable_mpi" != xno],
-        [AS_IF([test "x$enable_hdf5" != xno],
-          [AC_MSG_FAILURE(
-             [h5pfc not found, please install it and check environment PATH])],
-          [AC_MSG_FAILURE(
-            [mpif77 not found, please intall it and check environment PATH])])],
-        [AS_IF([test "x$enable_hdf5" != xno],
-          [AC_MSG_FAILURE(
-             [h5fc not found, please install it and check environment PATH])],
-          [AC_MSG_FAILURE(
-            [Fortran compiler not found, please intall it and check environment PATH])])])])
+        [AC_MSG_FAILURE(
+           [mpif77 not found, please install it and check environment PATH])],
+        [AC_MSG_FAILURE(
+           [Fortran compiler not found, please install it and check environment PATH])])])
+
+HDF5_FCFLAGS=
+HDF5_LIBS=
+HDF5_PARALLEL=disabled
+
+AS_IF([test "x$enable_hdf5" != xno], [
+  AC_PATH_PROG([H5FC], [h5fc], [none])
+  AS_IF([test "x$H5FC" = xnone],
+    [AC_MSG_FAILURE(
+       [h5fc not found. Install the serial HDF5 Fortran development package,
+load a serial HDF5 module, or set H5FC=/path/to/h5fc.])])
+
+  AC_MSG_CHECKING([for HDF5 Fortran compile and link flags])
+  hdf5_show=`"$H5FC" -show 2>/dev/null`
+  AS_IF([test -z "$hdf5_show"],
+    [AC_MSG_FAILURE([$H5FC -show returned no compiler or linker flags])])
+
+  hdf5_wrapper_flags=${hdf5_show#* }
+  for hdf5_flag in $hdf5_wrapper_flags
+  do
+    AS_CASE([$hdf5_flag],
+      [-I*|-D*|-U*], [HDF5_FCFLAGS="$HDF5_FCFLAGS $hdf5_flag"],
+      [HDF5_LIBS="$HDF5_LIBS $hdf5_flag"])
+  done
+  AS_IF([test -z "$HDF5_FCFLAGS" || test -z "$HDF5_LIBS"],
+    [AC_MSG_FAILURE([could not parse compile and link flags from: $hdf5_show])])
+  AC_MSG_RESULT([yes])
+
+  hdf5_save_FCFLAGS=$FCFLAGS
+  hdf5_save_LIBS=$LIBS
+  FCFLAGS="$FCFLAGS $HDF5_FCFLAGS"
+  LIBS="$LIBS $HDF5_LIBS"
+  AC_MSG_CHECKING([whether $FC can compile and link the HDF5 Fortran module])
+  AC_LINK_IFELSE(
+    [AC_LANG_SOURCE([[
+      program conftest
+      use hdf5
+      implicit none
+      integer :: hdferr
+      call h5open_f(hdferr)
+      call h5close_f(hdferr)
+      end program conftest
+    ]])],
+    [AC_MSG_RESULT([yes])],
+    [AC_MSG_FAILURE(
+       [the HDF5 Fortran flags reported by $H5FC do not work with $FC.
+Ensure h5fc and the simulation Fortran compiler use compatible ABIs.
+h5fc -show: $hdf5_show])])
+  FCFLAGS=$hdf5_save_FCFLAGS
+  LIBS=$hdf5_save_LIBS
+
+  hdf5_showconfig=`LC_ALL=C "$H5FC" -showconfig 2>/dev/null`
+  hdf5_parallel_value=`printf '%s\n' "$hdf5_showconfig" |
+    sed -n 's/^[[	 ]]*Parallel HDF5:[[	 ]]*//p' | sed -n '1p'`
+  AS_CASE([$hdf5_parallel_value],
+    [yes], [HDF5_PARALLEL=yes],
+    [no], [HDF5_PARALLEL=no],
+    [HDF5_PARALLEL=unknown])
+
+  AS_IF([test "x$HDF5_PARALLEL" = xyes],
+    [AC_MSG_WARN(
+       [parallel HDF5 detected through $H5FC. NBODY6++GPU HDF5 output supports serial HDF5 only.
+Load a serial HDF5 module or put its h5fc first in PATH.])],
+    [test "x$HDF5_PARALLEL" = xunknown],
+    [AC_MSG_WARN(
+       [could not confirm that the HDF5 library discovered through $H5FC is serial.
+NBODY6++GPU HDF5 output supports serial HDF5 only.])])
+])
 
 
 # FIXME: Replace `main' with a function in `-lmpi':
@@ -819,6 +880,9 @@ AC_SUBST([EXTRASRC])
 AC_SUBST([EXTRAOBJ])
 AC_SUBST([EXTRARESULT])
 AC_SUBST([MPI_FLAGS])
+AC_SUBST([HDF5_FCFLAGS])
+AC_SUBST([HDF5_LIBS])
+AC_SUBST([HDF5_PARALLEL])
 
 AC_SUBST([NMAX])
 AC_SUBST([KMAX])
@@ -854,6 +918,10 @@ AC_MSG_NOTICE([     mcmodel:        $enable_mcmodel])
 AC_MSG_NOTICE([     OpenMP option:  $OPENMP_FCFLAGS])
 AC_MSG_NOTICE([     Debug mode:     $enable_debug])
 AC_MSG_NOTICE([     HDF5 format:    $enable_hdf5])
+AS_IF([test "x$enable_hdf5" != xno], [
+  AC_MSG_NOTICE([     HDF5 wrapper:   $H5FC])
+  AC_MSG_NOTICE([     Parallel HDF5:  $HDF5_PARALLEL])
+])
 AC_MSG_NOTICE([     TT package:     $enable_tt])
 AC_MSG_NOTICE([--Compilers:])
 AC_MSG_NOTICE([     C++ compiler:      $CXX])

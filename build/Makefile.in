@@ -23,10 +23,18 @@ OMP_FLAGS= -D OMP
 MPI_FLAGS = -D PARALLEL -D PUREMPI @MPI_FLAGS@
 GPU_FLAGS = -D GPU
 SIMD_FLAGS = -D SIMD
-HDF5_FLAGS = -D H5OUTPUT
+HDF5_FLAGS = -D H5OUTPUT @HDF5_FCFLAGS@
+HDF5_LIBS = @HDF5_LIBS@
+HDF5_PARALLEL = @HDF5_PARALLEL@
 DEBUG_FLAGS= -D DEBUG
 TT_FLAGS= -D TT
 INTEL_FLAGS= -D __USE_INTEL -no-wrap-margin
+
+ifeq ($(HDF5_PARALLEL),yes)
+$(warning WARNING: parallel HDF5 was detected; NBODY6++GPU HDF5 output supports serial HDF5 only)
+else ifeq ($(HDF5_PARALLEL),unknown)
+$(warning WARNING: configure could not confirm that HDF5 is serial; NBODY6++GPU HDF5 output supports serial HDF5 only)
+endif
 
 FFLAGS = @FCFLAGS@
 CXXFLAGS = @CXXFLAGS@
@@ -126,7 +134,7 @@ OBJECTS = $(SOURCE:.f=.o)
 TARGET: $(RESULT) @EXTRARESULT@
 
 $(RESULT): $(OBJECTS) $(F90_OBJECTS) $(EXTRAOBJ)
-	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(F90_OBJECTS) $(EXTRAOBJ)  @LIBS@
+	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(F90_OBJECTS) $(EXTRAOBJ)  @LIBS@ $(HDF5_LIBS)
 
 %.o: %.f90
 	$(FC) $(FFLAGS) -c $< -o $@

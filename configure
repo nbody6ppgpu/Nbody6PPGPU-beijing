@@ -653,6 +653,9 @@ MMAX
 LMAX
 KMAX
 NMAX
+HDF5_PARALLEL
+HDF5_LIBS
+HDF5_FCFLAGS
 MPI_FLAGS
 EXTRARESULT
 EXTRAOBJ
@@ -679,6 +682,7 @@ ac_ct_FC
 LDFLAGS
 FCFLAGS
 FC
+H5FC
 host_os
 host_vendor
 host_cpu
@@ -752,6 +756,7 @@ with_mmax
       ac_precious_vars='build_alias
 host_alias
 target_alias
+H5FC
 FC
 FCFLAGS
 LDFLAGS
@@ -1440,6 +1445,8 @@ Optional Packages:
                           particles (will overwrite value set in --with-par)
 
 Some influential environment variables:
+  H5FC        HDF5 Fortran wrapper used to discover the serial HDF5
+              installation
   FC          Fortran compiler command
   FCFLAGS     Fortran compiler flags
   LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
@@ -3296,6 +3303,8 @@ else $as_nop
 fi
 
 
+
+
 # Check whether --enable-tt was given.
 if test ${enable_tt+y}
 then :
@@ -3793,55 +3802,10 @@ ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 fc_check=$FC
 FC=$local_fc
 
-# Checks for MPI and HDF5 support
+# Check the Fortran compiler used by the simulation.  HDF5 is discovered
+# separately below so an MPI build can link the serial HDF5 library.
 if test "x$enable_mpi" != xno
 then :
-  if test "x$enable_hdf5" != xno
-then :
-  # Extract the first word of "h5pfc", so it can be a program name with args.
-set dummy h5pfc; ac_word=$2
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-printf %s "checking for $ac_word... " >&6; }
-if test ${ac_cv_prog_FC+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  if test -n "$FC"; then
-  ac_cv_prog_FC="$FC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  case $as_dir in #(((
-    '') as_dir=./ ;;
-    */) ;;
-    *) as_dir=$as_dir/ ;;
-  esac
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_prog_FC="h5pfc"
-    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_FC" && ac_cv_prog_FC="none"
-fi
-fi
-FC=$ac_cv_prog_FC
-if test -n "$FC"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $FC" >&5
-printf "%s\n" "$FC" >&6; }
-else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-fi
-
-
-else $as_nop
   # Extract the first word of "mpif77", so it can be a program name with args.
 set dummy mpif77; ac_word=$2
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -3885,56 +3849,8 @@ printf "%s\n" "no" >&6; }
 fi
 
 
-fi
-else $as_nop
-  if test "x$enable_hdf5" != xno
-then :
-  # Extract the first word of "h5fc", so it can be a program name with args.
-set dummy h5fc; ac_word=$2
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-printf %s "checking for $ac_word... " >&6; }
-if test ${ac_cv_prog_FC+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  if test -n "$FC"; then
-  ac_cv_prog_FC="$FC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  case $as_dir in #(((
-    '') as_dir=./ ;;
-    */) ;;
-    *) as_dir=$as_dir/ ;;
-  esac
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_prog_FC="h5fc"
-    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_FC" && ac_cv_prog_FC="none"
-fi
-fi
-FC=$ac_cv_prog_FC
-if test -n "$FC"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $FC" >&5
-printf "%s\n" "$FC" >&6; }
-else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-fi
-
-
 else $as_nop
   FC=$fc_check
-fi
       local_fcflags=$local_fcflags' -I../extra_inc/nompi'
 fi
 
@@ -4302,32 +4218,171 @@ if test "x$FC" == xnone
 then :
   if test "x$enable_mpi" != xno
 then :
-  if test "x$enable_hdf5" != xno
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "mpif77 not found, please install it and check environment PATH
+See \`config.log' for more details" "$LINENO" 5; }
+else $as_nop
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Fortran compiler not found, please install it and check environment PATH
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+fi
+
+HDF5_FCFLAGS=
+HDF5_LIBS=
+HDF5_PARALLEL=disabled
+
+if test "x$enable_hdf5" != xno
+then :
+
+  # Extract the first word of "h5fc", so it can be a program name with args.
+set dummy h5fc; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_H5FC+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $H5FC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_H5FC="$H5FC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_H5FC="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_H5FC" && ac_cv_path_H5FC="none"
+  ;;
+esac
+fi
+H5FC=$ac_cv_path_H5FC
+if test -n "$H5FC"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $H5FC" >&5
+printf "%s\n" "$H5FC" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
+  if test "x$H5FC" = xnone
 then :
   { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "h5pfc not found, please install it and check environment PATH
-See \`config.log' for more details" "$LINENO" 5; }
-else $as_nop
-  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "mpif77 not found, please intall it and check environment PATH
+as_fn_error $? "h5fc not found. Install the serial HDF5 Fortran development package,
+load a serial HDF5 module, or set H5FC=/path/to/h5fc.
 See \`config.log' for more details" "$LINENO" 5; }
 fi
-else $as_nop
-  if test "x$enable_hdf5" != xno
+
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for HDF5 Fortran compile and link flags" >&5
+printf %s "checking for HDF5 Fortran compile and link flags... " >&6; }
+  hdf5_show=`"$H5FC" -show 2>/dev/null`
+  if test -z "$hdf5_show"
 then :
   { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "h5fc not found, please install it and check environment PATH
+as_fn_error $? "$H5FC -show returned no compiler or linker flags
 See \`config.log' for more details" "$LINENO" 5; }
+fi
+
+  hdf5_wrapper_flags=${hdf5_show#* }
+  for hdf5_flag in $hdf5_wrapper_flags
+  do
+    case $hdf5_flag in #(
+  -I*|-D*|-U*) :
+    HDF5_FCFLAGS="$HDF5_FCFLAGS $hdf5_flag" ;; #(
+  *) :
+    HDF5_LIBS="$HDF5_LIBS $hdf5_flag" ;;
+esac
+  done
+  if test -z "$HDF5_FCFLAGS" || test -z "$HDF5_LIBS"
+then :
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "could not parse compile and link flags from: $hdf5_show
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+
+  hdf5_save_FCFLAGS=$FCFLAGS
+  hdf5_save_LIBS=$LIBS
+  FCFLAGS="$FCFLAGS $HDF5_FCFLAGS"
+  LIBS="$LIBS $HDF5_LIBS"
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether $FC can compile and link the HDF5 Fortran module" >&5
+printf %s "checking whether $FC can compile and link the HDF5 Fortran module... " >&6; }
+  cat > conftest.$ac_ext <<_ACEOF
+
+      program conftest
+      use hdf5
+      implicit none
+      integer :: hdferr
+      call h5open_f(hdferr)
+      call h5close_f(hdferr)
+      end program conftest
+
+_ACEOF
+if ac_fn_fc_try_link "$LINENO"
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
 else $as_nop
   { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "Fortran compiler not found, please intall it and check environment PATH
+as_fn_error $? "the HDF5 Fortran flags reported by $H5FC do not work with $FC.
+Ensure h5fc and the simulation Fortran compiler use compatible ABIs.
+h5fc -show: $hdf5_show
 See \`config.log' for more details" "$LINENO" 5; }
 fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+  FCFLAGS=$hdf5_save_FCFLAGS
+  LIBS=$hdf5_save_LIBS
+
+  hdf5_showconfig=`LC_ALL=C "$H5FC" -showconfig 2>/dev/null`
+  hdf5_parallel_value=`printf '%s\n' "$hdf5_showconfig" |
+    sed -n 's/^[	 ]*Parallel HDF5:[	 ]*//p' | sed -n '1p'`
+  case $hdf5_parallel_value in #(
+  yes) :
+    HDF5_PARALLEL=yes ;; #(
+  no) :
+    HDF5_PARALLEL=no ;; #(
+  *) :
+    HDF5_PARALLEL=unknown ;;
+esac
+
+  if test "x$HDF5_PARALLEL" = xyes
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: parallel HDF5 detected through $H5FC. NBODY6++GPU HDF5 output supports serial HDF5 only.
+Load a serial HDF5 module or put its h5fc first in PATH." >&5
+printf "%s\n" "$as_me: WARNING: parallel HDF5 detected through $H5FC. NBODY6++GPU HDF5 output supports serial HDF5 only.
+Load a serial HDF5 module or put its h5fc first in PATH." >&2;}
+elif test "x$HDF5_PARALLEL" = xunknown
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: could not confirm that the HDF5 library discovered through $H5FC is serial.
+NBODY6++GPU HDF5 output supports serial HDF5 only." >&5
+printf "%s\n" "$as_me: WARNING: could not confirm that the HDF5 library discovered through $H5FC is serial.
+NBODY6++GPU HDF5 output supports serial HDF5 only." >&2;}
 fi
+
 fi
 
 
@@ -4623,11 +4678,11 @@ if test x$ac_prog_cxx_stdcxx = xno
 then :
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $CXX option to enable C++11 features" >&5
 printf %s "checking for $CXX option to enable C++11 features... " >&6; }
-if test ${ac_cv_prog_cxx_11+y}
+if test ${ac_cv_prog_cxx_cxx11+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
-  ac_cv_prog_cxx_11=no
+  ac_cv_prog_cxx_cxx11=no
 ac_save_CXX=$CXX
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -4669,11 +4724,11 @@ if test x$ac_prog_cxx_stdcxx = xno
 then :
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $CXX option to enable C++98 features" >&5
 printf %s "checking for $CXX option to enable C++98 features... " >&6; }
-if test ${ac_cv_prog_cxx_98+y}
+if test ${ac_cv_prog_cxx_cxx98+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
-  ac_cv_prog_cxx_98=no
+  ac_cv_prog_cxx_cxx98=no
 ac_save_CXX=$CXX
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -7583,6 +7638,9 @@ fi
 
 
 
+
+
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: ----------------------Configure Summary--------------------" >&5
 printf "%s\n" "$as_me: ----------------------Configure Summary--------------------" >&6;}
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Target architecture: $target_architecture" >&5
@@ -7648,6 +7706,15 @@ printf "%s\n" "$as_me:      OpenMP option:  $OPENMP_FCFLAGS" >&6;}
 printf "%s\n" "$as_me:      Debug mode:     $enable_debug" >&6;}
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      HDF5 format:    $enable_hdf5" >&5
 printf "%s\n" "$as_me:      HDF5 format:    $enable_hdf5" >&6;}
+if test "x$enable_hdf5" != xno
+then :
+
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      HDF5 wrapper:   $H5FC" >&5
+printf "%s\n" "$as_me:      HDF5 wrapper:   $H5FC" >&6;}
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      Parallel HDF5:  $HDF5_PARALLEL" >&5
+printf "%s\n" "$as_me:      Parallel HDF5:  $HDF5_PARALLEL" >&6;}
+
+fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}:      TT package:     $enable_tt" >&5
 printf "%s\n" "$as_me:      TT package:     $enable_tt" >&6;}
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: --Compilers:" >&5
