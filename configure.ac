@@ -149,10 +149,13 @@ AS_IF([test "x$with_simde" != xno && test "x$with_simde" != xyes && test "x$with
              [with_simde="$source_root/$with_simde"])])])
 
 AC_ARG_ENABLE([hdf5],
-     [AS_HELP_STRING([--enable-hdf5],
-         [Enable HDF5 output format support. (Ref: Cai, Maxwell, et al., 2015, submitted)])],
+     [AS_HELP_STRING([--disable-hdf5],
+         [Disable HDF5 output format support. HDF5 is auto-detected and used by
+default, since all current output formats are built on it and the legacy
+ASCII output is unmaintained; disabling it is NOT recommended.
+(Ref: Cai, Maxwell, et al., 2015, submitted)])],
      [],
-     [enable_hdf5=no])
+     [enable_hdf5=yes])
 
 AC_ARG_VAR([H5FC], [HDF5 Fortran wrapper used to discover the serial HDF5 installation])
 
@@ -231,8 +234,11 @@ AS_IF([test "x$enable_hdf5" != xno], [
   AC_PATH_PROG([H5FC], [h5fc], [none])
   AS_IF([test "x$H5FC" = xnone],
     [AC_MSG_FAILURE(
-       [h5fc not found. Install the serial HDF5 Fortran development package,
-load a serial HDF5 module, or set H5FC=/path/to/h5fc.])])
+       [h5fc not found. HDF5 is required by default: install the serial HDF5
+Fortran development package (e.g. libhdf5-dev on Debian/Ubuntu), load a
+serial HDF5 module, or set H5FC=/path/to/h5fc. Alternatively, reconfigure
+with --disable-hdf5, but this is NOT recommended: all current output
+formats are built on HDF5, and the legacy ASCII output is unmaintained.])])
 
   AC_MSG_CHECKING([for HDF5 Fortran compile and link flags])
   hdf5_show=`"$H5FC" -show 2>/dev/null`

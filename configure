@@ -1405,8 +1405,12 @@ Optional Features:
                           avx: Advanced Vector Extensions (x86_64 only); -->
                           no: switch off SIMD (x86_64 only); (default is
                           autodetecting on x86_64 and sse on ARM64)
-  --enable-hdf5           Enable HDF5 output format support. (Ref: Cai,
-                          Maxwell, et al., 2015, submitted)
+  --disable-hdf5          Disable HDF5 output format support. HDF5 is
+                          auto-detected and used by default, since all current
+                          output formats are built on it and the legacy ASCII
+                          output is unmaintained; disabling it is NOT
+                          recommended. (Ref: Cai, Maxwell, et al., 2015,
+                          submitted)
   --enable-tt             Enable tidal tensor and analytical potential
                           extension imported from NBODY6TT. (Ref: Renaud, F.,
                           et al., 2011, MNRAS, 418, 759; Renaud, F. & Gieles,
@@ -3299,7 +3303,7 @@ if test ${enable_hdf5+y}
 then :
   enableval=$enable_hdf5;
 else $as_nop
-  enable_hdf5=no
+  enable_hdf5=yes
 fi
 
 
@@ -4287,8 +4291,11 @@ fi
 then :
   { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "h5fc not found. Install the serial HDF5 Fortran development package,
-load a serial HDF5 module, or set H5FC=/path/to/h5fc.
+as_fn_error $? "h5fc not found. HDF5 is required by default: install the serial HDF5
+Fortran development package (e.g. libhdf5-dev on Debian/Ubuntu), load a
+serial HDF5 module, or set H5FC=/path/to/h5fc. Alternatively, reconfigure
+with --disable-hdf5, but this is NOT recommended: all current output
+formats are built on HDF5, and the legacy ASCII output is unmaintained.
 See \`config.log' for more details" "$LINENO" 5; }
 fi
 

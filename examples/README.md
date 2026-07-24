@@ -25,13 +25,7 @@ Make sure you are in the nbody git root directory and **not** in the `examples` 
 #### Configuring hdf5
 *Only needed for the hdf5 jupyter notebooks!*
 
-As unfortunately the `--enable-hdf5` flag is broken in the configure script, you need to figure out, how to include this yourself. Both the header files path needs to be added to the `HDF5_FLAGS` using the -I switch, as well as the path to the shared library must be added via the `-L` switch in the `build/Makefile`. The `lhdf5_fortran` flag should be the same on every system. Then make sure to add the `HDF5_FLAGS` to the Fortran compiler flags `FFLAGS`.
-
-E.g. on kepler, the `build/Makefile` should read
-
-    HDF5_FLAGS = -D H5OUTPUT -I/usr/include/openmpi-x86_64/ -L/usr/lib64/openmpi/lib/ -lhdf5_fortran
-	[...]
-	FFLAGS = [...] ${HDF5_FLAGS}
+HDF5 support is auto-detected and enabled by default: `./configure` looks for `h5fc` (the serial HDF5 Fortran wrapper) in `PATH` and uses it to discover the include and library paths automatically. Install the serial HDF5 Fortran development package first (for example, `libhdf5-dev` on Debian-based Linux); set `H5FC=/path/to/h5fc` if the serial wrapper isn't first in `PATH`. If `h5fc` cannot be found, configure stops and tells you to either install HDF5 or pass `--disable-hdf5` (not recommended, since all current output formats are built on HDF5).
 
 #### Compile
 

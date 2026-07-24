@@ -149,7 +149,7 @@ nbody-fork/
 | `--with-cuda=PREFIX` / `--with-hip=PREFIX` | CUDA / 标准 ROCm 根目录 | 按安装位置 |
 | `--enable-simd=ARG` | SIMD 优化 (sse/avx/no) | `avx` (如支持) |
 | `--with-simde[=PATH]` | 使用 SIMDe 头文件（ARM64 必需） | ARM64 使用 `v0.8.2` |
-| `--enable-hdf5` | HDF5 输出 | 推荐但需手动配置 |
+| `--disable-hdf5` | 禁用 HDF5 输出（默认自动探测并开启） | **不推荐**（新版输出格式均基于 HDF5） |
 | `--disable-mpi` | 禁用 MPI | **不推荐**（仅调试用） |
 | `--enable-debug` | 调试模式 | 开发时使用 |
 | `--prefix=PATH` | 安装路径 | 自定义 |
