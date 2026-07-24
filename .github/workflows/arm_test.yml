@@ -55,7 +55,7 @@ jobs:
               autoconf
               diff -u configure.committed configure
 
-              ./configure --with-par=1k --disable-gpu > arm-default.log
+              ./configure --with-par=1k --disable-gpu --disable-hdf5 > arm-default.log
               grep -Fq "target architecture: ARM64" arm-default.log
               grep -Fq "Using SIMD:     sse" arm-default.log
               grep -Fq "Using SIMDe:    yes (path: /simde)" arm-default.log
@@ -64,14 +64,14 @@ jobs:
               for invalid_option in --enable-simd=avx --enable-simd=no \
                 --enable-mcmodel=small --enable-mcmodel=medium --enable-mcmodel=large \
                 --without-simde; do
-                if ./configure --disable-gpu "$invalid_option" > invalid.log 2>&1; then
+                if ./configure --disable-gpu --disable-hdf5 "$invalid_option" > invalid.log 2>&1; then
                   echo "$invalid_option unexpectedly succeeded"
                   exit 1
                 fi
                 grep -Fq "ARM64 example: ./configure" invalid.log
               done
 
-              if ./configure --disable-gpu --with-simde=/does/not/exist > bad-path.log 2>&1; then
+              if ./configure --disable-gpu --disable-hdf5 --with-simde=/does/not/exist > bad-path.log 2>&1; then
                 echo "missing SIMDe path unexpectedly succeeded"
                 exit 1
               fi
@@ -79,7 +79,7 @@ jobs:
 
               mkdir -p /tmp/incomplete/simde/x86
               touch /tmp/incomplete/simde/x86/sse.h
-              if ./configure --disable-gpu --with-simde=/tmp/incomplete > incomplete.log 2>&1; then
+              if ./configure --disable-gpu --disable-hdf5 --with-simde=/tmp/incomplete > incomplete.log 2>&1; then
                 echo "incomplete SIMDe headers unexpectedly succeeded"
                 exit 1
               fi
@@ -87,22 +87,22 @@ jobs:
 
               cp -a /simde /tmp/uncompilable
               printf "#error intentional CI probe\\n" > /tmp/uncompilable/simde/x86/sse.h
-              if ./configure --disable-gpu --with-simde=/tmp/uncompilable > uncompilable.log 2>&1; then
+              if ./configure --disable-gpu --disable-hdf5 --with-simde=/tmp/uncompilable > uncompilable.log 2>&1; then
                 echo "uncompilable SIMDe headers unexpectedly succeeded"
                 exit 1
               fi
               grep -Fq "required SIMDe headers are not compilable" uncompilable.log
 
               cp -a /simde/simde /usr/local/include/simde
-              ./configure --with-par=1k --disable-gpu --with-simde > system-simde.log
+              ./configure --with-par=1k --disable-gpu --disable-hdf5 --with-simde > system-simde.log
               grep -Fq "Using SIMDe:    yes (system path)" system-simde.log
 
               ./configure --build=x86_64-pc-linux-gnu --host=aarch64-linux-gnu \
-                --with-par=1k --disable-gpu > cross.log
+                --with-par=1k --disable-gpu --disable-hdf5 > cross.log
               grep -Fq "cross compilation: build=x86_64-pc-linux-gnu, host=aarch64-unknown-linux-gnu" cross.log
               grep -Fq "Target architecture: ARM64" cross.log
 
-              ./configure --with-par=1k --disable-gpu
+              ./configure --with-par=1k --disable-gpu --disable-hdf5
               make clean
               make -j 4
 

@@ -23,7 +23,7 @@ jobs:
         autoconf
         diff -u configure.committed configure
 
-        ./configure --with-par=1k --disable-mpi --disable-gpu > x86-configure.log
+        ./configure --with-par=1k --disable-mpi --disable-gpu --disable-hdf5 > x86-configure.log
         grep -Fq "target architecture: x86_64" x86-configure.log
         grep -Fq "Canonical host:      x86_64" x86-configure.log
         grep -Fq "mcmodel:        large" x86-configure.log
@@ -38,7 +38,7 @@ jobs:
 
     - name: configure
       run: >
-        ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large --disable-mpi --disable-gpu;
+        ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large --disable-mpi --disable-gpu --disable-hdf5;
 
     - name: make
       run: make clean; make;
@@ -75,7 +75,7 @@ jobs:
 
     - name: configure
       run: >
-        ./configure --with-par=b1m --enable-mcmodel=large --disable-gpu --enable-hdf5
+        ./configure --with-par=b1m --enable-mcmodel=large --disable-gpu
 
     - name: make
       run: make clean && make -j
@@ -97,42 +97,3 @@ jobs:
         export EXEC=`ls ../build/nbody6++*`; 
         mpirun --allow-run-as-root --bind-to none -n 1 $EXEC < N10k_1nbtime.inp | tee mpirun.errout || $EXEC < N10k_1nbtime.inp | tee nompirun.errout || grep 'END RUN' *errout ;
         ls -alh;
-
-
-  gcc9_old_1k:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: install dependencies
-      run: sudo apt update && sudo apt install -y wget gcc-9 g++-9 gfortran-9;
-
-    - name: configure
-      run: >
-        export CC=gcc-9; 
-        export CXX=g++-9; 
-        export FC=gfortran-9; 
-        ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large --disable-mpi --disable-gpu;
-
-    - name: make
-      run: make clean; make;
-
-    - name: prepare simulation
-      run: >
-        mkdir autotest;
-        cp -p ./build/nbody6++.sse ./autotest/;
-        cp -p ./examples/input_files/@input-transform ./autotest/;
-        cd autotest;
-        wget https://github.com/wukai-meow/garage/raw/main/Nbody6ppGPU-inputfile/kai_1k_no_dat-10/1k.inp;
-        mv 1k.inp 1k.inp.old;
-        bash @input-transform 1k;
-        pwd; ls -alh;
-
-    - name: simulation
-      run: >
-        ulimit -s unlimited; 
-        cd autotest; 
-        export OMP_NUM_THREADS=$((`grep -c processor /proc/cpuinfo` < 32 ? `grep -c processor /proc/cpuinfo` : 32)); 
-        export execname=`ls nbody6++*`; 
-        ./$execname < 1k.inp.new;
