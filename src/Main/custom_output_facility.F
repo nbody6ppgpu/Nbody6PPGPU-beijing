@@ -30,12 +30,16 @@
       CHARACTER(LEN=64) :: obj_name
       INTEGER*4 :: obj_type, num_objs
       LOGICAL :: file_exists
-      
+      LOGICAL, SAVE :: h5_lib_init = .FALSE.
+
 *       Close any previously opened file (if any)
       IF (h5_file_id .GT. 0) CALL HDF5_CLOSE
 
-*     Initialize FORTRAN interface.
-      CALL h5open_f(ERROR) 
+*     Initialize FORTRAN interface (only once per run).
+      IF (.NOT. h5_lib_init) THEN
+        CALL h5open_f(ERROR)
+        h5_lib_init = .TRUE.
+      ENDIF
 
 *     Create a new file using default properties.
       h5_file_name = h5_fname
@@ -160,6 +164,7 @@
             CALL h5pset_chunk_f(crp_list, 1, data_chunkdims, error)
             CALL h5dcreate_f(group_id, dset_name, H5T_NATIVE_REAL,
      &         dspace_id, dset_id, error, crp_list)
+            CALL h5pclose_f(crp_list, error)
          ENDIF ! finalize == .TRUE.
 
          IF(offset .GT. 1) THEN
@@ -180,6 +185,7 @@ c$$$  15        CONTINUE
             CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, vec,
      &         data_dims, error)
          ENDIF ! offset > 1
+         CALL h5sclose_f(dspace_id, error)
          IF(finalize .EQV. .TRUE.) CALL h5dclose_f(dset_id, error)
       ELSE ! dset_id > 0
 *     Expand the existing dataset
@@ -211,7 +217,8 @@ c$$$  25      CONTINUE
            CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, vec,
      &         data_dims, error, memspace_id, dspace_id)
          ENDIF ! offset > 1
-*         CALL h5sclose_f(dspace_id, error)
+         CALL h5sclose_f(memspace_id, error)
+         CALL h5sclose_f(dspace_id, error)
          IF(finalize .EQV. .TRUE.) CALL h5dclose_f(dset_id, error)
       ENDIF ! dset_id == 0
 #endif
@@ -267,6 +274,7 @@ c$$$  25      CONTINUE
             CALL h5pset_chunk_f(crp_list, 1, data_chunkdims, error)
             CALL h5dcreate_f(group_id, dset_name, H5T_NATIVE_INTEGER,
      &         dspace_id, dset_id, error, crp_list)
+            CALL h5pclose_f(crp_list, error)
          ENDIF
 
 
@@ -281,6 +289,7 @@ c$$$  25      CONTINUE
             CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, vec,
      &         data_dims, error)
          ENDIF
+         CALL h5sclose_f(dspace_id, error)
          IF(finalize .EQV. .TRUE.) CALL h5dclose_f(dset_id, error)
       ELSE  ! dset_id > 0
 *     Expand the existing dataset
@@ -309,6 +318,7 @@ c$$$  25      CONTINUE
            CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, vec,
      &         data_dims, error, memspace_id, dspace_id)
          ENDIF ! offset > 1
+         CALL h5sclose_f(memspace_id, error)
          CALL h5sclose_f(dspace_id, error)
          IF(finalize .EQV. .TRUE.) CALL h5dclose_f(dset_id, error)
       ENDIF
@@ -456,14 +466,18 @@ c$$$  25      CONTINUE
       INTEGER*4 :: original_vec_len
       LOGICAL :: finalize
 *
+*       Nothing to write: return before creating/opening the HDF5
+*       group, otherwise it would be left open (leaked) below.
+      IF (N_SINGLE.LE.0) RETURN
+*
 *       CALL INIT if not yet done.
       IF (h5_file_id.eq.0) then
           CALL HDF5_INIT(h5_file_name)
-      END IF 
+      END IF
 *       IF file cannot be initilized, quit the subroutine
       IF (h5_file_id .EQ. 0) RETURN
 
-      
+
       IF (TTOT.GT.h5_current_time) THEN
 *       Needs to create new group
           h5_step = h5_step + 1
@@ -512,8 +526,6 @@ cc          WRITE (h5_step_name, *), h5_step
       ENDIF 
       original_vec_len = 0
       finalize = .TRUE.
-*
-      IF (N_SINGLE.LE.0) RETURN
 *
 *     Write datasets
       CALL HDF5_write_real_vector_as_dset(h5_group_id, '000 Scalars',
@@ -789,10 +801,14 @@ cc          WRITE (h5_step_name, *), h5_step
       INTEGER*4 :: original_vec_len
       LOGICAL :: finalize ! if TRUE, finalize the datasets
 *
+*       Nothing to write: return before creating/opening the HDF5
+*       group, otherwise it would be left open (leaked) below.
+      IF (N_BINARY.LE.0) RETURN
+*
 *       CALL INIT if not yet done.
       IF (h5_file_id.eq.0) then
           CALL HDF5_INIT(h5_file_name)
-      END IF 
+      END IF
 *       IF file cannot be initilized, quit the subroutine
       IF (h5_file_id .EQ. 0) RETURN
 
@@ -851,8 +867,6 @@ cc          WRITE (h5_step_name, *), h5_step
           finalize = .TRUE.
       ENDIF
 
-      IF (N_BINARY.LE.0) RETURN
-      
 *       Write datasets
       CALL HDF5_write_real_vector_as_dset(h5_group_id, '101 Bin cm X1',
      &     B_XC1, N_BINARY, 1, h5_dset_ids(64),
@@ -1307,10 +1321,13 @@ cc          WRITE (h5_step_name, *), h5_step
       LOGICAL :: finalize
 
 C*     Merger
+*       Nothing to write: return before creating/opening the HDF5
+*       group, otherwise it would be left open (leaked) below.
+      IF (N_MERGER.LE.0) RETURN
 *       CALL INIT if not yet done.
       IF (h5_file_id.eq.0) then
           CALL HDF5_INIT(h5_file_name)
-      END IF 
+      END IF
 *       IF file cannot be initilized, quit the subroutine
       IF (h5_file_id .EQ. 0) RETURN
 
@@ -1369,9 +1386,7 @@ cc          WRITE (h5_step_name, *), h5_step
 *    &    'N_MERGER', N_MERGER) ! Write attribute to the group
           original_vec_len = 0
           finalize = .TRUE.
-      ENDIF 
-
-      IF (N_MERGER.LE.0) RETURN
+      ENDIF
 
 *       Write datasets
       CALL HDF5_write_real_vector_as_dset(h5_group_id, '201 Mer XC1',
