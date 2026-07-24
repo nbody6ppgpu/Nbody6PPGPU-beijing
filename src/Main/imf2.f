@@ -37,7 +37,7 @@ c      DATA  G1,G2,G3,G4  /0.28,1.14,0.010,0.1/
           IF (KZ(20).EQ.2.OR.KZ(20).EQ.4) THEN
               ZM = 0.08 + (G1*XX**G2 + G3*XX**G4)/(1.0 - XX)**0.58
           ELSE IF (KZ(20).EQ.3.OR.KZ(20).EQ.5) THEN
-              ZM = 0.3*XX/(1.0 - XX)**0.55
+              ZM = 0.3*(XX/(1.0 - XX))**0.55
           ELSE IF (KZ(20).EQ.6.OR.KZ(20).EQ.7.OR.KZ(20).EQ.8) THEN
               LM = BODYN
               UM = BODY10
