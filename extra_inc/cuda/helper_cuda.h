@@ -804,11 +804,13 @@ inline int gpuDeviceInit(int devID)
     cudaDeviceProp deviceProp;
     checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
 
+#if defined(CUDART_VERSION) && CUDART_VERSION < 13000
     if (deviceProp.computeMode == cudaComputeModeProhibited)
     {
         fprintf(stderr, "Error: device is running in <Compute Mode Prohibited>, no threads can use ::cudaSetDevice().\n");
         return -1;
     }
+#endif
 
     if (deviceProp.major < 1)
     {
@@ -837,7 +839,9 @@ inline int gpuGetMaxGflopsDeviceId()
         cudaGetDeviceProperties(&deviceProp, current_device);
 
         // If this GPU is not running on Compute Mode prohibited, then we can add it to the list
+#if defined(CUDART_VERSION) && CUDART_VERSION < 13000
         if (deviceProp.computeMode != cudaComputeModeProhibited)
+#endif
         {
             if (deviceProp.major > 0 && deviceProp.major < 9999)
             {
@@ -856,7 +860,9 @@ inline int gpuGetMaxGflopsDeviceId()
         cudaGetDeviceProperties(&deviceProp, current_device);
 
         // If this GPU is not running on Compute Mode prohibited, then we can add it to the list
+#if defined(CUDART_VERSION) && CUDART_VERSION < 13000
         if (deviceProp.computeMode != cudaComputeModeProhibited)
+#endif
         {
             if (deviceProp.major == 9999 && deviceProp.minor == 9999)
             {
@@ -867,7 +873,11 @@ inline int gpuGetMaxGflopsDeviceId()
                 sm_per_multiproc = _ConvertSMVer2Cores(deviceProp.major, deviceProp.minor);
             }
 
+#if defined(CUDART_VERSION) && CUDART_VERSION < 13000
             int compute_perf  = deviceProp.multiProcessorCount * sm_per_multiproc * deviceProp.clockRate;
+#else
+            int compute_perf  = deviceProp.multiProcessorCount * sm_per_multiproc;
+#endif
 
             if (compute_perf  > max_compute_perf)
             {
