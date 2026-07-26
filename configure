@@ -1401,9 +1401,11 @@ Optional Features:
                           force and potential
   --enable-simd=ARG       SIMD instruction set acceleration for force and
                           potential, available arguments --> sse: Streaming
-                          SIMD Extensions (required on ARM64 with SIMDe); -->
+                          SIMD Extensions (default on ARM64, via SIMDe); -->
                           avx: Advanced Vector Extensions (x86_64 only); -->
-                          no: switch off SIMD (x86_64 only); (default is
+                          no: switch off SIMD; this also disables OpenMP,
+                          since the resulting plain nbint.F force routine is
+                          not thread-safe under OpenMP; (default is
                           autodetecting on x86_64 and sse on ARM64)
   --disable-hdf5          Disable HDF5 output format support. HDF5 is
                           auto-detected and used by default, since all current
@@ -1427,7 +1429,8 @@ Optional Packages:
                           over HIP)
   --with-simde[=PATH]     Use SIMDe headers. On ARM64, the default PATH is the
                           source sibling ../simde; a bare --with-simde uses
-                          system include paths; --without-simde is invalid.
+                          system include paths; --without-simde is invalid
+                          unless --enable-simd=no is also given.
   --with-cuda=PREFIX      Prefix of your CUDA installation
   --with-hip=PREFIX       Prefix of a standard AMD ROCm installation
   --with-cuda-sdk=PREFIX  Prefix of your CUDA SDKinstallation
@@ -3245,7 +3248,7 @@ then :
       with_simde=$withval
 else $as_nop
   simde_was_specified=no
-      if test "x$target_architecture" = xARM64
+      if test "x$target_architecture" = xARM64 && test "x$enable_simd" != xno
 then :
   with_simde=$simde_default_path
 else $as_nop
@@ -3262,19 +3265,14 @@ then :
   as_fn_error $? "option --enable-simd=avx conflicts with target architecture ARM64; AVX is x86_64-only.
 ARM64 example: $arm_configure_example" "$LINENO" 5
 fi
-  if test "x$enable_simd" = xno
-then :
-  as_fn_error $? "option --enable-simd=no conflicts with target architecture ARM64; the SSE kernels through SIMDe are required.
-ARM64 example: $arm_configure_example" "$LINENO" 5
-fi
   if test "x$enable_mcmodel" != xno
 then :
   as_fn_error $? "option --enable-mcmodel=$enable_mcmodel conflicts with target architecture ARM64; use --enable-mcmodel=no or omit the option.
 ARM64 example: $arm_configure_example" "$LINENO" 5
 fi
-  if test "x$with_simde" = xno
+  if test "x$enable_simd" != xno && test "x$with_simde" = xno
 then :
-  as_fn_error $? "option --without-simde conflicts with target architecture ARM64; SIMDe is required.
+  as_fn_error $? "option --without-simde conflicts with target architecture ARM64 unless combined with --enable-simd=no; SIMDe is required for the SSE kernels.
 ARM64 example: $arm_configure_example" "$LINENO" 5
 fi
 
@@ -4213,7 +4211,6 @@ printf "%s\n" "$ac_cv_prog_fc_openmp" >&6; }
   fi
 
 
-FCFLAGS=$FCFLAGS' '$OPENMP_FCFLAGS
 
 FCFLAGS=$FCFLAGS' -I../include'
 
@@ -5645,7 +5642,6 @@ printf "%s\n" "$ac_cv_prog_cxx_openmp" >&6; }
   fi
 
 
-CXXFLAGS=$CXXFLAGS' '$OPENMP_CXXFLAGS
 
 CXXFLAGS=$CXXFLAGS' -I../include'
 
@@ -6553,6 +6549,22 @@ then :
 fi
 fi
 
+if test "x$enable_simd" = xno
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: SIMD is disabled (--enable-simd=no); OpenMP is being disabled
+automatically for this build too. The plain Fortran nbint.F force routine
+used without SIMD is not thread-safe under OpenMP (see README Known
+Problems #3), so this build will be single-threaded. Use only for
+debugging." >&5
+printf "%s\n" "$as_me: WARNING: SIMD is disabled (--enable-simd=no); OpenMP is being disabled
+automatically for this build too. The plain Fortran nbint.F force routine
+used without SIMD is not thread-safe under OpenMP (see README Known
+Problems #3), so this build will be single-threaded. Use only for
+debugging." >&2;}
+    OPENMP_FCFLAGS=
+    OPENMP_CXXFLAGS=
+fi
+
 # FIXME: Replace `main' with a function in `-llvisit':
 # AC_CHECK_LIB([lvisit], [main])
 # FIXME: Replace `main' with a function in `-llvisit_nbody':
@@ -7299,14 +7311,14 @@ fi
 #OMP
 if test "x$OPENMP_FCFLAGS" != x
 then :
-  FCFLAGS=$FCFLAGS' ${OMP_FLAGS}'
+  FCFLAGS=$FCFLAGS' '$OPENMP_FCFLAGS' ${OMP_FLAGS}'
 else $as_nop
   FCFLAGS=$FCFLAGS' -I../extra_inc/noomp'
 fi
 
 if test "x$OPENMP_CXXFLAGS" != x
 then :
-  CXXFLAGS=$CXXFLAGS' ${OMP_FLAGS}'
+  CXXFLAGS=$CXXFLAGS' '$OPENMP_CXXFLAGS' ${OMP_FLAGS}'
 else $as_nop
   CXXFLAGS=$CXXFLAGS' -I ../extra_inc/noomp'
 fi

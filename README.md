@@ -76,7 +76,9 @@ git clone --branch v0.8.2 --depth 1 https://github.com/simd-everywhere/simde.git
 make clean && make -j
 ```
 
-If `--with-simde` is omitted on ARM64, configure automatically looks for the absolute equivalent of `../simde`. Relative and absolute paths are accepted; bare `--with-simde` uses compiler system include directories. ARM64 requires SSE through SIMDe, so `--enable-simd=avx`, `--enable-simd=no`, `--without-simde`, and `--enable-mcmodel=small|medium|large` fail with a corrective example instead of being downgraded. Only x86_64 and 64-bit ARM targets are currently supported.
+If `--with-simde` is omitted on ARM64, configure automatically looks for the absolute equivalent of `../simde`. Relative and absolute paths are accepted; bare `--with-simde` uses compiler system include directories. ARM64 defaults to SSE through SIMDe, so `--enable-simd=avx`, `--without-simde` (without also passing `--enable-simd=no`), and `--enable-mcmodel=small|medium|large` fail with a corrective example instead of being downgraded. `--enable-simd=no` is accepted on both ARM64 and x86_64, but see the note below about what it disables. Only x86_64 and 64-bit ARM targets are currently supported.
+
+`--enable-simd=no` also switches OpenMP off automatically (on both architectures), because without the SSE/AVX kernels the code falls back to the plain Fortran `nbint.F` force routine, which is not thread-safe under OpenMP (Known Problems #3 below). Configure prints a warning when this happens; the resulting build is correct but single-threaded, so use `--enable-simd=no` for debugging only, never for production runs.
 
 ## Compile the code
 
@@ -198,7 +200,7 @@ Git system does not preserve the modification time of files, but the modificatio
  2. Runs with a million or more bodies and huge numbers of binaries (5% or more) use extreme amounts of
       computing time for the KS binaries (much much more than should be expected). We work on this.
 
- 3. Currently using standard OpenMP WITHOUT sse or avx does not work. (it means for configure --disable-simd , but --enable-omp). It uses routines nbint.F instead of special sse or avx routines for neighbour force. We are working on that.
+ 3. Currently using standard OpenMP WITHOUT sse or avx does not work. (it means for configure --enable-simd=no, but with OpenMP). It uses routines nbint.F instead of special sse or avx routines for neighbour force. Since `configure` has no `--disable-omp` option, `--enable-simd=no` now automatically disables OpenMP as well (see [ARM64 and SIMDe](#arm64-and-simde) above), so this broken combination can no longer be built through configure. The underlying thread-safety issue in nbint.F itself is still unresolved. We are working on that.
 
  4. Many stellar evolution and other parameters are still compiled into the code (see Table A1 in Kamlah et al. 2022, and parameter FctorCl in Rizzuto et al. 2021), mxns0,1 masses of neutron stars; it is the responsibility of the user to keep them all consistent at compile time (for example  mxns and FctorCl are defined in two routines independently, see hrplot, coal, mix). We are working to prepare a nice Fortran NAMELIST style input for ALL parameters (the ones from the current input file, and the ones currently compiled in). That will work like in the style of an .ini file with "key=value" pairs and default values.
 

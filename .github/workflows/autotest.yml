@@ -36,6 +36,12 @@ jobs:
         grep -Fq "x86_64 example:" unsupported.log
         grep -Fq "ARM64 example:" unsupported.log
 
+        ./configure --with-par=1k --disable-mpi --disable-gpu --disable-hdf5 --enable-simd=no > x86-nosimd-configure.log 2>&1
+        grep -Fq "Using SIMD:     no" x86-nosimd-configure.log
+        grep -Fq "SIMD is disabled (--enable-simd=no); OpenMP is being disabled" x86-nosimd-configure.log
+        grep -Fq "OpenMP option:  " x86-nosimd-configure.log
+        ! grep -Fq "OpenMP option:  -fopenmp" x86-nosimd-configure.log
+
     - name: configure
       run: >
         ./configure --with-par=b1m --enable-simd=sse --enable-mcmodel=large --disable-mpi --disable-gpu --disable-hdf5;

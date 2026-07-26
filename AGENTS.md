@@ -147,8 +147,8 @@ nbody-fork/
 | `--disable-gpu` | 禁用 GPU | 仅当 N<50k 或无 GPU 时 |
 | `--with-gpu-backend=ARG` | 后端 (`auto/cuda/hip`，auto 优先 CUDA) | `auto` |
 | `--with-cuda=PREFIX` / `--with-hip=PREFIX` | CUDA / 标准 ROCm 根目录 | 按安装位置 |
-| `--enable-simd=ARG` | SIMD 优化 (sse/avx/no) | `avx` (如支持) |
-| `--with-simde[=PATH]` | 使用 SIMDe 头文件（ARM64 必需） | ARM64 使用 `v0.8.2` |
+| `--enable-simd=ARG` | SIMD 优化 (sse/avx/no)；`no` 会自动禁用 OpenMP（nbint.F 回退路径在 OpenMP 下不安全，见已知问题 #3） | `avx` (如支持) |
+| `--with-simde[=PATH]` | 使用 SIMDe 头文件（ARM64 默认需要，除非同时传 `--enable-simd=no`） | ARM64 使用 `v0.8.2` |
 | `--disable-hdf5` | 禁用 HDF5 输出（默认自动探测并开启） | **不推荐**（新版输出格式均基于 HDF5） |
 | `--disable-mpi` | 禁用 MPI | **不推荐**（仅调试用） |
 | `--enable-debug` | 调试模式 | 开发时使用 |
