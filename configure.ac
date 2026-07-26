@@ -101,7 +101,7 @@ AS_IF([test "x$enable_gpu" = xno && test "x$gpu_backend_explicit" = xyes && test
 
 AC_ARG_ENABLE([simd],
      [AS_HELP_STRING([--enable-simd=ARG],
-         [SIMD instruction set acceleration for force and potential, available arguments --> sse: Streaming SIMD Extensions (required on ARM64 with SIMDe); --> avx: Advanced Vector Extensions (x86_64 only); --> no: switch off SIMD (x86_64 only); (default is autodetecting on x86_64 and sse on ARM64)])],
+         [SIMD instruction set acceleration for force and potential, available arguments --> sse: Streaming SIMD Extensions (default on ARM64, via SIMDe); --> avx: Advanced Vector Extensions (x86_64 only); --> no: switch off SIMD; this also disables OpenMP, since the resulting plain nbint.F force routine is not thread-safe under OpenMP; (default is autodetecting on x86_64 and sse on ARM64)])],
      [ simd_was_specified=yes
        case "${enableval}" in
        avx) enable_simd=avx ;;
@@ -117,11 +117,11 @@ AC_ARG_ENABLE([simd],
 # SIMDe support for ARM and cross-platform SIMD
 AC_ARG_WITH([simde],
      [AS_HELP_STRING([--with-simde@<:@=PATH@:>@],
-         [Use SIMDe headers. On ARM64, the default PATH is the source sibling ../simde; a bare --with-simde uses system include paths; --without-simde is invalid.])],
+         [Use SIMDe headers. On ARM64, the default PATH is the source sibling ../simde; a bare --with-simde uses system include paths; --without-simde is invalid unless --enable-simd=no is also given.])],
      [simde_was_specified=yes
       with_simde=$withval],
      [simde_was_specified=no
-      AS_IF([test "x$target_architecture" = xARM64],
+      AS_IF([test "x$target_architecture" = xARM64 && test "x$enable_simd" != xno],
         [with_simde=$simde_default_path],
         [with_simde=no])])
 
@@ -129,14 +129,11 @@ AS_IF([test "x$target_architecture" = xARM64], [
   AS_IF([test "x$enable_simd" = xavx],
     [AC_MSG_ERROR([option --enable-simd=avx conflicts with target architecture ARM64; AVX is x86_64-only.
 ARM64 example: $arm_configure_example])])
-  AS_IF([test "x$enable_simd" = xno],
-    [AC_MSG_ERROR([option --enable-simd=no conflicts with target architecture ARM64; the SSE kernels through SIMDe are required.
-ARM64 example: $arm_configure_example])])
   AS_IF([test "x$enable_mcmodel" != xno],
     [AC_MSG_ERROR([option --enable-mcmodel=$enable_mcmodel conflicts with target architecture ARM64; use --enable-mcmodel=no or omit the option.
 ARM64 example: $arm_configure_example])])
-  AS_IF([test "x$with_simde" = xno],
-    [AC_MSG_ERROR([option --without-simde conflicts with target architecture ARM64; SIMDe is required.
+  AS_IF([test "x$enable_simd" != xno && test "x$with_simde" = xno],
+    [AC_MSG_ERROR([option --without-simde conflicts with target architecture ARM64 unless combined with --enable-simd=no; SIMDe is required for the SSE kernels.
 ARM64 example: $arm_configure_example])])
 ])
 
@@ -214,7 +211,6 @@ AS_IF([test "x$enable_mcmodel" != xno],
 
 
 AC_OPENMP
-FCFLAGS=$FCFLAGS' '$OPENMP_FCFLAGS
 
 FCFLAGS=$FCFLAGS' -I../include'
 
@@ -319,7 +315,6 @@ AC_CHECK_LIB([stdc++],[main],[LIBS=$LIBS' -lstdc++'])
 CXXFLAGS=$local_cxxflags" -O3"
 
 AC_OPENMP
-CXXFLAGS=$CXXFLAGS' '$OPENMP_CXXFLAGS
 
 CXXFLAGS=$CXXFLAGS' -I../include'
 
@@ -471,6 +466,15 @@ AS_IF([test "x$OPENMP_CXXFLAGS" != x],
      [AS_IF([test "x$with_simde" = xno],
         [enable_simd=no
          SIMD_CHECK=-2])])
+
+AS_IF([test "x$enable_simd" = xno],
+   [AC_MSG_WARN([SIMD is disabled (--enable-simd=no); OpenMP is being disabled
+automatically for this build too. The plain Fortran nbint.F force routine
+used without SIMD is not thread-safe under OpenMP (see README Known
+Problems #3), so this build will be single-threaded. Use only for
+debugging.])
+    OPENMP_FCFLAGS=
+    OPENMP_CXXFLAGS=])
 
 # FIXME: Replace `main' with a function in `-llvisit':
 # AC_CHECK_LIB([lvisit], [main])
@@ -624,11 +628,11 @@ AS_IF([test "x$enable_simd" == xavx],
 
 #OMP
 AS_IF([test "x$OPENMP_FCFLAGS" != x ],
-      FCFLAGS=$FCFLAGS' ${OMP_FLAGS}',
+      FCFLAGS=$FCFLAGS' '$OPENMP_FCFLAGS' ${OMP_FLAGS}',
       FCFLAGS=$FCFLAGS' -I../extra_inc/noomp')
 
 AS_IF([test "x$OPENMP_CXXFLAGS" != x ],
-      CXXFLAGS=$CXXFLAGS' ${OMP_FLAGS}',
+      CXXFLAGS=$CXXFLAGS' '$OPENMP_CXXFLAGS' ${OMP_FLAGS}',
       CXXFLAGS=$CXXFLAGS' -I ../extra_inc/noomp')
 
 # HDF5 format

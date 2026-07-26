@@ -61,7 +61,7 @@ jobs:
               grep -Fq "Using SIMDe:    yes (path: /simde)" arm-default.log
               grep -Fq "mcmodel:        no" arm-default.log
 
-              for invalid_option in --enable-simd=avx --enable-simd=no \
+              for invalid_option in --enable-simd=avx \
                 --enable-mcmodel=small --enable-mcmodel=medium --enable-mcmodel=large \
                 --without-simde; do
                 if ./configure --disable-gpu --disable-hdf5 "$invalid_option" > invalid.log 2>&1; then
@@ -70,6 +70,13 @@ jobs:
                 fi
                 grep -Fq "ARM64 example: ./configure" invalid.log
               done
+
+              ./configure --with-par=1k --disable-gpu --disable-hdf5 --enable-simd=no > arm-nosimd-configure.log 2>&1
+              grep -Fq "Using SIMD:     no" arm-nosimd-configure.log
+              grep -Fq "Using SIMDe:    no" arm-nosimd-configure.log
+              grep -Fq "SIMD is disabled (--enable-simd=no); OpenMP is being disabled" arm-nosimd-configure.log
+              make clean
+              make -j 4
 
               if ./configure --disable-gpu --disable-hdf5 --with-simde=/does/not/exist > bad-path.log 2>&1; then
                 echo "missing SIMDe path unexpectedly succeeded"
