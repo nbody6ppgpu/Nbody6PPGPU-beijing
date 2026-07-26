@@ -540,6 +540,11 @@ C      TIME = MIN(TBLOCK,TIME)
       DO 95 L = 2,NBC1
           J = LISTC(L)
           IF (J.GT.N) GO TO 95
+*       Skip ghosts: FPOLY1/FPOLY2 (-> STEPS) would overwrite the ghost
+*       markers STEP > DTK(1) and STEPR = 1.0E+06, and DELAY_STORE_TLIST
+*       would then re-insert the ghost into the active part of NXTLST
+*       (cf. the same guard in CMBODY and COAL).
+          IF (BODY(J).EQ.0.0D0) GO TO 95
           DO 94 K = 1,3
               X0DOT(K,J) = XDOT(K,J)
               X0(K,J) = X(K,J)
