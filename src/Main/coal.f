@@ -353,6 +353,16 @@ C*       remove from NXTLST (In binary, not needed)
 *       Obtain new F & FDOT and time-steps.
               DO 30 L = 2,NNB2
                   J = ILIST(L)
+*       Skip ghost neighbours (cf. the same guard in CMBODY, "To avoid
+*       ghost particle get new step").  A ghost is parked outside the
+*       integration by STEP > DTK(1) and STEPR = 1.0E+06, which is what
+*       K_STEP/ADD_TLIST use to keep it in the ghost region of NXTLST.
+*       DTCHCK and FPOLY1/FPOLY2 (-> STEPS) would overwrite both markers
+*       with ordinary block steps, so DELAY_STORE_TLIST would re-insert
+*       the ghost into the active list and it would then be integrated
+*       with a stale polynomial, producing NaN.  Body #I1 (L = NNB2) may
+*       legitimately be massless and is handled separately below.
+                  IF (L.LT.NNB2.AND.BODY(J).EQ.0.0D0) GO TO 30
                   IF (L.EQ.NNB2) THEN
                       J = I1
 *     remove from NXTLST
