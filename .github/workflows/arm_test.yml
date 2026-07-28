@@ -33,7 +33,13 @@ jobs:
 
       - name: Build and test on ARM64
         run: |
-          set -o pipefail
+          # -e is critical here: the old Docker-based version of this job ran
+          # via `docker run bash -o pipefail -c '...'` with no -e, so failed
+          # `grep -Fq` assertions were silent no-ops and the job's exit status
+          # was decided only by the last command. That let a broken SIMDe
+          # clone (and the assertions meant to catch it) pass silently for an
+          # unknown length of time. Do not drop -e.
+          set -eo pipefail
           autoconf --version | head -1
           test "$(autoconf --version | sed -n "1s/.* //p")" = 2.71
           uname -m
