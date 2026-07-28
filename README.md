@@ -203,8 +203,6 @@ Git system does not preserve the modification time of files, but the modificatio
 
  4. Many stellar evolution and other parameters are still compiled into the code (see Table A1 in Kamlah et al. 2022, and parameter FctorCl in Rizzuto et al. 2021), mxns0,1 masses of neutron stars; it is the responsibility of the user to keep them all consistent at compile time (for example  mxns and FctorCl are defined in two routines independently, see hrplot, coal, mix). We are working to prepare a nice Fortran NAMELIST style input for ALL parameters (the ones from the current input file, and the ones currently compiled in). That will work like in the style of an .ini file with "key=value" pairs and default values.
 
- 5. Currently the use of KZ(7) ge 4 is not working; it produces wrong SIGR2, SIGT2, VROT both in output file and lagr.7. KZ(7) le 3 is ok.
-
  <!-- 5. Using much more than one million particles (up to ten million) is still not fully supported. configure already allows --with-par=4m  , 8m, 10m, b4m, b8m, b10m . Runs of that size may still fail, depending on your hardware and software environment; also the code may still have some glitches (wrong printout, insufficient vector space allocation);  test and work is ongoing. -->
  <!-- 3. On some systems heap and stack management when using OpenMP and MPI together seem to produce very
       strange errors and segmentation faults. The exact reason is not known; we work on this. -->

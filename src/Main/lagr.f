@@ -39,6 +39,9 @@
       NP = 0
       NSNGL = 0
       NBIN  = 0
+*     Keep disabled single/binary columns deterministic in lagr.7.
+      RSLAGR(1:NLENS) = 0.0D0
+      RBLAGR(1:NLENS) = 0.0D0
       IF (KZ(8).GT.0) THEN
 *     Need to exclude massive black hole mass
 *     Set square radii of resolved binaries
@@ -167,18 +170,18 @@
 *     
 *  Determine the Lagrangian radii for specified mass fractions.
 *     RLAGR = Lagrangian radius
-*     AVMASS = average mass of a spherical shell with radius R2(I)
+*     AVMASS = average mass within the selected shell/cumulative region
 *     AVMRC = average mass inside of core radius RC
-*     NPARTC = particle counter within a shell
+*     NPARTC = particle counter within the selected shell/cumulative region
 *     NCORE = particle counter for the core
 *     RC = Core radius (calculated in core.f)
-*     VAVE = mass weighted average velocity within a shell
-*     VTAVE = mass weighted average tangential velocity within a shell
-*     VRAVE = mass weighted average radial velocity within a shell
-*     SIG2 = mass weighted velocity dispersion square within a shell
-*     SIGR2 = mass weighted radius velocity dispersion square within a shell
-*     SIGT2 = mass weighted tangential velocity dispersion square within a shell
-*     VROT = mass weighted average rotational velocity projected in x-y plane within a shell
+*     VAVE = mass weighted average velocity
+*     VTAVE = mass weighted average tangential velocity
+*     VRAVE = mass weighted average radial velocity
+*     SIG2 = mass weighted velocity dispersion square
+*     SIGR2 = mass weighted radius velocity dispersion square
+*     SIGT2 = mass weighted tangential velocity dispersion square
+*     VROT = mass weighted average rotational velocity projected in x-y plane
       VR_CORE = 0.0D0
       VT_CORE(1:3) = 0.0D0
       V_CORE(1:3) = 0.0D0
@@ -246,16 +249,21 @@
          END DO
 *     Radial velocity can be calculated by velocity .dot. radial direction vector
          VRI(I) = 0.D0
-         DO K = 1,3
-            VRI(I) = VRI(I) + XDOT(K,IM)*(X(K,IM)-C(K))/DSQRT(R2(I))
-         END DO
+         IF (R2(I).GT.0.0D0) THEN
+            DO K = 1,3
+               VRI(I) = VRI(I) +
+     &              XDOT(K,IM)*(X(K,IM)-C(K))/DSQRT(R2(I))
+            END DO
+         END IF
 *     Cumulate average radial velocity in shell, mass weighted
          VRAVE(J) = VRAVE(J) + BODY(IM)*VRI(I)
 *     Radial velocity square
          VR2I = VRI(I)*VRI(I)
 *     Tangential velocity
          DO K = 1,3
-            VTI(K,I) = XDOT(K,IM) - VRI(I)*(X(K,IM)-C(K))/DSQRT(R2(I))
+            VTI(K,I) = XDOT(K,IM)
+            IF (R2(I).GT.0.0D0) VTI(K,I) = VTI(K,I) -
+     &           VRI(I)*(X(K,IM)-C(K))/DSQRT(R2(I))
 *     Cumulate average tangential velocity in shell, mass weighted
             VTAVE(K,J) = VTAVE(K,J) + BODY(IM)*VTI(K,I)
          END DO
@@ -266,12 +274,17 @@
          DO K = 1,2
             XR12 = XR12 + XDOT(K,IM)*(X(K,IM)-C(K))
          END DO
-*     Rotational velocity
-         VROT1 = XDOT(1,IM) - XR12/RR12*X(1,IM)
-         VROT2 = XDOT(2,IM) - XR12/RR12*X(2,IM)
+*     Rotational velocity (zero on the rotation axis).
+         XSIGN = 0.0D0
+         VROTM = 0.0D0
+         IF (RR12.GT.0.0D0) THEN
+            VROT1 = XDOT(1,IM) - XR12/RR12*X(1,IM)
+            VROT2 = XDOT(2,IM) - XR12/RR12*X(2,IM)
 *     Rotational direction sign
-         XSIGN = VROT1*X(2,IM)/DSQRT(RR12) - VROT2*X(1,IM)/DSQRT(RR12)
-         VROTM = DSQRT(VROT1**2+VROT2**2)
+            XSIGN = VROT1*X(2,IM)/DSQRT(RR12) -
+     &           VROT2*X(1,IM)/DSQRT(RR12)
+            VROTM = DSQRT(VROT1**2+VROT2**2)
+         END IF
 *     Cumulate average rotational velocity in shell, mass weighted
          IF(XSIGN.GT.0.D0) THEN
             VROT(J) = VROT(J) + BODY(IM)*VROTM
@@ -301,51 +314,58 @@
 *     Check whether mass within Langrangian radius is complete.
          IF (I.LT.NP.AND.ZM.LT.FLAGR(J)*ZMASS0) GO TO 20
 
-*     Get average within a shell
+*     Keep raw mass-weighted sums until all cumulative regions are complete.
          RLAGR(J) = SQRT(R2(I))
-         VRAVE(J) = VRAVE(J)/AVMASS(J)
-         VROT(J) = VROT(J)/AVMASS(J)
-         DO K = 1,3
-            VTAVE(K,J) = VTAVE(K,J)/AVMASS(J)
-            VAVE(K,J) = VAVE(K,J)/AVMASS(J)
-         END DO
  15   CONTINUE
+
+*     Get averages after cumulative sums have been constructed.
+      DO J = 1,NLENS
+         IF (AVMASS(J).GT.0.0D0) THEN
+            VRAVE(J) = VRAVE(J)/AVMASS(J)
+            VROT(J) = VROT(J)/AVMASS(J)
+            DO K = 1,3
+               VTAVE(K,J) = VTAVE(K,J)/AVMASS(J)
+               VAVE(K,J) = VAVE(K,J)/AVMASS(J)
+            END DO
+         END IF
+      END DO
 
 *     Get Half mass radius
       IF(KZ(7).NE.1.AND.KZ(7).NE.2.AND.KZ(7).NE.4) 
      &     RSCALE = RLAGR(IRLAGRH)
 
 *     Get average within core radius
-      VR_CORE = VR_CORE/AVMRC
       V_COREV = 0.0D0
       VT_COREV = 0.0D0
-      DO K = 1,3
-         VT_CORE(K) = VT_CORE(K)/AVMRC
-         VT_COREV = VT_COREV + VT_CORE(K)*VT_CORE(K)
-         V_CORE(K) = V_CORE(K)/AVMRC
-         V_COREV = V_COREV + V_CORE(K)*V_CORE(K)
-      END DO
-      VROTC = VROTC/AVMRC
+      IF (AVMRC.GT.0.0D0) THEN
+         VR_CORE = VR_CORE/AVMRC
+         DO K = 1,3
+            VT_CORE(K) = VT_CORE(K)/AVMRC
+            VT_COREV = VT_COREV + VT_CORE(K)*VT_CORE(K)
+            V_CORE(K) = V_CORE(K)/AVMRC
+            V_COREV = V_COREV + V_CORE(K)*V_CORE(K)
+         END DO
+         VROTC = VROTC/AVMRC
+      END IF
 
 *     Get velocity dispersion
-      NSTART = 1
       NSHELL = 0
       DO 16 J = 1,NLENS
-         NSTART = NSHELL + 1
-         IF(KZ(7).EQ.2.OR.KZ(7).EQ.3.OR.J.EQ.1) THEN
-            SIGR2(J) = 0.0D0
-            SIGT2(J) = 0.0D0
-            SIG2(J) = 0.0D0
+         SIGR2(J) = 0.0D0
+         SIGT2(J) = 0.0D0
+         SIG2(J) = 0.0D0
+         IF(KZ(7).EQ.2.OR.KZ(7).EQ.3) THEN
+            NSTART = NSHELL + 1
             NSHELL = NSHELL + NPARTC(J)
          ELSE
-            SIGR2(J) = SIGR2(J-1)
-            SIGT2(J) = SIGT2(J-1)
-            SIG2(J) = SIG2(J-1)
+*     Cumulative dispersions must use the mean of the current region.
+            NSTART = 1
             NSHELL = NPARTC(J)
          END IF
 
          DO IK = NSTART, NSHELL
             IM = JLIST(IK)
+            IF (BODY(IM).EQ.0.0D0) GO TO 26
 *     Radial direction
             VR2I = VRI(IK) - VRAVE(J)
             VR2I = VR2I*VR2I
@@ -364,37 +384,46 @@
             SIGT2(J) = SIGT2(J) + BODY(IM)*VTI2/2.D0
 *     Cumulate velocity dispersion
             SIG2(J) = SIG2(J) + BODY(IM)*VI2/3.D0
-*     Only for core radius
-            IF (R2(IK).LT.RC2) THEN
-               VR2I = VRI(IK) - VR_CORE
-               VR2I = VR2I*VR2I
-               SIGR2C = SIGR2C + BODY(IM)*VR2I
-
-               VTI2 = 0.0D0
-               VI2 = 0.0D0
-               DO K = 1,3
-                  VTITMP(K) = VTI(K,IK) - VT_CORE(K)
-                  VTI2 = VTI2 + VTITMP(K)*VTITMP(K)
-                  VITMP(K) = XDOT(K,IM) - V_CORE(K)
-                  VI2 = VI2 + VITMP(K)*VITMP(K)
-               END DO
-               SIGT2C = SIGT2C + BODY(IM)*VTI2/2.D0
-               SIG2C = SIG2C + BODY(IM)*VI2/3.D0
-            END IF
+ 26         CONTINUE
          END DO
  16   CONTINUE
 
+*     Determine core dispersions independently (once for either mode).
+      DO IK = 1,NP
+         IM = JLIST(IK)
+         IF (BODY(IM).EQ.0.0D0) GO TO 27
+         IF (R2(IK).LT.RC2) THEN
+            VR2I = VRI(IK) - VR_CORE
+            VR2I = VR2I*VR2I
+            SIGR2C = SIGR2C + BODY(IM)*VR2I
+
+            VTI2 = 0.0D0
+            VI2 = 0.0D0
+            DO K = 1,3
+               VTITMP(K) = VTI(K,IK) - VT_CORE(K)
+               VTI2 = VTI2 + VTITMP(K)*VTITMP(K)
+               VITMP(K) = XDOT(K,IM) - V_CORE(K)
+               VI2 = VI2 + VITMP(K)*VITMP(K)
+            END DO
+            SIGT2C = SIGT2C + BODY(IM)*VTI2/2.D0
+            SIG2C = SIG2C + BODY(IM)*VI2/3.D0
+         END IF
+ 27      CONTINUE
+      END DO
+
 *     Average velocity dispersion for core region
-      SIGR2C = SIGR2C/AVMRC
-      SIGT2C = SIGT2C/AVMRC
-      SIG2C = SIG2C/AVMRC
-      AVMRC = AVMRC/NCORE
+      IF (AVMRC.GT.0.0D0) THEN
+         SIGR2C = SIGR2C/AVMRC
+         SIGT2C = SIGT2C/AVMRC
+         SIG2C = SIG2C/AVMRC
+         AVMRC = AVMRC/NCORE
+      END IF
 *
 *     Final average
       DO J = 1, NLENS
-         IF(NPARTC(J).GT.0) THEN
-            VTAVEV(J) = 0.0D0
-            VAVEV(J) = 0.0D0
+         VTAVEV(J) = 0.0D0
+         VAVEV(J) = 0.0D0
+         IF(AVMASS(J).GT.0.0D0) THEN
             DO K = 1,3
                VTAVEV(J) = VTAVEV(J) + VTAVE(K,J)*VTAVE(K,J)
                VAVEV(J) = VAVEV(J) + VAVE(K,J)*VAVE(K,J)
@@ -536,5 +565,4 @@
  100  RETURN
 *
       END
-
 
