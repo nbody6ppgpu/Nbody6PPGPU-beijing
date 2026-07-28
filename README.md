@@ -192,15 +192,14 @@ Sources are in `src/Main/`.
 Git system does not preserve the modification time of files, but the modification time of some ancient files (created before this project was brought to Git) may be valuable information for developers. If you need this info, run `python3 restore_mtime.py` after `git clone` and each `git pull`. It will `touch` each file with their real last modification time.
 
 # Known Problems:
- 0. CUDA and standard AMD ROCm compile/link configuration is covered without GPU hardware, but hardware validation is still pending for both backends: N10k reaching `END RUN` without NaN/runtime errors, single/multi-GPU execution, and `GPU_LIST`. These checks must be completed on real CUDA and ROCm systems before claiming production validation. DCU/DTK is not currently supported.
 
  1. For systems with more than one GPU on one node the association of MPI rank id and GPU bus id is not
       well defined, will be improved in next version.
 
- 2. Runs with a million or more bodies and huge numbers of binaries (5% or more) use extreme amounts of
+ 2. Runs with a million or more bodies and huge numbers of binaries (5% or more) use a large amount of
       computing time for the KS binaries (much much more than should be expected). We work on this.
 
- 3. Currently using standard OpenMP WITHOUT sse or avx does not work. (it means for configure --enable-simd=no, but with OpenMP). It uses routines nbint.F instead of special sse or avx routines for neighbour force. Since `configure` has no `--disable-omp` option, `--enable-simd=no` now automatically disables OpenMP as well (see [ARM64 and SIMDe](#arm64-and-simde) above), so this broken combination can no longer be built through configure. The underlying thread-safety issue in nbint.F itself is still unresolved. We are working on that.
+ 3. Currently using standard OpenMP WITHOUT sse or avx does not work. It uses routines nbint.F instead of special sse or avx routines for neighbour force. Since `configure` automatically disables OpenMP when SIMD is disabled (see [ARM64 and SIMDe](#arm64-and-simde) above). The underlying thread-safety issue in nbint.F itself is still unresolved. We are working on that.
 
  4. Many stellar evolution and other parameters are still compiled into the code (see Table A1 in Kamlah et al. 2022, and parameter FctorCl in Rizzuto et al. 2021), mxns0,1 masses of neutron stars; it is the responsibility of the user to keep them all consistent at compile time (for example  mxns and FctorCl are defined in two routines independently, see hrplot, coal, mix). We are working to prepare a nice Fortran NAMELIST style input for ALL parameters (the ones from the current input file, and the ones currently compiled in). That will work like in the style of an .ini file with "key=value" pairs and default values.
 
