@@ -39,6 +39,9 @@
       NP = 0
       NSNGL = 0
       NBIN  = 0
+*     Keep disabled single/binary columns deterministic in lagr.7.
+      RSLAGR(1:NLENS) = 0.0D0
+      RBLAGR(1:NLENS) = 0.0D0
       IF (KZ(8).GT.0) THEN
 *     Need to exclude massive black hole mass
 *     Set square radii of resolved binaries

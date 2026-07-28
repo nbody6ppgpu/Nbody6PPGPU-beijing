@@ -82,6 +82,15 @@ def group(record: list[float], start: int) -> list[float]:
     return record[start : start + NLAGR]
 
 
+def validate_disabled_binary_radii(record: list[float]) -> None:
+    for name, values in {
+        "RSLAGR": group(record, 20),
+        "RBLAGR": group(record, 38),
+    }.items():
+        if any(value != 0.0 for value in values):
+            raise AssertionError(f"KZ(8)=0 {name} columns must be zero")
+
+
 def assert_close(name: str, actual: float, expected: float) -> None:
     if not math.isclose(actual, expected, rel_tol=2.0e-10, abs_tol=2.0e-12):
         raise AssertionError(
@@ -231,11 +240,13 @@ def main() -> None:
         raise SystemExit(f"Binary not found: {binary}")
     with tempfile.TemporaryDirectory(prefix="nbody-lagr-") as temporary:
         shell, _ = run_case(binary, 3, Path(temporary))
+        validate_disabled_binary_radii(shell)
         for kz7 in (4, 5):
             cumulative, output = run_case(binary, kz7, Path(temporary))
+            validate_disabled_binary_radii(cumulative)
             validate_cumulative(shell, cumulative)
             validate_main_output(output)
-    print("KZ(7)>=4 cumulative Lagrangian statistics passed")
+    print("KZ(7)>=4 statistics and KZ(8)=0 radii passed")
 
 
 if __name__ == "__main__":
