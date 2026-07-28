@@ -3,17 +3,45 @@ name: release_on_tag
 on:
   push:
     tags:
+      # Current scheme: v<year>.<month>, e.g. v2026.07. Sorts chronologically.
+      - "v[0-9]+.[0-9]+"
+      # Legacy scheme kept so old-style tags still publish: Jan2025, Aug2024.
       - "[A-Za-z]+[0-9]+"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to publish a release for"
+        required: true
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - uses: "marvinpinto/action-automatic-releases@latest"
+        uses: actions/checkout@v4
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
-          automatic_release_tag: "latest" 
+          fetch-depth: 0
+
+      - name: Resolve tag
+        id: tag
+        run: echo "name=${{ github.event.inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      # The release body is the annotated tag message, which is where
+      # .github/release/notes.sh output belongs. Lightweight tags carry no
+      # message, so fall back to GitHub's generated changelog.
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.name }}
+        run: |
+          set -euo pipefail
+          git tag -l --format='%(contents)' "$TAG" > body.md
+          if [ -s body.md ]; then
+            gh release create "$TAG" --title "$TAG" --notes-file body.md
+          else
+            echo "no annotated tag message; generating notes from commit history" >&2
+            gh release create "$TAG" --title "$TAG" --generate-notes
+          fi
