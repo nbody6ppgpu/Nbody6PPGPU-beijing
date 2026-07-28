@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
 
     - name: install dependencies
       run: sudo apt update && sudo apt install -y autoconf=2.71-2 wget gfortran gcc g++; gcc --version; g++ --version; gfortran --version;
@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
 
     - name: install dependencies
       run: > 
