@@ -1233,8 +1233,10 @@ C            END IF
                   JPERT(L) = LIST(L+1,I)
    56          CONTINUE
                JLIST(1) = I
-*       Use NTOT as dummy target so removal is unconditional (cf. CMBODY).
-               CALL NBREM(NTOT,1,NNB)
+*       Use NTOT+1 as dummy target so removal is unconditional (cf. CMBODY);
+*       NTOT itself would coincide with the ghost's own index if I = NTOT
+*       (last c.m. in the current numbering) and NBREM would then skip it.
+               CALL NBREM(NTOT+1,1,NNB)
             END IF
          END IF
 *
