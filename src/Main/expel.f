@@ -305,6 +305,11 @@ cnew-abbas-26/07/2017
 *              call xbpredall
               DO 30 L = 2,NNB+1
                   J = ILIST(L)
+*       Skip ghosts (cf. the same guard in CMBODY and COAL): FPOLY1/
+*       FPOLY2 (-> STEPS) would overwrite the ghost markers STEP > DTK(1)
+*       and STEPR = 1.0E+06, so DELAY_STORE_TLIST would re-insert the
+*       ghost into the active part of NXTLST.
+                  IF (BODY(J).EQ.0.0D0) GO TO 30
                   DO 25 K = 1,3
                       X0DOT(K,J) = XDOT(K,J)
                       X0(K,J) = X(K,J)
@@ -413,6 +418,9 @@ cnew-abbas-26/07/2017
 *       Obtain new F & FDOT and time-steps.
                   DO 50 L = 2,NNB2
                       J = ILIST(L)
+*       Skip ghost neighbours (cf. the same guard in CMBODY and COAL);
+*       body #I itself (L = NNB2) is always processed.
+                      IF (L.LT.NNB2.AND.BODY(J).EQ.0.0D0) GO TO 50
                       IF (L.EQ.NNB2) THEN
                           J = I
 *     remove from NXTLST
