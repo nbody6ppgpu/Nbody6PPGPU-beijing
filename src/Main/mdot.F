@@ -1225,6 +1225,19 @@ C            END IF
                D2R(L,I) = 0.0D0
                D3R(L,I) = 0.0D0
    55       CONTINUE
+*
+*       Remove the ghost from any neighbour/perturber lists (cf. CMBODY/COAL).
+            NNB = LIST(1,I)
+            IF (NNB.GT.0) THEN
+               DO 56 L = 1,NNB
+                  JPERT(L) = LIST(L+1,I)
+   56          CONTINUE
+               JLIST(1) = I
+*       Use NTOT+1 as dummy target so removal is unconditional (cf. CMBODY);
+*       NTOT itself would coincide with the ghost's own index if I = NTOT
+*       (last c.m. in the current numbering) and NBREM would then skip it.
+               CALL NBREM(NTOT+1,1,NNB)
+            END IF
          END IF
 *
  250     CONTINUE

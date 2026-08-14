@@ -389,6 +389,14 @@ C      SAVEB = BODY(ICH)
             J = LIST(L,ICH)
          END IF
 C         IF (J.EQ.I1.OR.J.EQ.I3.OR.J.EQ.I4) GO TO 95
+*       Skip ghosts, or FPOLY1/FPOLY2 (-> STEPS) would overwrite the ghost
+*       markers and DELAY_STORE_TLIST would re-insert the ghost into the
+*       active part of NXTLST (cf. the same guard in CMBODY and COAL).
+*       Restoring STEPR below is not enough: K_STEP classifies ghosts on
+*       STEP alone.  Test the marker rather than BODY here: #I1, #I2 and
+*       #I3 are zeroed just above only for the duration of this loop and
+*       restored afterwards, so a BODY test would wrongly skip them.
+         IF (STEP(J).GT.DTK(1)) GO TO 95
 *     remove from NXTLST
          call delay_remove_tlist(J,STEP,DTK)
          CALL DTCHCK(TIME,STEP(J),DTK(40))
