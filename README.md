@@ -155,8 +155,12 @@ The default input is `examples/N1m_benchmark.inp`. For Slurm, copy `examples/exa
 To understand the diagnostic information and columns of each output file, please read the documentations at
 https://nbody6ppgpu.github.io/nb6-manual-pdf/latest.pdf
 
-Which mirrors the results from the following overleaf 
-https://www.overleaf.com/read/hcmxcyffjkzq#89d2bb
+The LaTeX source lives in `doc/`, a git submodule pinned to a commit of
+[nbody6ppgpu/nb6-manual](https://github.com/nbody6ppgpu/nb6-manual). Clone with
+`git clone --recurse-submodules`, or run `git submodule update --init --recursive`
+after a plain clone, to get the manual source locally. The manual repo itself
+stays in sync with an [Overleaf project](https://www.overleaf.com/read/hcmxcyffjkzq#89d2bb),
+which remains the human editing interface; the PDF above is built from it.
 
 Please report any issues for the manual by opening an issue https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/issues . 
 
