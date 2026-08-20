@@ -45,8 +45,7 @@ nbody-fork/
 ├── examples/          # 示例输入文件和 Jupyter 分析脚本
 │   ├── input_files/   # 测试输入 (N10k, N100k)
 │   └── *.ipynb        # 数据分析 Jupyter 笔记本
-├── doc/               # 文档
-│   └── nbody6++_manual.txt  # 指向 Overleaf 手册
+├── doc/               # 手册（git submodule，指向 nbody6ppgpu/nb6-manual，pinned commit）
 ├── macro/             # Autoconf M4 宏
 ├── config.examples/   # 配置示例
 ├── configure.ac       # Autoconf 配置脚本
@@ -381,9 +380,18 @@ cp examples/input_files/N10k_noDat10.inp ./
 ## 10. 文档资源
 
 ### 官方文档
-- **完整手册**: [Overleaf Manual](https://www.overleaf.com/read/hcmxcyffjkzq)
+- **手册源码**: `doc/`（git submodule，指向 [nbody6ppgpu/nb6-manual](https://github.com/nbody6ppgpu/nb6-manual)，pinned commit；未 `git submodule update --init --recursive` 时该目录为空）
+- **手册 PDF**: https://nbody6ppgpu.github.io/nb6-manual-pdf/latest.pdf
+- **Overleaf（人工编辑入口，与手册 repo 自动双向同步）**: [Overleaf Manual](https://www.overleaf.com/read/hcmxcyffjkzq)
 - **README**: [GitHub README](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/blob/stable/README.md)
 - **讨论区**: [GitHub Discussions](https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing/discussions)
+
+### 修改手册
+
+若改动了用户可见的行为、参数或 IO 格式，先 `rg` 检索 `doc/` 确认是否需要同步更新手册。手册源码本身属于
+`nb6-manual` 独立 repo（与 Overleaf 双向自动同步），不要直接在本 repo 里改 `doc/` 下的文件内容；
+改完后在 `nb6-manual` repo 提交，再回到本 repo 执行 `git submodule update --remote doc && git add doc && git commit`
+把指针推进到新 commit。
 
 ### 参考文献
 
