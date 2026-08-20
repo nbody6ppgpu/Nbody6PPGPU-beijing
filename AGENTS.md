@@ -388,10 +388,13 @@ cp examples/input_files/N10k_noDat10.inp ./
 
 ### 修改手册
 
-若改动了用户可见的行为、参数或 IO 格式，先 `rg` 检索 `doc/` 确认是否需要同步更新手册。手册源码本身属于
-`nb6-manual` 独立 repo（与 Overleaf 双向自动同步），不要直接在本 repo 里改 `doc/` 下的文件内容；
-改完后在 `nb6-manual` repo 提交，再回到本 repo 执行 `git submodule update --remote doc && git add doc && git commit`
-把指针推进到新 commit。
+若改动了用户可见的行为、参数或 IO 格式，先 `rg` 检索 `doc/` 确认是否需要同步更新手册。若 `doc/` 是空目录，
+先执行 `git submodule update --init --recursive doc` 拉取手册内容，不要因为目录为空就误判"没有手册可改"。
+
+手册源码本身属于 `nb6-manual` 独立 repo（与 Overleaf 双向自动同步），不要直接在本 repo 里改 `doc/` 下的文件内容；
+改完后需要 `cd doc && git add -A && git commit && git push` 推到 `nb6-manual` 的 origin 才算完成——仅在父仓库里
+`commit` gitlink 指针**不会**持久化 `doc/` 里的源码改动，必须先把 `doc/` 内的 commit 推到远端。
+推送成功后再回到本 repo 根目录执行 `git add doc && git commit` 把指针推进到新 commit。
 
 ### 参考文献
 
