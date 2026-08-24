@@ -361,9 +361,6 @@ C      end if
      * 4D11.2,/,10X,' EPSNOV, EDDFAC, GAMM1=',3D11.2,/)
       write(6,50)fctorcl
  50   FORMAT(10X,' COLL PARAMS: FactorCl=',1P,D11.2,/)
-      write(6,60)bhflag,disp,vvfac,kmech,bhspinfl,kicktype
- 60   format(10X,' BH KICK PARAMS: BHFLAG, DISP, VVFAC=',
-     * I4,1P,2D11.2,/,10X,' KMECH, BHSPINFL, KICKTYPE=',3I4,/)
 *             write(nml=insse,unit=6)
 *             write(nml=incoll,unit=6)
           end if
