@@ -79,6 +79,14 @@
 *     Event bank arrays for tracking mass/kw change
       COMMON/EVEVT/  XMOLDA(NMAX),KWOLDA(NMAX),XMOLDB(NMAX),KWOLDB(NMAX)
 
+*     Dedicated pulsar/neutron-star dynamic state (kept out of COMMON/NBODY).
+*     Capacity reuses NMAX; only indices 1:NSCOUNT are meaningful, and only
+*     that range is written to dump/restart or broadcast over MPI.
+      COMMON/PSRDAT/ BMAGNS(NMAX),BMAGNS0(NMAX),XMNS0(NMAX),
+     &               PERIODNS(NMAX),AGENSX(NMAX),AGENS0(NMAX),
+     &               PDOTNS(NMAX),XMNS(NMAX),NSCOUNT,
+     &               NSTYPE(NMAX),NAMENS(NMAX),NSSTAT(NMAX)
+
 *     Not dump common variables
       COMMON/LISTS/  ILIST(NMAX),JLIST(NMAX),JPERT(5*LMAX)
 *
