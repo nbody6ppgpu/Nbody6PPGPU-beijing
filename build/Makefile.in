@@ -69,7 +69,7 @@ EXTRAOBJ=@EXTRAOBJ@
 #VPATH= ../src/Chain:../src/Nchain:../src/Init:../src/Main:../src/Cloud:../src/GPU:../src/SE:../src/SIMD:../src/Tidal:../src/Tlist:../src/Tools:../src/Ellan:../src/KS:../src/Output:../src/HIR:../include
 VPATH= ../src/Main:../src/Tools:../include
 
-INC = params.h common6.h timing.h commonc.h common2.h kspars.h
+INC = params.h common6.h timing.h commonc.h common2.h kspars.h pulsar_ctrl.h
 
 SOURCE = ${EXTRASRC} nbody6.f file_init.f ellan.f eigenvalue.f indexx.f \
 adjust.f assess.f bindat.f binev.f binout.f binpop.f block.f bodies.f \
