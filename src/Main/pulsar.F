@@ -72,13 +72,8 @@
       INTEGER :: MAX_RLOF_DIVIDE
       LOGICAL :: BAD_RLOF_STEP,RLOF_CAP_REACHED
 
-      ! Gather pulsar inputs. 
-      INTEGER :: PSR_ACC_CE
-      COMMON /PULSAR/ PSR_SPINA,PSR_SPINB,PSR_BMAGA,
-     & PSR_BMAGB,PSRM_SPINA,PSRM_SPINB,PSRM_BMAGA,   
-     & PSRM_BMAGB,PSR_BMIN,PSR_RAD,PSR_TAU,PSR_KAPPA,
-     & PSR_EP,PSR_PMODE,PSR_BMODE,PSRM_PMODE,PSRM_BMODE,
-     & PSR_ACC_CE
+      ! Gather pulsar inputs (single declaration in pulsar_ctrl.h).
+      INCLUDE 'pulsar_ctrl.h'
       ! PSR_BMIN (Gauss): LOG10 of minimum magnetic field of neutron star at the end of magnetic field decay
       ! PSR_RAD (km) : Radius of neutron star, in the future it will be transferred to an option of NS EOS to choose NS radius. 
       ! PSR_TAU (Myr): NS Magnetic decay time scale. 
@@ -408,13 +403,8 @@
 * Comment out if not using NBODY6++GPU.
       INCLUDE 'common6.h'
       REAL*8  :: RAN2
-      INTEGER :: PSR_ACC_CE
-      COMMON /PULSAR/ PSR_SPINA,PSR_SPINB,PSR_BMAGA,
-     & PSR_BMAGB,PSRM_SPINA,PSRM_SPINB,PSRM_BMAGA,   
-     & PSRM_BMAGB,PSR_BMIN,PSR_RAD,PSR_TAU,PSR_KAPPA,
-     & PSR_EP,PSR_PMODE,PSR_BMODE,PSRM_PMODE,PSRM_BMODE,
-     & PSR_ACC_CE
-      ! PSR_RAD : Radius of neutron star, in the future it will be transferred to an option of NS EOS to choose NS radius. 
+      INCLUDE 'pulsar_ctrl.h'
+      ! PSR_RAD : Radius of neutron star, in the future it will be transferred to an option of NS EOS to choose NS radius.
       ! PSR_TAU : NS Magnetic decay time scale. 
       ! PSR_KAPPA : NS Magnetic decay mass scale. 
       REAL(kind=8) :: MOI, radius_6, bfield_2, pDTop, pDBot

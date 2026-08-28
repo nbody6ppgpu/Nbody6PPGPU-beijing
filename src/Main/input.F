@@ -27,6 +27,17 @@
       READ (NML=ININPUT, IOSTAT=IIC, UNIT=5)
       IF (IIC.NE.0) WRITE (6, '("INPUT: invalid Namelist format")')
 *
+*       Pulsar evolution: KZ(29)=0 off, 1 on (normal PSR birth), 2 on
+*       (AIC NS uses the separate PSRM_* birth distribution).
+      IF(KZ(29).LT.0.OR.KZ(29).GT.2) THEN
+         WRITE(6,*)'FATAL ERROR: KZ(29) must be 0, 1, or 2: ',KZ(29)
+#if MPIINIT
+         CALL MPI_ABORT(MPI_COMM_WORLD,ierr)
+#else
+         STOP
+#endif
+      ENDIF
+*
       IF(KSTART.EQ.2) N = NCURR
 *
 *       Read & print the main input parameters.
@@ -125,6 +136,8 @@ C New: (Aug.1998, P.Kroupa)
       call flush(6)
 *        Read stellar evolution and collision parameters.
       CALL READSE(LEVEL)
+*        Read pulsar evolution parameters (no-op unless KZ(29)>0).
+      CALL READPULSAR
 *
 *       Define total particle number & neighbour membership range.
       NTOT = N
@@ -366,6 +379,156 @@ C      end if
           end if
 *
 *       End SSE/BSE/Coll Parameter Definition
+      RETURN
+*
+      END
+*
+      SUBROUTINE READPULSAR
+*
+*       Pulsar/neutron-star evolution input (KZ(29), INPULSAR).
+*       ---------------------------------------------------------
+*       Rank 0 reads and validates INPULSAR, then broadcasts every
+*       control parameter explicitly so serial and MPI runs see
+*       identical PSR input. No-op when KZ(29)=0 (INPULSAR is then
+*       neither required nor read).
+*
+      INCLUDE 'common6.h'
+      INCLUDE 'pulsar_ctrl.h'
+*
+#ifdef PARALLEL
+#define MPIINIT 1
+#else
+#define MPIINIT 0
+#endif
+*
+      LOGICAL BADPULSAR
+      REAL*8 PULSAR_UNSET
+      PARAMETER (PULSAR_UNSET=-1.0D99)
+      INTEGER MODE_UNSET
+      PARAMETER (MODE_UNSET=-999)
+*
+      NAMELIST /INPULSAR/ PSR_SPINA, PSR_SPINB, PSR_BMAGA, PSR_BMAGB,
+     &         PSRM_SPINA, PSRM_SPINB, PSRM_BMAGA, PSRM_BMAGB,
+     &         PSR_BMIN, PSR_RAD, PSR_TAU, PSR_KAPPA, PSR_EP,
+     &         PSR_PMODE, PSR_BMODE, PSRM_PMODE, PSRM_BMODE,
+     &         PSR_ACC_CE
+*
+      IF (KZ(29).EQ.0) RETURN
+*
+      IF (rank.eq.0) THEN
+         PSR_SPINA = PULSAR_UNSET
+         PSR_SPINB = PULSAR_UNSET
+         PSR_BMAGA = PULSAR_UNSET
+         PSR_BMAGB = PULSAR_UNSET
+         PSRM_SPINA = PULSAR_UNSET
+         PSRM_SPINB = PULSAR_UNSET
+         PSRM_BMAGA = PULSAR_UNSET
+         PSRM_BMAGB = PULSAR_UNSET
+         PSR_BMIN = PULSAR_UNSET
+         PSR_RAD = PULSAR_UNSET
+         PSR_TAU = PULSAR_UNSET
+         PSR_KAPPA = PULSAR_UNSET
+         PSR_EP = PULSAR_UNSET
+         PSR_PMODE = MODE_UNSET
+         PSR_BMODE = MODE_UNSET
+         PSRM_PMODE = MODE_UNSET
+         PSRM_BMODE = MODE_UNSET
+         PSR_ACC_CE = MODE_UNSET
+*
+         READ (NML=INPULSAR, IOSTAT=IIC, UNIT=5)
+         IF (IIC.NE.0) THEN
+            WRITE(6,'("FATAL ERROR: missing or invalid INPULSAR")')
+#if MPIINIT
+            CALL MPI_ABORT(MPI_COMM_WORLD,ierr)
+#else
+            STOP
+#endif
+         ENDIF
+*
+         BADPULSAR = .FALSE.
+         IF (PSR_SPINA.LE.0.0D0.OR.PSR_SPINB.LE.0.0D0)
+     &        BADPULSAR = .TRUE.
+         IF (PSR_BMAGA.LE.0.0D0.OR.PSR_BMAGB.LE.0.0D0)
+     &        BADPULSAR = .TRUE.
+         IF (PSR_BMIN.LE.0.0D0.OR.PSR_RAD.LE.0.0D0)
+     &        BADPULSAR = .TRUE.
+         IF (PSR_TAU.LE.0.0D0.OR.PSR_KAPPA.LE.0.0D0)
+     &        BADPULSAR = .TRUE.
+         IF (PSR_EP.LT.0.0D0) BADPULSAR = .TRUE.
+         IF (PSR_PMODE.LT.0.OR.PSR_PMODE.GT.4) BADPULSAR = .TRUE.
+         IF (PSR_BMODE.NE.0.AND.PSR_BMODE.NE.1.AND.PSR_BMODE.NE.2
+     &        .AND.PSR_BMODE.NE.4.AND.PSR_BMODE.NE.5)
+     &        BADPULSAR = .TRUE.
+         IF ((PSR_PMODE.EQ.2.OR.PSR_PMODE.EQ.4).AND.
+     &        PSR_SPINB.LE.PSR_SPINA) BADPULSAR = .TRUE.
+         IF ((PSR_BMODE.EQ.2.OR.PSR_BMODE.EQ.4).AND.
+     &        PSR_BMAGB.LE.PSR_BMAGA) BADPULSAR = .TRUE.
+*
+*        PSR_ACC_CE=1/2 (disk/surface CE accretion) are still under
+*        development and are rejected outright rather than silently
+*        falling back or only warning (see manual).
+         IF (PSR_ACC_CE.NE.0) THEN
+            WRITE(6,*)'FATAL ERROR: PSR_ACC_CE must be 0 (modes 1',
+     &           ' and 2 are under development, not available',
+     &           ' in this version): ', PSR_ACC_CE
+            BADPULSAR = .TRUE.
+         ENDIF
+*
+         IF (KZ(29).EQ.2) THEN
+            IF (PSRM_SPINA.LE.0.0D0.OR.PSRM_SPINB.LE.0.0D0)
+     &           BADPULSAR = .TRUE.
+            IF (PSRM_BMAGA.LE.0.0D0.OR.PSRM_BMAGB.LE.0.0D0)
+     &           BADPULSAR = .TRUE.
+            IF (PSRM_PMODE.LT.0.OR.PSRM_PMODE.GT.4)
+     &           BADPULSAR = .TRUE.
+            IF (PSRM_BMODE.NE.0.AND.PSRM_BMODE.NE.1.AND.
+     &           PSRM_BMODE.NE.2.AND.PSRM_BMODE.NE.4.AND.
+     &           PSRM_BMODE.NE.5) BADPULSAR = .TRUE.
+            IF ((PSRM_PMODE.EQ.2.OR.PSRM_PMODE.EQ.4).AND.
+     &           PSRM_SPINB.LE.PSRM_SPINA) BADPULSAR = .TRUE.
+            IF ((PSRM_BMODE.EQ.2.OR.PSRM_BMODE.EQ.4).AND.
+     &           PSRM_BMAGB.LE.PSRM_BMAGA) BADPULSAR = .TRUE.
+         ENDIF
+*
+         IF (BADPULSAR) THEN
+            WRITE(6,*)'FATAL ERROR: invalid INPULSAR parameter range'
+#if MPIINIT
+            CALL MPI_ABORT(MPI_COMM_WORLD,ierr)
+#else
+            STOP
+#endif
+         ENDIF
+*
+         WRITE(6,*)'PSR PARAMS ',PSR_PMODE,PSR_SPINA,PSR_SPINB,
+     &        PSR_BMODE,PSR_BMAGA,PSR_BMAGB,PSR_BMIN,PSR_RAD,
+     &        PSR_TAU,PSR_KAPPA,PSR_EP,PSR_ACC_CE
+         IF (KZ(29).EQ.2) THEN
+            WRITE(6,*)'PSRM PARAMS ',PSRM_PMODE,PSRM_SPINA,
+     &           PSRM_SPINB,PSRM_BMODE,PSRM_BMAGA,PSRM_BMAGB
+         ENDIF
+      ENDIF
+*
+#if MPIINIT
+      CALL MPI_BCAST(PSR_SPINA,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSR_SPINB,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSR_BMAGA,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSR_BMAGB,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSRM_SPINA,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSRM_SPINB,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSRM_BMAGA,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSRM_BMAGB,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSR_BMIN,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSR_RAD,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSR_TAU,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSR_KAPPA,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSR_EP,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSR_PMODE,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSR_BMODE,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSRM_PMODE,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSRM_BMODE,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(PSR_ACC_CE,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+#endif
+*
       RETURN
 *
       END
