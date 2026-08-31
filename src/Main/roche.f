@@ -615,6 +615,7 @@
                PERIODNS(NSINDEX) = PERIOD_F
                BMAGNS(NSINDEX) = B_F
                PDOTNS(NSINDEX) = PDOT_F
+               CALL PSREVENT(4, NSINDEX)
             ENDIF
          ENDIF
 *
@@ -1488,6 +1489,7 @@
                PERIODNS(NSINDEX) = PERIOD_F
                BMAGNS(NSINDEX) = B_F
                PDOTNS(NSINDEX) = PDOT_F
+               CALL PSREVENT(3, NSINDEX)
             ENDIF
          ENDIF
 *

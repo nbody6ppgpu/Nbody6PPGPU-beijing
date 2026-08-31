@@ -1346,6 +1346,7 @@ C            END IF
                NSTYPE(NSINDEX) = KW
                AGENSX(NSINDEX) = TPHYS
                NSSTAT(NSINDEX) = 2
+               CALL PSREVENT(2, NSINDEX)
             ENDIF
          ENDIF
          JSPIN(K) = MAX(JSPIN(K) - DJSPIN(K),1.0D-10)

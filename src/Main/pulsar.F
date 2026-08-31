@@ -789,6 +789,35 @@
       PERIODNS(NSCOUNT) = PINIT
       PDOTNS(NSCOUNT) = PDINIT
       REGISTD = .TRUE.
+      CALL PSREVENT(1, NSCOUNT)
+
+      RETURN
+      END
+
+      SUBROUTINE PSREVENT(ICODE, NSINDEX)
+* Write one pulsar.204 event-bank record for the neutron star at
+* NAMENS/XMNS/BMAGNS/.../PDOTNS slot NSINDEX. Single choke point for
+* every lifecycle hook (PSRREG registration, isolated spin-down, RLOF
+* spin-up, CE evolution) so the field list, FORMAT and the
+* KZ(50)/rank guard cannot drift out of sync between call sites.
+*
+* ICODE:
+*   1 - new NS registered (PSRREG)
+*   2 - isolated spin-down step (mdot.F)
+*   3 - stable RLOF spin-up step (roche.f)
+*   4 - common-envelope step (roche.f)
+*
+      INCLUDE 'common6.h'
+      INCLUDE 'pulsar_ctrl.h'
+      INTEGER ICODE, NSINDEX
+
+      IF (KZ(50).NE.1.OR.rank.NE.0) RETURN
+
+      WRITE (204,61) ICODE, TTOT*TSTAR, NAMENS(NSINDEX),
+     &     XMNS(NSINDEX), BMAGNS(NSINDEX), PERIODNS(NSINDEX),
+     &     PDOTNS(NSINDEX), AGENSX(NSINDEX), AGENS0(NSINDEX),
+     &     BMAGNS0(NSINDEX), XMNS0(NSINDEX), PSR_TAU
+   61 FORMAT('PULSAR ',I2,1P,E17.9,I10,9E17.9)
 
       RETURN
       END
