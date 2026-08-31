@@ -56,6 +56,11 @@
 *
       Include 'kspars.h'
       INCLUDE 'common6.h'
+#ifdef PARALLEL
+#define MPIINIT 1
+#else
+#define MPIINIT 0
+#endif
       REAL*8  RAN2,VK(4)
 *     Unsafe for parallel
       SAVE  IPAIR, KC, VDIS, RI
@@ -85,6 +90,9 @@
       COMMON /FBACK/ FBFAC,FBTOT,MCO,ECS
       CHARACTER*20 WHICH1
       CHARACTER*15 WHICH
+*     Pulsar: accretion-induced-collapse (AIC) NS registration.
+      LOGICAL FOUND, ISAIC, ISAIC_INIT
+      INTEGER PIND
 *
 *       Set variables with different names in common (RSp Mar23).
       VFAC = VVFAC
@@ -290,8 +298,48 @@ c		Sambaran 2019.11.19.
 
             if(rank.eq.0)WRITE(6,*) "ECS/AIC NS formation",
      &           " M[M*] M0[M*] K*0 I NAME K* VDISP Time[Myr]: ",
-     &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I), 
+     &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I),
      &           KSTAR(I),DISP0, TTOT*TSTAR
+*     Pulsar: register an NS formed via accretion-induced collapse
+*     (AIC), i.e. an ONeWD (previous KSTAR=12) transitioning to KW=13,
+*     or the electron-capture-SN channel already selected above
+*     (KW=12 here indicates the pre-collapse ECS path). KZ(29)=2
+*     gives AIC-formed NSs their own (PSRM_*) birth distribution;
+*     KZ(29)=1 uses the same distribution as ordinary NSs.
+            IF (KZ(29).GT.0) THEN
+               ISAIC = KW.EQ.12 .OR.
+     &              (KSTAR(I).EQ.12 .AND. KW.EQ.13)
+               IF (ISAIC) THEN
+                  ISAIC_INIT = KZ(29).EQ.2
+                  FOUND = .FALSE.
+                  DO 383 PIND = 1, NSCOUNT
+                     IF (NAME(I).EQ.NAMENS(PIND)) FOUND = .TRUE.
+  383             CONTINUE
+                  IF (.NOT.FOUND) THEN
+                     IF (NSCOUNT.GE.NMAX) THEN
+                        WRITE(6,*)'FATAL ERROR: NSCOUNT reached NMAX',
+     &                       ' registering AIC NS ', NAME(I)
+#if MPIINIT
+                        CALL MPI_ABORT(MPI_COMM_WORLD,ierr)
+#else
+                        STOP
+#endif
+                     ENDIF
+                     NSCOUNT = NSCOUNT + 1
+                     CALL PULSARINIT(BMAGNS(NSCOUNT),
+     &                    PERIODNS(NSCOUNT), PDOTNS(NSCOUNT),
+     &                    BODY(I)*ZMBAR, ISAIC_INIT)
+                     NAMENS(NSCOUNT) = NAME(I)
+                     XMNS(NSCOUNT) = BODY(I)*ZMBAR
+                     NSTYPE(NSCOUNT) = 13
+                     AGENS0(NSCOUNT) = 0.0D0
+                     AGENSX(NSCOUNT) = (TIME+TOFF)*TSTAR
+                     BMAGNS0(NSCOUNT) = 0.0D0
+                     XMNS0(NSCOUNT) = 0.0D0
+                     NSSTAT(NSCOUNT) = 1
+                  ENDIF
+               ENDIF
+            ENDIF
          ENDIF
          IF(KW.EQ.14.AND.BHFLAG.EQ.0) DISP0 = 0.D0
 
