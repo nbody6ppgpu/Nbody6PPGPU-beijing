@@ -194,6 +194,13 @@
 *        Read stellar evolution and collision parameters.
       CALL READSE(LEVEL)
 *
+*     Pulsar: dynamic state (NSCOUNT, NAMENS, ...) comes from the dump
+*     via MYDUMP; control parameters do not persist in the dump and
+*     must be re-read here from an &INPULSAR block in the restart
+*     input, in the same relative stream order as INPUT (ININPUT ->
+*     READSE -> READPULSAR) for a fresh start. No-op when KZ(29)=0.
+      CALL READPULSAR
+*
 *       Perform a simple validation check on main input parameters.
       CALL VERIFY
 *

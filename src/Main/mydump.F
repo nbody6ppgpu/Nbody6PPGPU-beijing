@@ -59,6 +59,18 @@
 *
       COMMON/EVEVT/  XMOLDA(NMAX),KWOLDA(NMAX),XMOLDB(NMAX),KWOLDB(NMAX)
 *
+*     Pulsar: independent dynamic-state common (see include/common6.h
+*     and merge-plan.md Sec 7.1); NOT part of COMMON/NBODY, and only
+*     indices 1:NSCOUNT are meaningful. Declared here (rather than via
+*     INCLUDE 'common6.h', which this routine deliberately avoids) so
+*     the layout matches the real declaration exactly.
+      INTEGER NAMENS(NMAX),NSTYPE(NMAX),NSSTAT(NMAX),NSCOUNT
+      REAL*8 XMNS(NMAX),BMAGNS(NMAX),BMAGNS0(NMAX),XMNS0(NMAX),
+     &       PERIODNS(NMAX),AGENSX(NMAX),AGENS0(NMAX),PDOTNS(NMAX)
+      COMMON/PSRDAT/ BMAGNS,BMAGNS0,XMNS0,PERIODNS,AGENSX,AGENS0,
+     &               PDOTNS,XMNS,NSCOUNT,NSTYPE,NAMENS,NSSTAT
+      INTEGER IOPSR
+*
 *
       REAL*8 CC(265)
       EQUIVALENCE (CC(1),C(1))
@@ -166,6 +178,17 @@
 *     Write event tracking arrays
         write (J) (XMOLDA(i),i=1,ntot),(KWOLDA(i),i=1,ntot),
      &            (XMOLDB(i),i=1,ntot),(KWOLDB(i),i=1,ntot)
+*
+*     Pulsar: independent dump record, bounded by NSCOUNT (not NMAX
+*     or NTOT). PSR_*/PSRM_*/PSR_ACC_CE control params are not dumped
+*     here; they are re-read from INPULSAR on restart (Sec 7.3).
+        write (J) NSCOUNT
+        write (J) (NAMENS(i),i=1,NSCOUNT),(NSTYPE(i),i=1,NSCOUNT),
+     &            (NSSTAT(i),i=1,NSCOUNT),(XMNS(i),i=1,NSCOUNT),
+     &            (BMAGNS(i),i=1,NSCOUNT),(PERIODNS(i),i=1,NSCOUNT),
+     &            (PDOTNS(i),i=1,NSCOUNT),(AGENSX(i),i=1,NSCOUNT),
+     &            (AGENS0(i),i=1,NSCOUNT),(BMAGNS0(i),i=1,NSCOUNT),
+     &            (XMNS0(i),i=1,NSCOUNT)
 *
         END FILE J
         CLOSE (UNIT=J)
@@ -324,6 +347,41 @@
         KWOLDB(1:NMAX) = -1
  101    CONTINUE
 
+*     Pulsar: independent dump record. IOSTAT-guarded since a dump
+*     written before this record existed (or by an incompatible code
+*     version) won't have it; do not silently continue such a run.
+        READ (J,IOSTAT=IOPSR) NSCOUNT
+        IF (IOPSR.NE.0) THEN
+           write(0,*) 'WARNING: no pulsar dump record found in ',
+     &          'this restart file. If this run uses KZ(29)>0, the ',
+     &          'dump predates PSR state tracking or was written by ',
+     &          'an incompatible code version -- do not continue ',
+     &          'such a simulation with this code; rerun with the ',
+     &          'code version that produced this dump instead. ',
+     &          'NSCOUNT initialized to 0 (this check does not ',
+     &          'validate any other part of the dump file).'
+           NSCOUNT = 0
+        ELSE
+           IF (NSCOUNT.LT.0.OR.NSCOUNT.GT.NMAX) THEN
+              write(6,*) 'FATAL ERROR: pulsar dump NSCOUNT out of',
+     &             ' range: NSCOUNT=', NSCOUNT, ' NMAX=', NMAX
+              call flush(6)
+              call abort()
+           ENDIF
+           READ (J,IOSTAT=IOPSR) (NAMENS(i),i=1,NSCOUNT),
+     &          (NSTYPE(i),i=1,NSCOUNT),(NSSTAT(i),i=1,NSCOUNT),
+     &          (XMNS(i),i=1,NSCOUNT),(BMAGNS(i),i=1,NSCOUNT),
+     &          (PERIODNS(i),i=1,NSCOUNT),(PDOTNS(i),i=1,NSCOUNT),
+     &          (AGENSX(i),i=1,NSCOUNT),(AGENS0(i),i=1,NSCOUNT),
+     &          (BMAGNS0(i),i=1,NSCOUNT),(XMNS0(i),i=1,NSCOUNT)
+           IF (IOPSR.NE.0) THEN
+              write(6,*) 'FATAL ERROR: pulsar dump record truncated',
+     &             ' or corrupt (IOSTAT=', IOPSR, ')'
+              call flush(6)
+              call abort()
+           ENDIF
+        ENDIF
+
         end if
 
 *     Reinitialize KVEC
@@ -479,6 +537,31 @@
        CALL MPI_BCAST(KWOLDA(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(XMOLDB(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(KWOLDB(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+*
+*     Pulsar: broadcast the dynamic state read above (1:NSCOUNT only).
+       CALL MPI_BCAST(NSCOUNT,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+       IF (NSCOUNT.GT.0) THEN
+       CALL MPI_BCAST(NAMENS(1),NSCOUNT,MPI_INTEGER,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(NSTYPE(1),NSCOUNT,MPI_INTEGER,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(NSSTAT(1),NSCOUNT,MPI_INTEGER,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(XMNS(1),NSCOUNT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(BMAGNS(1),NSCOUNT,MPI_REAL8,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(PERIODNS(1),NSCOUNT,MPI_REAL8,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(PDOTNS(1),NSCOUNT,MPI_REAL8,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(AGENSX(1),NSCOUNT,MPI_REAL8,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(AGENS0(1),NSCOUNT,MPI_REAL8,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(BMAGNS0(1),NSCOUNT,MPI_REAL8,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(XMNS0(1),NSCOUNT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       ENDIF
 *
        call cputim(tt998)
        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
