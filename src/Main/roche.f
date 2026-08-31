@@ -29,9 +29,9 @@
 *     Pulsar: locals for the CE-onset PULSAREVO call (right after
 *     comenv() returns, treating the whole CE episode as one step).
       INTEGER NSINDEX, PIND
-      LOGICAL PULSAR_CE
+      LOGICAL PULSAR_CE, NSNEWRLO
       REAL*8 PERIOD_I, PERIOD_F, B_I, B_F, PDOT_I, PDOT_F
-      REAL*8 PSRMDOT, MCOMP, RCOMP
+      REAL*8 PSRMDOT, MCOMP, RCOMP, TROCHENS
       REAL*8 PSRALPHA, MYR_IN_SEC
       PARAMETER(PSRALPHA=1.5708D0, MYR_IN_SEC=3.1536D13)
 *
@@ -72,6 +72,10 @@
       ISAVE = .FALSE.
       JKICK = 0
       INEW = 0
+*     Pulsar: local (not SAVEd), so this resets every ROCHE call; only
+*     set .TRUE. below on the call where RLOF onset is first detected
+*     for this pair, consumed once by the spin-up hook further down.
+      NSNEWRLO = .FALSE.
 *
 *       Form semi-major axis and eccentricity.
       SEMI = -0.5D0*BODY(I)/H(IPAIR)
@@ -257,6 +261,13 @@
               KSTAR(I) = KSTAR(I) + 1
               NRO = NRO + 1
               INEW = 1
+*     Pulsar: mark the start of a fresh RLOF episode for the spin-up
+*     hook below, which uses this to snapshot AGENS0/BMAGNS0/XMNS0
+*     only once per episode (not every step of an ongoing RLOF).
+              IF (KW1.EQ.13.OR.KW2.EQ.13) THEN
+                 NSNEWRLO = .TRUE.
+                 TROCHENS = TTOT
+              ENDIF
           RI = SQRT((X(1,I) - RDENS(1))**2 +
      &              (X(2,I) - RDENS(2))**2 +
      &              (X(3,I) - RDENS(3))**2)
@@ -1434,6 +1445,52 @@
          OSPIN(K) = JSPIN(K)/(K2*RADX(K)*RADX(K)*(M1-MC) +
      &                        K3*RCC*RCC*MC)
          SPIN(J) = JSPIN(K)/SPNFAC
+*
+*     Pulsar: spin up a NS accreting via stable RLOF. J.EQ.J2 restricts
+*     this to the accretor (J1 is the donor by construction above).
+*     PSRMDOT uses DM22 (BSE's already-computed accreted mass for this
+*     step) rather than XMNS's own before/after difference, since the
+*     donor's mass-loss scaled by accretion efficiency is the more
+*     accurate accretion-rate proxy (per source comment).
+         IF (KW.EQ.13.AND.KZ(29).GT.0.AND.DTM.GT.0
+     &        .AND.J.EQ.J2) THEN
+            PULSAR_CE = .FALSE.
+            NSINDEX = -1
+            DO 298 PIND = 1,NSCOUNT
+               IF (NAMENS(PIND).EQ.NAME(J)) THEN
+                  NSINDEX = PIND
+                  GOTO 299
+               ENDIF
+  298       CONTINUE
+  299       IF (NSINDEX.LE.0) THEN
+               WRITE(6,*)'WARNING: RLOF pulsar not found in NAMENS ',
+     &              NAME(J), KW, TTOT*TSTAR
+               GOTO 68
+            ENDIF
+            PSRMDOT = DM22/(DTM*MYR_IN_SEC)
+            IF (PSRMDOT.GT.0.0D0) THEN
+               IF (NSNEWRLO) THEN
+                  AGENS0(NSINDEX) = TROCHENS*TSTAR
+                  BMAGNS0(NSINDEX) = BMAGNS(NSINDEX)
+                  XMNS0(NSINDEX) = XMNS(NSINDEX)
+               ENDIF
+               XMNS(NSINDEX) = MASS(K)
+               AGENSX(NSINDEX) = AGENSX(NSINDEX) + DTM
+               PERIOD_I = PERIODNS(NSINDEX)
+               B_I = BMAGNS(NSINDEX)
+               PDOT_I = PDOTNS(NSINDEX)
+               MCOMP = MASS(3-K)
+               RCOMP = RAD(3-K)
+               CALL PULSAREVO(XMNS(NSINDEX), MCOMP, RCOMP,
+     &              B_I, PERIOD_I, PDOT_I, PSRMDOT, DTM*MYR_IN_SEC,
+     &              PSRALPHA, PULSAR_CE, NAMENS(NSINDEX),
+     &              B_F, PERIOD_F, PDOT_F)
+               PERIODNS(NSINDEX) = PERIOD_F
+               BMAGNS(NSINDEX) = B_F
+               PDOTNS(NSINDEX) = PDOT_F
+            ENDIF
+         ENDIF
+*
    68    J = J2
    70 CONTINUE
 *
