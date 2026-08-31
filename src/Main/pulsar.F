@@ -14,8 +14,10 @@
 * psrmdot [Msun/second] - Mass transfer rate
 * dtm [second] - Time-step.
 * nsincl [radian] - The angle between pulsar's spin axis and magnetic field axis.  
-* ce -  Logical variable indicating whether ce is occuring. 
-* psrn - name of pulsar, currently included as input for testing purposes, will be deleted when making the code public. 
+* ce -  Logical variable indicating whether ce is occuring.
+* psrn - name of pulsar (NAMENS entry); identifies the object in the
+*   warnings this routine can still emit (RLOF cap reached, bad RLOF
+*   step, unhandled input).
 *
 * Outputs:
 * B_f [Tesla] - Final magnetic field strength for the time step
@@ -28,7 +30,7 @@
 * Please add appropriate header files here for MOCCA: 
 
 
-      integer :: psrn ! Will be depleted once testing is completed. 
+      integer :: psrn ! NAMENS entry; used only to identify objects in warnings.
       REAL(kind=8) :: mass,mass_comp,rad_comp,psrmdot,dtm,nsincl
      
       LOGICAL :: ce ! if common envelope happens or not. 
@@ -96,19 +98,11 @@
       B_f = B_i
       period_f = period_i
       pdot_f = pdot_i
-      !IF(psrn.eq.1009)WRITE(6,*)"CHECKINPUT: ",psrn, dtm
-      !IF(psrn.eq.605)WRITE(6,*)"CHECKINPUT: ",psrn, dtm
-      ! WRITE(6,*)"CHECKINPUT: DTM: ",psrn, dtm
       ! Update isolated (no mass transfer case) pulsar spin, spin down rate, and magnetic field
       ! Calculate surface magnetic field due to magnetic braking, n=3
-      ! WRITE(6,*) "IN PULSAREVO, BMIN IS", PSR_BMIN, PULSAR_BMIN
        IF (((psrmdot.LT.acc).or.(psrmdot.gt.acc
      &  .and.ce.and.PSR_ACC_CE.eq.0)).and.pdot_i.gt.0)THEN
-      !    WRITE(6,*) "SPINDOWN ISOLATED PULSAR BEGIN ",psrn,
-      !&     B_i, period_i, dtm, PULSAR_BMIN
-            if(psrn.eq.2371.and.ce)WRITE(6,*)"PSRCE SPINDOWN ZERO CE",
-     &   psrn, B_i, period_i, mass, psrmdot, dtm, PULSAR_KAPPA, PULSAR_BMIN
-            SDTSCALE = period_i/pdot_i ! neutron star spin-down time scale. 
+            SDTSCALE = period_i/pdot_i ! neutron star spin-down time scale.
             psrloop = 1
             ! If the timestep is larger than the spin-down timescale,
             ! then the spin-down calculation needs to be broken into smaller steps
@@ -126,23 +120,15 @@
                pdot_i = pdot_f
                CALL ISOSPINDOWN(psrn,B_i, period_i,pdot_i,
      &                B_f, period_f, pdot_f, TSSIZE)
-            end do 
-      !   WRITE(6,*)"SPINDOWN ISOLATED PULSAR END ", psrn,
-      !&    B_f, period_f
-      
+            end do
+
       ! Update stable RLOF(mass transfer, not CE)  pulsar spin, spin down rate, and magnetic field
       ! Calculate surface magnetic field due to mass accretion and magnetic burying
-      ! debug june9 - write statements to check if the code is entering the RLOF spin-up branch when it should.
-   !    WRITE(6,*) "CHECKING IF ENTERING RLOF BRANCH ", psrn, psrmdot,
-   !   & acc, ce, PSR_ACC_CE, pdot_i
-        ELSEIF (((psrmdot.gt.acc.and.ce.eqv..false.) .or. 
+        ELSEIF (((psrmdot.gt.acc.and.ce.eqv..false.) .or.
      &    (psrmdot.gt.acc.and.ce.and.PSR_ACC_CE.eq.1))
-     &    .and.pdot_i.gt.0) THEN 
+     &    .and.pdot_i.gt.0) THEN
          !As implemented in Chattopadhyay+2020
-   !          if(psrn.eq.2371.and.ce)WRITE(97,*)"RLOF/CE PULSAR BEGIN ",
-   !   &   psrn, B_i, period_i, mass, psrmdot, dtm, 
-   !   &   ce, PSR_ACC_CE, PULSAR_KAPPA, PULSAR_BMIN
-            !Save copies of initial condition for the second round of calculations. 
+            !Save copies of initial condition for the second round of calculations.
             PERIOD_COPY = period_i
             PDOT_COPY = pdot_i
             BMAG_COPY = B_i
@@ -157,8 +143,6 @@
             IF (ce.AND.psrmdot_eff*dtm.GT.MAX_CE_DM) THEN
                psrmdot_eff = MAX_CE_DM/dtm
             ENDIF
-            write(6,*)'PSRRLOF',psrn,period_i,pdot_i,B_i,
-     &         mass,psrmdot_eff*MSOL_TO_KG
             DO WHILE (RLOF_LOOP_DONE.eqv..false.)
                COUNT = 0  
                divide_timestep_by = divide_timestep_by * 2
@@ -232,23 +216,20 @@
                   pdot_i=pdot_f
                   mass = mass_f
                END DO 
-            ELSE 
-               WRITE(6,*)'WARNING: PULSAR RLOF ', 
+            ELSE
+               WRITE(6,*)'WARNING: PULSAR RLOF ',
      &          'cap reached, no spin-up applied'
             ENDIF
 
-            WRITE(6,*) "PULSAR IN RLOF OR RLOF-LIKE CE"   
-        
       ! Update CE pulsar spin, spin down rate, and magnetic field
       ! Calculate surface magnetic field due to mass accretion and magnetic burying
       ELSEIF ((psrmdot.gt.acc.and.ce.and.PSR_ACC_CE.eq.2)
      &   .and.pdot_i.gt.0) THEN
-         !Fitting formuale from MacLeod&Ramirez-Ruiz 2015 as implemented in Chattopadhyay+2020 
+         !Fitting formuale from MacLeod&Ramirez-Ruiz 2015 as implemented in Chattopadhyay+2020
          cea=(-1.1*1e-5)*mass_comp+(1.2*1e-4)
-         ceb=(1.5*1e-2)*mass_comp+(-1.5*1e-1)   
+         ceb=(1.5*1e-2)*mass_comp+(-1.5*1e-1)
          dm=cea*rad_comp+ceb
          dm=MIN(dm,MAX_CE_DM)
-         write(6,*)'PSRCE',psrn,period_i,pdot_i,B_i,mass,dm
         !Update magnetic field
         B_f=PULSAR_BMIN+EXP(-dm*MSOL_TO_KG/PULSAR_KAPPA)
      &   *(B_i-PULSAR_BMIN)
@@ -258,14 +239,22 @@
         Jacc = MoI*dm*SQRT(G*mass*MSOL_TO_KG/(PSR_RAD*KM_TO_M))/mass
         J = (2.0d0 * pi / period_i) * MoI   ! GW
         J = J + Jacc
-        period_f = 2.0d0 * pi * MoI / J 
+        period_f = 2.0d0 * pi * MoI / J
         mass = mass + dm
         MoIf = NSMOI(mass, PSR_RAD)
         pdot_f = NSSPINDOWN(period_f, B_f, PSR_RAD, MoIf)
-        WRITE(6,*) "PULSAR IN CE"
       ELSE
-         WRITE(6,*) "WARNING: pulsar.f called with unhandled input:"
-     &           , psrmdot, ce
+*        None of the three evolution branches above matched. With
+*        PSR_ACC_CE forced to 0 at input and all PSR_*MODE=0 birth
+*        options removed, pdot_i should be strictly positive for the
+*        life of the object (see manual/source-map.md); reaching here
+*        means that invariant broke. Return the inputs unchanged
+*        (already done by the B_f/period_f/pdot_f = *_i assignments
+*        above) rather than continue on an unvalidated state.
+         WRITE(6,*)'WARNING: PULSAREVO invariant violated (pdot',
+     &        ' non-positive, or psrmdot exactly at the acc',
+     &        ' threshold); pulsar unchanged this step:', psrn,
+     &        psrmdot, pdot_i, ce
       ENDIF
     
       CONTAINS
@@ -281,7 +270,6 @@
       
          REAL(kind=8) :: period_i,period_f,B_i,B_f,pdot_i,pdot_f,step
          INTEGER(4) :: psrn
-         ! write(6,*) 'IN ISOSPINDOWN, BMIN IS', PSR_BMIN, PULSAR_BMIN
          B_f = PULSAR_BMIN + EXP(-step / PULSAR_TAU)
      &      * (B_i - PULSAR_BMIN)
           MoI = NSMOI(mass, PSR_RAD)
@@ -295,12 +283,6 @@
           trm2 = PULSAR_TAU * PULSAR_BMIN * (B_f - B_i)
           trm3 = (PULSAR_TAU / 2.0d0) * (B_f**2.0d0 - B_i**2.0d0)
           Pfsquared = cons*(trm1 - trm2 - trm3) + period_i * period_i
-          IF(psrn.eq.1009)   
-     &    WRITE(6,*)"SPINDOWN ISOLATED PULSAR MID ", psrn,
-     &    B_i, B_f, PSR_TAU,PULSAR_TAU,PULSAR_BMIN
-          IF(psrn.eq.667)   
-     &    WRITE(6,*)"SPINDOWN ISOLATED PULSAR MID ", psrn,
-     &    B_i, B_f, PSR_TAU,PULSAR_TAU,PULSAR_BMIN
           period_f = SQRT(Pfsquared)
           pdot_f = NSSPINDOWN(period_f, B_f, PSR_RAD, MoI)
       END SUBROUTINE ISOSPINDOWN
@@ -498,12 +480,12 @@
       if (ISAIC.eqv..false.) then
    
       ! Check distribution type and compute pulsar spin at birth accordingly
-      IF(PSR_PMODE.EQ.1.0) THEN
+      IF(PSR_PMODE.EQ.1) THEN
          ! Set NS initial spin to a 
          ! fixed constant value as indicated by PSR_SPINA
          PULSARINITP = PSR_SPINA
 
-      ELSEIF(PSR_PMODE.EQ.2.0) THEN
+      ELSEIF(PSR_PMODE.EQ.2) THEN
          ! Set NS initial spin to Uniform distribution,  
          ! minimum as PSR_SPINA, and maximum as PSR_SPINB
          diff = PSR_SPINB - PSR_SPINA
@@ -512,7 +494,7 @@
          ! using random number generator in MOCCA
          ! PULSARINITP = PSR_SPINA + ran3() * diff
       
-      ELSEIF (PSR_PMODE.EQ.3.0) THEN
+      ELSEIF (PSR_PMODE.EQ.3) THEN
          ! Set to Normal distribution from  Faucher-Giuere&Kaspi 2006 (https://iopscience.iop.org/article/10.1086/501516)
          ! mean as PSR_SPINA, stdev as PSR_SPINB
          PULSARINITP = -1.0d0
@@ -521,7 +503,7 @@
          end do
          !write(6,*)"PulsarINITP ",PULSARINITP,PSR_SPINA,u,PSR_RAD
 
-      ELSEIF (PSR_PMODE.EQ.4.0) THEN
+      ELSEIF (PSR_PMODE.EQ.4) THEN
          ! Set to Flat-in-log distribution
          ! minimum as PSR_SPINA, maximum as PSR_SPINB
          diff = LOG10(PSR_SPINB) - LOG10(PSR_SPINA)
@@ -541,13 +523,13 @@
       ENDIF
     
       ! check and calculate pulsar magnetic field at birth accordingly in Gauss.
-      if (PSR_BMODE.EQ.1.0) then
+      if (PSR_BMODE.EQ.1) then
          ! Set birth magnetic field to a fixed constant value
          ! that's set by PSR_BMAGA
          log10B = PSR_BMAGA
          PULSARINITB = 10.d0 ** log10B
       
-      else if (PSR_BMODE.EQ.2.0) then
+      else if (PSR_BMODE.EQ.2) then
          ! Set birth magnetic field to a Uniform distribution
          ! mean as PSR_BMAGA, stdev as PSR_BMAGB
          bmaga10 = 10.0d0 ** PSR_BMAGA
@@ -558,7 +540,7 @@
          ! Generating random number in MOCCA
          ! PULSARINITB = bmaga10+ ran3()*diff
          
-      else if (PSR_BMODE.EQ.4.0) then
+      else if (PSR_BMODE.EQ.4) then
          ! Set to Flat-in-log distribution
          ! PSR_BMAGB set as maximum, and PSR_BMAGA set as minimum
          diff=PSR_BMAGB - PSR_BMAGA
@@ -568,7 +550,7 @@
          ! log10B = PSR_BMAGA+ran3()*diff
          PULSARINITB = 10.d0 ** log10B
 
-      else if (PSR_BMODE.EQ.5.0) then
+      else if (PSR_BMODE.EQ.5) then
          ! Log-normal distribution, from Faucher-Giuere&Kaspi 2006 (https://iopscience.iop.org/article/10.1086/501516)
          ! PSR_BMAGA as the mean and PSR_BMAGB as stdev
          log10B = -1.0d0
@@ -589,12 +571,12 @@
       if(ISAIC.eqv..true.)then
 *     Birth properties of PSRMs formed through AICs. 
 
-      IF(PSRM_PMODE.EQ.1.0) THEN
+      IF(PSRM_PMODE.EQ.1) THEN
          ! Set NS initial spin to a 
          ! fixed constant value as indicated by PSRM_SPINA
          PULSARINITP = PSRM_SPINA
 
-      ELSEIF(PSRM_PMODE.EQ.2.0) THEN
+      ELSEIF(PSRM_PMODE.EQ.2) THEN
          ! Set NS initial spin to Uniform distribution,  
          ! minimum as PSRM_SPINA, and maximum as PSRM_SPINB
          diff = PSRM_SPINB - PSRM_SPINA
@@ -603,7 +585,7 @@
          ! using random number generator in MOCCA
          ! PULSARINITP = PSRM_SPINA + ran3() * diff
       
-      ELSEIF (PSRM_PMODE.EQ.3.0) THEN
+      ELSEIF (PSRM_PMODE.EQ.3) THEN
          ! Set to Normal distribution 
          ! mean is PSRM_SPINA, stdev is PSRM_SPINB
          PULSARINITP = -1.0d0
@@ -611,7 +593,7 @@
             PULSARINITP = GAUS_RAND(PSRM_SPINA, PSRM_SPINB)
          end do
 
-      ELSEIF (PSRM_PMODE.EQ.4.0) THEN
+      ELSEIF (PSRM_PMODE.EQ.4) THEN
          ! Set to Flat-in-log distribution
          ! minimum as PSRM_SPINA, maximum as PSRM_SPINB
          diff = LOG10(PSRM_SPINB) - LOG10(PSRM_SPINA)
@@ -630,13 +612,13 @@
       ENDIF
     
       ! check and calculate pulsar magnetic field at birth accordingly in Gauss.
-      if (PSRM_BMODE.EQ.1.0) then
+      if (PSRM_BMODE.EQ.1) then
          ! Set birth magnetic field to a fixed constant value
          ! that's set by PSRM_BMAGA
          log10B = PSRM_BMAGA
          PULSARINITB = 10.d0 ** log10B
       
-      else if (PSRM_BMODE.EQ.2.0) then
+      else if (PSRM_BMODE.EQ.2) then
          ! Set birth magnetic field to a Uniform distribution
          ! mean as PSRM_BMAGA, stdev as PSRM_BMAGB
          bmaga10 = 10.0d0 ** PSRM_BMAGA
@@ -647,7 +629,7 @@
          ! Generating random number in MOCCA
          ! PULSARINITB = bmaga10+ ran3()*diff
          
-      else if (PSRM_BMODE.EQ.4.0) then
+      else if (PSRM_BMODE.EQ.4) then
          ! Set to Flat-in-log distribution
          ! PSRM_BMAGB set as maximum, and PSRM_BMAGA set as minimum
          diff=PSRM_BMAGB - PSRM_BMAGA
@@ -657,7 +639,7 @@
          ! log10B = PSRM_BMAGA+ran3()*diff
          PULSARINITB = 10.d0 ** log10B
 
-      else if (PSRM_BMODE.EQ.5.0) then
+      else if (PSRM_BMODE.EQ.5) then
          ! Log-normal distribution
          ! PSRM_BMAGA as the mean and PSRM_BMAGB as stdev
          log10B = -1.0d0
