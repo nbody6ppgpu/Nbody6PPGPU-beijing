@@ -51,6 +51,12 @@ if ! grep -q "FATAL ERROR: PSR_ACC_CE must be 0" "$tmp/reject_acc_ce_nonzero.log
   fail=1
 fi
 
+run_case reject_mode_zero
+if ! grep -q "FATAL ERROR: invalid INPULSAR parameter range" "$tmp/reject_mode_zero.log"; then
+  echo "FAIL: reject_mode_zero (PSR_PMODE=0) did not report the expected FATAL ERROR"
+  fail=1
+fi
+
 run_case accept_kz29_1_valid
 if grep -q "FATAL ERROR" "$tmp/accept_kz29_1_valid.log"; then
   echo "FAIL: accept_kz29_1_valid unexpectedly reported a FATAL ERROR"

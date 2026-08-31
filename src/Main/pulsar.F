@@ -424,16 +424,14 @@
   
 
       ! PSR_SPINA & PSR_SPINB / PSRM_SPINA & PSRM_SPINB:  first and second definitions for pulsar birth spin period. See below.
-      ! PSR_PMODE / PSRM_PMODE: Distribution of pulsar spin period at birth. 
-      !        0 = ZERO distribution, all pulsar born with spin period 0.0 sec. 
-      !        1 = FIXED distribution, all pulsar born with spin period at PSR_SPINA sec. 
-      !        2 = UNIFORM distribution, PSR_SPINA is the lower limit and PSR_SPINB is the upper limit of the distribution. 
-      !        3 = NORMAL distribution, PSR_SPINA is the mean and PSR_SPINB is the stdev of the distribution. 
-      !        4 = LOGUNIFORM / Flat-in-log distribution, PSR_SPINA is the lower limit and PSR_SPINB is the upper limit of the distribution. 
+      ! PSR_PMODE / PSRM_PMODE: Distribution of pulsar spin period at birth.
+      !        1 = FIXED distribution, all pulsar born with spin period at PSR_SPINA sec.
+      !        2 = UNIFORM distribution, PSR_SPINA is the lower limit and PSR_SPINB is the upper limit of the distribution.
+      !        3 = NORMAL distribution, PSR_SPINA is the mean and PSR_SPINB is the stdev of the distribution.
+      !        4 = LOGUNIFORM / Flat-in-log distribution, PSR_SPINA is the lower limit and PSR_SPINB is the upper limit of the distribution.
       ! PSR_BMAGA & PSR_BMAGB / PSRM_BMAGA & PSRM_BMAGB:  first and second definitions for pulsar birth magfield. See below.
-      ! PSR_BMODE & PSRM_BMODE: Distribution of pulsar magnetic field strength at birth. 
-      !        0 = ZERO distribution, all pulsar born with magfield 0 Gauss. 
-      !        1 = FIXED distribution, all pulsar born with magfield at 10^PSR_BMAGA Gauss. 
+      ! PSR_BMODE & PSRM_BMODE: Distribution of pulsar magnetic field strength at birth.
+      !        1 = FIXED distribution, all pulsar born with magfield at 10^PSR_BMAGA Gauss.
       !        2 = UNIFORM distribution, 10^PSR_BMAGA is the lower limit and 10^PSR_BMAGB is the upper limit of the distribution. 
       !        4 = LOGUNIFORM / Flat-in-log distribution, 10^PSR_BMAGA is the lower limit and 10^PSR_BMAGB is the upper limit of the distribution. 
       !        5 = LOGNORMAL distribution, PSR_BMAGA is the LOG10(mean) and PSR_BMAGB is the LOG10(stdev) of the distribution. 
@@ -465,9 +463,7 @@
       !    PULSAR_INITIAL_B_MEAN, PULSAR_INITIAL_B_STD
 
       ! PSR_PMODE = PULSAR_INITIAL_SPIN_MODEL
-      ! IF (PSR_PMODE.EQ.0) THEN
-      !   PSR_SPINA = 0
-      ! ELSEIF (PSR_PMODE.EQ.1) THEN
+      ! IF (PSR_PMODE.EQ.1) THEN
       !   PSR_SPINA = PULSAR_INITIAL_SPIN_FIXED
       ! ELSEIF (PSR_PMODE.EQ.2) THEN
       !   PSR_SPINA = PULSAR_INITIAL_SPIN_MIN
@@ -480,9 +476,7 @@
       !   PSR_SPINB = PULSAR_INITIAL_SPIN_MAX
       
       ! PSR_BMODE = PULSAR_INITIAL_B_MODEL
-      ! IF (PSR_BMODE.EQ.0) THEN
-      !   PSR_BMAGA = 0
-      ! ELSEIF (PSR_BMODE.EQ.1) THEN
+      ! IF (PSR_BMODE.EQ.1) THEN
       !   PSR_BMAGA = PULSAR_INITIAL_B_FIXED
       ! ELSEIF (PSR_BMODE.EQ.2) THEN
       !   PSR_BMAGA = PULSAR_INITIAL_B_MIN
@@ -504,12 +498,7 @@
       if (ISAIC.eqv..false.) then
    
       ! Check distribution type and compute pulsar spin at birth accordingly
-      IF (PSR_PMODE.EQ.0.0) THEN
-         ! Initialising a non-spinning pulsar at birth.
-         ! Set NS initial spin to 1e6 seconds. 
-         PULSARINITP = 1.0d6
-
-      ELSEIF(PSR_PMODE.EQ.1.0) THEN
+      IF(PSR_PMODE.EQ.1.0) THEN
          ! Set NS initial spin to a 
          ! fixed constant value as indicated by PSR_SPINA
          PULSARINITP = PSR_SPINA
@@ -551,12 +540,8 @@
         ! should we end program at this point and raise an error message? 
       ENDIF
     
-      ! check and calculate pulsar magnetic field at birth accordingly in Gauss. 
-      if (PSR_BMODE.EQ.0.0) then
-         ! Set birth magnetic field to zero 
-         PULSARINITB = 0.0d0
-         
-      else if (PSR_BMODE.EQ.1.0) then
+      ! check and calculate pulsar magnetic field at birth accordingly in Gauss.
+      if (PSR_BMODE.EQ.1.0) then
          ! Set birth magnetic field to a fixed constant value
          ! that's set by PSR_BMAGA
          log10B = PSR_BMAGA
@@ -604,12 +589,7 @@
       if(ISAIC.eqv..true.)then
 *     Birth properties of PSRMs formed through AICs. 
 
-      IF(PSRM_PMODE.EQ.0.0) THEN
-         ! Initialising a non-spinning pulsar at birth.
-         ! Set NS initial spin to 1e6 seconds. 
-         PULSARINITP = 1.0d6
-
-      ELSEIF(PSRM_PMODE.EQ.1.0) THEN
+      IF(PSRM_PMODE.EQ.1.0) THEN
          ! Set NS initial spin to a 
          ! fixed constant value as indicated by PSRM_SPINA
          PULSARINITP = PSRM_SPINA
@@ -649,12 +629,8 @@
         ! should we end program at this point and raise an error message? 
       ENDIF
     
-      ! check and calculate pulsar magnetic field at birth accordingly in Gauss. 
-      if (PSRM_BMODE.EQ.0.0) then
-         ! Set birth magnetic field to zero 
-         PULSARINITB = 0.0d0
-
-      ELSEIF (PSRM_BMODE.EQ.1.0) then
+      ! check and calculate pulsar magnetic field at birth accordingly in Gauss.
+      if (PSRM_BMODE.EQ.1.0) then
          ! Set birth magnetic field to a fixed constant value
          ! that's set by PSRM_BMAGA
          log10B = PSRM_BMAGA

@@ -455,8 +455,8 @@ C      end if
          IF (PSR_TAU.LE.0.0D0.OR.PSR_KAPPA.LE.0.0D0)
      &        BADPULSAR = .TRUE.
          IF (PSR_EP.LT.0.0D0) BADPULSAR = .TRUE.
-         IF (PSR_PMODE.LT.0.OR.PSR_PMODE.GT.4) BADPULSAR = .TRUE.
-         IF (PSR_BMODE.NE.0.AND.PSR_BMODE.NE.1.AND.PSR_BMODE.NE.2
+         IF (PSR_PMODE.LT.1.OR.PSR_PMODE.GT.4) BADPULSAR = .TRUE.
+         IF (PSR_BMODE.NE.1.AND.PSR_BMODE.NE.2
      &        .AND.PSR_BMODE.NE.4.AND.PSR_BMODE.NE.5)
      &        BADPULSAR = .TRUE.
          IF ((PSR_PMODE.EQ.2.OR.PSR_PMODE.EQ.4).AND.
@@ -479,9 +479,9 @@ C      end if
      &           BADPULSAR = .TRUE.
             IF (PSRM_BMAGA.LE.0.0D0.OR.PSRM_BMAGB.LE.0.0D0)
      &           BADPULSAR = .TRUE.
-            IF (PSRM_PMODE.LT.0.OR.PSRM_PMODE.GT.4)
+            IF (PSRM_PMODE.LT.1.OR.PSRM_PMODE.GT.4)
      &           BADPULSAR = .TRUE.
-            IF (PSRM_BMODE.NE.0.AND.PSRM_BMODE.NE.1.AND.
+            IF (PSRM_BMODE.NE.1.AND.
      &           PSRM_BMODE.NE.2.AND.PSRM_BMODE.NE.4.AND.
      &           PSRM_BMODE.NE.5) BADPULSAR = .TRUE.
             IF ((PSRM_PMODE.EQ.2.OR.PSRM_PMODE.EQ.4).AND.
@@ -492,6 +492,8 @@ C      end if
 *
          IF (BADPULSAR) THEN
             WRITE(6,*)'FATAL ERROR: invalid INPULSAR parameter range'
+            WRITE(6,*)'Valid PSR_PMODE/PSRM_PMODE values: 1,2,3,4'
+            WRITE(6,*)'Valid PSR_BMODE/PSRM_BMODE values: 1,2,4,5'
 #if MPIINIT
             CALL MPI_ABORT(MPI_COMM_WORLD,ierr)
 #else
