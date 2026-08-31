@@ -722,3 +722,73 @@
      
       END FUNCTION GAUS_RAND
       END SUBROUTINE PULSARINIT
+
+* ====================================================================================
+      SUBROUTINE PSRREG(NAMEI, MASSMS, KWI, TNOW, ISAICR, REGISTD)
+* Register a newly-formed neutron star as a pulsar. Idempotent: a
+* no-op (REGISTD=.FALSE.) if NAMEI is already registered in NAMENS.
+* Single choke point for every lifecycle hook that can create a PSR
+* object (kick.F AIC path, mdot.F ordinary core-collapse/merger
+* paths), so the NSCOUNT<NMAX capacity check and dedup search live in
+* exactly one place.
+*
+* Input:
+* NAMEI  - NAME() of the star becoming a neutron star.
+* MASSMS [Msun] - its current mass.
+* KWI    - its current stellar type (KW/KSTAR), stored as NSTYPE.
+* TNOW [Myr] - current physical time (TPHYS or equivalent), stored as
+*   AGENSX; must be on the same time base later differenced against
+*   TPHYS by the spin-down hook.
+* ISAICR - true if formed via accretion-induced collapse (selects the
+*   PSRM_* birth distribution in PULSARINIT; see KZ(29)=2).
+*
+* Output:
+* REGISTD - .TRUE. if a new NSCOUNT slot was actually used.
+*
+      INCLUDE 'common6.h'
+#ifdef PARALLEL
+#define MPIINIT 1
+#else
+#define MPIINIT 0
+#endif
+      INTEGER NAMEI, KWI, PIND
+      REAL*8 MASSMS, TNOW, BINIT, PINIT, PDINIT
+      LOGICAL ISAICR, REGISTD, FOUND
+
+      REGISTD = .FALSE.
+      FOUND = .FALSE.
+      DO PIND = 1, NSCOUNT
+         IF (NAMENS(PIND).EQ.NAMEI) THEN
+            FOUND = .TRUE.
+            EXIT
+         ENDIF
+      END DO
+      IF (FOUND) RETURN
+
+      IF (NSCOUNT.GE.NMAX) THEN
+         WRITE(6,*)'FATAL ERROR: NSCOUNT reached NMAX registering',
+     &        ' NS, NAME=', NAMEI
+#if MPIINIT
+         CALL MPI_ABORT(MPI_COMM_WORLD,ierr)
+#else
+         STOP
+#endif
+      ENDIF
+
+      NSCOUNT = NSCOUNT + 1
+      CALL PULSARINIT(BINIT, PINIT, PDINIT, MASSMS, ISAICR)
+      NAMENS(NSCOUNT) = NAMEI
+      XMNS(NSCOUNT) = MASSMS
+      NSTYPE(NSCOUNT) = KWI
+      AGENS0(NSCOUNT) = 0.0D0
+      AGENSX(NSCOUNT) = TNOW
+      BMAGNS0(NSCOUNT) = 0.0D0
+      XMNS0(NSCOUNT) = 0.0D0
+      NSSTAT(NSCOUNT) = 1
+      BMAGNS(NSCOUNT) = BINIT
+      PERIODNS(NSCOUNT) = PINIT
+      PDOTNS(NSCOUNT) = PDINIT
+      REGISTD = .TRUE.
+
+      RETURN
+      END

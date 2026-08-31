@@ -91,8 +91,7 @@
       CHARACTER*20 WHICH1
       CHARACTER*15 WHICH
 *     Pulsar: accretion-induced-collapse (AIC) NS registration.
-      LOGICAL FOUND, ISAIC, ISAIC_INIT
-      INTEGER PIND
+      LOGICAL ISAIC, ISAIC_INIT, REGISTD
 *
 *       Set variables with different names in common (RSp Mar23).
       VFAC = VVFAC
@@ -311,33 +310,8 @@ c		Sambaran 2019.11.19.
      &              (KSTAR(I).EQ.12 .AND. KW.EQ.13)
                IF (ISAIC) THEN
                   ISAIC_INIT = KZ(29).EQ.2
-                  FOUND = .FALSE.
-                  DO 383 PIND = 1, NSCOUNT
-                     IF (NAME(I).EQ.NAMENS(PIND)) FOUND = .TRUE.
-  383             CONTINUE
-                  IF (.NOT.FOUND) THEN
-                     IF (NSCOUNT.GE.NMAX) THEN
-                        WRITE(6,*)'FATAL ERROR: NSCOUNT reached NMAX',
-     &                       ' registering AIC NS ', NAME(I)
-#if MPIINIT
-                        CALL MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-                        STOP
-#endif
-                     ENDIF
-                     NSCOUNT = NSCOUNT + 1
-                     CALL PULSARINIT(BMAGNS(NSCOUNT),
-     &                    PERIODNS(NSCOUNT), PDOTNS(NSCOUNT),
-     &                    BODY(I)*ZMBAR, ISAIC_INIT)
-                     NAMENS(NSCOUNT) = NAME(I)
-                     XMNS(NSCOUNT) = BODY(I)*ZMBAR
-                     NSTYPE(NSCOUNT) = 13
-                     AGENS0(NSCOUNT) = 0.0D0
-                     AGENSX(NSCOUNT) = (TIME+TOFF)*TSTAR
-                     BMAGNS0(NSCOUNT) = 0.0D0
-                     XMNS0(NSCOUNT) = 0.0D0
-                     NSSTAT(NSCOUNT) = 1
-                  ENDIF
+                  CALL PSRREG(NAME(I), BODY(I)*ZMBAR, 13,
+     &                 (TIME+TOFF)*TSTAR, ISAIC_INIT, REGISTD)
                ENDIF
             ENDIF
          ENDIF
