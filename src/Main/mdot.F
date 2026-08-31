@@ -50,10 +50,18 @@
       DATA IWARN /0/
 *      Local variables for event output RSp July 2025.
       LOGICAL LPROUT
+*     Pulsar: ISAIC is always .FALSE. here since AIC formation is only
+*     ever detected in kick.F; SKIPPSR marks whether this call already
+*     registered the NS, so a later isolated spin-down hook in the same
+*     timestep does not also evolve it from age zero.
+      LOGICAL ISAIC, REGISTD
+      INTEGER SKIPPSR
 *       Set variables with different names in common (RSp Mar23).
       K3 = XK3
       BETA = XBETA
       XI = XXI
+      ISAIC = .FALSE.
+      SKIPPSR = 1
 *       Define current time (unit of million years) and update counter.
       TTOT = TIME + TOFF
       TPHYS = TTOT*TSTAR
@@ -907,6 +915,13 @@ c$$$            end if
 *       Force new NS or BH to have a period of one second.
                OSPIN(K) = 2.0D+08
                JSPIN(K) = K3*RCC*RCC*MC*OSPIN(K)
+*     Pulsar: register newly-formed ordinary (non-AIC; kick.F handles
+*     AIC) NSs. ISAIC=.FALSE. throughout this routine (set once above)
+*     since AIC formation is only ever detected in kick.F.
+               IF (KW.EQ.13.AND.KZ(29).GT.0) THEN
+                  CALL PSRREG(NAME(I), M1, KW, TPHYS, ISAIC, REGISTD)
+                  IF (REGISTD) SKIPPSR = 2
+               ENDIF
             ENDIF
 *       Check inclusion of mass loss on type change.
 *       Note DM should be zero if ICORR not already true and no SN.
