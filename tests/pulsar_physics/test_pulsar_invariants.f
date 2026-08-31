@@ -150,6 +150,43 @@ C     --- Stable RLOF accretion: no negative mass/period/field, no NaN
          PDOT_I = PDOT_F
    60 CONTINUE
 
+C     --- Non-positive dtm must not silently produce Inf/NaN (it did,
+C     before the dtm.LE.0 guard was added to PULSAREVO: EXP(-step/TAU)
+C     with step<0 exceeds 1, B grows, and Pfsquared can go negative,
+C     so SQRT gives NaN). Lifecycle hooks compute dtm as a TPHYS
+C     difference, which forward-time integration should keep
+C     non-negative, but this is exactly the kind of invariant that
+C     should not be allowed to fail silently if it ever is violated.
+      PSR_PMODE = 1
+      PSR_BMODE = 1
+      PSR_SPINA = 0.1D0
+      PSR_BMAGA = 13.0D0
+      CALL PULSARINIT(PULSARINITB, PULSARINITP, PULSARINITPD,
+     &     PSRMASS, .FALSE.)
+      B_I = PULSARINITB
+      PERIOD_I = PULSARINITP
+      PDOT_I = PULSARINITPD
+      MASS = PSRMASS
+      MASS_COMP = 0.0D0
+      RAD_COMP = 0.0D0
+      PSRMDOT = 0.0D0
+      NSINCL = 1.5708D0
+      CE = .FALSE.
+      DTM_STEP = -1.0D6 * 3.1536D13
+      CALL PULSAREVO(MASS, MASS_COMP, RAD_COMP, B_I, PERIOD_I,
+     &     PDOT_I, PSRMDOT, DTM_STEP, NSINCL, CE, 5,
+     &     B_F, PERIOD_F, PDOT_F)
+      CALL CHKPOS(13, 0, 0, B_F, NFAIL)
+      CALL CHKPOS(14, 0, 0, PERIOD_F, NFAIL)
+      CALL CHKPOS(15, 0, 0, PDOT_F, NFAIL)
+      IF (B_F.NE.B_I .OR. PERIOD_F.NE.PERIOD_I
+     &     .OR. PDOT_F.NE.PDOT_I) THEN
+         WRITE(6,*) 'FAIL: negative dtm did not return inputs',
+     &        ' unchanged:', B_I, B_F, PERIOD_I, PERIOD_F,
+     &        PDOT_I, PDOT_F
+         NFAIL = NFAIL + 1
+      ENDIF
+
 C     --- PSR_ACC_CE=0 means "CE behaves exactly like isolated
 C     evolution" (plan section 6.3): with the same starting state,
 C     ce=.TRUE.+psrmdot>0 must give bit-identical output to

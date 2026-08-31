@@ -98,6 +98,17 @@
       B_f = B_i
       period_f = period_i
       pdot_f = pdot_i
+      IF (dtm.LE.0.0D0) THEN
+*        A non-positive timestep would make ISOSPINDOWN's
+*        EXP(-step/PULSAR_TAU) exceed 1 (B growing instead of
+*        decaying) and can drive Pfsquared negative, so SQRT would
+*        return NaN; the RLOF/CE branches divide by dtm and are no
+*        better off. Should not happen in normal forward-time
+*        integration; guard rather than silently propagate Inf/NaN.
+         WRITE(6,*)'WARNING: PULSAREVO called with non-positive dtm,',
+     &        ' pulsar unchanged this step:', psrn, dtm
+         RETURN
+      ENDIF
       ! Update isolated (no mass transfer case) pulsar spin, spin down rate, and magnetic field
       ! Calculate surface magnetic field due to magnetic braking, n=3
        IF (((psrmdot.LT.acc).or.(psrmdot.gt.acc
