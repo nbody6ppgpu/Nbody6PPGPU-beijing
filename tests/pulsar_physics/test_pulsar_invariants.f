@@ -22,6 +22,7 @@ C     given an explicit type regardless.
       REAL*8 B_I, B_F, PERIOD_I, PERIOD_F, PDOT_I, PDOT_F
       REAL*8 MASS, MASS_COMP, RAD_COMP, PSRMDOT, DTM, NSINCL
       REAL*8 B_PREV, DTM_STEP, BMIN_TESLA
+      REAL*8 B_ISO, P_ISO, PD_ISO
       INTEGER ISTEP
       LOGICAL CE
 
@@ -148,6 +149,58 @@ C     --- Stable RLOF accretion: no negative mass/period/field, no NaN
          PERIOD_I = PERIOD_F
          PDOT_I = PDOT_F
    60 CONTINUE
+
+C     --- PSR_ACC_CE=0 means "CE behaves exactly like isolated
+C     evolution" (plan section 6.3): with the same starting state,
+C     ce=.TRUE.+psrmdot>0 must give bit-identical output to
+C     ce=.FALSE.+psrmdot=0, since both should land in the same first
+C     branch of PULSAREVO.
+      PSR_PMODE = 1
+      PSR_BMODE = 1
+      PSR_SPINA = 0.1D0
+      PSR_BMAGA = 13.0D0
+      CALL PULSARINIT(PULSARINITB, PULSARINITP, PULSARINITPD,
+     &     PSRMASS, .FALSE.)
+
+      B_I = PULSARINITB
+      PERIOD_I = PULSARINITP
+      PDOT_I = PULSARINITPD
+      MASS = PSRMASS
+      MASS_COMP = 0.0D0
+      RAD_COMP = 0.0D0
+      NSINCL = 1.5708D0
+      DTM_STEP = 1.0D6 * 3.1536D13
+
+      PSRMDOT = 0.0D0
+      CE = .FALSE.
+      CALL PULSAREVO(MASS, MASS_COMP, RAD_COMP, B_I, PERIOD_I,
+     &     PDOT_I, PSRMDOT, DTM_STEP, NSINCL, CE, 3,
+     &     B_F, PERIOD_F, PDOT_F)
+      B_ISO = B_F
+      P_ISO = PERIOD_F
+      PD_ISO = PDOT_F
+
+C     PULSAREVO mutates its B_i/period_i/pdot_i dummies in place while
+C     splitting the isolated branch into substeps, so the actuals
+C     (B_I/PERIOD_I/PDOT_I here) must be reset to the true starting
+C     state before reusing them for the second call.
+      B_I = PULSARINITB
+      PERIOD_I = PULSARINITP
+      PDOT_I = PULSARINITPD
+      MASS = PSRMASS
+      PSRMDOT = 1.0D-9
+      CE = .TRUE.
+      CALL PULSAREVO(MASS, MASS_COMP, RAD_COMP, B_I, PERIOD_I,
+     &     PDOT_I, PSRMDOT, DTM_STEP, NSINCL, CE, 4,
+     &     B_F, PERIOD_F, PDOT_F)
+
+      IF (B_F.NE.B_ISO .OR. PERIOD_F.NE.P_ISO
+     &     .OR. PDOT_F.NE.PD_ISO) THEN
+         WRITE(6,*) 'FAIL: PSR_ACC_CE=0 CE result differs from',
+     &        ' isolated evolution:', B_ISO, B_F, P_ISO, PERIOD_F,
+     &        PD_ISO, PDOT_F
+         NFAIL = NFAIL + 1
+      ENDIF
 
       IF (NFAIL.EQ.0) THEN
          WRITE(6,*) 'All pulsar physics invariant checks passed.'
