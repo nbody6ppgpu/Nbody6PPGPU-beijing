@@ -50,11 +50,12 @@
       DATA IWARN /0/
 *      Local variables for event output RSp July 2025.
       LOGICAL LPROUT
-*     Pulsar: ISAIC is always .FALSE. here since AIC formation is only
-*     ever detected in kick.F; SKIPPSR marks whether this call already
-*     registered the NS, so a later isolated spin-down hook in the same
-*     timestep does not also evolve it from age zero.
-      LOGICAL ISAIC, REGISTD, PULSAR_CE
+*     Pulsar: SKIPPSR marks whether the current MLIST object was just
+*     registered, so a later isolated spin-down hook in the same
+*     timestep does not also evolve it from age zero. ISAIC_REG is used
+*     when MDOT itself can identify an ONeWD -> NS AIC transition before
+*     kick.F gets called.
+      LOGICAL ISAIC_REG, REGISTD, PULSAR_CE
       INTEGER SKIPPSR, NSINDEX, PIND
       REAL*8 PERIOD_I, PERIOD_F, B_I, B_F, PDOT_I, PDOT_F, TSSIZE
       REAL*8 PSRALPHA, MYR_IN_SEC
@@ -63,8 +64,6 @@
       K3 = XK3
       BETA = XBETA
       XI = XXI
-      ISAIC = .FALSE.
-      SKIPPSR = 1
 *       Define current time (unit of million years) and update counter.
       TTOT = TIME + TOFF
       TPHYS = TTOT*TSTAR
@@ -97,6 +96,7 @@ c$$$      NCNUM = 0
 *     Find global index of next star to be checked (NB! reset KS & IKS).
  4    ML = ML + 1
       I = MLIST(ML)
+      SKIPPSR = 1
 *       Beware reduction of NTOT by KSTERM since last update!! (bug 2/17 Nbody6).
 *       Detected and ported here R.Sp. Dec. 2021
       IF (I.GT.NTOT.OR.ML.GT.ML0) GO TO 103
@@ -878,7 +878,8 @@ c$$$            end if
 *     when the KW.NE.KSTAR(I) branch below also fires for the same
 *     star in the same MDOT call.
          IF (KW.EQ.13.AND.KZ(29).GT.0.AND.AGE.LE.0.001D0) THEN
-            CALL PSRREG(NAME(I), M1, KW, TPHYS, ISAIC, REGISTD)
+            ISAIC_REG = .FALSE.
+            CALL PSRREG(NAME(I), M1, KW, TPHYS, ISAIC_REG, REGISTD)
             IF (REGISTD) SKIPPSR = 2
          ENDIF
 *
@@ -929,11 +930,14 @@ c$$$            end if
 *       Force new NS or BH to have a period of one second.
                OSPIN(K) = 2.0D+08
                JSPIN(K) = K3*RCC*RCC*MC*OSPIN(K)
-*     Pulsar: register newly-formed ordinary (non-AIC; kick.F handles
-*     AIC) NSs. ISAIC=.FALSE. throughout this routine (set once above)
-*     since AIC formation is only ever detected in kick.F.
+*     Pulsar: register newly-formed NSs. For an ONeWD -> NS transition
+*     seen here before kick.F is called, use the AIC birth distribution
+*     when KZ(29)=2; otherwise use the ordinary NS birth distribution.
                IF (KW.EQ.13.AND.KZ(29).GT.0) THEN
-                  CALL PSRREG(NAME(I), M1, KW, TPHYS, ISAIC, REGISTD)
+                  ISAIC_REG = KZ(29).EQ.2.AND.KSTAR(I).EQ.12
+     &               .AND.KW.EQ.13
+                  CALL PSRREG(NAME(I), M1, KW, TPHYS,
+     &               ISAIC_REG, REGISTD)
                   IF (REGISTD) SKIPPSR = 2
                ENDIF
             ENDIF

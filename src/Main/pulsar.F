@@ -285,11 +285,12 @@
      &      * (B_i - PULSAR_BMIN)
           MoI = NSMOI(mass, PSR_RAD)
           atrm = SIN(nsincl)**2.0d0
-          up = 8.0d0 * pi * ((PSR_RAD*KM_TO_M)**6.0d0) * atrm
+          up = 8.0d0 * pi * pi * ((PSR_RAD*KM_TO_M)**6.0d0)
+     &       * atrm
 
           dwn = 3.0d0 * mu_0 * (c**3.0d0) * MoI
 
-          cons = up * 4.0d0 * pi * pi / dwn
+          cons = 2.0d0 * up / dwn
           trm1 = (PULSAR_BMIN**2.0d0) * step
           trm2 = PULSAR_TAU * PULSAR_BMIN * (B_f - B_i)
           trm3 = (PULSAR_TAU / 2.0d0) * (B_f**2.0d0 - B_i**2.0d0)

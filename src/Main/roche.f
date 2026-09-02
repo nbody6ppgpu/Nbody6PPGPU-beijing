@@ -1475,7 +1475,7 @@
                   BMAGNS0(NSINDEX) = BMAGNS(NSINDEX)
                   XMNS0(NSINDEX) = XMNS(NSINDEX)
                ENDIF
-               XMNS(NSINDEX) = MASS(K)
+               XMNS(NSINDEX) = MASS(K) - DM22
                AGENSX(NSINDEX) = AGENSX(NSINDEX) + DTM
                PERIOD_I = PERIODNS(NSINDEX)
                B_I = BMAGNS(NSINDEX)
@@ -1489,6 +1489,7 @@
                PERIODNS(NSINDEX) = PERIOD_F
                BMAGNS(NSINDEX) = B_F
                PDOTNS(NSINDEX) = PDOT_F
+               XMNS(NSINDEX) = MASS(K)
                CALL PSREVENT(3, NSINDEX)
             ENDIF
          ENDIF
