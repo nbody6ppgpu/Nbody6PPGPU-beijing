@@ -182,6 +182,13 @@
 *     Pulsar: independent dump record, bounded by NSCOUNT (not NMAX
 *     or NTOT). PSR_*/PSRM_*/PSR_ACC_CE control params are not dumped
 *     here; they are re-read from INPULSAR on restart (Sec 7.3).
+*     Gated on KZ(29)>0 (IA(55) aliases KZ(29): COMMON/NAMES/ here is
+*     the generic-array view of common6.h's COMMON/NAMES/, where
+*     KZ(29) is the 55th INTEGER after NTOT/NPAIRS/NTTOT -- same
+*     offset trick already used for NCOMM=IA(16) above) so the dump
+*     byte stream is unchanged from pre-port when the feature is off,
+*     per the KZ(29)=0 zero-impact guarantee.
+        IF (IA(55).GT.0) THEN
         write (J) NSCOUNT
         write (J) (NAMENS(i),i=1,NSCOUNT),(NSTYPE(i),i=1,NSCOUNT),
      &            (NSSTAT(i),i=1,NSCOUNT),(XMNS(i),i=1,NSCOUNT),
@@ -189,6 +196,7 @@
      &            (PDOTNS(i),i=1,NSCOUNT),(AGENSX(i),i=1,NSCOUNT),
      &            (AGENS0(i),i=1,NSCOUNT),(BMAGNS0(i),i=1,NSCOUNT),
      &            (XMNS0(i),i=1,NSCOUNT)
+        END IF
 *
         END FILE J
         CLOSE (UNIT=J)
@@ -347,9 +355,16 @@
         KWOLDB(1:NMAX) = -1
  101    CONTINUE
 
-*     Pulsar: independent dump record. IOSTAT-guarded since a dump
-*     written before this record existed (or by an incompatible code
-*     version) won't have it; do not silently continue such a run.
+*     Pulsar: independent dump record. Only present when this dump was
+*     written with KZ(29)>0 (mirrors the write-side gate; IA(55)
+*     aliases KZ(29), see write-side comment above). When KZ(29)=0
+*     the record was never written, so it must not be read here
+*     either -- skipping it keeps a KZ(29)=0 restart byte-for-byte
+*     unaware of PSR state, per the zero-impact guarantee. Still
+*     IOSTAT-guarded for KZ(29)>0 restarts, since a dump written
+*     before this record existed (or by an incompatible code version)
+*     won't have it; do not silently continue such a run.
+        IF (IA(55).GT.0) THEN
         READ (J,IOSTAT=IOPSR) NSCOUNT
         IF (IOPSR.NE.0) THEN
            write(0,*) 'WARNING: no pulsar dump record found in ',
@@ -380,6 +395,9 @@
               call flush(6)
               call abort()
            ENDIF
+        ENDIF
+        ELSE
+           NSCOUNT = 0
         ENDIF
 
         end if
