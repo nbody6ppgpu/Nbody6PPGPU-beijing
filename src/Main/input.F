@@ -454,7 +454,7 @@ C      end if
      &        BADPULSAR = .TRUE.
          IF (PSR_TAU.LE.0.0D0.OR.PSR_KAPPA.LE.0.0D0)
      &        BADPULSAR = .TRUE.
-         IF (PSR_EP.LT.0.0D0) BADPULSAR = .TRUE.
+         IF (PSR_EP.LT.0.0D0.OR.PSR_EP.GT.1.0D0) BADPULSAR = .TRUE.
          IF (PSR_PMODE.LT.1.OR.PSR_PMODE.GT.4) BADPULSAR = .TRUE.
          IF (PSR_BMODE.NE.1.AND.PSR_BMODE.NE.2
      &        .AND.PSR_BMODE.NE.4.AND.PSR_BMODE.NE.5)
@@ -463,6 +463,8 @@ C      end if
      &        PSR_SPINB.LE.PSR_SPINA) BADPULSAR = .TRUE.
          IF ((PSR_BMODE.EQ.2.OR.PSR_BMODE.EQ.4).AND.
      &        PSR_BMAGB.LE.PSR_BMAGA) BADPULSAR = .TRUE.
+         IF (PSR_BMODE.EQ.5.AND.PSR_BMAGA.LE.PSR_BMIN)
+     &        BADPULSAR = .TRUE.
 *
 *        PSR_ACC_CE=1/2 (disk/surface CE accretion) are still under
 *        development and are rejected outright rather than silently
@@ -488,6 +490,8 @@ C      end if
      &           PSRM_SPINB.LE.PSRM_SPINA) BADPULSAR = .TRUE.
             IF ((PSRM_BMODE.EQ.2.OR.PSRM_BMODE.EQ.4).AND.
      &           PSRM_BMAGB.LE.PSRM_BMAGA) BADPULSAR = .TRUE.
+            IF (PSRM_BMODE.EQ.5.AND.PSRM_BMAGA.LE.PSR_BMIN)
+     &           BADPULSAR = .TRUE.
          ENDIF
 *
          IF (BADPULSAR) THEN
