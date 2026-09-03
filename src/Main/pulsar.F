@@ -285,8 +285,8 @@
      &      * (B_i - PULSAR_BMIN)
           MoI = NSMOI(mass, PSR_RAD)
           atrm = SIN(nsincl)**2.0d0
-          up = 8.0d0 * pi * pi * ((PSR_RAD*KM_TO_M)**6.0d0)
-     &       * atrm
+          up = 32.0d0 * pi * pi * pi
+     &       * ((PSR_RAD*KM_TO_M)**6.0d0) * atrm
 
           dwn = 3.0d0 * mu_0 * (c**3.0d0) * MoI
 
@@ -369,7 +369,7 @@
 
          radius_6 = (R*KM_TO_M) ** 6
          bfield_2 = B**2
-         const1 = 8.0 * pi * pi
+         const1 = 32.0d0 * pi * pi * pi
          const2  = 3.0d0 * mu_0 * c * c * c
          pDTop = const1 * radius_6 * bfield_2
          pDBot = const2 * MOI * P
@@ -679,7 +679,7 @@
       radius_6 = (PSR_RAD*KM_TO_M) ** 6
 
       bfield_2 = (PULSARINITB * G_TO_T)**2
-      const1 = 8.0 * pi * pi
+      const1 = 32.0d0 * pi * pi * pi
       const2  = 3.0d0 * mu_0 * c * c * c
       pDTop = const1 * radius_6 * bfield_2
       pDBot = const2 * MOI * PULSARINITP

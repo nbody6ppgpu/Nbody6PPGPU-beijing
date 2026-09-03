@@ -583,15 +583,12 @@
      &               MASS0(2),MASS(2),MASSC(2),AJ(2),JSPIN(2),KW2,
      &               ECC,SEP,COALS)
 *
-*     Pulsar: evolve a NS that went through this CE episode, treating
-*     the whole episode as a single PULSAREVO step of length DTM.
-*     PSR_ACC_CE is forced to 0 at input (§6.2), so PULSAREVO's CE
-*     branch behaves identically to isolated evolution (verified by
-*     the CE-vs-isolated equivalence test); this call still has to
-*     happen so BMAGNS/PERIODNS/PDOTNS/AGENSX actually advance across
-*     the CE episode instead of freezing.
+*     Pulsar: this CE event is instantaneous in the Roche clock because
+*     DTM is reset to zero below before the shared TPHYS update.  Do
+*     not evolve AGENSX/BMAGNS/PERIODNS/PDOTNS with the pre-zero DTM
+*     here, otherwise the pulsar clock can run ahead of TPHYS.  Keep
+*     the mass bookkeeping current and emit a CE event record.
          IF (KW2.EQ.13.AND.KZ(29).GT.0) THEN
-            PULSAR_CE = .TRUE.
             NSINDEX = -1
             DO 296 PIND = 1,NSCOUNT
                IF (NAMENS(PIND).EQ.NAME(J2)) THEN
@@ -601,20 +598,6 @@
   296       CONTINUE
   297       IF (NSINDEX.GT.0) THEN
                XMNS(NSINDEX) = MASS(2)
-               MCOMP = MASS(1)
-               RCOMP = RAD(1)
-               AGENSX(NSINDEX) = AGENSX(NSINDEX) + DTM
-               PERIOD_I = PERIODNS(NSINDEX)
-               B_I = BMAGNS(NSINDEX)
-               PDOT_I = PDOTNS(NSINDEX)
-               PSRMDOT = DM2/(DTM*MYR_IN_SEC)
-               CALL PULSAREVO(XMNS(NSINDEX), MCOMP, RCOMP,
-     &              B_I, PERIOD_I, PDOT_I, PSRMDOT, DTM*MYR_IN_SEC,
-     &              PSRALPHA, PULSAR_CE, NAMENS(NSINDEX),
-     &              B_F, PERIOD_F, PDOT_F)
-               PERIODNS(NSINDEX) = PERIOD_F
-               BMAGNS(NSINDEX) = B_F
-               PDOTNS(NSINDEX) = PDOT_F
                CALL PSREVENT(4, NSINDEX)
             ENDIF
          ENDIF
