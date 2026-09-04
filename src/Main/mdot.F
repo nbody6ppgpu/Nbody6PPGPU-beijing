@@ -874,11 +874,11 @@ c$$$            end if
 *     Pulsar: catch a KW=13 star that already had that type on entry
 *     to MDOT (e.g. produced by a merger in coal.f/cmbody.f) and so
 *     never satisfies KW.NE.KSTAR(I) below; AGE.le.0.001 identifies it
-*     as newly formed. PSRREG's own dedup makes this safe to call even
-*     when the KW.NE.KSTAR(I) branch below also fires for the same
-*     star in the same MDOT call.
+*     as newly formed. Use the AIC birth distribution for an ONeWD -> NS
+*     transition when KZ(29)=2. PSRREG's own dedup makes this safe to
+*     call even when the KW.NE.KSTAR(I) branch below also fires.
          IF (KW.EQ.13.AND.KZ(29).GT.0.AND.AGE.LE.0.001D0) THEN
-            ISAIC_REG = .FALSE.
+            ISAIC_REG = KZ(29).EQ.2.AND.KSTAR(I).EQ.12
             CALL PSRREG(NAME(I), M1, KW, TPHYS, ISAIC_REG, REGISTD)
             IF (REGISTD) SKIPPSR = 2
          ENDIF

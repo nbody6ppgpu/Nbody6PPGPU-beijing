@@ -331,11 +331,11 @@
          J = (2*pi/period_i) * MoI
          ! New angular momentum
          J = J + Jacc
-         ! Calculate updated spin period
-         period_f = 2.0d0 * pi * MoI / J
          ! Mass after accretion.
          mass_f = mass + psrmdot * dtm
          MoIf = NSMOI(mass_f,PSR_RAD)
+         ! Use the post-accretion inertia to conserve angular momentum.
+         period_f = 2.0d0 * pi * MoIf / J
          ! Updated spin down rate
          pdot_f = NSSPINDOWN(period_f, B_f, PSR_RAD, MoIf)
       END SUBROUTINE NSACCRETE
