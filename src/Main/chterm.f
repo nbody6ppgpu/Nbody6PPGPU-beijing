@@ -613,14 +613,14 @@ C      TIME = MIN(TBLOCK,TIME)
           XZERO = 0.D0
 *
             if(rank.eq.0) then
-            IF(KZ(50).EQ.0)
+            IF(KZ(50).EQ.1)
      &      WRITE(240,66) WHICH1, NCH, TTOT, NTOT, I3, I4, NAME(I1),
      &      NAME(I2), NAME(I3), NAME(NTOT), KSTAR(I1), KSTAR(I2),
      &      KSTAR(I3), KSTAR(NTOT), BODY(I1), BODY(I2), BODY(I3),
      &      BODY(NTOT)+BODY(I3),XZERO,XZERO,ECC,SEMI,EB,PD,
      &      ECC1,SEMI1,EB1,PD1,PERT4, RIJ, PMIN, EB1/EB, LIST(1,I1),
      &      BODY(I1)*ZMBAR,BODY(I2)*ZMBAR,BODY(I3)*ZMBAR,
-     &      (BODY(I)+BODY(I3))*ZMBAR,RADIUS(I1)*SU,RADIUS(I2)*SU,
+     &      (BODY(NTOT)+BODY(I3))*ZMBAR,RADIUS(I1)*SU,RADIUS(I2)*SU,
      &      RADIUS(I3)*SU,0.D0,RIJ*SU,RI,VI,
      &      XX(1:3,1),XX(1:3,2),XX(1:3,3),VV(1:3,1),VV(1:3,2),VV(1:3,3)
 *
