@@ -8,4 +8,4 @@
 | Many parameters are hard-coded at compile time | Being improved | Use full Namelist input in the future |
 | `KZ(7) >= 4` gives wrong output | Known | Use `KZ(7) <= 3` |
 | HDF5 configure options do not take effect | Known | Edit `build/Makefile` manually |
-| CUDA/HIP verification on real hardware | To be verified | Verify separately: N10k `END RUN`, no NaN/runtime error, single/multi-GPU and `GPU_LIST` |
+| CUDA/HIP verification on real hardware | Partially done | Single-GPU CUDA verified (N15000 `END RUN`, no NaN, RTX 3050 Ti/cc8.6); multi-GPU, `GPU_LIST` and HIP/ROCm still to be verified |
