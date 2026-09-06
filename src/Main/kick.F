@@ -299,21 +299,6 @@ c		Sambaran 2019.11.19.
      &           " M[M*] M0[M*] K*0 I NAME K* VDISP Time[Myr]: ",
      &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I),
      &           KSTAR(I),DISP0, TTOT*TSTAR
-*     Pulsar: register an NS formed via accretion-induced collapse
-*     (AIC), i.e. an ONeWD (previous KSTAR=12) transitioning to KW=13,
-*     or the electron-capture-SN channel already selected above
-*     (KW=12 here indicates the pre-collapse ECS path). KZ(29)=2
-*     gives AIC-formed NSs their own (PSRM_*) birth distribution;
-*     KZ(29)=1 uses the same distribution as ordinary NSs.
-            IF (KZ(29).GT.0) THEN
-               ISAIC = KW.EQ.12 .OR.
-     &              (KSTAR(I).EQ.12 .AND. KW.EQ.13)
-               IF (ISAIC) THEN
-                  ISAIC_INIT = KZ(29).EQ.2
-                  CALL PSRREG(NAME(I), BODY(I)*ZMBAR, 13,
-     &                 (TIME+TOFF)*TSTAR, ISAIC_INIT, REGISTD)
-               ENDIF
-            ENDIF
          ENDIF
          IF(KW.EQ.14.AND.BHFLAG.EQ.0) DISP0 = 0.D0
 
@@ -336,6 +321,21 @@ c		Sambaran 2019.11.19.
             VKICK = 0.D0
          ENDIF
 
+      ENDIF
+*
+*     Pulsar: register an AIC-formed NS independently of whether its
+*     kick was drawn from a flat or Maxwellian distribution. An ONeWD
+*     transition may reach KICK as either the pre-collapse KW=12 state
+*     or the completed KSTAR=12 -> KW=13 transition. KZ(29)=2 selects
+*     the dedicated PSRM_* birth distribution; KZ(29)=1 uses PSR_*.
+      IF (ECS.EQ.1.AND.KZ(29).GT.0) THEN
+         ISAIC = KW.EQ.12 .OR.
+     &        (KSTAR(I).EQ.12 .AND. KW.EQ.13)
+         IF (ISAIC) THEN
+            ISAIC_INIT = KZ(29).EQ.2
+            CALL PSRREG(NAME(I), BODY(I)*ZMBAR, 13,
+     &           (TIME+TOFF)*TSTAR, ISAIC_INIT, REGISTD)
+         ENDIF
       ENDIF
 
       VK(4) = VKICK

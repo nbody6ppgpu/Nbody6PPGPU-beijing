@@ -29,7 +29,7 @@
 *     Pulsar: locals for the CE-onset PULSAREVO call (right after
 *     comenv() returns, treating the whole CE episode as one step).
       INTEGER NSINDEX, PIND
-      LOGICAL PULSAR_CE, NSNEWRLO
+      LOGICAL PULSAR_CE, NSNEWRLO, ISAIC_REG, REGISTD
       REAL*8 PERIOD_I, PERIOD_F, B_I, B_F, PDOT_I, PDOT_F
       REAL*8 PSRMDOT, MCOMP, RCOMP, TROCHENS
       REAL*8 PSRALPHA, MYR_IN_SEC
@@ -1497,6 +1497,14 @@
          TEV(J1) = TPHYS0/TSTAR
          TEV(J2) = TEV(J1)
          KSTAR(I) = KSTAR(I) + 1
+*     Pulsar: register an NS formed on the ROCHE collapse path before
+*     overwriting the previous stellar type. PSRREG is idempotent, so
+*     this is safe if another formation hook already registered it.
+         IF (KWK.EQ.13.AND.KZ(29).GT.0) THEN
+            ISAIC_REG = KZ(29).EQ.2.AND.KSTAR(JK).EQ.12
+            CALL PSRREG(NAME(JK), BODY(JK)*ZMBAR, KWK, TPHYS,
+     &           ISAIC_REG, REGISTD)
+         ENDIF
          KSTAR(JK) = KWK
          CH5 = ' KICK'
          if(rank.eq.0)
