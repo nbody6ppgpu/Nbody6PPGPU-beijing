@@ -90,8 +90,6 @@
       COMMON /FBACK/ FBFAC,FBTOT,MCO,ECS
       CHARACTER*20 WHICH1
       CHARACTER*15 WHICH
-*     Pulsar: accretion-induced-collapse (AIC) NS registration.
-      LOGICAL ISAIC, ISAIC_INIT, REGISTD
 *
 *       Set variables with different names in common (RSp Mar23).
       VFAC = VVFAC
@@ -323,20 +321,6 @@ c		Sambaran 2019.11.19.
 
       ENDIF
 *
-*     Pulsar: register an AIC-formed NS independently of whether its
-*     kick was drawn from a flat or Maxwellian distribution. An ONeWD
-*     transition may reach KICK as either the pre-collapse KW=12 state
-*     or the completed KSTAR=12 -> KW=13 transition. KZ(29)=2 selects
-*     the dedicated PSRM_* birth distribution; KZ(29)=1 uses PSR_*.
-      IF (ECS.EQ.1.AND.KZ(29).GT.0) THEN
-         ISAIC = KW.EQ.12 .OR.
-     &        (KSTAR(I).EQ.12 .AND. KW.EQ.13)
-         IF (ISAIC) THEN
-            ISAIC_INIT = KZ(29).EQ.2
-            CALL PSRREG(NAME(I), BODY(I)*ZMBAR, 13,
-     &           (TIME+TOFF)*TSTAR, ISAIC_INIT, REGISTD)
-         ENDIF
-      ENDIF
 
       VK(4) = VKICK
 

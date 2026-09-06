@@ -1,8 +1,8 @@
-C     Standalone invariant checks for the PULSARINIT/PULSAREVO physics
-C     in src/Main/pulsar.F, linked directly against the built
-C     pulsar.o/ran2.o (no lifecycle hook calls these yet, so this is
-C     the only real verification available before Stage 4 wires them
-C     up). Exercises the plan's section 10.4 invariants:
+C     Standalone PULSARINIT/PULSAREVO invariant and registration checks,
+C     linked directly against the built pulsar.o/ran2.o. Exercises:
+C       - non-NS -> NS registration, AIC classification, and dedup
+C       - KZ(29)=0/1/2 transition-registration behavior
+C       - the plan's section 10.4 physics invariants:
 C       - birth distributions: finite, positive P/B/Pdot for every
 C         supported PSR_PMODE/PSR_BMODE combination (normal and AIC)
 C       - isolated spin-down: B decays monotonically toward PSR_BMIN
@@ -24,7 +24,7 @@ C     given an explicit type regardless.
       REAL*8 B_PREV, DTM_STEP, BMIN_TESLA, B_I_PRECALL
       REAL*8 B_ISO, P_ISO, PD_ISO
       INTEGER ISTEP
-      LOGICAL CE
+      LOGICAL CE, REGISTD
 
       DATA BMODES /1, 2, 4, 5/
 
@@ -325,6 +325,75 @@ C     state before reusing them for the second call.
          WRITE(6,*) 'FAIL: PSR_ACC_CE=0 CE result differs from',
      &        ' isolated evolution:', B_ISO, B_F, P_ISO, PERIOD_F,
      &        PD_ISO, PDOT_F
+         NFAIL = NFAIL + 1
+      ENDIF
+
+C     --- NS transition registration and AIC distribution selection ---
+C     Use distinct fixed periods so the selected distribution is
+C     observable without depending on random draws.
+      PSR_PMODE = 1
+      PSR_BMODE = 1
+      PSR_SPINA = 0.5D0
+      PSR_BMAGA = 12.0D0
+      PSRM_PMODE = 1
+      PSRM_BMODE = 1
+      PSRM_SPINA = 0.01D0
+      PSRM_BMAGA = 9.0D0
+      NSCOUNT = 0
+      KZ(50) = 0
+      rank = 0
+
+C     Disabled pulsar evolution must not register anything.
+      KZ(29) = 0
+      CALL PSRREG_TRANSITION(101,1.30D0,12,13,10.0D0,REGISTD)
+      IF (REGISTD.OR.NSCOUNT.NE.0) THEN
+         WRITE(6,*) 'FAIL: KZ(29)=0 registered an NS transition'
+         NFAIL = NFAIL + 1
+      ENDIF
+
+C     A type that has not become an NS must not be registered.
+      KZ(29) = 2
+      CALL PSRREG_TRANSITION(101,1.30D0,12,12,10.0D0,REGISTD)
+      IF (REGISTD.OR.NSCOUNT.NE.0) THEN
+         WRITE(6,*) 'FAIL: non-NS transition registered a pulsar'
+         NFAIL = NFAIL + 1
+      ENDIF
+
+C     A non-AIC NS transition uses the ordinary PSR_* distribution.
+      CALL PSRREG_TRANSITION(102,1.40D0,8,13,11.0D0,REGISTD)
+      IF (.NOT.REGISTD.OR.NSCOUNT.NE.1) THEN
+         WRITE(6,*) 'FAIL: ordinary NS transition not registered'
+         NFAIL = NFAIL + 1
+      ELSEIF (ABS(PERIODNS(1)-PSR_SPINA).GT.1.0D-12) THEN
+         WRITE(6,*) 'FAIL: ordinary NS used wrong birth distribution'
+         NFAIL = NFAIL + 1
+      ENDIF
+
+C     With KZ(29)=2, ONeWD -> NS uses the PSRM_* distribution.
+      CALL PSRREG_TRANSITION(103,1.26D0,12,13,12.0D0,REGISTD)
+      IF (.NOT.REGISTD.OR.NSCOUNT.NE.2) THEN
+         WRITE(6,*) 'FAIL: AIC NS transition not registered'
+         NFAIL = NFAIL + 1
+      ELSEIF (ABS(PERIODNS(2)-PSRM_SPINA).GT.1.0D-12) THEN
+         WRITE(6,*) 'FAIL: AIC NS used wrong birth distribution'
+         NFAIL = NFAIL + 1
+      ENDIF
+
+C     Repeated lifecycle hooks must not allocate a second pulsar slot.
+      CALL PSRREG_TRANSITION(103,1.26D0,12,13,12.0D0,REGISTD)
+      IF (REGISTD.OR.NSCOUNT.NE.2) THEN
+         WRITE(6,*) 'FAIL: duplicate NS transition registered twice'
+         NFAIL = NFAIL + 1
+      ENDIF
+
+C     With KZ(29)=1, even ONeWD -> NS uses the regular distribution.
+      KZ(29) = 1
+      CALL PSRREG_TRANSITION(104,1.26D0,12,13,13.0D0,REGISTD)
+      IF (.NOT.REGISTD.OR.NSCOUNT.NE.3) THEN
+         WRITE(6,*) 'FAIL: KZ(29)=1 AIC transition not registered'
+         NFAIL = NFAIL + 1
+      ELSEIF (ABS(PERIODNS(3)-PSR_SPINA).GT.1.0D-12) THEN
+         WRITE(6,*) 'FAIL: KZ(29)=1 used AIC birth distribution'
          NFAIL = NFAIL + 1
       ENDIF
 

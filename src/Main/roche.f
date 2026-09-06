@@ -29,7 +29,7 @@
 *     Pulsar: locals for the CE-onset PULSAREVO call (right after
 *     comenv() returns, treating the whole CE episode as one step).
       INTEGER NSINDEX, PIND
-      LOGICAL PULSAR_CE, NSNEWRLO, ISAIC_REG, REGISTD
+      LOGICAL PULSAR_CE, NSNEWRLO, REGISTD
       REAL*8 PERIOD_I, PERIOD_F, B_I, B_F, PDOT_I, PDOT_F
       REAL*8 PSRMDOT, MCOMP, RCOMP, TROCHENS
       REAL*8 PSRALPHA, MYR_IN_SEC
@@ -582,6 +582,16 @@
          CALL comenv(MASS0(1),MASS(1),MASSC(1),AJ(1),JSPIN(1),KW1,
      &               MASS0(2),MASS(2),MASSC(2),AJ(2),JSPIN(2),KW2,
      &               ECC,SEP,COALS)
+*
+*     Pulsar: register any NS formed by COMENV while each component's
+*     pre-CE KSTAR is still available.  Do not retain a coalesced
+*     secondary as a separate pulsar object.
+         CALL PSRREG_TRANSITION(NAME(J1),MASS(1),KSTAR(J1),KW1,
+     &        TPHYS,REGISTD)
+         IF (.NOT.COALS) THEN
+            CALL PSRREG_TRANSITION(NAME(J2),MASS(2),KSTAR(J2),KW2,
+     &           TPHYS,REGISTD)
+         ENDIF
 *
 *     Pulsar: this CE event is instantaneous in the Roche clock because
 *     DTM is reset to zero below before the shared TPHYS update.  Do
@@ -1497,14 +1507,9 @@
          TEV(J1) = TPHYS0/TSTAR
          TEV(J2) = TEV(J1)
          KSTAR(I) = KSTAR(I) + 1
-*     Pulsar: register an NS formed on the ROCHE collapse path before
-*     overwriting the previous stellar type. PSRREG is idempotent, so
-*     this is safe if another formation hook already registered it.
-         IF (KWK.EQ.13.AND.KZ(29).GT.0) THEN
-            ISAIC_REG = KZ(29).EQ.2.AND.KSTAR(JK).EQ.12
-            CALL PSRREG(NAME(JK), BODY(JK)*ZMBAR, KWK, TPHYS,
-     &           ISAIC_REG, REGISTD)
-         ENDIF
+*     Pulsar: register the transition before overwriting its old type.
+         CALL PSRREG_TRANSITION(NAME(JK),BODY(JK)*ZMBAR,KSTAR(JK),
+     &        KWK,TPHYS,REGISTD)
          KSTAR(JK) = KWK
          CH5 = ' KICK'
          if(rank.eq.0)

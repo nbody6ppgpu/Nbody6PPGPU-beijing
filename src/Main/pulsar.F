@@ -728,10 +728,9 @@
       SUBROUTINE PSRREG(NAMEI, MASSMS, KWI, TNOW, ISAICR, REGISTD)
 * Register a newly-formed neutron star as a pulsar. Idempotent: a
 * no-op (REGISTD=.FALSE.) if NAMEI is already registered in NAMENS.
-* Single choke point for every lifecycle hook that can create a PSR
-* object (kick.F AIC path, mdot.F ordinary core-collapse/merger
-* paths), so the NSCOUNT<NMAX capacity check and dedup search live in
-* exactly one place.
+* Low-level initialization point used by explicit stellar-type transition
+* hooks and exceptional fallback paths.  The NSCOUNT<NMAX capacity check
+* and dedup search therefore live in exactly one place.
 *
 * Input:
 * NAMEI  - NAME() of the star becoming a neutron star.
@@ -791,6 +790,29 @@
       PDOTNS(NSCOUNT) = PDINIT
       REGISTD = .TRUE.
       CALL PSREVENT(1, NSCOUNT)
+
+      RETURN
+      END
+
+* ====================================================================================
+      SUBROUTINE PSRREG_TRANSITION(NAMEI,MASSMS,KWOLD,KWNEW,
+     &     TNOW,REGISTD)
+* Register a completed non-NS -> NS stellar-type transition.  Passing
+* both types explicitly keeps AIC classification local to the object and
+* independent of shared kick/fallback state.  KZ(29)=2 selects PSRM_* only
+* for ONeWD (KW=12) -> NS transitions; KZ(29)=1 uses PSR_* for all NSs.
+*
+      INCLUDE 'common6.h'
+      INTEGER NAMEI, KWOLD, KWNEW
+      REAL*8 MASSMS, TNOW
+      LOGICAL ISAICR, REGISTD
+
+      REGISTD = .FALSE.
+      IF (KZ(29).LE.0) RETURN
+      IF (KWNEW.NE.13.OR.KWOLD.GE.13) RETURN
+
+      ISAICR = KZ(29).EQ.2.AND.KWOLD.EQ.12
+      CALL PSRREG(NAMEI,MASSMS,KWNEW,TNOW,ISAICR,REGISTD)
 
       RETURN
       END

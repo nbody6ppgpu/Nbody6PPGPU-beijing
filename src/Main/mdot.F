@@ -53,8 +53,7 @@
 *     Pulsar: SKIPPSR marks whether the current MLIST object was just
 *     registered, so a later isolated spin-down hook in the same
 *     timestep does not also evolve it from age zero. ISAIC_REG is used
-*     when MDOT itself can identify an ONeWD -> NS AIC transition before
-*     kick.F gets called.
+*     only by the exceptional already-KW=13 fallback below.
       LOGICAL ISAIC_REG, REGISTD, PULSAR_CE
       INTEGER SKIPPSR, NSINDEX, PIND
       REAL*8 PERIOD_I, PERIOD_F, B_I, B_F, PDOT_I, PDOT_F, TSSIZE
@@ -871,14 +870,20 @@ c$$$            end if
          CALL hrdiag(M0,AGE,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
      &               RM,LUM,KW,MC,RCC,ME,RE,K2)
 *
-*     Pulsar: catch a KW=13 star that already had that type on entry
-*     to MDOT (e.g. produced by a merger in coal.f/cmbody.f) and so
-*     never satisfies KW.NE.KSTAR(I) below; AGE.le.0.001 identifies it
-*     as newly formed. Use the AIC birth distribution for an ONeWD -> NS
-*     transition when KZ(29)=2. PSRREG's own dedup makes this safe to
-*     call even when the KW.NE.KSTAR(I) branch below also fires.
-         IF (KW.EQ.13.AND.KZ(29).GT.0.AND.AGE.LE.0.001D0) THEN
-            ISAIC_REG = KZ(29).EQ.2.AND.KSTAR(I).EQ.12
+*     Pulsar: register an explicit non-NS -> NS transition while the old
+*     KSTAR type is still available.  This is independent of kick state.
+         CALL PSRREG_TRANSITION(NAME(I),M1,KSTAR(I),KW,TPHYS,
+     &        REGISTD)
+         IF (REGISTD) SKIPPSR = 2
+*
+*     Catch a newly formed KW=13 star that already had that type on entry
+*     to MDOT (e.g. produced by a merger in coal.f/cmbody.f), where no old
+*     type remains for channel classification.  Use the regular PSR_*
+*     birth distribution; PSRREG dedup makes this fallback harmless when
+*     an authoritative formation hook has already registered the object.
+         IF (KW.EQ.13.AND.KZ(29).GT.0.AND.KSTAR(I).EQ.13.AND.
+     &       AGE.LE.0.001D0) THEN
+            ISAIC_REG = .FALSE.
             CALL PSRREG(NAME(I), M1, KW, TPHYS, ISAIC_REG, REGISTD)
             IF (REGISTD) SKIPPSR = 2
          ENDIF
@@ -930,16 +935,6 @@ c$$$            end if
 *       Force new NS or BH to have a period of one second.
                OSPIN(K) = 2.0D+08
                JSPIN(K) = K3*RCC*RCC*MC*OSPIN(K)
-*     Pulsar: register newly-formed NSs. For an ONeWD -> NS transition
-*     seen here before kick.F is called, use the AIC birth distribution
-*     when KZ(29)=2; otherwise use the ordinary NS birth distribution.
-               IF (KW.EQ.13.AND.KZ(29).GT.0) THEN
-                  ISAIC_REG = KZ(29).EQ.2.AND.KSTAR(I).EQ.12
-     &               .AND.KW.EQ.13
-                  CALL PSRREG(NAME(I), M1, KW, TPHYS,
-     &               ISAIC_REG, REGISTD)
-                  IF (REGISTD) SKIPPSR = 2
-               ENDIF
             ENDIF
 *       Check inclusion of mass loss on type change.
 *       Note DM should be zero if ICORR not already true and no SN.
