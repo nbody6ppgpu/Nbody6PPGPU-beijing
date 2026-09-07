@@ -8,6 +8,7 @@
       CHARACTER*8  WHICH1
       REAL*8  CM(6)
       REAL*8  MASS(2)
+      LOGICAL REGISTD
 *       Common Blocks read in READSE (RSp Mar 23)
       integer bhspinfl,kicktype
       real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
@@ -96,7 +97,14 @@
 *       Note that new chain TIME already quantized in routine CHTERM.
       END IF
 
-
+*
+*     Preserve pre-merger identities and types for final pulsar
+*     registration.  COAL may swap NAME(I1/I2) below.
+      NAME1 = NAME(I1)
+      NAME2 = NAME(I2)
+      KOLD1 = KSTAR(I1)
+      KOLD2 = KSTAR(I2)
+*
 *     Francesco Rizzuto Oct 2019: BH- star collision must generate a BH
       if(KSTAR(I1).eq.14.or.KSTAR(I2).eq.14) then
           KW1 = 14
@@ -217,8 +225,6 @@
       ZM2 = BODY(I2)*ZMBAR
       BODY(I1) = ZM
       BODY(I2) = 0.d0
-      NAME1 = NAME(I1)
-      NAME2 = NAME(I2)
       IF(BODY0(I1).LT.BODY0(I2))THEN
          BODY0(I1) = BODY0(I2)
          EPOCH(I1) = EPOCH(I2)
@@ -501,6 +507,10 @@ C                      call delay_remove_tlist(I1,STEP,DTK)
 *
       KSTAR(I1) = KW1
       KSTAR(I2) = 15
+*     Register or rebind only after the final remnant identity and type
+*     are committed.  This replaces MDOT's former stellar-age fallback.
+      CALL PSRREG_MERGER(NAME1,NAME2,NAME(I1),BODY(I1)*ZMBAR,
+     &     KOLD1,KOLD2,KSTAR(I1),(TIME+TOFF)*TSTAR,REGISTD)
 *       Specify IPHASE < 0 for new sorting.
       IPHASE = -1
       IQCOLL = 0

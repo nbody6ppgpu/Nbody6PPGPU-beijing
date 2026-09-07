@@ -795,6 +795,60 @@
       END
 
 * ====================================================================================
+      SUBROUTINE PSRREG_MERGER(NAME1,NAME2,NAMEF,MASSMS,
+     &     KWOLD1,KWOLD2,KWNEW,TNOW,REGISTD)
+* Reconcile the pulsar registry after a merger has finalized the remnant
+* identity and stellar type.  If a neutron-star progenitor is already
+* registered, preserve its spin/magnetic state and bind that slot to the
+* final survivor NAME.  Otherwise register the merger-produced NS once.
+* An ONeWD progenitor selects the AIC birth distribution for KZ(29)=2.
+*
+      INCLUDE 'common6.h'
+      INTEGER NAME1, NAME2, NAMEF, KWOLD1, KWOLD2, KWNEW
+      INTEGER PIND, PFINAL, PINHERIT
+      REAL*8 MASSMS, TNOW
+      LOGICAL ISAICR, REGISTD
+
+      REGISTD = .FALSE.
+      IF (KZ(29).LE.0.OR.KWNEW.NE.13) RETURN
+
+*     Prefer the slot already carrying the final NAME.  Otherwise carry
+*     forward a current NS progenitor whose NAME was discarded by the
+*     merger's survivor-selection logic.
+      PFINAL = 0
+      PINHERIT = 0
+      DO PIND = 1, NSCOUNT
+         IF (NAMENS(PIND).EQ.NAMEF) PFINAL = PIND
+         IF (KWOLD1.EQ.13.AND.NAMENS(PIND).EQ.NAME1) THEN
+            PINHERIT = PIND
+         ENDIF
+         IF (KWOLD2.EQ.13.AND.NAMENS(PIND).EQ.NAME2.AND.
+     &       PINHERIT.EQ.0) THEN
+            PINHERIT = PIND
+         ENDIF
+      END DO
+
+      IF (PFINAL.GT.0) THEN
+         XMNS(PFINAL) = MASSMS
+         NSTYPE(PFINAL) = KWNEW
+         RETURN
+      ENDIF
+
+      IF (PINHERIT.GT.0) THEN
+         NAMENS(PINHERIT) = NAMEF
+         XMNS(PINHERIT) = MASSMS
+         NSTYPE(PINHERIT) = KWNEW
+         RETURN
+      ENDIF
+
+      ISAICR = KZ(29).EQ.2.AND.
+     &     (KWOLD1.EQ.12.OR.KWOLD2.EQ.12)
+      CALL PSRREG(NAMEF,MASSMS,KWNEW,TNOW,ISAICR,REGISTD)
+
+      RETURN
+      END
+
+* ====================================================================================
       SUBROUTINE PSRREG_TRANSITION(NAMEI,MASSMS,KWOLD,KWNEW,
      &     TNOW,REGISTD)
 * Register a completed non-NS -> NS stellar-type transition.  Passing

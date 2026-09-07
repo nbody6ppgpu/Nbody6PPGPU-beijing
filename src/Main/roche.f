@@ -583,16 +583,6 @@
      &               MASS0(2),MASS(2),MASSC(2),AJ(2),JSPIN(2),KW2,
      &               ECC,SEP,COALS)
 *
-*     Pulsar: register any NS formed by COMENV while each component's
-*     pre-CE KSTAR is still available.  Do not retain a coalesced
-*     secondary as a separate pulsar object.
-         CALL PSRREG_TRANSITION(NAME(J1),MASS(1),KSTAR(J1),KW1,
-     &        TPHYS,REGISTD)
-         IF (.NOT.COALS) THEN
-            CALL PSRREG_TRANSITION(NAME(J2),MASS(2),KSTAR(J2),KW2,
-     &           TPHYS,REGISTD)
-         ENDIF
-*
 *     Pulsar: this CE event is instantaneous in the Roche clock because
 *     DTM is reset to zero below before the shared TPHYS update.  Do
 *     not evolve AGENSX/BMAGNS/PERIODNS/PDOTNS with the pre-zero DTM
@@ -652,6 +642,12 @@
                JKICK = J2
                KWK = KW2
             ENDIF
+*           Register only after COMENV has committed to a surviving
+*           binary.  COAL handles the final coalesced remnant instead.
+            CALL PSRREG_TRANSITION(NAME(J1),MASS(1),KSTAR(J1),KW1,
+     &           TPHYS,REGISTD)
+            CALL PSRREG_TRANSITION(NAME(J2),MASS(2),KSTAR(J2),KW2,
+     &           TPHYS,REGISTD)
             KSTAR(J1) = KW1
             KSTAR(J2) = KW2
             SEMI = SEP/SU

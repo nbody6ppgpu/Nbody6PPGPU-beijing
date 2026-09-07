@@ -64,8 +64,6 @@
       CALL star(KW1,M01,M1,TM,TN,TSCLS,LUMS,GB,ZPARS)
       CALL hrdiag(M01,AJ1,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
      &            R1,LUM1,KW1,MC1,RCC,MENV,RENV,K2)
-      CALL PSRREG_TRANSITION(NAME(I1),M1,KSTAR(I1),KW1,
-     &     (TIME+TOFF)*TSTAR,REGISTD)
       IF(KW1.NE.KSTAR(I1))THEN
          if(rank.eq.0)WRITE(38,*)' EXPEL TYPE CHANGE1 ',KSTAR(I1),KW1
       ENDIF
@@ -78,8 +76,6 @@
           CALL star(KW2,M02,M2,TM,TN,TSCLS,LUMS,GB,ZPARS)
           CALL hrdiag(M02,AJ2,M2,TM,TN,TSCLS,LUMS,GB,ZPARS,
      &                R2,LUM2,KW2,MC2,RCC,MENV,RENV,K2)
-          CALL PSRREG_TRANSITION(NAME(I2),M2,KSTAR(I2),KW2,
-     &         (TIME+TOFF)*TSTAR,REGISTD)
           IF(KW2.NE.KSTAR(I2))THEN
             if(rank.eq.0)WRITE(38,*)' EXPEL TYPE CHANGE2 ',KSTAR(I2),KW2
           ENDIF
@@ -229,6 +225,12 @@ cnew-abbas-26/07/2017
 *
 *       Copy mass loss (one or two COMENV) and new types.
           IF (ITER.GT.0) DM = DM2
+*       Register only after all CE retries and coalescence checks have
+*       committed to a surviving binary.
+          CALL PSRREG_TRANSITION(NAME(I1),M1,KSTAR(I1),KW1,
+     &         (TIME+TOFF)*TSTAR,REGISTD)
+          CALL PSRREG_TRANSITION(NAME(I2),M2,KSTAR(I2),KW2,
+     &         (TIME+TOFF)*TSTAR,REGISTD)
           KSTAR(I1) = KW1
           KSTAR(I2) = KW2
 *
@@ -474,7 +476,6 @@ cnew-abbas-26/07/2017
       RETURN
 *
       END
-
 
 
 

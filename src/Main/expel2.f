@@ -116,8 +116,6 @@
       CALL star(KW1,M01,M1,TM,TN,TSCLS,LUMS,GB,ZPARS)
       CALL hrdiag(M01,AJ1,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
      &            R1,LUM1,KW1,MC1,RCC,MENV,RENV,K2)
-      CALL PSRREG_TRANSITION(NAME(I1),M1,KSTAR(I1),KW1,
-     &     (TIME+TOFF)*TSTAR,REGISTD)
       if(rank.eq.0.and.kw1.ne.kstar(i1))then
          write(38,*)' EXPEL2 TYPE CHANGE1 ',kstar(i1),kw1
          write(38,*)' EXPEL2 TYPE CHANGE1 ',i1,name(i1),time
@@ -131,8 +129,6 @@
           CALL star(KW2,M02,M2,TM,TN,TSCLS,LUMS,GB,ZPARS)
           CALL hrdiag(M02,AJ2,M2,TM,TN,TSCLS,LUMS,GB,ZPARS,
      &                R2,LUM2,KW2,MC2,RCC,MENV,RENV,K2)
-          CALL PSRREG_TRANSITION(NAME(I2),M2,KSTAR(I2),KW2,
-     &         (TIME+TOFF)*TSTAR,REGISTD)
           if(rank.eq.0.and.kw2.ne.kstar(i2))then
              write(38,*)' EXPEL2 TYPE CHANGE2 ',kstar(i2),kw2
           endif
@@ -321,6 +317,12 @@
    61         FORMAT (' HYPERB CHAIN CE    T ',F7.1)
           END IF
 *
+*         Register only after all CE retries have committed to a
+*         surviving binary.
+          CALL PSRREG_TRANSITION(NAME(I1),M1,KSTAR(I1),KW1,
+     &         (TIME+TOFF)*TSTAR,REGISTD)
+          CALL PSRREG_TRANSITION(NAME(I2),M2,KSTAR(I2),KW2,
+     &         (TIME+TOFF)*TSTAR,REGISTD)
           KSTAR(I1) = KW1
           KSTAR(I2) = KW2
           IPHASE = 0

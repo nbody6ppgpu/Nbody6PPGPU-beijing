@@ -52,9 +52,8 @@
       LOGICAL LPROUT
 *     Pulsar: SKIPPSR marks whether the current MLIST object was just
 *     registered, so a later isolated spin-down hook in the same
-*     timestep does not also evolve it from age zero. ISAIC_REG is used
-*     only by the exceptional already-KW=13 fallback below.
-      LOGICAL ISAIC_REG, REGISTD, PULSAR_CE
+*     timestep does not also evolve it from age zero.
+      LOGICAL REGISTD, PULSAR_CE
       INTEGER SKIPPSR, NSINDEX, PIND
       REAL*8 PERIOD_I, PERIOD_F, B_I, B_F, PDOT_I, PDOT_F, TSSIZE
       REAL*8 PSRALPHA, MYR_IN_SEC
@@ -875,18 +874,6 @@ c$$$            end if
          CALL PSRREG_TRANSITION(NAME(I),M1,KSTAR(I),KW,TPHYS,
      &        REGISTD)
          IF (REGISTD) SKIPPSR = 2
-*
-*     Catch a newly formed KW=13 star that already had that type on entry
-*     to MDOT (e.g. produced by a merger in coal.f/cmbody.f), where no old
-*     type remains for channel classification.  Use the regular PSR_*
-*     birth distribution; PSRREG dedup makes this fallback harmless when
-*     an authoritative formation hook has already registered the object.
-         IF (KW.EQ.13.AND.KZ(29).GT.0.AND.KSTAR(I).EQ.13.AND.
-     &       AGE.LE.0.001D0) THEN
-            ISAIC_REG = .FALSE.
-            CALL PSRREG(NAME(I), M1, KW, TPHYS, ISAIC_REG, REGISTD)
-            IF (REGISTD) SKIPPSR = 2
-         ENDIF
 *
          IF(KW.NE.KSTAR(I).AND.DABS(M1-M0)/M0.GT.0.05D0)THEN
 * RSp Debugging July 2020

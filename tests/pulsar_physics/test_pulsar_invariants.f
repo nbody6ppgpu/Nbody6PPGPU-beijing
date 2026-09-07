@@ -2,6 +2,7 @@ C     Standalone PULSARINIT/PULSAREVO invariant and registration checks,
 C     linked directly against the built pulsar.o/ran2.o. Exercises:
 C       - non-NS -> NS registration, AIC classification, and dedup
 C       - KZ(29)=0/1/2 transition-registration behavior
+C       - finalized merger registration and pulsar-state rebinding
 C       - the plan's section 10.4 physics invariants:
 C       - birth distributions: finite, positive P/B/Pdot for every
 C         supported PSR_PMODE/PSR_BMODE combination (normal and AIC)
@@ -394,6 +395,60 @@ C     With KZ(29)=1, even ONeWD -> NS uses the regular distribution.
          NFAIL = NFAIL + 1
       ELSEIF (ABS(PERIODNS(3)-PSR_SPINA).GT.1.0D-12) THEN
          WRITE(6,*) 'FAIL: KZ(29)=1 used AIC birth distribution'
+         NFAIL = NFAIL + 1
+      ENDIF
+
+C     A merger-produced NS without an ONeWD uses the regular distribution.
+      KZ(29) = 2
+      CALL PSRREG_MERGER(201,202,202,1.35D0,11,1,13,14.0D0,
+     &     REGISTD)
+      IF (.NOT.REGISTD.OR.NSCOUNT.NE.4) THEN
+         WRITE(6,*) 'FAIL: ordinary merger NS not registered'
+         NFAIL = NFAIL + 1
+      ELSEIF (ABS(PERIODNS(4)-PSR_SPINA).GT.1.0D-12) THEN
+         WRITE(6,*) 'FAIL: ordinary merger used wrong distribution'
+         NFAIL = NFAIL + 1
+      ENDIF
+
+C     An ONeWD progenitor selects the AIC distribution after a merger.
+      CALL PSRREG_MERGER(203,204,204,1.26D0,12,11,13,15.0D0,
+     &     REGISTD)
+      IF (.NOT.REGISTD.OR.NSCOUNT.NE.5) THEN
+         WRITE(6,*) 'FAIL: AIC merger NS not registered'
+         NFAIL = NFAIL + 1
+      ELSEIF (ABS(PERIODNS(5)-PSRM_SPINA).GT.1.0D-12) THEN
+         WRITE(6,*) 'FAIL: AIC merger used wrong distribution'
+         NFAIL = NFAIL + 1
+      ENDIF
+
+C     A merger whose final type is not an NS must not register a pulsar.
+      CALL PSRREG_MERGER(205,206,205,2.0D0,12,11,14,16.0D0,
+     &     REGISTD)
+      IF (REGISTD.OR.NSCOUNT.NE.5) THEN
+         WRITE(6,*) 'FAIL: non-NS merger registered a pulsar'
+         NFAIL = NFAIL + 1
+      ENDIF
+
+C     If survivor-name selection discards an existing NS name, carry its
+C     state into the final NAME instead of initializing a second pulsar.
+      CALL PSRREG_TRANSITION(210,1.40D0,8,13,16.0D0,REGISTD)
+      PERIODNS(6) = 0.123D0
+      BMAGNS(6) = 4.56D8
+      PDOTNS(6) = 7.89D-18
+      CALL PSRREG_MERGER(211,210,211,1.55D0,12,13,13,17.0D0,
+     &     REGISTD)
+      IF (REGISTD.OR.NSCOUNT.NE.6.OR.NAMENS(6).NE.211) THEN
+         WRITE(6,*) 'FAIL: merger did not rebind existing pulsar'
+         NFAIL = NFAIL + 1
+      ELSEIF (ABS(PERIODNS(6)-0.123D0).GT.1.0D-12.OR.
+     &        ABS(BMAGNS(6)-4.56D8).GT.1.0D-6.OR.
+     &        ABS(PDOTNS(6)-7.89D-18).GT.1.0D-28.OR.
+     &        ABS(AGENSX(6)-16.0D0).GT.1.0D-12) THEN
+         WRITE(6,*) 'FAIL: merger reset existing pulsar state'
+         NFAIL = NFAIL + 1
+      ELSEIF (ABS(XMNS(6)-1.55D0).GT.1.0D-12.OR.
+     &        NSTYPE(6).NE.13) THEN
+         WRITE(6,*) 'FAIL: merger did not update pulsar remnant'
          NFAIL = NFAIL + 1
       ENDIF
 
