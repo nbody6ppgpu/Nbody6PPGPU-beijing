@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <cassert>
 #include <cstdlib>
+#include <cstring>
 #include <omp.h>
 #include <hip/hip_runtime_api.h>
 #include "checkHipError.hip"
@@ -612,7 +613,7 @@ void GPUNB_devinit(int irank){
 
 #ifdef PROFILE
     char hostname[150];
-    memset(hostname,0,150);
+    ::memset(hostname,0,150);
     gethostname(hostname,150);
 	for(int i=0; i<numGPU; i++){
       hipDeviceProp_t prop;

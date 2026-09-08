@@ -572,7 +572,15 @@ _ACEOF
   ], [
     GPU_COMPILER=$HIPCC
     GPUFLAGS="-O3 -fPIC"
-    AS_IF([test "x$OPENMP_CXXFLAGS" != x], [GPUFLAGS="$GPUFLAGS $OPENMP_CXXFLAGS"])
+    dnl OPENMP_CXXFLAGS was probed with the host C++ compiler (g++ -> libgomp), but
+    dnl hipcc is clang-based and resolves a bare -fopenmp to libomp.  The final link
+    dnl is done by the Fortran compiler, which only pulls in libgomp, so a bare
+    dnl -fopenmp here leaves __kmpc_fork_call and friends undefined.  Pin clang to
+    dnl the GNU OpenMP ABI so both halves of the program share one runtime.
+    AS_IF([test "x$OPENMP_CXXFLAGS" = "x-fopenmp"],
+          [hip_openmp_flags="-fopenmp=libgomp"],
+          [hip_openmp_flags=$OPENMP_CXXFLAGS])
+    AS_IF([test "x$hip_openmp_flags" != x], [GPUFLAGS="$GPUFLAGS $hip_openmp_flags"])
     AS_IF([test -z "$hip_prefix"], [hip_bindir=`dirname "$HIPCC"`; hip_prefix=`cd "$hip_bindir/.." 2>/dev/null && pwd`])
     GPU_PREFIX=$hip_prefix
     GPU_LINK_FLAGS="-L$GPU_PREFIX/lib -L$GPU_PREFIX/lib64 -lamdhip64"
