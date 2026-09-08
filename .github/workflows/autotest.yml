@@ -14,14 +14,14 @@ jobs:
     - uses: actions/checkout@v7
 
     - name: install dependencies
-      run: sudo apt update && sudo apt install -y autoconf=2.71-2 wget gfortran gcc g++; gcc --version; g++ --version; gfortran --version;
+      run: sudo apt update && sudo apt install -y wget gfortran gcc g++; gcc --version; g++ --version; gfortran --version;
 
     - name: configure architecture regressions
       run: |
-        test "$(autoconf --version | sed -n '1s/.* //p')" = 2.71
-        cp configure configure.committed
-        autoconf
-        diff -u configure.committed configure
+        # Runs autoconf inside the digest-pinned image in tool/autoconf-env, the
+        # same one developers use, so this comparison cannot be decided by which
+        # autoconf the runner image happens to ship.
+        tool/regen-configure.sh --check
 
         ./configure --with-par=1k --disable-mpi --disable-gpu --disable-hdf5 > x86-configure.log
         grep -Fq "target architecture: x86_64" x86-configure.log

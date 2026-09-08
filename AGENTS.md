@@ -216,6 +216,14 @@ git clone -b dev https://github.com/nbody6ppgpu/Nbody6PPGPU-beijing
 2. **修改代码**
    - 源代码位于 `src/Main/`
    - 修改粒子规模映射：`configure.ac`（`include/params.h` 是配置生成物，不可直接提交）
+   - **改了 `configure.ac` 或它 `m4_include` 的 `macro/*.m4`，必须跑 `tool/regen-configure.sh`
+     重新生成 `configure` 并一起提交。** `configure` 是提交进仓库的（集群用户不装 autoconf
+     也要能 `./configure`），CI 会重新生成并要求与提交的版本逐字节一致。
+     不要直接跑 `autoconf`：不同发行版的 autoconf 2.71 输出并不相同（如 `ac_cv_prog_cxx_11`
+     vs `ac_cv_prog_cxx_cxx11`）。该脚本在容器里跑，基础镜像按 digest 钉死、autoconf 与 m4
+     按版本钉死并在运行时校验，CI 用的是同一个脚本。注意它并非完全 hermetic（apt index 仍是可变的），
+     但工具链一旦漂移会直接报错，而不是产出一个看不懂的 diff。
+     另注意 `dnl` 只吃掉自己到行尾的内容、不吃前面的空白，所以 `configure.ac` 里的 `dnl` 注释要顶格写。
    - GPU 代码：`.cu` 文件
    - SIMD 代码：`.cpp` 文件
 
