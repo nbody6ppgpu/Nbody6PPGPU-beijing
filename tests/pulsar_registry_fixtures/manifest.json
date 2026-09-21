@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "source_commit": "c1549ca2f7d92995e54cf007eaed80d37df9289a",
+  "validated_executable_sha256": "47261c1118b071a84979806025beef17d9b0c916e91e8643c7bde145584b0015",
+  "fixtures": {
+    "ce_survive": {
+      "purpose": "Two-pass common-envelope path ending in a surviving NS+MS binary",
+      "expected": {
+        "final_ns_count": 1,
+        "final_ns_name": 1,
+        "final_ns_mass_msun": 1.277583525,
+        "event_path": ["BINARY CE", "ENFORCED CE", "BINARY CE"]
+      },
+      "files": {
+        "fixture.inp": "420bbdfca9933563be5396f8238fc8a5bf4dd3ba77eec6e3fe550bd973f30778",
+        "dat.10": "5f769ed3545ca045f13852b76d3e21b97dadc8fc7f764a7c283ea6dd9c027f8b",
+        "datsev.21": "b019de1dbfbe2783f950e992a06bd589e27c083916de9e477fec30581cf231a8"
+      }
+    },
+    "ce_merge": {
+      "purpose": "Two-pass common-envelope path ending in one registered NS",
+      "expected": {
+        "final_ns_count": 1,
+        "final_ns_name": 1,
+        "final_ns_mass_msun": 1.277583525,
+        "event_path": ["BINARY CE", "ENFORCED CE", "BINARY COAL"]
+      },
+      "files": {
+        "fixture.inp": "420bbdfca9933563be5396f8238fc8a5bf4dd3ba77eec6e3fe550bd973f30778",
+        "dat.10": "fcefe1cd0d0d3289d8bc448d02bdd3fee03a35b5cb451262511bd5a718fad9c9",
+        "datsev.21": "c7bd139a5f4ab362b93dbf7958d4435fe4df10a40282c3465ff4068c3852f27f"
+      }
+    },
+    "wd_collision": {
+      "purpose": "CMBODY/MIX ONe-WD + CO-WD collision forming an NS",
+      "expected": {
+        "final_ns_count": 1,
+        "final_ns_name": 1,
+        "final_ns_mass_msun": 1.26,
+        "event_path": ["HYPERB COLLISION", "CMBODY/MIX 12+11 -> 13"]
+      },
+      "files": {
+        "fixture.inp": "0f89ec1230629f109fe50d106d1ee6d9f726bee3601ac783b1fcc40d30b9950a",
+        "dat.10": "e21881d29d18d894b05c36b47eacf5c28d34a2d11dfd393fba9ad970e73731a8",
+        "datsev.21": "b8182e6ae01cfdaa9c50e83c5705667e4861d344e3064cd7eaa6cabaeeb462b4"
+      }
+    },
+    "existing_ns_collision_migration": {
+      "purpose": "Create an NS, collide it again, and migrate its registry slot to the surviving NAME",
+      "expected": {
+        "final_ns_count": 1,
+        "final_ns_name": 3,
+        "final_ns_mass_msun": 1.91,
+        "birth_records": 1,
+        "event_path": ["CMBODY/MIX 12+11 -> 13", "CMBODY/MIX 13+1 -> 13"]
+      },
+      "files": {
+        "fixture.inp": "cb719938d49e35e35a02d4a8c98d95104575ebfda405293916370cf142fce268",
+        "dat.10": "ccd1908a21155876f02733b0b05c8f1b37df3138a5a97290474dc84497ea9f79",
+        "datsev.21": "8be1a9e739d30bc429f7961ddb7e0e808d706199b67cb861e52ddb691df3410b"
+      }
+    },
+    "provisional_ns_cleanup": {
+      "source_case": "rf_16_a8_e0p704546244",
+      "purpose": "CHAOS-to-EXPEL two-pass CE path where a provisional first-pass NS must not be committed",
+      "expected": {
+        "final_ns_count": 0,
+        "checkpoint_count": 81,
+        "max_abs_errtot": 2.23879e-9,
+        "event_path": ["CHAOS", "COMENV 9 -> 13", "ENFORCED CE", "BINARY COAL 13+1 -> 1"]
+      },
+      "files": {
+        "fixture.inp": "6c91b23b69d10c3a2c4573c2c4c0199d9db12d748b91b5eb5179395947cf7723",
+        "dat.10": "70644d4af9507f6019acc1d4588f5f94a7713789b013c7deb23e46d8a5c6da5e",
+        "datsev.21": "c34a371cf709bb85cf57fa99b9730aef7cc5c47c0118a995bb26e83ba0ad561c"
+      }
+    }
+  }
+}
