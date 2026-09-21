@@ -2,6 +2,7 @@
   "schema_version": 1,
   "source_commit": "c1549ca2f7d92995e54cf007eaed80d37df9289a",
   "validated_executable_sha256": "47261c1118b071a84979806025beef17d9b0c916e91e8643c7bde145584b0015",
+  "validated_executable_sha256_note": "This string is 66 hex characters, not the 64 a SHA-256 digest requires. It is reproduced as received from the original submission and left unedited; verify_inputs.py does not check it. See README.md Reproducibility section.",
   "fixtures": {
     "ce_survive": {
       "purpose": "Two-pass common-envelope path ending in a surviving NS+MS binary",
@@ -63,6 +64,8 @@
     "provisional_ns_cleanup": {
       "source_case": "rf_16_a8_e0p704546244",
       "purpose": "CHAOS-to-EXPEL two-pass CE path where a provisional first-pass NS must not be committed",
+      "environment_sensitive": true,
+      "note": "This case sits on a CHAOS-driven chaotic-scattering bifurcation boundary and did not reproduce on gfortran 15.2.0 (serial build: --with-par=1k --disable-gpu --disable-mpi --disable-hdf5 --enable-simd=no). Observed instead: a single BINARY CE (KW 9,1 -> 13,1, a: 7.834 -> 4.028 Rsun, matching the first COMENV pass described below) with no ENFORCED CE and no BINARY COAL; checkpoint_count still 81, but the final two checkpoints have NSCOUNT=1 (NAMENS=1, NSTYPE=13, XMNS=1.2775835252086558 Msun) instead of 0, and max|ERRTOT|=8.787025e-07 (~370x the expected value). The same mismatch, bit-for-bit, was reproduced by rebuilding unmodified source_commit c1549ca2f7d92995e54cf007eaed80d37df9289a on the same machine, including with -O0, so this is not a regression introduced by the pulsar-evolution branch -- it is toolchain/environment sensitivity in the fixture itself. The `expected` block above is left unchanged as Yuzhe Song's original recorded result. See README.md Reproducibility section for details.",
       "expected": {
         "final_ns_count": 0,
         "checkpoint_count": 81,

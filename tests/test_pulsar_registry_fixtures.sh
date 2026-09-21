@@ -4,8 +4,12 @@
 # values, normalized BODY masses, and dat.10/datsev.21/namelist
 # agreement). This does not build or run NBODY6++GPU; it only checks
 # that the committed fixture inputs are intact, so it runs in seconds
-# and is suitable for CI. See tests/pulsar_registry_fixtures/README.md
-# for how to actually run a fixture.
+# and is suitable for CI. This script does not build or execute
+# NBODY6++GPU and therefore does not check any of manifest.json's
+# `expected` simulation results (final NS counts, ERRTOT, event paths,
+# etc.) -- see tests/pulsar_registry_fixtures/README.md, including its
+# Reproducibility section, for how to actually run a fixture and for
+# known environment sensitivity of the provisional_ns_cleanup case.
 set -eu
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
