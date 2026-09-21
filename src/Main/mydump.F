@@ -82,6 +82,17 @@
       DATA J0/0/
       SAVE J
 *
+*     J is only a rolling dump COUNTER (drives the MOD(J-201,NCOMM)
+*     gate and the diagnostic print below); it must NOT be reused as
+*     a Fortran unit number, since it grows without bound and would
+*     eventually collide with the KZ(50)=1 event-library units fixed
+*     in file_init.F (203/204/210/211/212/220/221/230/231/240/241).
+*     The actual checkpoint file is opened on a separate, fixed unit
+*     (94), which no other routine in the code connects to.  Note 94
+*     is deliberately not 97: that unit is the event bank of the
+*     external pulsar fork this feature was ported from, so reusing
+*     it here would reintroduce the same class of collision.
+*
 *       Read or save all COMMON variables (valid for tape or disc).
       IF (II.NE.0) THEN
 
@@ -101,7 +112,7 @@
          write(FILE(JUNIT),118) FRAG(JUNIT),TCHAR
  118     format(A7,A20)
          print*,' MYDUMP ',TTOT,TCHAR,J,FILE(JUNIT)
-      OPEN (UNIT=J,STATUS='UNKNOWN',FORM='UNFORMATTED',FILE=FILE(JUNIT))
+      OPEN(UNIT=94,STATUS='UNKNOWN',FORM='UNFORMATTED',FILE=FILE(JUNIT))
 *
 *     Also write params.h to help data transfer
             NPARTMP(1) = NMAX
@@ -120,15 +131,15 @@
      *      ' sum na+...+ns=',NA+NB+NC+ND+NE+NG+NL+NM+NO+NP+NQ+NS
             PRINT*,' NA-NS=',NA,NB,NC,ND,NE,NG,NL,NM,NO,NP,NQ,NS
 *
-            WRITE (J) NPARTMP
-*     
-            WRITE (J) ntot,npairs,nttot,ia,b,c,d,e,g,l,m,o,p,q,s
+            WRITE (94) NPARTMP
+*
+            WRITE (94) ntot,npairs,nttot,ia,b,c,d,e,g,l,m,o,p,q,s
          END IF
        end if
 *
         if(rank.eq.0)then
          IF(MOD(J-201,NCOMM).EQ.0)THEN
-        WRITE (J) ((x(k,i),k=1,3),i=1,ntot),((x0(k,i),k=1,3),i=1,ntot),
+        WRITE (94) ((x(k,i),k=1,3),i=1,ntot),((x0(k,i),k=1,3),i=1,ntot),
      *   ((x0dot(k,i),k=1,3),i=1,ntot),((xdot(k,i),k=1,3),i=1,ntot),
      *   ((f(k,i),k=1,3),i=1,ntot),((fdot(k,i),k=1,3),i=1,ntot),
      *   (body(i),i=1,ntot),(rs(i),i=1,ntot),
@@ -145,9 +156,9 @@
      *   ((frdot(k,i),k=1,3),i=1,ntot),((d0r(k,i),k=1,3),i=1,ntot),
      *   (kstar(i),i=1,ntot),(iminr(i),i=1,ntot),(name(i),i=1,ntot)
 *
-        write (J) (aspn(i),i=1,ntot)
+        write (94) (aspn(i),i=1,ntot)
 *
-        write (J) ((u(k,i),k=1,4),i=1,npairs),((u0(k,i),k=1,4),i=1,
+        write (94) ((u(k,i),k=1,4),i=1,npairs),((u0(k,i),k=1,4),i=1,
      *    npairs),((udot(k,i),k=1,4),i=1,npairs),((fu(k,i),k=1,4),i=1,
      *    npairs),((fudot(k,i),k=1,4),i=1,npairs),((fudot2(k,i),k=1,4),
      *    i=1,npairs),((fudot3(k,i),k=1,4),i=1,npairs),(h(i),i=1,
@@ -159,16 +170,16 @@
      *    k=1,4),i=1,npairs),((fd0(k,i),k=1,4),i=1,npairs),
      *    (kblist(i),i=1,10*npairs),(kslow(i),i=1,npairs),tblist
 *
-        write (J) (list(1,i),(list(k,i),k=2,list(1,i)+1),i=1,ntot)
+        write (94) (list(1,i),(list(k,i),k=2,list(1,i)+1),i=1,ntot)
 *
-        write (J) NXTLIMIT,NGHOSTS,NXTLST(1:NXTLIMIT+NGHOSTS),NXTLEN,
+        write (94) NXTLIMIT,NGHOSTS,NXTLST(1:NXTLIMIT+NGHOSTS),NXTLEN,
      *       NDTK(1:64),NDTMIN,NDTMAX,NXTLEVEL,
      *       (NLSTDELAY(K),K=1,NLSTDELAY(1)+1)
 *
 #ifdef TT
 *** FlorentR
-        write (J) ttunit,tnowsave,ttmode,nbtt,indtt,ikeypot(1:11)
-        write (J) (((ttens(k,i,kk),k=1,3),i=1,3),kk=1,nbtt),
+        write (94) ttunit,tnowsave,ttmode,nbtt,indtt,ikeypot(1:11)
+        write (94) (((ttens(k,i,kk),k=1,3),i=1,3),kk=1,nbtt),
      *       ((tteff(k,i),k=1,3),i=1,3),((dtteff(k,i),k=1,3),i=1,3),
      *       (tttime(i),i=1,nbtt),(tteigen(k),k=1,3),
      &       ((tteigenv(k,i),k=1,3),i=1,3),(ttrtide(k),k=1,3)
@@ -176,7 +187,7 @@
 #endif
 *
 *     Write event tracking arrays
-        write (J) (XMOLDA(i),i=1,ntot),(KWOLDA(i),i=1,ntot),
+        write (94) (XMOLDA(i),i=1,ntot),(KWOLDA(i),i=1,ntot),
      &            (XMOLDB(i),i=1,ntot),(KWOLDB(i),i=1,ntot)
 *
 *     Pulsar: independent dump record, bounded by NSCOUNT (not NMAX
@@ -189,8 +200,8 @@
 *     byte stream is unchanged from pre-port when the feature is off,
 *     per the KZ(29)=0 zero-impact guarantee.
         IF (IA(55).GT.0) THEN
-        write (J) NSCOUNT
-        write (J) (NAMENS(i),i=1,NSCOUNT),(NSTYPE(i),i=1,NSCOUNT),
+        write (94) NSCOUNT
+        write (94) (NAMENS(i),i=1,NSCOUNT),(NSTYPE(i),i=1,NSCOUNT),
      &            (NSSTAT(i),i=1,NSCOUNT),(XMNS(i),i=1,NSCOUNT),
      &            (BMAGNS(i),i=1,NSCOUNT),(PERIODNS(i),i=1,NSCOUNT),
      &            (PDOTNS(i),i=1,NSCOUNT),(AGENSX(i),i=1,NSCOUNT),
@@ -198,8 +209,8 @@
      &            (XMNS0(i),i=1,NSCOUNT)
         END IF
 *
-        END FILE J
-        CLOSE (UNIT=J)
+        END FILE 94
+        CLOSE (UNIT=94)
         END IF
         end if
 *
