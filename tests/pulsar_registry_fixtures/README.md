@@ -29,6 +29,13 @@ together. `KZ(22)=2` reads the supplied normalized coordinates and
 `NRAND=43532`, zero NS/WD kicks, `KZ(29)=2`, `KZ(50)=1`, and
 `PSR_ACC_CE=0`.
 
+On the current branch, merger reconciliation keeps the existing `PULSAR`
+record layout in `pulsar.204`. Code 5 records the retained pulsar state after
+a merger; when
+the survivor `NAME` changes, two adjacent code-5 records contain the old and
+new identities. Code 6 records a registry slot immediately before a merger
+retires it. Code-1 birth counts are therefore unchanged.
+
 `provisional_ns_cleanup` is the previously reported
 `rf_16_a8_e0p704546244` model. Its input pericentre is
 2.3636300507767825 Rsun. At N-body time 0.001953125, CHAOS delivers

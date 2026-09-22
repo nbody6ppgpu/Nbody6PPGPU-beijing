@@ -12,7 +12,7 @@ trap 'rm -rf "$tmp"' EXIT HUP INT TERM
 
 cd "$root"
 rm -f config.status config.log build/Makefile include/params.h
-./configure --with-par=1k --disable-gpu --disable-mpi > "$tmp/configure.log" 2>&1
+./configure --with-par=1k --disable-gpu --disable-mpi --disable-hdf5 > "$tmp/configure.log" 2>&1
 make clean > /dev/null 2>&1 || true
 make > "$tmp/build.log" 2>&1
 

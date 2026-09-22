@@ -167,6 +167,11 @@ def verify_case(case_name: str, case: dict[str, object]) -> None:
 
 def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text())
+    executable_hash = manifest.get("validated_executable_sha256")
+    if not isinstance(executable_hash, str) or not re.fullmatch(
+        r"[0-9a-f]{64}", executable_hash
+    ):
+        fail("validated_executable_sha256 must be 64 lowercase hex characters")
     fixtures = manifest.get("fixtures")
     if not isinstance(fixtures, dict) or len(fixtures) != 5:
         fail("manifest must define exactly five fixtures")

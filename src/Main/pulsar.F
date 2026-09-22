@@ -800,17 +800,33 @@
 * Reconcile the pulsar registry after a merger has finalized the remnant
 * identity and stellar type.  If a neutron-star progenitor is already
 * registered, preserve its spin/magnetic state and bind that slot to the
-* final survivor NAME.  Otherwise register the merger-produced NS once.
-* An ONeWD progenitor selects the AIC birth distribution for KZ(29)=2.
+* final survivor NAME.  Retire every other progenitor slot so destroyed
+* neutron stars cannot remain in the live registry.  If the remnant is
+* not an NS, retire all registered NS progenitors.  Otherwise register a
+* merger-produced NS once.  An ONeWD progenitor selects the AIC birth
+* distribution for KZ(29)=2.
 *
       INCLUDE 'common6.h'
       INTEGER NAME1, NAME2, NAMEF, KWOLD1, KWOLD2, KWNEW
-      INTEGER PIND, PFINAL, PINHERIT
+      INTEGER PIND, PFINAL, PINHERIT, PKEEP
       REAL*8 MASSMS, TNOW
       LOGICAL ISAICR, REGISTD
 
       REGISTD = .FALSE.
-      IF (KZ(29).LE.0.OR.KWNEW.NE.13) RETURN
+      IF (KZ(29).LE.0) RETURN
+
+*     A merger that does not leave an NS must retire every registered
+*     NS progenitor.  Scan backwards because PSRREG_REMOVE compacts all
+*     following slots in place.
+      IF (KWNEW.NE.13) THEN
+         DO PIND = NSCOUNT, 1, -1
+            IF ((KWOLD1.EQ.13.AND.NAMENS(PIND).EQ.NAME1).OR.
+     &          (KWOLD2.EQ.13.AND.NAMENS(PIND).EQ.NAME2)) THEN
+               CALL PSRREG_REMOVE(PIND)
+            ENDIF
+         END DO
+         RETURN
+      ENDIF
 
 *     Prefer the slot already carrying the final NAME.  Otherwise carry
 *     forward a current NS progenitor whose NAME was discarded by the
@@ -828,22 +844,78 @@
          ENDIF
       END DO
 
-      IF (PFINAL.GT.0) THEN
-         XMNS(PFINAL) = MASSMS
-         NSTYPE(PFINAL) = KWNEW
-         RETURN
-      ENDIF
+      PKEEP = PFINAL
+      IF (PKEEP.EQ.0) PKEEP = PINHERIT
+      IF (PKEEP.GT.0) THEN
+*        A NAME rebind is written as two adjacent code-5 snapshots: the
+*        first has the progenitor NAME and the second the final NAME.
+*        This preserves the existing event format while making lineage
+*        explicit to readers that start from the final identity.
+         IF (NAMENS(PKEEP).NE.NAMEF) THEN
+            CALL PSREVENT(5, PKEEP)
+            NAMENS(PKEEP) = NAMEF
+         ENDIF
+         XMNS(PKEEP) = MASSMS
+         NSTYPE(PKEEP) = KWNEW
+         CALL PSREVENT(5, PKEEP)
 
-      IF (PINHERIT.GT.0) THEN
-         NAMENS(PINHERIT) = NAMEF
-         XMNS(PINHERIT) = MASSMS
-         NSTYPE(PINHERIT) = KWNEW
+*        Collapse multiple NS progenitor slots to the single remnant.
+*        Scan backwards so compacting a removed slot cannot skip another
+*        obsolete entry.  PKEEP itself may move only after it was passed.
+         DO PIND = NSCOUNT, 1, -1
+            IF (PIND.NE.PKEEP.AND.
+     &          ((KWOLD1.EQ.13.AND.NAMENS(PIND).EQ.NAME1).OR.
+     &           (KWOLD2.EQ.13.AND.NAMENS(PIND).EQ.NAME2))) THEN
+               CALL PSRREG_REMOVE(PIND)
+            ENDIF
+         END DO
          RETURN
       ENDIF
 
       ISAICR = KZ(29).EQ.2.AND.
      &     (KWOLD1.EQ.12.OR.KWOLD2.EQ.12)
       CALL PSRREG(NAMEF,MASSMS,KWNEW,TNOW,ISAICR,REGISTD)
+
+      RETURN
+      END
+
+* ====================================================================================
+      SUBROUTINE PSRREG_REMOVE(PIND)
+* Retire one live pulsar-registry slot and compact all parallel arrays.
+* A code-6 event is emitted before the old state becomes inaccessible.
+*
+      INCLUDE 'common6.h'
+      INTEGER PIND, J
+
+      IF (PIND.LT.1.OR.PIND.GT.NSCOUNT) RETURN
+      CALL PSREVENT(6, PIND)
+
+      DO J = PIND, NSCOUNT - 1
+         BMAGNS(J) = BMAGNS(J+1)
+         BMAGNS0(J) = BMAGNS0(J+1)
+         XMNS0(J) = XMNS0(J+1)
+         PERIODNS(J) = PERIODNS(J+1)
+         AGENSX(J) = AGENSX(J+1)
+         AGENS0(J) = AGENS0(J+1)
+         PDOTNS(J) = PDOTNS(J+1)
+         XMNS(J) = XMNS(J+1)
+         NSTYPE(J) = NSTYPE(J+1)
+         NAMENS(J) = NAMENS(J+1)
+         NSSTAT(J) = NSSTAT(J+1)
+      END DO
+
+      BMAGNS(NSCOUNT) = 0.0D0
+      BMAGNS0(NSCOUNT) = 0.0D0
+      XMNS0(NSCOUNT) = 0.0D0
+      PERIODNS(NSCOUNT) = 0.0D0
+      AGENSX(NSCOUNT) = 0.0D0
+      AGENS0(NSCOUNT) = 0.0D0
+      PDOTNS(NSCOUNT) = 0.0D0
+      XMNS(NSCOUNT) = 0.0D0
+      NSTYPE(NSCOUNT) = 0
+      NAMENS(NSCOUNT) = 0
+      NSSTAT(NSCOUNT) = 0
+      NSCOUNT = NSCOUNT - 1
 
       RETURN
       END
@@ -883,6 +955,9 @@
 *   2 - isolated spin-down step (mdot.F)
 *   3 - stable RLOF spin-up step (roche.f)
 *   4 - common-envelope step (roche.f)
+*   5 - merger reconciliation snapshot.  A NAME rebind writes an
+*       adjacent pair containing the old and final NAME, respectively.
+*   6 - registry slot retired by a merger (written before removal)
 *
       INCLUDE 'common6.h'
       INCLUDE 'pulsar_ctrl.h'

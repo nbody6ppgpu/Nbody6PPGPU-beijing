@@ -2,7 +2,6 @@
   "schema_version": 1,
   "source_commit": "c1549ca2f7d92995e54cf007eaed80d37df9289a",
   "validated_executable_sha256": "47261c1118b071a84979806025beef17d9b0c916e91e8643c7bde145584b0015",
-  "validated_executable_sha256_note": "This string is 66 hex characters, not the 64 a SHA-256 digest requires. It is reproduced as received from the original submission and left unedited; verify_inputs.py does not check it. See README.md Reproducibility section.",
   "fixtures": {
     "ce_survive": {
       "purpose": "Two-pass common-envelope path ending in a surviving NS+MS binary",

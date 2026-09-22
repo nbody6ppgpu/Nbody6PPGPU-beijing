@@ -2,7 +2,7 @@ C     Standalone PULSARINIT/PULSAREVO invariant and registration checks,
 C     linked directly against the built pulsar.o/ran2.o. Exercises:
 C       - non-NS -> NS registration, AIC classification, and dedup
 C       - KZ(29)=0/1/2 transition-registration behavior
-C       - finalized merger registration and pulsar-state rebinding
+C       - finalized merger registration, rebinding, and slot retirement
 C       - the plan's section 10.4 physics invariants:
 C       - birth distributions: finite, positive P/B/Pdot for every
 C         supported PSR_PMODE/PSR_BMODE combination (normal and AIC)
@@ -24,8 +24,10 @@ C     given an explicit type regardless.
       REAL*8 MASS, MASS_COMP, RAD_COMP, PSRMDOT, DTM, NSINCL
       REAL*8 B_PREV, DTM_STEP, BMIN_TESLA, B_I_PRECALL
       REAL*8 B_ISO, P_ISO, PD_ISO
-      INTEGER ISTEP
+      REAL*8 EVENTTIME1, EVENTTIME2
+      INTEGER ISTEP, EVENTCODE1, EVENTCODE2, EVENTNAME1, EVENTNAME2
       LOGICAL CE, REGISTD
+      CHARACTER*256 EVENT1, EVENT2
 
       DATA BMODES /1, 2, 4, 5/
 
@@ -451,6 +453,86 @@ C     state into the final NAME instead of initializing a second pulsar.
          WRITE(6,*) 'FAIL: merger did not update pulsar remnant'
          NFAIL = NFAIL + 1
       ENDIF
+
+C     If an existing NS is destroyed in a non-NS merger, its registry
+C     slot must be removed rather than left under a vanished NAME.
+      CALL PSRREG_MERGER(211,212,211,2.0D0,13,1,14,18.0D0,
+     &     REGISTD)
+      IF (REGISTD.OR.NSCOUNT.NE.5) THEN
+         WRITE(6,*) 'FAIL: non-NS remnant did not retire NS slot'
+         NFAIL = NFAIL + 1
+      ENDIF
+      DO ISTEP = 1, NSCOUNT
+         IF (NAMENS(ISTEP).EQ.211) THEN
+            WRITE(6,*) 'FAIL: destroyed NS NAME remains registered'
+            NFAIL = NFAIL + 1
+         ENDIF
+      END DO
+
+C     A double-NS merger that remains an NS must retain one progenitor
+C     state, update the remnant, and compact away the other slot.
+      CALL PSRREG_TRANSITION(220,1.30D0,8,13,19.0D0,REGISTD)
+      CALL PSRREG_TRANSITION(221,1.40D0,8,13,20.0D0,REGISTD)
+      PERIODNS(6) = 0.220D0
+      PERIODNS(7) = 0.221D0
+      BMAGNS(7) = 2.21D8
+      PDOTNS(7) = 2.21D-18
+      CALL PSRREG_MERGER(220,221,221,2.60D0,13,13,13,21.0D0,
+     &     REGISTD)
+      IF (REGISTD.OR.NSCOUNT.NE.6.OR.NAMENS(6).NE.221) THEN
+         WRITE(6,*) 'FAIL: double-NS merger left wrong registry'
+         NFAIL = NFAIL + 1
+      ELSEIF (ABS(PERIODNS(6)-0.221D0).GT.1.0D-12.OR.
+     &        ABS(BMAGNS(6)-2.21D8).GT.1.0D-6.OR.
+     &        ABS(PDOTNS(6)-2.21D-18).GT.1.0D-28.OR.
+     &        ABS(XMNS(6)-2.60D0).GT.1.0D-12) THEN
+         WRITE(6,*) 'FAIL: double-NS survivor state was not preserved'
+         NFAIL = NFAIL + 1
+      ENDIF
+      DO ISTEP = 1, NSCOUNT
+         IF (NAMENS(ISTEP).EQ.220) THEN
+            WRITE(6,*) 'FAIL: double-NS merger left orphan slot'
+            NFAIL = NFAIL + 1
+         ENDIF
+      END DO
+
+C     A double-NS merger with a non-NS remnant retires both slots.
+      CALL PSRREG_TRANSITION(230,1.30D0,8,13,22.0D0,REGISTD)
+      CALL PSRREG_TRANSITION(231,1.40D0,8,13,23.0D0,REGISTD)
+      CALL PSRREG_MERGER(230,231,231,2.70D0,13,13,14,24.0D0,
+     &     REGISTD)
+      IF (REGISTD.OR.NSCOUNT.NE.6) THEN
+         WRITE(6,*) 'FAIL: non-NS double merger kept pulsar slots'
+         NFAIL = NFAIL + 1
+      ENDIF
+      DO ISTEP = 1, NSCOUNT
+         IF (NAMENS(ISTEP).EQ.230.OR.NAMENS(ISTEP).EQ.231) THEN
+            WRITE(6,*) 'FAIL: non-NS merger left orphan NS NAME'
+            NFAIL = NFAIL + 1
+         ENDIF
+      END DO
+
+C     A NAME migration emits adjacent code-5 snapshots with old and new
+C     identities while preserving the established PULSAR record format.
+      CALL PSRREG_TRANSITION(240,1.40D0,8,13,25.0D0,REGISTD)
+      OPEN(UNIT=204,STATUS='SCRATCH',FORM='FORMATTED')
+      KZ(50) = 1
+      TTOT = 1.0D0
+      TSTAR = 1.0D0
+      CALL PSRREG_MERGER(241,240,241,1.60D0,1,13,13,26.0D0,
+     &     REGISTD)
+      REWIND 204
+      READ(204,'(A)') EVENT1
+      READ(204,'(A)') EVENT2
+      READ(EVENT1(8:),*) EVENTCODE1, EVENTTIME1, EVENTNAME1
+      READ(EVENT2(8:),*) EVENTCODE2, EVENTTIME2, EVENTNAME2
+      IF (EVENTCODE1.NE.5.OR.EVENTCODE2.NE.5.OR.
+     &    EVENTNAME1.NE.240.OR.EVENTNAME2.NE.241) THEN
+         WRITE(6,*) 'FAIL: merger NAME migration event pair is wrong'
+         NFAIL = NFAIL + 1
+      ENDIF
+      CLOSE(204)
+      KZ(50) = 0
 
       IF (NFAIL.EQ.0) THEN
          WRITE(6,*) 'All pulsar physics invariant checks passed.'
