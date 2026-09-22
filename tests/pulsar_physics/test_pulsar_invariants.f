@@ -25,7 +25,12 @@ C     given an explicit type regardless.
       REAL*8 B_PREV, DTM_STEP, BMIN_TESLA, B_I_PRECALL
       REAL*8 B_ISO, P_ISO, PD_ISO
       REAL*8 EVENTTIME1, EVENTTIME2
+      REAL*8 EVENTXM1, EVENTBM1, EVENTPER1, EVENTPD1
+      REAL*8 EVENTAX1, EVENTA01, EVENTBM01, EVENTXM01, EVENTTAU1
+      REAL*8 EVENTXM2, EVENTBM2, EVENTPER2, EVENTPD2
+      REAL*8 EVENTAX2, EVENTA02, EVENTBM02, EVENTXM02, EVENTTAU2
       INTEGER ISTEP, EVENTCODE1, EVENTCODE2, EVENTNAME1, EVENTNAME2
+      INTEGER EVENTIOS, PTEST
       LOGICAL CE, REGISTD
       CHARACTER*256 EVENT1, EVENT2
 
@@ -513,25 +518,211 @@ C     A double-NS merger with a non-NS remnant retires both slots.
       END DO
 
 C     A NAME migration emits adjacent code-5 snapshots with old and new
-C     identities while preserving the established PULSAR record format.
+C     identities.  The old record precedes the mass update; both records
+C     retain all other state and use the event-bank physical time.
       CALL PSRREG_TRANSITION(240,1.40D0,8,13,25.0D0,REGISTD)
+      PTEST = NSCOUNT
+      BMAGNS(PTEST) = 2.40D8
+      PERIODNS(PTEST) = 0.240D0
+      PDOTNS(PTEST) = 2.40D-18
+      AGENSX(PTEST) = 25.0D0
+      AGENS0(PTEST) = 2.50D0
+      BMAGNS0(PTEST) = 2.40D7
+      XMNS0(PTEST) = 1.24D0
+      PSR_TAU = 3.50D0
       OPEN(UNIT=204,STATUS='SCRATCH',FORM='FORMATTED')
       KZ(50) = 1
-      TTOT = 1.0D0
-      TSTAR = 1.0D0
+      TTOT = 2.0D0
+      TSTAR = 3.0D0
       CALL PSRREG_MERGER(241,240,241,1.60D0,1,13,13,26.0D0,
      &     REGISTD)
       REWIND 204
-      READ(204,'(A)') EVENT1
-      READ(204,'(A)') EVENT2
-      READ(EVENT1(8:),*) EVENTCODE1, EVENTTIME1, EVENTNAME1
-      READ(EVENT2(8:),*) EVENTCODE2, EVENTTIME2, EVENTNAME2
-      IF (EVENTCODE1.NE.5.OR.EVENTCODE2.NE.5.OR.
-     &    EVENTNAME1.NE.240.OR.EVENTNAME2.NE.241) THEN
-         WRITE(6,*) 'FAIL: merger NAME migration event pair is wrong'
+      READ(204,'(A)',IOSTAT=EVENTIOS) EVENT1
+      IF (EVENTIOS.NE.0) THEN
+         WRITE(6,*) 'FAIL: missing old-NAME merger event'
          NFAIL = NFAIL + 1
+      ELSE
+         READ(204,'(A)',IOSTAT=EVENTIOS) EVENT2
+         IF (EVENTIOS.NE.0) THEN
+            WRITE(6,*) 'FAIL: missing new-NAME merger event'
+            NFAIL = NFAIL + 1
+         ELSE
+            READ(EVENT1(8:),*) EVENTCODE1, EVENTTIME1,
+     &           EVENTNAME1, EVENTXM1, EVENTBM1, EVENTPER1,
+     &           EVENTPD1, EVENTAX1, EVENTA01, EVENTBM01,
+     &           EVENTXM01, EVENTTAU1
+            READ(EVENT2(8:),*) EVENTCODE2, EVENTTIME2,
+     &           EVENTNAME2, EVENTXM2, EVENTBM2, EVENTPER2,
+     &           EVENTPD2, EVENTAX2, EVENTA02, EVENTBM02,
+     &           EVENTXM02, EVENTTAU2
+            IF (EVENTCODE1.NE.5.OR.EVENTCODE2.NE.5.OR.
+     &          EVENTNAME1.NE.240.OR.EVENTNAME2.NE.241) THEN
+               WRITE(6,*) 'FAIL: merger NAME event pair is wrong'
+               NFAIL = NFAIL + 1
+            ENDIF
+            IF (ABS(EVENTTIME1-6.0D0).GT.1.0D-10.OR.
+     &          ABS(EVENTTIME2-6.0D0).GT.1.0D-10) THEN
+               WRITE(6,*) 'FAIL: merger NAME event time is wrong'
+               NFAIL = NFAIL + 1
+            ENDIF
+            IF (ABS(EVENTXM1-1.40D0).GT.1.0D-10.OR.
+     &          ABS(EVENTXM2-1.60D0).GT.1.0D-10) THEN
+               WRITE(6,*) 'FAIL: merger NAME event mass is wrong'
+               NFAIL = NFAIL + 1
+            ENDIF
+            IF (ABS(EVENTBM1-2.40D8).GT.1.0D0.OR.
+     &          ABS(EVENTPER1-0.240D0).GT.1.0D-10.OR.
+     &          ABS(EVENTPD1-2.40D-18).GT.1.0D-26.OR.
+     &          ABS(EVENTAX1-25.0D0).GT.1.0D-10.OR.
+     &          ABS(EVENTA01-2.50D0).GT.1.0D-10.OR.
+     &          ABS(EVENTBM01-2.40D7).GT.1.0D0.OR.
+     &          ABS(EVENTXM01-1.24D0).GT.1.0D-10.OR.
+     &          ABS(EVENTTAU1-3.50D0).GT.1.0D-10.OR.
+     &          ABS(EVENTBM2-2.40D8).GT.1.0D0.OR.
+     &          ABS(EVENTPER2-0.240D0).GT.1.0D-10.OR.
+     &          ABS(EVENTPD2-2.40D-18).GT.1.0D-26.OR.
+     &          ABS(EVENTAX2-25.0D0).GT.1.0D-10.OR.
+     &          ABS(EVENTA02-2.50D0).GT.1.0D-10.OR.
+     &          ABS(EVENTBM02-2.40D7).GT.1.0D0.OR.
+     &          ABS(EVENTXM02-1.24D0).GT.1.0D-10.OR.
+     &          ABS(EVENTTAU2-3.50D0).GT.1.0D-10) THEN
+               WRITE(6,*) 'FAIL: merger NAME event state is wrong'
+               NFAIL = NFAIL + 1
+            ENDIF
+         ENDIF
       ENDIF
       CLOSE(204)
+      KZ(50) = 0
+
+C     With no NAME change, reconciliation writes one code-5 event.
+      CALL PSRREG_TRANSITION(250,1.50D0,8,13,27.0D0,REGISTD)
+      PTEST = NSCOUNT
+      BMAGNS(PTEST) = 2.50D8
+      PERIODNS(PTEST) = 0.250D0
+      PDOTNS(PTEST) = 2.50D-18
+      AGENSX(PTEST) = 27.0D0
+      AGENS0(PTEST) = 2.70D0
+      BMAGNS0(PTEST) = 2.50D7
+      XMNS0(PTEST) = 1.25D0
+      PSR_TAU = 4.50D0
+      OPEN(UNIT=204,STATUS='SCRATCH',FORM='FORMATTED')
+      KZ(50) = 1
+      TTOT = 4.0D0
+      TSTAR = 2.0D0
+      CALL PSRREG_MERGER(250,251,250,1.75D0,13,1,13,28.0D0,
+     &     REGISTD)
+      REWIND 204
+      READ(204,'(A)',IOSTAT=EVENTIOS) EVENT1
+      IF (EVENTIOS.NE.0) THEN
+         WRITE(6,*) 'FAIL: missing unchanged-NAME merger event'
+         NFAIL = NFAIL + 1
+      ELSE
+         READ(EVENT1(8:),*) EVENTCODE1, EVENTTIME1,
+     &        EVENTNAME1, EVENTXM1, EVENTBM1, EVENTPER1,
+     &        EVENTPD1, EVENTAX1, EVENTA01, EVENTBM01,
+     &        EVENTXM01, EVENTTAU1
+         IF (EVENTCODE1.NE.5.OR.EVENTNAME1.NE.250.OR.
+     &       ABS(EVENTTIME1-8.0D0).GT.1.0D-10.OR.
+     &       ABS(EVENTXM1-1.75D0).GT.1.0D-10.OR.
+     &       ABS(EVENTBM1-2.50D8).GT.1.0D0.OR.
+     &       ABS(EVENTPER1-0.250D0).GT.1.0D-10.OR.
+     &       ABS(EVENTPD1-2.50D-18).GT.1.0D-26.OR.
+     &       ABS(EVENTAX1-27.0D0).GT.1.0D-10.OR.
+     &       ABS(EVENTA01-2.70D0).GT.1.0D-10.OR.
+     &       ABS(EVENTBM01-2.50D7).GT.1.0D0.OR.
+     &       ABS(EVENTXM01-1.25D0).GT.1.0D-10.OR.
+     &       ABS(EVENTTAU1-4.50D0).GT.1.0D-10) THEN
+            WRITE(6,*) 'FAIL: unchanged-NAME merger event is wrong'
+            NFAIL = NFAIL + 1
+         ENDIF
+         READ(204,'(A)',IOSTAT=EVENTIOS) EVENT2
+         IF (EVENTIOS.GE.0) THEN
+            WRITE(6,*) 'FAIL: unchanged NAME wrote extra code-5 event'
+            NFAIL = NFAIL + 1
+         ENDIF
+      ENDIF
+      CLOSE(204)
+      KZ(50) = 0
+
+C     Removing an interior slot writes its old state before compaction,
+C     moves every parallel array, and clears every old tail-slot field.
+      NSCOUNT = 3
+      NAMENS(2) = 602
+      XMNS(2) = 1.62D0
+      NSTYPE(2) = 62
+      NSSTAT(2) = 6020
+      BMAGNS(2) = 6.02D8
+      PERIODNS(2) = 0.602D0
+      PDOTNS(2) = 6.02D-18
+      AGENSX(2) = 62.0D0
+      AGENS0(2) = 6.20D0
+      BMAGNS0(2) = 6.02D7
+      XMNS0(2) = 1.02D0
+      NAMENS(3) = 703
+      XMNS(3) = 1.73D0
+      NSTYPE(3) = 73
+      NSSTAT(3) = 7030
+      BMAGNS(3) = 7.03D8
+      PERIODNS(3) = 0.703D0
+      PDOTNS(3) = 7.03D-18
+      AGENSX(3) = 73.0D0
+      AGENS0(3) = 7.30D0
+      BMAGNS0(3) = 7.03D7
+      XMNS0(3) = 1.03D0
+      PSR_TAU = 5.50D0
+      OPEN(UNIT=204,STATUS='SCRATCH',FORM='FORMATTED')
+      KZ(50) = 1
+      TTOT = 5.0D0
+      TSTAR = 2.0D0
+      CALL PSRREG_REMOVE(2)
+      REWIND 204
+      READ(204,'(A)',IOSTAT=EVENTIOS) EVENT1
+      IF (EVENTIOS.NE.0) THEN
+         WRITE(6,*) 'FAIL: slot retirement wrote no code-6 event'
+         NFAIL = NFAIL + 1
+      ELSE
+         READ(EVENT1(8:),*) EVENTCODE1, EVENTTIME1,
+     &        EVENTNAME1, EVENTXM1, EVENTBM1, EVENTPER1,
+     &        EVENTPD1, EVENTAX1, EVENTA01, EVENTBM01,
+     &        EVENTXM01, EVENTTAU1
+         IF (EVENTCODE1.NE.6.OR.EVENTNAME1.NE.602.OR.
+     &       ABS(EVENTTIME1-10.0D0).GT.1.0D-10.OR.
+     &       ABS(EVENTXM1-1.62D0).GT.1.0D-10.OR.
+     &       ABS(EVENTBM1-6.02D8).GT.1.0D0.OR.
+     &       ABS(EVENTPER1-0.602D0).GT.1.0D-10.OR.
+     &       ABS(EVENTPD1-6.02D-18).GT.1.0D-26.OR.
+     &       ABS(EVENTAX1-62.0D0).GT.1.0D-10.OR.
+     &       ABS(EVENTA01-6.20D0).GT.1.0D-10.OR.
+     &       ABS(EVENTBM01-6.02D7).GT.1.0D0.OR.
+     &       ABS(EVENTXM01-1.02D0).GT.1.0D-10.OR.
+     &       ABS(EVENTTAU1-5.50D0).GT.1.0D-10) THEN
+            WRITE(6,*) 'FAIL: code-6 event used post-move state'
+            NFAIL = NFAIL + 1
+         ENDIF
+      ENDIF
+      CLOSE(204)
+      IF (NSCOUNT.NE.2.OR.NAMENS(2).NE.703.OR.
+     &    ABS(XMNS(2)-1.73D0).GT.1.0D-12.OR.
+     &    NSTYPE(2).NE.73.OR.NSSTAT(2).NE.7030.OR.
+     &    ABS(BMAGNS(2)-7.03D8).GT.1.0D-6.OR.
+     &    ABS(PERIODNS(2)-0.703D0).GT.1.0D-12.OR.
+     &    ABS(PDOTNS(2)-7.03D-18).GT.1.0D-28.OR.
+     &    ABS(AGENSX(2)-73.0D0).GT.1.0D-12.OR.
+     &    ABS(AGENS0(2)-7.30D0).GT.1.0D-12.OR.
+     &    ABS(BMAGNS0(2)-7.03D7).GT.1.0D-6.OR.
+     &    ABS(XMNS0(2)-1.03D0).GT.1.0D-12) THEN
+         WRITE(6,*) 'FAIL: slot compaction missed a registry array'
+         NFAIL = NFAIL + 1
+      ENDIF
+      IF (NAMENS(3).NE.0.OR.XMNS(3).NE.0.0D0.OR.
+     &    NSTYPE(3).NE.0.OR.NSSTAT(3).NE.0.OR.
+     &    BMAGNS(3).NE.0.0D0.OR.PERIODNS(3).NE.0.0D0.OR.
+     &    PDOTNS(3).NE.0.0D0.OR.AGENSX(3).NE.0.0D0.OR.
+     &    AGENS0(3).NE.0.0D0.OR.BMAGNS0(3).NE.0.0D0.OR.
+     &    XMNS0(3).NE.0.0D0) THEN
+         WRITE(6,*) 'FAIL: retired registry tail slot was not cleared'
+         NFAIL = NFAIL + 1
+      ENDIF
       KZ(50) = 0
 
       IF (NFAIL.EQ.0) THEN
