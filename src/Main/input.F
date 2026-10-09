@@ -413,7 +413,11 @@ C      end if
      &         PSR_PMODE, PSR_BMODE, PSRM_PMODE, PSRM_BMODE,
      &         PSR_ACC_CE
 *
+      IF (KZ(29).LT.0.OR.KZ(29).GT.2) CALL PSRREG_FATAL(
+     &   'KZ(29) must be 0, 1, or 2')
       IF (KZ(29).EQ.0) RETURN
+      IF (KZ(19).LT.3) CALL PSRREG_FATAL(
+     &   'pulsar evolution requires KZ(19)>=3')
 *
       IF (rank.eq.0) THEN
          PSR_SPINA = PULSAR_UNSET

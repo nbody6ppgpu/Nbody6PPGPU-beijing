@@ -1408,6 +1408,10 @@
 *
          AJ(K) = AGE
          IF(KW.NE.KSTAR(J))THEN
+*           Includes accreting NS -> BH, which bypasses IQ/label 68.
+*           Commit registry state before overwriting the old type.
+            CALL PSRREG_TRANSITION(NAME(J),M1,KSTAR(J),KW,
+     &           TPHYS0,REGISTD)
             EPOCH(J) = TPHYS0 - AGE
             KSTAR(J) = KW
             MASS0(K) = M01

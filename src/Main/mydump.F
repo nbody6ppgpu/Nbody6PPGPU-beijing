@@ -378,21 +378,14 @@
         IF (IA(55).GT.0) THEN
         READ (J,IOSTAT=IOPSR) NSCOUNT
         IF (IOPSR.NE.0) THEN
-           write(0,*) 'WARNING: no pulsar dump record found in ',
-     &          'this restart file. If this run uses KZ(29)>0, the ',
-     &          'dump predates PSR state tracking or was written by ',
-     &          'an incompatible code version -- do not continue ',
-     &          'such a simulation with this code; rerun with the ',
-     &          'code version that produced this dump instead. ',
-     &          'NSCOUNT initialized to 0 (this check does not ',
-     &          'validate any other part of the dump file).'
-           NSCOUNT = 0
+           CALL PSRREG_FATAL(
+     &        'missing pulsar dump record; history cannot be rebuilt')
         ELSE
            IF (NSCOUNT.LT.0.OR.NSCOUNT.GT.NMAX) THEN
               write(6,*) 'FATAL ERROR: pulsar dump NSCOUNT out of',
      &             ' range: NSCOUNT=', NSCOUNT, ' NMAX=', NMAX
               call flush(6)
-              call abort()
+              CALL PSRREG_FATAL('invalid pulsar dump state')
            ENDIF
            READ (J,IOSTAT=IOPSR) (NAMENS(i),i=1,NSCOUNT),
      &          (NSTYPE(i),i=1,NSCOUNT),(NSSTAT(i),i=1,NSCOUNT),
@@ -404,7 +397,7 @@
               write(6,*) 'FATAL ERROR: pulsar dump record truncated',
      &             ' or corrupt (IOSTAT=', IOPSR, ')'
               call flush(6)
-              call abort()
+              CALL PSRREG_FATAL('invalid pulsar dump state')
            ENDIF
         ENDIF
         ELSE
@@ -599,6 +592,8 @@
        if(rank.eq.0)ibarcount=ibarcount+1
 #endif         
 *
+*     All restored arrays (including MPI broadcasts) are now available.
+      CALL PSRREG_RESTART
       END IF
 *
       RETURN

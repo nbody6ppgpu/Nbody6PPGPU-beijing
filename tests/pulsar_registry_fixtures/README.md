@@ -33,8 +33,8 @@ On the current branch, merger reconciliation keeps the existing `PULSAR`
 record layout in `pulsar.204`. Code 5 records the retained pulsar state after
 a merger; when
 the survivor `NAME` changes, two adjacent code-5 records contain the old and
-new identities. Code 6 records a registry slot immediately before a merger
-retires it. Code-1 birth counts are therefore unchanged.
+new identities. Code 6 records a registry slot immediately before a merger or a
+committed NS-to-non-NS stellar transition retires it. Code-1 birth counts are therefore unchanged.
 
 `provisional_ns_cleanup` is the previously reported
 `rf_16_a8_e0p704546244` model. Its input pericentre is

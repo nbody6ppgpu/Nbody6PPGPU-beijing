@@ -923,18 +923,28 @@
 * ====================================================================================
       SUBROUTINE PSRREG_TRANSITION(NAMEI,MASSMS,KWOLD,KWNEW,
      &     TNOW,REGISTD)
-* Register a completed non-NS -> NS stellar-type transition.  Passing
+* Reconcile a committed stellar-type transition in either direction.
+* Retire NS -> non-NS slots without drawing new birth parameters.
+* REGISTD is true only for a newly registered NS, never for retirement.
+* Passing
 * both types explicitly keeps AIC classification local to the object and
 * independent of shared kick/fallback state.  KZ(29)=2 selects PSRM_* only
 * for ONeWD (KW=12) -> NS transitions; KZ(29)=1 uses PSR_* for all NSs.
 *
       INCLUDE 'common6.h'
-      INTEGER NAMEI, KWOLD, KWNEW
+      INTEGER NAMEI, KWOLD, KWNEW, PIND
       REAL*8 MASSMS, TNOW
       LOGICAL ISAICR, REGISTD
 
       REGISTD = .FALSE.
       IF (KZ(29).LE.0) RETURN
+      IF (KWOLD.EQ.13.AND.KWNEW.NE.13) THEN
+*        Scan backwards so even a legacy duplicate cannot be skipped.
+         DO PIND = NSCOUNT, 1, -1
+            IF (NAMENS(PIND).EQ.NAMEI) CALL PSRREG_REMOVE(PIND)
+         END DO
+         RETURN
+      ENDIF
       IF (KWNEW.NE.13.OR.KWOLD.GE.13) RETURN
 
       ISAICR = KZ(29).EQ.2.AND.KWOLD.EQ.12
@@ -957,7 +967,7 @@
 *   4 - common-envelope step (roche.f)
 *   5 - merger reconciliation snapshot.  A NAME rebind writes an
 *       adjacent pair containing the old and final NAME, respectively.
-*   6 - registry slot retired by a merger (written before removal)
+*   6 - slot retired by merger or evolution (written before removal)
 *
       INCLUDE 'common6.h'
       INCLUDE 'pulsar_ctrl.h'
@@ -972,4 +982,91 @@
    61 FORMAT('PULSAR ',I2,1P,E17.9,I10,9E17.9)
 
       RETURN
+      END
+
+      SUBROUTINE PSRREG_FATAL(MESSAGE)
+* Nonzero exit in serial and collective termination in MPI builds.
+      INCLUDE 'common6.h'
+      CHARACTER*(*) MESSAGE
+      IF (rank.EQ.0) THEN
+         WRITE(6,*) 'FATAL ERROR: ', MESSAGE
+         CALL FLUSH(6)
+      ENDIF
+#ifdef PARALLEL
+      CALL MPI_ABORT(MPI_COMM_WORLD,1,ierr)
+#endif
+      STOP 1
+      END
+
+      SUBROUTINE PSRREG_AUDIT(NBAD,NUNRESOLVED)
+* Read-only restart check. Only ordinary, positive-mass physical entries
+* in 1:N have directly comparable types. KS centres, chain centres,
+* hierarchy placeholders and zero-mass ghosts are not physical stars.
+* An unmatched slot can belong to an escaper or a hidden subsystem:
+* retain it and report it as unresolved, never silently delete it.
+* This is deliberately not a proof of membership for unresolved NAMEs.
+      INCLUDE 'common6.h'
+      INTEGER NBAD, NUNRESOLVED, PIND, QIND, J, NMATCH
+      LOGICAL RESOLVED
+      NBAD = 0
+      NUNRESOLVED = 0
+      IF (KZ(29).LE.0) RETURN
+      IF (NSCOUNT.LT.0.OR.NSCOUNT.GT.NMAX) THEN
+         NBAD = 1
+         RETURN
+      ENDIF
+      DO PIND = 1, NSCOUNT
+         IF (NAMENS(PIND).LE.0.OR.NSTYPE(PIND).NE.13) THEN
+            NBAD = NBAD + 1
+            IF (rank.EQ.0) WRITE(6,*)
+     &         'PSR restart: invalid NAME/type in slot ', PIND
+         ENDIF
+         DO QIND = 1, PIND-1
+            IF (NAMENS(PIND).EQ.NAMENS(QIND)) THEN
+               NBAD = NBAD + 1
+               IF (rank.EQ.0) WRITE(6,*)
+     &            'PSR restart: duplicate NAME ', NAMENS(PIND)
+            ENDIF
+         END DO
+         RESOLVED = .FALSE.
+         DO J = 1, N
+            IF (NAME(J).NE.NAMENS(PIND)) CYCLE
+            IF (NAME(J).LE.0.OR.NAME(J).GT.NZERO) CYCLE
+            IF (BODY(J).LE.0.0D0) CYCLE
+            IF (KSTAR(J).LT.0.OR.KSTAR(J).GT.15) CYCLE
+            RESOLVED = .TRUE.
+            IF (KSTAR(J).NE.13) THEN
+               NBAD = NBAD + 1
+               IF (rank.EQ.0) WRITE(6,*)
+     &            'PSR restart: non-NS slot NAME/KSTAR ',
+     &            NAME(J), KSTAR(J)
+            ENDIF
+         END DO
+         IF (.NOT.RESOLVED) NUNRESOLVED = NUNRESOLVED + 1
+      END DO
+      DO J = 1, N
+         IF (BODY(J).LE.0.0D0.OR.KSTAR(J).NE.13) CYCLE
+         IF (NAME(J).LE.0.OR.NAME(J).GT.NZERO) CYCLE
+         NMATCH = 0
+         DO PIND = 1, NSCOUNT
+            IF (NAMENS(PIND).EQ.NAME(J)) NMATCH = NMATCH + 1
+         END DO
+         IF (NMATCH.EQ.0) THEN
+            NBAD = NBAD + 1
+            IF (rank.EQ.0) WRITE(6,*)
+     &         'PSR restart: NS missing pulsar state NAME ', NAME(J)
+         ENDIF
+      END DO
+      END
+
+      SUBROUTINE PSRREG_RESTART
+      INCLUDE 'common6.h'
+      INTEGER NBAD, NUNRESOLVED
+      IF (KZ(29).LE.0) RETURN
+      CALL PSRREG_AUDIT(NBAD,NUNRESOLVED)
+      IF (NBAD.GT.0) CALL PSRREG_FATAL(
+     &   'inconsistent pulsar restart; no automatic repair')
+      IF (NUNRESOLVED.GT.0.AND.rank.EQ.0) WRITE(6,*)
+     &   'WARNING: pulsar restart retains unresolved NAMEs: ',
+     &   NUNRESOLVED, ' (escapers/subsystems require history audit)'
       END
