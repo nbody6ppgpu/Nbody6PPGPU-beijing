@@ -1,0 +1,52 @@
+name: Pulsar tests
+
+# Serial pulsar registry checks. Not covered here: tests/test_pulsar_input.sh and
+# tests/test_pulsar_physics.sh (they reconfigure the tree) and the MPI check
+# tests/pulsar_lifecycle/check_mpi.py (needs a separate MPI build).
+
+on:
+  push:
+    branches: [ stable , dev , feature/pulsar-evolution ]
+  pull_request:
+    branches: [ stable , dev ]
+
+permissions:
+  contents: read
+
+jobs:
+  pulsar_tests:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y gfortran gcc g++ make python3
+        gcc --version; gfortran --version; python3 --version
+
+    - name: pulsar registry fixtures (static validation)
+      run: sh tests/test_pulsar_registry_fixtures.sh
+
+    - name: configure (serial, no MPI/HDF5/GPU)
+      run: >
+        ./configure --with-par=1k --enable-mcmodel=large --disable-gpu
+        --disable-mpi --disable-hdf5 --enable-simd=no;
+
+    - name: make
+      # make -C build: the top-level make may treat an existing executable as up to date
+      run: make -C build -j"$(nproc)"
+
+    - name: pulsar lifecycle tests
+      run: python3 tests/pulsar_lifecycle/run.py --output "$RUNNER_TEMP/psr"
+
+    - name: upload pulsar lifecycle results
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: pulsar-lifecycle-results
+        path: ${{ runner.temp }}/psr
+        if-no-files-found: ignore
+        retention-days: 7

@@ -59,6 +59,18 @@
 *
       COMMON/EVEVT/  XMOLDA(NMAX),KWOLDA(NMAX),XMOLDB(NMAX),KWOLDB(NMAX)
 *
+*     Pulsar: independent dynamic-state common (see include/common6.h
+*     and merge-plan.md Sec 7.1); NOT part of COMMON/NBODY, and only
+*     indices 1:NSCOUNT are meaningful. Declared here (rather than via
+*     INCLUDE 'common6.h', which this routine deliberately avoids) so
+*     the layout matches the real declaration exactly.
+      INTEGER NAMENS(NMAX),NSTYPE(NMAX),NSSTAT(NMAX),NSCOUNT
+      REAL*8 XMNS(NMAX),BMAGNS(NMAX),BMAGNS0(NMAX),XMNS0(NMAX),
+     &       PERIODNS(NMAX),AGENSX(NMAX),AGENS0(NMAX),PDOTNS(NMAX)
+      COMMON/PSRDAT/ BMAGNS,BMAGNS0,XMNS0,PERIODNS,AGENSX,AGENS0,
+     &               PDOTNS,XMNS,NSCOUNT,NSTYPE,NAMENS,NSSTAT
+      INTEGER IOPSR
+*
 *
       REAL*8 CC(265)
       EQUIVALENCE (CC(1),C(1))
@@ -69,6 +81,17 @@
       DATA FRAG/'comm.1_','comm.2_'/
       DATA J0/0/
       SAVE J
+*
+*     J is only a rolling dump COUNTER (drives the MOD(J-201,NCOMM)
+*     gate and the diagnostic print below); it must NOT be reused as
+*     a Fortran unit number, since it grows without bound and would
+*     eventually collide with the KZ(50)=1 event-library units fixed
+*     in file_init.F (203/204/210/211/212/220/221/230/231/240/241).
+*     The actual checkpoint file is opened on a separate, fixed unit
+*     (94), which no other routine in the code connects to.  Note 94
+*     is deliberately not 97: that unit is the event bank of the
+*     external pulsar fork this feature was ported from, so reusing
+*     it here would reintroduce the same class of collision.
 *
 *       Read or save all COMMON variables (valid for tape or disc).
       IF (II.NE.0) THEN
@@ -89,7 +112,7 @@
          write(FILE(JUNIT),118) FRAG(JUNIT),TCHAR
  118     format(A7,A20)
          print*,' MYDUMP ',TTOT,TCHAR,J,FILE(JUNIT)
-      OPEN (UNIT=J,STATUS='UNKNOWN',FORM='UNFORMATTED',FILE=FILE(JUNIT))
+      OPEN(UNIT=94,STATUS='UNKNOWN',FORM='UNFORMATTED',FILE=FILE(JUNIT))
 *
 *     Also write params.h to help data transfer
             NPARTMP(1) = NMAX
@@ -108,15 +131,15 @@
      *      ' sum na+...+ns=',NA+NB+NC+ND+NE+NG+NL+NM+NO+NP+NQ+NS
             PRINT*,' NA-NS=',NA,NB,NC,ND,NE,NG,NL,NM,NO,NP,NQ,NS
 *
-            WRITE (J) NPARTMP
-*     
-            WRITE (J) ntot,npairs,nttot,ia,b,c,d,e,g,l,m,o,p,q,s
+            WRITE (94) NPARTMP
+*
+            WRITE (94) ntot,npairs,nttot,ia,b,c,d,e,g,l,m,o,p,q,s
          END IF
        end if
 *
         if(rank.eq.0)then
          IF(MOD(J-201,NCOMM).EQ.0)THEN
-        WRITE (J) ((x(k,i),k=1,3),i=1,ntot),((x0(k,i),k=1,3),i=1,ntot),
+        WRITE (94) ((x(k,i),k=1,3),i=1,ntot),((x0(k,i),k=1,3),i=1,ntot),
      *   ((x0dot(k,i),k=1,3),i=1,ntot),((xdot(k,i),k=1,3),i=1,ntot),
      *   ((f(k,i),k=1,3),i=1,ntot),((fdot(k,i),k=1,3),i=1,ntot),
      *   (body(i),i=1,ntot),(rs(i),i=1,ntot),
@@ -133,9 +156,9 @@
      *   ((frdot(k,i),k=1,3),i=1,ntot),((d0r(k,i),k=1,3),i=1,ntot),
      *   (kstar(i),i=1,ntot),(iminr(i),i=1,ntot),(name(i),i=1,ntot)
 *
-        write (J) (aspn(i),i=1,ntot)
+        write (94) (aspn(i),i=1,ntot)
 *
-        write (J) ((u(k,i),k=1,4),i=1,npairs),((u0(k,i),k=1,4),i=1,
+        write (94) ((u(k,i),k=1,4),i=1,npairs),((u0(k,i),k=1,4),i=1,
      *    npairs),((udot(k,i),k=1,4),i=1,npairs),((fu(k,i),k=1,4),i=1,
      *    npairs),((fudot(k,i),k=1,4),i=1,npairs),((fudot2(k,i),k=1,4),
      *    i=1,npairs),((fudot3(k,i),k=1,4),i=1,npairs),(h(i),i=1,
@@ -147,16 +170,16 @@
      *    k=1,4),i=1,npairs),((fd0(k,i),k=1,4),i=1,npairs),
      *    (kblist(i),i=1,10*npairs),(kslow(i),i=1,npairs),tblist
 *
-        write (J) (list(1,i),(list(k,i),k=2,list(1,i)+1),i=1,ntot)
+        write (94) (list(1,i),(list(k,i),k=2,list(1,i)+1),i=1,ntot)
 *
-        write (J) NXTLIMIT,NGHOSTS,NXTLST(1:NXTLIMIT+NGHOSTS),NXTLEN,
+        write (94) NXTLIMIT,NGHOSTS,NXTLST(1:NXTLIMIT+NGHOSTS),NXTLEN,
      *       NDTK(1:64),NDTMIN,NDTMAX,NXTLEVEL,
      *       (NLSTDELAY(K),K=1,NLSTDELAY(1)+1)
 *
 #ifdef TT
 *** FlorentR
-        write (J) ttunit,tnowsave,ttmode,nbtt,indtt,ikeypot(1:11)
-        write (J) (((ttens(k,i,kk),k=1,3),i=1,3),kk=1,nbtt),
+        write (94) ttunit,tnowsave,ttmode,nbtt,indtt,ikeypot(1:11)
+        write (94) (((ttens(k,i,kk),k=1,3),i=1,3),kk=1,nbtt),
      *       ((tteff(k,i),k=1,3),i=1,3),((dtteff(k,i),k=1,3),i=1,3),
      *       (tttime(i),i=1,nbtt),(tteigen(k),k=1,3),
      &       ((tteigenv(k,i),k=1,3),i=1,3),(ttrtide(k),k=1,3)
@@ -164,11 +187,30 @@
 #endif
 *
 *     Write event tracking arrays
-        write (J) (XMOLDA(i),i=1,ntot),(KWOLDA(i),i=1,ntot),
+        write (94) (XMOLDA(i),i=1,ntot),(KWOLDA(i),i=1,ntot),
      &            (XMOLDB(i),i=1,ntot),(KWOLDB(i),i=1,ntot)
 *
-        END FILE J
-        CLOSE (UNIT=J)
+*     Pulsar: independent dump record, bounded by NSCOUNT (not NMAX
+*     or NTOT). PSR_*/PSRM_*/PSR_ACC_CE control params are not dumped
+*     here; they are re-read from INPULSAR on restart (Sec 7.3).
+*     Gated on KZ(29)>0 (IA(55) aliases KZ(29): COMMON/NAMES/ here is
+*     the generic-array view of common6.h's COMMON/NAMES/, where
+*     KZ(29) is the 55th INTEGER after NTOT/NPAIRS/NTTOT -- same
+*     offset trick already used for NCOMM=IA(16) above) so the dump
+*     byte stream is unchanged from pre-port when the feature is off,
+*     per the KZ(29)=0 zero-impact guarantee.
+        IF (IA(55).GT.0) THEN
+        write (94) NSCOUNT
+        write (94) (NAMENS(i),i=1,NSCOUNT),(NSTYPE(i),i=1,NSCOUNT),
+     &            (NSSTAT(i),i=1,NSCOUNT),(XMNS(i),i=1,NSCOUNT),
+     &            (BMAGNS(i),i=1,NSCOUNT),(PERIODNS(i),i=1,NSCOUNT),
+     &            (PDOTNS(i),i=1,NSCOUNT),(AGENSX(i),i=1,NSCOUNT),
+     &            (AGENS0(i),i=1,NSCOUNT),(BMAGNS0(i),i=1,NSCOUNT),
+     &            (XMNS0(i),i=1,NSCOUNT)
+        END IF
+*
+        END FILE 94
+        CLOSE (UNIT=94)
         END IF
         end if
 *
@@ -323,6 +365,44 @@
         XMOLDB(1:NMAX) = -1.0D0
         KWOLDB(1:NMAX) = -1
  101    CONTINUE
+
+*     Pulsar: independent dump record. Only present when this dump was
+*     written with KZ(29)>0 (mirrors the write-side gate; IA(55)
+*     aliases KZ(29), see write-side comment above). When KZ(29)=0
+*     the record was never written, so it must not be read here
+*     either -- skipping it keeps a KZ(29)=0 restart byte-for-byte
+*     unaware of PSR state, per the zero-impact guarantee. Still
+*     IOSTAT-guarded for KZ(29)>0 restarts, since a dump written
+*     before this record existed (or by an incompatible code version)
+*     won't have it; do not silently continue such a run.
+        IF (IA(55).GT.0) THEN
+        READ (J,IOSTAT=IOPSR) NSCOUNT
+        IF (IOPSR.NE.0) THEN
+           CALL PSRREG_FATAL(
+     &        'missing pulsar dump record; history cannot be rebuilt')
+        ELSE
+           IF (NSCOUNT.LT.0.OR.NSCOUNT.GT.NMAX) THEN
+              write(6,*) 'FATAL ERROR: pulsar dump NSCOUNT out of',
+     &             ' range: NSCOUNT=', NSCOUNT, ' NMAX=', NMAX
+              call flush(6)
+              CALL PSRREG_FATAL('invalid pulsar dump state')
+           ENDIF
+           READ (J,IOSTAT=IOPSR) (NAMENS(i),i=1,NSCOUNT),
+     &          (NSTYPE(i),i=1,NSCOUNT),(NSSTAT(i),i=1,NSCOUNT),
+     &          (XMNS(i),i=1,NSCOUNT),(BMAGNS(i),i=1,NSCOUNT),
+     &          (PERIODNS(i),i=1,NSCOUNT),(PDOTNS(i),i=1,NSCOUNT),
+     &          (AGENSX(i),i=1,NSCOUNT),(AGENS0(i),i=1,NSCOUNT),
+     &          (BMAGNS0(i),i=1,NSCOUNT),(XMNS0(i),i=1,NSCOUNT)
+           IF (IOPSR.NE.0) THEN
+              write(6,*) 'FATAL ERROR: pulsar dump record truncated',
+     &             ' or corrupt (IOSTAT=', IOPSR, ')'
+              call flush(6)
+              CALL PSRREG_FATAL('invalid pulsar dump state')
+           ENDIF
+        ENDIF
+        ELSE
+           NSCOUNT = 0
+        ENDIF
 
         end if
 
@@ -480,6 +560,31 @@
        CALL MPI_BCAST(XMOLDB(1),NTOT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
        CALL MPI_BCAST(KWOLDB(1),NTOT,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 *
+*     Pulsar: broadcast the dynamic state read above (1:NSCOUNT only).
+       CALL MPI_BCAST(NSCOUNT,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+       IF (NSCOUNT.GT.0) THEN
+       CALL MPI_BCAST(NAMENS(1),NSCOUNT,MPI_INTEGER,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(NSTYPE(1),NSCOUNT,MPI_INTEGER,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(NSSTAT(1),NSCOUNT,MPI_INTEGER,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(XMNS(1),NSCOUNT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(BMAGNS(1),NSCOUNT,MPI_REAL8,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(PERIODNS(1),NSCOUNT,MPI_REAL8,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(PDOTNS(1),NSCOUNT,MPI_REAL8,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(AGENSX(1),NSCOUNT,MPI_REAL8,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(AGENS0(1),NSCOUNT,MPI_REAL8,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(BMAGNS0(1),NSCOUNT,MPI_REAL8,0,
+     &      MPI_COMM_WORLD,ierr)
+       CALL MPI_BCAST(XMNS0(1),NSCOUNT,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+       ENDIF
+*
        call cputim(tt998)
        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
        call cputim(tt999)
@@ -487,6 +592,8 @@
        if(rank.eq.0)ibarcount=ibarcount+1
 #endif         
 *
+*     All restored arrays (including MPI broadcasts) are now available.
+      CALL PSRREG_RESTART
       END IF
 *
       RETURN

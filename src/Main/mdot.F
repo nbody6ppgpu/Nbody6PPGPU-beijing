@@ -50,6 +50,14 @@
       DATA IWARN /0/
 *      Local variables for event output RSp July 2025.
       LOGICAL LPROUT
+*     Pulsar: SKIPPSR marks whether the current MLIST object was just
+*     registered, so a later isolated spin-down hook in the same
+*     timestep does not also evolve it from age zero.
+      LOGICAL REGISTD, PULSAR_CE
+      INTEGER SKIPPSR, NSINDEX, PIND
+      REAL*8 PERIOD_I, PERIOD_F, B_I, B_F, PDOT_I, PDOT_F, TSSIZE
+      REAL*8 PSRALPHA, MYR_IN_SEC
+      PARAMETER(PSRALPHA=1.5708D0, MYR_IN_SEC=3.1536D13)
 *       Set variables with different names in common (RSp Mar23).
       K3 = XK3
       BETA = XBETA
@@ -86,6 +94,7 @@ c$$$      NCNUM = 0
 *     Find global index of next star to be checked (NB! reset KS & IKS).
  4    ML = ML + 1
       I = MLIST(ML)
+      SKIPPSR = 1
 *       Beware reduction of NTOT by KSTERM since last update!! (bug 2/17 Nbody6).
 *       Detected and ported here R.Sp. Dec. 2021
       IF (I.GT.NTOT.OR.ML.GT.ML0) GO TO 103
@@ -860,6 +869,12 @@ c$$$            end if
          CALL hrdiag(M0,AGE,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
      &               RM,LUM,KW,MC,RCC,ME,RE,K2)
 *
+*     Pulsar: register an explicit non-NS -> NS transition while the old
+*     KSTAR type is still available.  This is independent of kick state.
+         CALL PSRREG_TRANSITION(NAME(I),M1,KSTAR(I),KW,TPHYS,
+     &        REGISTD)
+         IF (REGISTD) SKIPPSR = 2
+*
          IF(KW.NE.KSTAR(I).AND.DABS(M1-M0)/M0.GT.0.05D0)THEN
 * RSp Debugging July 2020
             IF (rank.eq.0.and.KW.GE.10.and.KW.LT.15) THEN
@@ -1287,6 +1302,39 @@ C            END IF
          RADIUS(I) = RNEW
          ZLMSTY(I) = LNEW
          KSTAR(I) = KW
+*     Pulsar: spin down an isolated pulsar (no RLOF/CE this step) over
+*     the time elapsed since its state was last updated. SKIPPSR.NE.1
+*     means this NS was just registered earlier in this same MDOT call
+*     (either the AGE<=0.001 site above or the KW.GE.13 branch below,
+*     for a star that changed type in this call) -- skip spinning it
+*     down from an age of zero in that case.
+         IF (KW.EQ.13.AND.KZ(29).GT.0.AND.SKIPPSR.EQ.1) THEN
+            PULSAR_CE = .FALSE.
+            NSINDEX = -1
+            DO 296 PIND = 1,NSCOUNT
+               IF (NAMENS(PIND).EQ.NAME(I)) THEN
+                  NSINDEX = PIND
+                  GOTO 297
+               ENDIF
+  296       CONTINUE
+  297       IF (NSINDEX.GT.0) THEN
+               PERIOD_I = PERIODNS(NSINDEX)
+               B_I = BMAGNS(NSINDEX)
+               PDOT_I = PDOTNS(NSINDEX)
+               TSSIZE = (TPHYS-AGENSX(NSINDEX))*MYR_IN_SEC
+               CALL PULSAREVO(XMNS(NSINDEX), MASS(3-K), RAD(3-K),
+     &              B_I, PERIOD_I, PDOT_I, 0.0D0, TSSIZE, PSRALPHA,
+     &              PULSAR_CE, NAMENS(NSINDEX), B_F, PERIOD_F, PDOT_F)
+               PERIODNS(NSINDEX) = PERIOD_F
+               BMAGNS(NSINDEX) = B_F
+               PDOTNS(NSINDEX) = PDOT_F
+               XMNS(NSINDEX) = M1
+               NSTYPE(NSINDEX) = KW
+               AGENSX(NSINDEX) = TPHYS
+               NSSTAT(NSINDEX) = 2
+               CALL PSREVENT(2, NSINDEX)
+            ENDIF
+         ENDIF
          JSPIN(K) = MAX(JSPIN(K) - DJSPIN(K),1.0D-10)
 *
 *       Ensure that the star does not spin up beyond break-up.

@@ -56,6 +56,11 @@
 *
       Include 'kspars.h'
       INCLUDE 'common6.h'
+#ifdef PARALLEL
+#define MPIINIT 1
+#else
+#define MPIINIT 0
+#endif
       REAL*8  RAN2,VK(4)
 *     Unsafe for parallel
       SAVE  IPAIR, KC, VDIS, RI
@@ -290,7 +295,7 @@ c		Sambaran 2019.11.19.
 
             if(rank.eq.0)WRITE(6,*) "ECS/AIC NS formation",
      &           " M[M*] M0[M*] K*0 I NAME K* VDISP Time[Myr]: ",
-     &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I), 
+     &           BODY(I)*ZMBAR, BODY0(I)*ZMBAR, KW, I, NAME(I),
      &           KSTAR(I),DISP0, TTOT*TSTAR
          ENDIF
          IF(KW.EQ.14.AND.BHFLAG.EQ.0) DISP0 = 0.D0
@@ -315,6 +320,7 @@ c		Sambaran 2019.11.19.
          ENDIF
 
       ENDIF
+*
 
       VK(4) = VKICK
 

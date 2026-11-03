@@ -13,7 +13,7 @@
       REAL*8 TSCLS(20),LUMS(10),GB(10),TM,TN,LUM1,LUM2,MC1,MC2,RCC
       REAL*8 JSPIN1,JSPIN2,MENV,RENV,K2
       CHARACTER*8  WHICH1
-      LOGICAL COALS
+      LOGICAL COALS,REGISTD
 *
 *
       call xbpredall
@@ -225,6 +225,12 @@ cnew-abbas-26/07/2017
 *
 *       Copy mass loss (one or two COMENV) and new types.
           IF (ITER.GT.0) DM = DM2
+*       Register only after all CE retries and coalescence checks have
+*       committed to a surviving binary.
+          CALL PSRREG_TRANSITION(NAME(I1),M1,KSTAR(I1),KW1,
+     &         (TIME+TOFF)*TSTAR,REGISTD)
+          CALL PSRREG_TRANSITION(NAME(I2),M2,KSTAR(I2),KW2,
+     &         (TIME+TOFF)*TSTAR,REGISTD)
           KSTAR(I1) = KW1
           KSTAR(I2) = KW2
 *
@@ -470,7 +476,6 @@ cnew-abbas-26/07/2017
       RETURN
 *
       END
-
 
 
 

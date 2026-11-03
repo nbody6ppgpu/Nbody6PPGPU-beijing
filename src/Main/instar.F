@@ -168,6 +168,14 @@
     5         FORMAT (/,12X,'FIRST STAR:    M K* R/SU ',F7.2,I4,1P,E9.1)
           END IF
 *
+*       Fresh evolved ICs do not supply pulsar spin/field/history.
+*       Do not silently omit an NS or invent a new birth at t=0.
+          IF (KZ(29).GT.0.AND.KW.EQ.13) THEN
+             IF (rank.EQ.0) WRITE(6,*)
+     &          'Initial NS without pulsar state: NAME=', NAME(I)
+             CALL PSRREG_FATAL(
+     &          'initial NS pulsar state unsupported; use a PSR dump')
+          ENDIF
 *       Initialize the stellar classification type (KW = 0 - 15).
           KSTAR(I) = KW
 *
