@@ -37,10 +37,10 @@
 *       Common Blocks read in READSE (RSp Mar 23)
       integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
       real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal,neufac
       common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
      *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal,neufac
       integer bhspinfl,kicktype
       real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
      *      epsnov,eddfac,gamm1
@@ -568,7 +568,7 @@
                         mt = 45.d0
                         FBTOT = mt
                         MCO = mc
-                        mt = 0.9d0*mt
+                        mt = (1.d0 - neufac)*mt
                         mc = mt
        elseif(psflag.eq.2.and.mcbagb.ge.40.d0.and.mcbagb.le.65.d0)then
 * psflag=2 moderate PPSN condition (Leung et al. 2019)
