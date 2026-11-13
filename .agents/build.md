@@ -49,7 +49,7 @@ Also note that `dnl` swallows only the text from itself to the end of the line, 
 
 Executables are in `build/`, named `nbody6++.[simd].[mpi].[gpu].[hdf5]`, e.g. `nbody6++.avx.mpi.gpu`.
 
-CUDA builds get the suffix `.gpu`, HIP builds `.hip`. `NVCC` and `HIPCC` can override the compilers; an explicit backend does not fall back, and `--disable-gpu` must not be combined with an explicit `cuda/hip`. HIP currently targets standard AMD ROCm only; N10k, single/multi-GPU and `GPU_LIST` on real CUDA/ROCm hardware are yet to be verified.
+CUDA builds get the suffix `.gpu`, HIP builds `.hip`. `NVCC` and `HIPCC` can override the compilers; an explicit backend does not fall back, and `--disable-gpu` must not be combined with an explicit `cuda/hip`. HIP currently targets standard AMD ROCm only. Single-GPU CUDA has been verified on real hardware (N15000, `END RUN`, no NaN); multi-GPU, `GPU_LIST` and HIP/ROCm hardware are yet to be verified.
 
 ## CI
 
