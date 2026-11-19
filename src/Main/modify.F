@@ -7,6 +7,7 @@
       INCLUDE 'common6.h'
       EXTERNAL VERIFY
       character*1 level
+      INTEGER KZ29OLD
 *
        NAMELIST /ININPUT/ N, NFIX, NCRIT, NRAND, NNBOPT, NRUN, NCOMM,
      &    ETAI, ETAR, RS0, DTADJ, DELTAT, TCRIT,QE, RBAR, ZMBAR,
@@ -19,6 +20,7 @@
 #endif
 *
 *     Backup values from comm.1 before reading namelist
+      KZ29OLD = KZ(29)
       RBARCURR0 = RBAR
       ZMBARCURR0 = ZMBAR
       NCURR0 = N
@@ -193,6 +195,15 @@
 
 *        Read stellar evolution and collision parameters.
       CALL READSE(LEVEL)
+*
+*     Pulsar: dynamic state (NSCOUNT, NAMENS, ...) comes from the dump
+*     via MYDUMP; control parameters do not persist in the dump and
+*     must be re-read here from an &INPULSAR block in the restart
+*     input, in the same relative stream order as INPUT (ININPUT ->
+*     READSE -> READPULSAR) for a fresh start. No-op when KZ(29)=0.
+      IF (KZ29OLD.EQ.0.AND.KZ(29).GT.0) CALL PSRREG_FATAL(
+     &   'cannot enable pulsars on a restart without PSR history')
+      CALL READPULSAR
 *
 *       Perform a simple validation check on main input parameters.
       CALL VERIFY

@@ -60,6 +60,7 @@
       NNTB = 0
       NMERGE = 0
       NEWHI = 0
+      NSCOUNT = 0
       NSUB = 0
       NCH = 0
       NBIN0 = 0

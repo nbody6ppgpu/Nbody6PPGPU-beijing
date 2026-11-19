@@ -12,7 +12,8 @@
       COMMON/EBSAVE/  EBS
       REAL*8  CM(6),A0(3),A2(3)
       CHARACTER*8  WHICH1
-      LOGICAL FIRST
+      LOGICAL FIRST,REGISTD
+      INTEGER PSRNAME1,PSRNAME2,PSRKW1,PSRKW2
       SAVE FIRST
       DATA FIRST /.TRUE./
 *
@@ -329,6 +330,10 @@ c$$$              ECC = MAX(ECC,0.0D0)
 *       Obtain mass loss and evolution epoch of composite star.
       DM = 0.0D0
       IF (KZ(19).GE.3) THEN
+          PSRNAME1 = NAME(I1)
+          PSRNAME2 = NAME(I2)
+          PSRKW1 = KSTAR(I1)
+          PSRKW2 = KSTAR(I2)
           CALL MIX(I1,I2,DM)
           ICOMP = I1
 *       Note possible switching of I1 and I2 (cf. JLIST).
@@ -559,6 +564,15 @@ C     STEP(I2) = DTMAX
           END IF
           TPREV = TIME - STEPX
       END IF
+*
+*     MIX and the heaviest-body rule above have now finalized the
+*     remnant type, mass and NAME.  Register a new NS or carry forward
+*     an existing pulsar under the surviving identity.
+      IF (KZ(19).GE.3) THEN
+         CALL PSRREG_MERGER(PSRNAME1,PSRNAME2,NAME(I1),
+     &        BODY(I1)*ZMBAR,PSRKW1,PSRKW2,KSTAR(I1),
+     &        (TIME+TOFF)*TSTAR,REGISTD)
+      ENDIF
 *
 *       Check creation of ghost(s) after collision of two white dwarfs.
    32 IF (KSTAR(I1).EQ.15) THEN

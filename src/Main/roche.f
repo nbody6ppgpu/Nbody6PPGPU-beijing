@@ -26,6 +26,15 @@
       common/bse/lambd1,alphac,bhspinfl,kicktype,xk2,xk3,
      *      acc1,acc2,xbeta,xxi,epsnov,eddfac,gamm1
 *
+*     Pulsar: locals for the CE-onset PULSAREVO call (right after
+*     comenv() returns, treating the whole CE episode as one step).
+      INTEGER NSINDEX, PIND
+      LOGICAL PULSAR_CE, NSNEWRLO, REGISTD
+      REAL*8 PERIOD_I, PERIOD_F, B_I, B_F, PDOT_I, PDOT_F
+      REAL*8 PSRMDOT, MCOMP, RCOMP, TROCHENS
+      REAL*8 PSRALPHA, MYR_IN_SEC
+      PARAMETER(PSRALPHA=1.5708D0, MYR_IN_SEC=3.1536D13)
+*
       REAL*8 MCH
       PARAMETER(MCH=1.44D0)
       REAL*8 K2,K3,BETA,XI,AURSUN
@@ -63,6 +72,10 @@
       ISAVE = .FALSE.
       JKICK = 0
       INEW = 0
+*     Pulsar: local (not SAVEd), so this resets every ROCHE call; only
+*     set .TRUE. below on the call where RLOF onset is first detected
+*     for this pair, consumed once by the spin-up hook further down.
+      NSNEWRLO = .FALSE.
 *
 *       Form semi-major axis and eccentricity.
       SEMI = -0.5D0*BODY(I)/H(IPAIR)
@@ -248,6 +261,13 @@
               KSTAR(I) = KSTAR(I) + 1
               NRO = NRO + 1
               INEW = 1
+*     Pulsar: mark the start of a fresh RLOF episode for the spin-up
+*     hook below, which uses this to snapshot AGENS0/BMAGNS0/XMNS0
+*     only once per episode (not every step of an ongoing RLOF).
+              IF (KW1.EQ.13.OR.KW2.EQ.13) THEN
+                 NSNEWRLO = .TRUE.
+                 TROCHENS = TTOT
+              ENDIF
           RI = SQRT((X(1,I) - RDENS(1))**2 +
      &              (X(2,I) - RDENS(2))**2 +
      &              (X(3,I) - RDENS(3))**2)
@@ -562,6 +582,26 @@
          CALL comenv(MASS0(1),MASS(1),MASSC(1),AJ(1),JSPIN(1),KW1,
      &               MASS0(2),MASS(2),MASSC(2),AJ(2),JSPIN(2),KW2,
      &               ECC,SEP,COALS)
+*
+*     Pulsar: this CE event is instantaneous in the Roche clock because
+*     DTM is reset to zero below before the shared TPHYS update.  Do
+*     not evolve AGENSX/BMAGNS/PERIODNS/PDOTNS with the pre-zero DTM
+*     here, otherwise the pulsar clock can run ahead of TPHYS.  Keep
+*     the mass bookkeeping current and emit a CE event record.
+         IF (KW2.EQ.13.AND.KZ(29).GT.0) THEN
+            NSINDEX = -1
+            DO 296 PIND = 1,NSCOUNT
+               IF (NAMENS(PIND).EQ.NAME(J2)) THEN
+                  NSINDEX = PIND
+                  GOTO 297
+               ENDIF
+  296       CONTINUE
+  297       IF (NSINDEX.GT.0) THEN
+               XMNS(NSINDEX) = MASS(2)
+               CALL PSREVENT(4, NSINDEX)
+            ENDIF
+         ENDIF
+*
           if(rank.eq.0)
      &    WRITE (6,25)  TTOT,NAME(J1),NAME(J2),
      &         NAME(I),KW1,KW2,KSTAR(I),
@@ -602,6 +642,12 @@
                JKICK = J2
                KWK = KW2
             ENDIF
+*           Register only after COMENV has committed to a surviving
+*           binary.  COAL handles the final coalesced remnant instead.
+            CALL PSRREG_TRANSITION(NAME(J1),MASS(1),KSTAR(J1),KW1,
+     &           TPHYS,REGISTD)
+            CALL PSRREG_TRANSITION(NAME(J2),MASS(2),KSTAR(J2),KW2,
+     &           TPHYS,REGISTD)
             KSTAR(J1) = KW1
             KSTAR(J2) = KW2
             SEMI = SEP/SU
@@ -1362,6 +1408,10 @@
 *
          AJ(K) = AGE
          IF(KW.NE.KSTAR(J))THEN
+*           Includes accreting NS -> BH, which bypasses IQ/label 68.
+*           Commit registry state before overwriting the old type.
+            CALL PSRREG_TRANSITION(NAME(J),M1,KSTAR(J),KW,
+     &           TPHYS0,REGISTD)
             EPOCH(J) = TPHYS0 - AGE
             KSTAR(J) = KW
             MASS0(K) = M01
@@ -1389,6 +1439,54 @@
          OSPIN(K) = JSPIN(K)/(K2*RADX(K)*RADX(K)*(M1-MC) +
      &                        K3*RCC*RCC*MC)
          SPIN(J) = JSPIN(K)/SPNFAC
+*
+*     Pulsar: spin up a NS accreting via stable RLOF. J.EQ.J2 restricts
+*     this to the accretor (J1 is the donor by construction above).
+*     PSRMDOT uses DM22 (BSE's already-computed accreted mass for this
+*     step) rather than XMNS's own before/after difference, since the
+*     donor's mass-loss scaled by accretion efficiency is the more
+*     accurate accretion-rate proxy (per source comment).
+         IF (KW.EQ.13.AND.KZ(29).GT.0.AND.DTM.GT.0
+     &        .AND.J.EQ.J2) THEN
+            PULSAR_CE = .FALSE.
+            NSINDEX = -1
+            DO 298 PIND = 1,NSCOUNT
+               IF (NAMENS(PIND).EQ.NAME(J)) THEN
+                  NSINDEX = PIND
+                  GOTO 299
+               ENDIF
+  298       CONTINUE
+  299       IF (NSINDEX.LE.0) THEN
+               WRITE(6,*)'WARNING: RLOF pulsar not found in NAMENS ',
+     &              NAME(J), KW, TTOT*TSTAR
+               GOTO 68
+            ENDIF
+            PSRMDOT = DM22/(DTM*MYR_IN_SEC)
+            IF (PSRMDOT.GT.0.0D0) THEN
+               IF (NSNEWRLO) THEN
+                  AGENS0(NSINDEX) = TROCHENS*TSTAR
+                  BMAGNS0(NSINDEX) = BMAGNS(NSINDEX)
+                  XMNS0(NSINDEX) = XMNS(NSINDEX)
+               ENDIF
+               XMNS(NSINDEX) = MASS(K) - DM22
+               AGENSX(NSINDEX) = AGENSX(NSINDEX) + DTM
+               PERIOD_I = PERIODNS(NSINDEX)
+               B_I = BMAGNS(NSINDEX)
+               PDOT_I = PDOTNS(NSINDEX)
+               MCOMP = MASS(3-K)
+               RCOMP = RAD(3-K)
+               CALL PULSAREVO(XMNS(NSINDEX), MCOMP, RCOMP,
+     &              B_I, PERIOD_I, PDOT_I, PSRMDOT, DTM*MYR_IN_SEC,
+     &              PSRALPHA, PULSAR_CE, NAMENS(NSINDEX),
+     &              B_F, PERIOD_F, PDOT_F)
+               PERIODNS(NSINDEX) = PERIOD_F
+               BMAGNS(NSINDEX) = B_F
+               PDOTNS(NSINDEX) = PDOT_F
+               XMNS(NSINDEX) = MASS(K)
+               CALL PSREVENT(3, NSINDEX)
+            ENDIF
+         ENDIF
+*
    68    J = J2
    70 CONTINUE
 *
@@ -1409,6 +1507,9 @@
          TEV(J1) = TPHYS0/TSTAR
          TEV(J2) = TEV(J1)
          KSTAR(I) = KSTAR(I) + 1
+*     Pulsar: register the transition before overwriting its old type.
+         CALL PSRREG_TRANSITION(NAME(JK),BODY(JK)*ZMBAR,KSTAR(JK),
+     &        KWK,TPHYS,REGISTD)
          KSTAR(JK) = KWK
          CH5 = ' KICK'
          if(rank.eq.0)

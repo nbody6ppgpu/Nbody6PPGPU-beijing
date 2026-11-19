@@ -69,7 +69,7 @@ EXTRAOBJ=@EXTRAOBJ@
 #VPATH= ../src/Chain:../src/Nchain:../src/Init:../src/Main:../src/Cloud:../src/GPU:../src/SE:../src/SIMD:../src/Tidal:../src/Tlist:../src/Tools:../src/Ellan:../src/KS:../src/Output:../src/HIR:../include
 VPATH= ../src/Main:../src/Tools:../include
 
-INC = params.h common6.h timing.h commonc.h common2.h kspars.h
+INC = params.h common6.h timing.h commonc.h common2.h kspars.h pulsar_ctrl.h
 
 SOURCE = ${EXTRASRC} nbody6.f file_init.f ellan.f eigenvalue.f indexx.f \
 adjust.f assess.f bindat.f binev.f binout.f binpop.f block.f bodies.f \
@@ -122,7 +122,8 @@ imbhinit.f bhplot.f energy.f kspinit.f kspreg.f counter_reset.f util_gpu.f \
 regcor_gpu.f fpoly0.f tail0.f ntint.f xtrnlt.f fbulge.f steps2.f tstep2.f \
 custom_output.f custom_output_facility.f ksres_op.f kstran.f \
 global_output.f global_params_gether.f \
-fpowercut.f asa147.f fmiyamoto.f fnfw.f fmwpot.f mwpotinit.f pmwpot.f
+fpowercut.f asa147.f fmiyamoto.f fnfw.f fmwpot.f mwpotinit.f pmwpot.f \
+pulsar.f
 
 F90_SOURCE = Lx.f90
 F90_OBJECTS = $(F90_SOURCE:.f90=.o)

@@ -22,7 +22,7 @@
       REAL*8 LUMS(10),TSCLS(20),GB(10),M01,M1,TM,TN,LUM1,LUM2,AJ1,R1,
      &       M02,M2,AJ2,R2,SEP,MI(2),MC1,MC2,RCC
       REAL*8 JSPIN1,JSPIN2,MENV,RENV,K2
-      LOGICAL COALS
+      LOGICAL COALS,REGISTD
 *
 *
 *       Define global indices such that body #I1 is giant-like.
@@ -317,6 +317,12 @@
    61         FORMAT (' HYPERB CHAIN CE    T ',F7.1)
           END IF
 *
+*         Register only after all CE retries have committed to a
+*         surviving binary.
+          CALL PSRREG_TRANSITION(NAME(I1),M1,KSTAR(I1),KW1,
+     &         (TIME+TOFF)*TSTAR,REGISTD)
+          CALL PSRREG_TRANSITION(NAME(I2),M2,KSTAR(I2),KW2,
+     &         (TIME+TOFF)*TSTAR,REGISTD)
           KSTAR(I1) = KW1
           KSTAR(I2) = KW2
           IPHASE = 0
