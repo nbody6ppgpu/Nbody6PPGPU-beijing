@@ -37,10 +37,10 @@
 *       Common Blocks read in READSE (RSp Mar 23)
       integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
       real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal,neufac
       common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
      *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal,neufac
       integer bhspinfl,kicktype
       real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
      *      epsnov,eddfac,gamm1
@@ -568,7 +568,7 @@
                         mt = 45.d0
                         FBTOT = mt
                         MCO = mc
-                        mt = 0.9d0*mt
+                        mt = (1.d0 - neufac)*mt
                         mc = mt
        elseif(psflag.eq.2.and.mcbagb.ge.40.d0.and.mcbagb.le.65.d0)then
 * psflag=2 moderate PPSN condition (Leung et al. 2019)
@@ -581,7 +581,7 @@
      &                     mt = -14.3d0*mcbagb + 938.0d0
                         FBTOT = mt
                         MCO = mc
-                        mt = 0.9d0*mt
+                        mt = (1.d0 - neufac)*mt
                         mc = mt
        elseif(psflag.ge.3.and.mcbagb.ge.40.d0.and.mcbagb.le.65.d0)then
 * psflag=3 weak PPSN condition (Leung et al. 2019)
@@ -594,7 +594,7 @@
      &                     mt = -14.3d0*mcbagb + 938.1d0
                         FBTOT = mt
                         MCO = mc
-                        mt = 0.9d0*mt
+                        mt = (1.d0 - neufac)*mt
                         mc = mt
                else
                   if(nsflag.le.0)then
@@ -704,9 +704,10 @@
                         mt = mcx
                      elseif(mcx.le.mxns+1.0d0)then
                         mc = 1.d0/(0.075d0*mxns + 1.d0)
-                        mt = (0.9d0 - (mxns+1.d0-mcx)*(0.9d0-mc))*mt
+                        mt = ((1.d0 - neufac) - (mxns+1.d0-mcx)*
+     &                       ((1.d0 - neufac)-mc))*mt
                      else
-                        mt = 0.9d0*mt
+                        mt = (1.d0 - neufac)*mt
                      endif
                   endif
                   mc = mt
@@ -823,7 +824,7 @@
                         mt = 45.d0
                         FBTOT = mt
                         MCO = mc
-                        mt = 0.9d0*mt
+                        mt = (1.d0 - neufac)*mt
                         mc = mt
                   elseif(psflag.eq.2.and.
      &                   mass.ge.40.d0.and.mass.le.65.d0)then
@@ -837,7 +838,7 @@
      &                     mt = -14.3d0*mass + 938.0d0
                         FBTOT = mt
                         MCO = mc
-                        mt = 0.9d0*mt
+                        mt = (1.d0 - neufac)*mt
                         mc = mt
                   elseif(psflag.ge.3.and.
      &                   mass.ge.40.d0.and.mass.le.65.d0)then
@@ -851,7 +852,7 @@
      &                     mt = -14.3d0*mass + 938.1d0
                         FBTOT = mt
                         MCO = mc
-                        mt = 0.9d0*mt
+                        mt = (1.d0 - neufac)*mt
                         mc = mt
                   else
                      if(nsflag.le.0)then
@@ -951,9 +952,10 @@
                            mt = mcx
                         elseif(mcx.le.mxns+1.0d0)then
                            mc = 1.d0/(0.075d0*mxns + 1.d0)
-                           mt = (0.9d0 - (mxns+1.d0-mcx)*(0.9d0-mc))*mt
+                           mt = ((1.d0 - neufac) - (mxns+1.d0-mcx)*
+     &                          ((1.d0 - neufac)-mc))*mt
                         else
-                           mt = 0.9d0*mt
+                           mt = (1.d0 - neufac)*mt
                         endif
                      endif
                      mc = mt

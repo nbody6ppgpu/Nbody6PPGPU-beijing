@@ -15,10 +15,10 @@
 * sse parameters for hrdiag, mlwind
       integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
       real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal,neufac
       common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
      *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal,neufac
 *
 #ifdef PARALLEL
 #define MPIINIT 1

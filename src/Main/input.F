@@ -210,13 +210,13 @@ C      end if
 * sse parameters for hrdiag, mlwind
       integer ecflag,wdflag,nsflag,psflag,mdflag,bhflag,kmech,idum
       real*8 mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal,neufac
       common/sse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
      *       kmech,idum,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal
+     *       wdsig1,wdsig2,wdkmax,vvfac,zmetal,neufac
       namelist/insse/ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
      *       kmech,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac
+     *       wdsig1,wdsig2,wdkmax,vvfac,neufac
 * bse parameters for comenv, kick, roche, mdot, coal, mix
       integer bhspinfl,kicktype
       real*8 lambd1,alphac,xk2,xk3,acc1,acc2,xbeta,xxi,
@@ -252,6 +252,7 @@ C      end if
           wdsig2 = 2.d0
           wdkmax = 6.d0
           vvfac = 0.d0     ! vvfac = vfac for kick
+          neufac = 0.1d0  ! note that MOCCA uses 0.01d0
 *
           lambd1 = 0.5d0  ! lambd1 = lambda for comenv
           alphac = 3.d0    ! alphac = alpha1  for comenv
@@ -282,6 +283,7 @@ C      end if
           wdsig2 = 2.d0
           wdkmax = 6.d0
           vvfac = 0.d0     ! vvfac = vfac for kick
+          neufac = 0.1d0  ! note that MOCCA uses 0.01d0
 *
           lambd1 = 0.5d0  ! lambdac = lambda for comenv
           alphac = 3.d0    ! alphac = alpha1  for comenv
@@ -312,6 +314,7 @@ C      end if
           wdsig2 = 2.d0
           wdkmax = 6.d0
           vvfac = 0.d0     ! vvfac = vfac for kick
+          neufac = 0.1d0  ! note that MOCCA uses 0.01d0
 *
           lambd1 = 0.0d0  ! lambd1 = lambda for comenv
           alphac = 1.d0    ! alphac = alpha1  for comenv
@@ -361,12 +364,12 @@ C      end if
 
       write(6,30)ecflag,wdflag,nsflag,psflag,mdflag,bhflag,
      *       kmech,mch,mxns0,mxns1,nwind,bwind,flbv,disp,ecsig,
-     *       wdsig1,wdsig2,wdkmax,vvfac
+     *       wdsig1,wdsig2,wdkmax,vvfac,neufac
  30   format(10X,' SSE FLAGS: EC,WD,NS,PS,MD,BH=',6I4,' KMECH=',I4,/,
      * 10X,' MASSES: Chandra, NS0, NS1=',1P,3D11.2,/,
      * 10X,' WIND PARAMS: NETA, BWIND, FLBV=',
      * 3D11.2,/,10X,' KICK PARAMS: DISP, ECSIG, WDSIG1,2,',
-     * '  WDKMAX, VFAC=',6D11.2,/)
+     * '  WDKMAX, VFAC, NEUFAC=',7D11.2,/)
       write(6,40)lambd1,alphac,bhspinfl,kicktype,xk2,xk3,
      *      acc1,acc2,xbeta,xxi,epsnov,eddfac,gamm1
  40   format(10X,' BSE PARAMS: LAMBDA, ALPHA=',1P,2D11.2,' BHSPINFL,',

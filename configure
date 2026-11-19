@@ -7181,9 +7181,15 @@ else $as_nop
 
     GPU_COMPILER=$HIPCC
     GPUFLAGS="-O3 -fPIC"
-    if test "x$OPENMP_CXXFLAGS" != x
+    if test "x$OPENMP_CXXFLAGS" = "x-fopenmp"
 then :
-  GPUFLAGS="$GPUFLAGS $OPENMP_CXXFLAGS"
+  hip_openmp_flags="-fopenmp=libgomp"
+else $as_nop
+  hip_openmp_flags=$OPENMP_CXXFLAGS
+fi
+    if test "x$hip_openmp_flags" != x
+then :
+  GPUFLAGS="$GPUFLAGS $hip_openmp_flags"
 fi
     if test -z "$hip_prefix"
 then :
