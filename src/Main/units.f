@@ -27,7 +27,8 @@
       TSTAR = SQRT(PC/GM)*PC
       VSTAR = 1.0D-05*SQRT(GM/PC)
 *     Convert time scale from units of seconds to million years.
-      TSTAR = TSTAR/(3.15D+07*1.0D+06)
+*             (two more digits added R.Sp. Nov. 2026)
+      TSTAR = TSTAR/(3.1536D+07*1.0D+06)
 
       IF (KZ(22).LT.10.AND.KZ(19).LT.4) THEN
 *
