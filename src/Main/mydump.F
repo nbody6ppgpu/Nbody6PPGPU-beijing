@@ -79,17 +79,17 @@
          TTOT = CC(158)
          DTADJ = CC(3)
          IF(J0.EQ.0)THEN
-           J = J0 + 200
+           J = J0
            J0 = 1
          END IF
          J = J + 1
          NCOMM = IA(16)
-         IF(MOD(J-201,NCOMM).EQ.0)THEN
+         IF(MOD(J,NCOMM).EQ.0)THEN
          call string_left(TCHAR,TTOT,DTADJ)
          write(FILE(JUNIT),118) FRAG(JUNIT),TCHAR
  118     format(A7,A20)
          print*,' MYDUMP ',TTOT,TCHAR,J,FILE(JUNIT)
-      OPEN (UNIT=J,STATUS='UNKNOWN',FORM='UNFORMATTED',FILE=FILE(JUNIT))
+      OPEN (UNIT=JUNIT,STATUS='UNKNOWN',FORM='UNFORMATTED',FILE=FILE(JUNIT))
 *
 *     Also write params.h to help data transfer
             NPARTMP(1) = NMAX
@@ -167,8 +167,8 @@
         write (J) (XMOLDA(i),i=1,ntot),(KWOLDA(i),i=1,ntot),
      &            (XMOLDB(i),i=1,ntot),(KWOLDB(i),i=1,ntot)
 *
-        END FILE J
-        CLOSE (UNIT=J)
+        END FILE JUNIT
+        CLOSE (UNIT=JUNIT)
         END IF
         end if
 *
