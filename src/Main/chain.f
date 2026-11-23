@@ -421,7 +421,8 @@
           DO 402 K = 1,N-1
               RI(K) = SQRT(X(KK+1)**2 + X(KK+2)**2 + X(KK+3)**2)
               VI(K) = SQRT(V(KK+1)**2 + V(KK+2)**2 + V(KK+3)**2)
-  402     KK = KK + 3
+          KK = KK + 3
+  402     CONTINUE
           WRITE (6,400) STEP,TMAX-CHTIME,GPERT,
      &       (NAMEC(K),1.0/RINV(K),K=1,N-1),NAMEC(N)
   400 FORMAT (' CHAIN: STEP TM-CHT G NAMEC R',1P,3E13.5,6(I10,E13.5))
@@ -848,7 +849,8 @@
           DO 304 K = 1,N
           RI(K) = SQRT(X(KK+1)**2 + X(KK+2)**2 + X(KK+3)**2)
           VI(K) = SQRT(V(KK+1)**2 + V(KK+2)**2 + V(KK+3)**2)
-  304     KK = KK + 3
+          KK = KK + 3
+  304     CONTINUE
        if(rank.eq.0)
      & WRITE(6,303)TIMENB,CHTIME,(K,M(K),SIZE(K),RI(K),VI(K),K=1,N)
   303  FORMAT(' CHEND: TNB,TC[NB] K,M,R[*],R,V[NB-CH]=',
