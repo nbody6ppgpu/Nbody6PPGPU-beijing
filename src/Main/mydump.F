@@ -18,7 +18,7 @@
      &    NG=132,NL=99,NO=20*MCL+16,NP=32*NTMAX,NQ=31*MMAX,
      &    NS=44*MMAX)
       REAL*4  B,C,D,E,G,L,M,O,P,Q,S
-      INTEGER K,I,NPARTMP(10),KSTAR,NCOMM,IA
+      INTEGER K,I,NPARTMP(10),KSTAR,NCOMM,IA,JJ
 *
 #ifdef PARALLEL
       integer iinl,iisize,inl,istart,iend,ilen,irun,idiff,jsize
@@ -70,6 +70,7 @@
       DATA J0/0/
       SAVE J
 *
+      IUNIT = JUNIT
 *       Read or save all COMMON variables (valid for tape or disc).
       IF (II.NE.0) THEN
 
@@ -79,17 +80,19 @@
          TTOT = CC(158)
          DTADJ = CC(3)
          IF(J0.EQ.0)THEN
-           J = J0
+           JJ = J0
            J0 = 1
          END IF
-         J = J + 1
+         JJ = JJ + 1
          NCOMM = IA(16)
-         IF(MOD(J,NCOMM).EQ.0)THEN
+         IF(MOD(JJ,NCOMM).EQ.0)THEN
          call string_left(TCHAR,TTOT,DTADJ)
          write(FILE(JUNIT),118) FRAG(JUNIT),TCHAR
  118     format(A7,A20)
          print*,' MYDUMP ',TTOT,TCHAR,J,FILE(JUNIT)
-      OPEN (UNIT=JUNIT,STATUS='UNKNOWN',FORM='UNFORMATTED',FILE=FILE(JUNIT))
+         IF(FILE(JUNIT).EQ.'comm.1_')J=1
+         IF(FILE(JUNIT).EQ.'comm.2_')J=2
+      OPEN (UNIT=J,STATUS='UNKNOWN',FORM='UNFORMATTED',FILE=FILE(JUNIT))
 *
 *     Also write params.h to help data transfer
             NPARTMP(1) = NMAX
@@ -167,8 +170,8 @@
         write (J) (XMOLDA(i),i=1,ntot),(KWOLDA(i),i=1,ntot),
      &            (XMOLDB(i),i=1,ntot),(KWOLDB(i),i=1,ntot)
 *
-        END FILE JUNIT
-        CLOSE (UNIT=JUNIT)
+        END FILE IUNIT
+        CLOSE (UNIT=IUNIT)
         END IF
         end if
 *
