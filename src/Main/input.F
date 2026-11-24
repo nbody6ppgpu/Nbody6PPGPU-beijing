@@ -264,6 +264,8 @@ C      end if
           bwind = 0.d0
           flbv = 1.5d0
           kmech = 1
+* Note that 265 is an obsolete value (see level C), but kept here for
+* downward compatibility. RSp Nov. 2026 
           disp = 265.d0
           ecsig = 3.d0
           wdsig1 = 2.d0
@@ -295,7 +297,9 @@ C      end if
           bwind = 0.d0
           flbv = 1.5d0
           kmech = 4
-          disp = 265.d0
+* Due to Disberg & Mandel 2025, ApJL 989, L8, Table E1 we change disp to 217
+* km/s, because Hobbs et al. 2005 shown to be wrong. RSp Nov. 2026
+          disp = 217.d0
           ecsig = 3.d0
           wdsig1 = 2.d0
           wdsig2 = 2.d0
