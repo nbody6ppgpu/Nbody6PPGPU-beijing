@@ -70,7 +70,6 @@
       DATA J0/0/
       SAVE J
 *
-      IUNIT = JUNIT
 *       Read or save all COMMON variables (valid for tape or disc).
       IF (II.NE.0) THEN
 
