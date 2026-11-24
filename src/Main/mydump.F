@@ -90,8 +90,8 @@
          write(FILE(JUNIT),118) FRAG(JUNIT),TCHAR
  118     format(A7,A20)
          print*,' MYDUMP ',TTOT,TCHAR,J,FILE(JUNIT)
-         IF(FILE(JUNIT).EQ.'comm.1_')J=1
-         IF(FILE(JUNIT).EQ.'comm.2_')J=2
+         IF(FRAG(JUNIT).EQ.'comm.1_')J=1
+         IF(FRAG(JUNIT).EQ.'comm.2_')J=2
       OPEN (UNIT=J,STATUS='UNKNOWN',FORM='UNFORMATTED',FILE=FILE(JUNIT))
 *
 *     Also write params.h to help data transfer
