@@ -170,8 +170,8 @@
         write (J) (XMOLDA(i),i=1,ntot),(KWOLDA(i),i=1,ntot),
      &            (XMOLDB(i),i=1,ntot),(KWOLDB(i),i=1,ntot)
 *
-        END FILE IUNIT
-        CLOSE (UNIT=IUNIT)
+        END FILE J
+        CLOSE (UNIT=J)
         END IF
         end if
 *
