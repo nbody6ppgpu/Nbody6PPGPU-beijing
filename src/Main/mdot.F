@@ -1036,8 +1036,9 @@ c$$$            end if
 *                  IGPUSWITCH = .true.
 *#endif                  
                   KS = 1
-               ELSE IF (DABS(DM).GT.DMMIN) THEN
-*       Implement mass loss and expand KS orbit at constant eccentricity.
+               ELSE IF (DM.NE.0.0D0) THEN
+C       ICORR already accepted this relative mass change. Keep the KS
+C       mass, orbit and energy consistent even for small absolute DM.
                   CALL HCORR(I,DM,RNEW)
                   ITRY = 1
                END IF
@@ -1088,7 +1089,8 @@ c$$$            end if
                BODY(J) = BODY(J) - DM
             ENDIF
             BODY0(I) = M0/ZMBAR
-            IF(DMSUN.LT.TOL) GOTO 250
+C       Accretion has negative DMSUN and needs the same accounting.
+            IF(ABS(DMSUN).LT.TOL) GOTO 250
 *
 *       Accumulate total mass loss (solar units) and reduce cluster mass.
             ZMDOT = ZMDOT + DMSUN
@@ -1176,7 +1178,11 @@ C            END IF
             IF (KW.EQ.13.OR.KW.EQ.14) IKICK = .TRUE.
 *
 *       Perform total force & energy corrections (delay dF if DMSUN > 0.1).
-            IF (DMSUN.LE.0.05.AND.(KW.LT.10.OR..NOT.IKICK)) THEN
+C       Accretion uses local correction even for compact objects:
+C       FCORR may invoke natal-kick handling for a KS centre of mass.
+            IF (DMSUN.LT.0.0D0.OR.
+     &          (ABS(DMSUN).LE.0.05.AND.
+     &           (KW.LT.10.OR..NOT.IKICK))) THEN
                call cputim(tttfia)
                CALL FICORR(I,DM)
                call cputim(tttfib)
