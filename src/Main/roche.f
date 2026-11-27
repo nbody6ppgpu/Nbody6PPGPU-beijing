@@ -1585,7 +1585,7 @@
 *     --02/28/13 9:58-lwang-add----------------------------------------*
 ***** Note:add---------------------------------------------------------**
 * Perform coalescence check after shrinkage.
-               IF (RAD(1)+RAD(2).LT.SEP)THEN
+               IF (RAD(1)+RAD(2).GT.SEP)THEN
                   IXXX = 8
                   COALS = .TRUE.
 * Abbas bug fix ---------------------
